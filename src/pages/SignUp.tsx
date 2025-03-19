@@ -3,70 +3,67 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Phone } from 'lucide-react';
+import { ArrowRight, Mail } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from '@/context/AuthContext';
 
 const SignUp = () => {
-  const [step, setStep] = useState(1);
-  const [authMethod, setAuthMethod] = useState<'email' | 'phone' | null>(null);
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
   
-  const handleNext = () => {
-    if (step === 1) {
-      if (authMethod === 'email' && !email) {
-        toast({
-          title: "Email required",
-          description: "Please enter your email address",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      if (authMethod === 'phone' && !phone) {
-        toast({
-          title: "Phone required",
-          description: "Please enter your phone number",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Simulate sending verification code
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
       toast({
-        title: "Verification code sent",
-        description: authMethod === 'email' ? 
-          `We've sent a code to ${email}` : 
-          `We've sent a code to ${phone}`
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive"
       });
-      
-      setStep(2);
       return;
     }
     
-    if (step === 2) {
-      if (!verificationCode) {
-        toast({
-          title: "Code required",
-          description: "Please enter the verification code",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Simulate verification
-      if (verificationCode === '1234') { // Demo only - in real app would verify with backend
-        navigate('/onboarding');
-      } else {
-        toast({
-          title: "Invalid code",
-          description: "Please enter the correct verification code",
-          variant: "destructive"
-        });
-      }
+    if (!password) {
+      toast({
+        title: "Password required",
+        description: "Please enter a password",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      await signUp(email, password);
+      navigate('/onboarding');
+    } catch (error) {
+      console.error('Sign up error:', error);
+      // Error handling is done in the useAuth hook
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -79,104 +76,54 @@ const SignUp = () => {
         </div>
         
         <div className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-scale-in">
-          {step === 1 && (
-            <>
-              <h2 className="text-2xl font-semibold mb-6">Create your account</h2>
-              
-              <div className="space-y-4 mb-8">
-                <div 
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                    authMethod === 'email' 
-                      ? 'border-[#3A86FF] bg-[#3A86FF]/10' 
-                      : 'border-border hover:border-[#3A86FF]/50'
-                  }`}
-                  onClick={() => setAuthMethod('email')}
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-[#3A86FF]/20 flex items-center justify-center mr-3">
-                      <Mail className="w-5 h-5 text-[#3A86FF]" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Continue with Email</h3>
-                      <p className="text-sm text-muted-foreground">We'll send a verification code</p>
-                    </div>
-                  </div>
-                  
-                  {authMethod === 'email' && (
-                    <div className="mt-4">
-                      <Input 
-                        type="email" 
-                        placeholder="Your email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)} 
-                      />
-                    </div>
-                  )}
-                </div>
-                
-                <div 
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                    authMethod === 'phone' 
-                      ? 'border-[#3A86FF] bg-[#3A86FF]/10' 
-                      : 'border-border hover:border-[#3A86FF]/50'
-                  }`}
-                  onClick={() => setAuthMethod('phone')}
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-[#3A86FF]/20 flex items-center justify-center mr-3">
-                      <Phone className="w-5 h-5 text-[#3A86FF]" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Continue with Phone</h3>
-                      <p className="text-sm text-muted-foreground">We'll send a verification code</p>
-                    </div>
-                  </div>
-                  
-                  {authMethod === 'phone' && (
-                    <div className="mt-4">
-                      <Input 
-                        type="tel" 
-                        placeholder="Your phone number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)} 
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
+          <h2 className="text-2xl font-semibold mb-6">Create your account</h2>
           
-          {step === 2 && (
-            <>
-              <h2 className="text-2xl font-semibold mb-6">Enter verification code</h2>
-              
-              <p className="text-muted-foreground mb-4">
-                We've sent a code to {authMethod === 'email' ? email : phone}
-              </p>
-              
-              <div className="mb-8">
-                <Input 
-                  type="text" 
-                  placeholder="Enter 4-digit code"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  className="text-center text-lg py-6"
-                  maxLength={4}
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
                 />
-                <p className="text-sm text-muted-foreground mt-2 text-center">
-                  Didn't receive a code? <button className="text-[#3A86FF]">Resend</button>
-                </p>
               </div>
-            </>
-          )}
-          
-          <Button 
-            onClick={handleNext}
-            className="w-full bg-[#3A86FF] hover:bg-[#3A86FF]/90"
-          >
-            {step === 1 ? 'Continue' : 'Verify'} <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">Password</label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+            
+            <Button 
+              type="submit"
+              className="w-full bg-[#3A86FF] hover:bg-[#3A86FF]/90"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating account...' : 'Sign Up'} {!isLoading && <ArrowRight className="ml-2 w-4 h-4" />}
+            </Button>
+          </form>
           
           <div className="mt-4 text-center text-sm">
             <p className="text-muted-foreground">

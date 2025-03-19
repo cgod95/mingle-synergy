@@ -1,36 +1,24 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
   
-  // Check if user is authenticated (mock for now)
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  
-  useEffect(() => {
-    if (isAuthenticated) {
-      // If authenticated, redirect to venues page
-      navigate('/venues');
-    }
-  }, [isAuthenticated, navigate]);
-  
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold text-[#3A86FF] mb-2">Proximity</h1>
-          <p className="text-muted-foreground text-lg">Connect with people in the real world</p>
-        </div>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md text-center">
+        <h1 className="text-4xl font-bold text-[#3A86FF] mb-4">Proximity</h1>
+        <p className="text-xl mb-8">Connect with people in real world venues</p>
         
-        <div className="w-full max-w-md space-y-4 animate-scale-in" style={{ animationDelay: '100ms' }}>
+        <div className="space-y-4">
           <Button 
             onClick={() => navigate('/sign-up')}
-            className="w-full py-6 bg-[#3A86FF] hover:bg-[#3A86FF]/90 text-lg"
+            className="w-full bg-[#3A86FF] hover:bg-[#3A86FF]/90 py-6 text-lg"
           >
-            Create Account <ArrowRight className="ml-2" />
+            Create Account <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
           
           <Button 
@@ -42,7 +30,7 @@ const Index = () => {
           </Button>
         </div>
         
-        <p className="mt-8 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '200ms' }}>
+        <p className="text-sm text-muted-foreground mt-8">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
