@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { matches, users } from '@/data/mockData';
+import { matches, users, venues } from '@/data/mockData';
 import { User, Match as MatchType } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
+import { Heart } from 'lucide-react';
 
 const Matches = () => {
   const currentUserId = 'u1'; // In a real app, this would come from auth
