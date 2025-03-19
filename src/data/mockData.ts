@@ -65,54 +65,120 @@ export const users: User[] = [
     id: 'u1',
     name: 'Alex',
     photos: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'],
+    bio: 'Coffee enthusiast and book lover',
     isCheckedIn: true,
     currentVenue: 'v1',
     isVisible: true,
-    interests: ['coffee', 'books']
+    interests: ['coffee', 'books'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 28,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: ['u2'],
+    likedUsers: ['u2'],
+    blockedUsers: []
   },
   {
     id: 'u2',
     name: 'Jordan',
     photos: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330'],
+    bio: 'Art lover and photographer',
     isCheckedIn: true,
     currentVenue: 'v1',
     isVisible: true,
-    interests: ['art', 'photography']
+    interests: ['art', 'photography'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 26,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: ['u1'],
+    likedUsers: ['u1'],
+    blockedUsers: []
   },
   {
     id: 'u3',
     name: 'Taylor',
     photos: ['https://images.unsplash.com/photo-1539571696357-5a69c17a67c6'],
+    bio: 'Music lover and cocktail enthusiast',
     isCheckedIn: true,
     currentVenue: 'v2',
     isVisible: false,
-    interests: ['music', 'cocktails']
+    interests: ['music', 'cocktails'],
+    gender: 'non-binary',
+    interestedIn: ['male', 'female', 'non-binary'],
+    age: 29,
+    ageRangePreference: {
+      min: 25,
+      max: 40
+    },
+    matches: [],
+    likedUsers: ['u4'],
+    blockedUsers: []
   },
   {
     id: 'u4',
     name: 'Morgan',
     photos: ['https://images.unsplash.com/photo-1534528741775-53994a69daeb'],
+    bio: 'Adventure seeker and world traveler',
     isCheckedIn: true,
     currentVenue: 'v2',
     isVisible: true,
-    interests: ['hiking', 'travel']
+    interests: ['hiking', 'travel'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 31,
+    ageRangePreference: {
+      min: 28,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
   },
   {
     id: 'u5',
     name: 'Casey',
     photos: ['https://images.unsplash.com/photo-1519345182560-3f2917c472ef'],
+    bio: 'Fitness enthusiast and health advocate',
     isCheckedIn: true,
     currentVenue: 'v3',
     isVisible: true,
-    interests: ['fitness', 'health']
+    interests: ['fitness', 'health'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 33,
+    ageRangePreference: {
+      min: 28,
+      max: 40
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
   },
   {
     id: 'u6',
     name: 'Riley',
     photos: ['https://images.unsplash.com/photo-1544005313-94ddf0286df2'],
+    bio: 'Foodie and wine connoisseur',
     isCheckedIn: false,
     isVisible: true,
-    interests: ['food', 'wine']
+    interests: ['food', 'wine'],
+    gender: 'female',
+    interestedIn: ['male', 'female'],
+    age: 27,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
   }
 ];
 
@@ -124,7 +190,8 @@ export const interests: Interest[] = [
     toUserId: 'u2',
     venueId: 'v1',
     timestamp: Date.now() - 1000 * 60 * 5, // 5 minutes ago
-    isActive: true
+    isActive: true,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 3 // Expires in 3 hours
   },
   {
     id: 'i2',
@@ -132,7 +199,8 @@ export const interests: Interest[] = [
     toUserId: 'u1',
     venueId: 'v1',
     timestamp: Date.now() - 1000 * 60 * 3, // 3 minutes ago
-    isActive: true
+    isActive: true,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 3 // Expires in 3 hours
   },
   {
     id: 'i3',
@@ -140,7 +208,8 @@ export const interests: Interest[] = [
     toUserId: 'u4',
     venueId: 'v2',
     timestamp: Date.now() - 1000 * 60 * 10, // 10 minutes ago
-    isActive: true
+    isActive: true,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 3 // Expires in 3 hours
   }
 ];
 
@@ -153,7 +222,8 @@ export const matches: Match[] = [
     venueId: 'v1',
     timestamp: Date.now() - 1000 * 60 * 2, // 2 minutes ago
     isActive: true,
-    expiresAt: Date.now() + 1000 * 60 * 60 * 3 // Expires in 3 hours
+    expiresAt: Date.now() + 1000 * 60 * 60 * 3, // Expires in 3 hours
+    contactShared: false
   }
 ];
 

@@ -61,7 +61,8 @@ const ActiveVenue = () => {
           venueId: id || '',
           timestamp: Date.now(),
           isActive: true,
-          expiresAt: Date.now() + 1000 * 60 * 60 * 3 // 3 hours
+          expiresAt: Date.now() + 1000 * 60 * 60 * 3, // 3 hours
+          contactShared: false
         };
         
         setMatches([...matches, newMatch]);
