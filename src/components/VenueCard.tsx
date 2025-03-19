@@ -1,20 +1,41 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Clock } from 'lucide-react';
+import { Users, Clock, MapPin } from 'lucide-react';
 import { Venue } from '@/types';
 import { cn } from '@/lib/utils';
 
 interface VenueCardProps {
   venue: Venue;
   className?: string;
+  onCheckIn?: (venueId: string, zoneName?: string) => void;
 }
 
-const VenueCard: React.FC<VenueCardProps> = ({ venue, className }) => {
+const VenueCard: React.FC<VenueCardProps> = ({ venue, className, onCheckIn }) => {
   const navigate = useNavigate();
   
-  const handleClick = () => {
+  // Get timer based on venue type
+  const getExpiryHours = (type: string) => {
+    switch (type) {
+      case 'cafe': return 1;
+      case 'bar': return 3;
+      case 'restaurant': return 2;
+      case 'gym': return 2;
+      default: return 3;
+    }
+  };
+  
+  const handleCardClick = () => {
     navigate(`/venue/${venue.id}`);
+  };
+  
+  const handleCheckIn = (e: React.MouseEvent, zoneName?: string) => {
+    e.stopPropagation();
+    if (onCheckIn) {
+      onCheckIn(venue.id, zoneName);
+    } else {
+      navigate(`/venue/${venue.id}`);
+    }
   };
   
   return (
@@ -23,7 +44,7 @@ const VenueCard: React.FC<VenueCardProps> = ({ venue, className }) => {
         "group relative overflow-hidden rounded-xl bg-card shadow-sm border border-border/50 hover:shadow-md transition-all duration-300 cursor-pointer animate-scale-in",
         className
       )}
-      onClick={handleClick}
+      onClick={handleCardClick}
     >
       <div className="aspect-video w-full overflow-hidden">
         <img 
@@ -41,17 +62,38 @@ const VenueCard: React.FC<VenueCardProps> = ({ venue, className }) => {
         
         <p className="text-sm text-muted-foreground mb-2 truncate">{venue.address}</p>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1 text-primary text-sm">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-1 text-[#3A86FF] text-sm">
             <Users size={16} />
             <span>{venue.checkInCount} people</span>
           </div>
           
           <div className="flex items-center space-x-1 text-muted-foreground text-sm">
             <Clock size={16} />
-            <span>{venue.expiryTime / 60} hrs</span>
+            <span>{getExpiryHours(venue.type)} hrs</span>
           </div>
         </div>
+        
+        {venue.zones && venue.zones.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {venue.zones.map((zone) => (
+              <button
+                key={zone.id}
+                className="py-1.5 px-2 text-xs bg-[#002855]/10 text-[#002855] rounded-full hover:bg-[#3A86FF]/20 transition-colors flex items-center justify-center"
+                onClick={(e) => handleCheckIn(e, zone.name)}
+              >
+                <MapPin size={12} className="mr-1" /> {zone.name}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <button
+            className="w-full py-2 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center"
+            onClick={(e) => handleCheckIn(e)}
+          >
+            Check In
+          </button>
+        )}
       </div>
     </div>
   );

@@ -7,8 +7,19 @@ export interface User {
   bio?: string;
   isCheckedIn: boolean;
   currentVenue?: string;
+  currentZone?: string;
   isVisible: boolean;
   interests: string[];
+  gender: 'male' | 'female' | 'non-binary' | 'other';
+  interestedIn: ('male' | 'female' | 'non-binary' | 'other')[];
+  age: number;
+  ageRangePreference: {
+    min: number;
+    max: number;
+  };
+  matches: string[]; // IDs of matched users
+  likedUsers: string[]; // IDs of users this user has liked
+  blockedUsers: string[]; // IDs of users this user has blocked
 }
 
 // Venue types
@@ -20,6 +31,13 @@ export interface Venue {
   image: string;
   checkInCount: number;
   expiryTime: number; // in minutes
+  zones?: VenueZone[];
+}
+
+export interface VenueZone {
+  id: string;
+  name: string;
+  description?: string;
 }
 
 // Match types
@@ -31,6 +49,7 @@ export interface Match {
   timestamp: number;
   isActive: boolean;
   expiresAt: number;
+  contactShared: boolean;
 }
 
 // Interest expression
@@ -41,4 +60,22 @@ export interface Interest {
   venueId: string;
   timestamp: number;
   isActive: boolean;
+  expiresAt: number;
+}
+
+// Auth types
+export interface AuthState {
+  isAuthenticated: boolean;
+  userId?: string;
+  isLoading: boolean;
+}
+
+// User report
+export interface UserReport {
+  id: string;
+  reportingUserId: string;
+  reportedUserId: string;
+  reason: 'inappropriate' | 'harassment' | 'fake' | 'other';
+  description?: string;
+  timestamp: number;
 }

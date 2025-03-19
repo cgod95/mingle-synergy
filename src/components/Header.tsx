@@ -13,7 +13,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center">
           <div 
-            className="text-primary font-semibold text-xl cursor-pointer animate-fade-in"
+            className="text-[#3A86FF] font-semibold text-xl cursor-pointer animate-fade-in"
             onClick={() => navigate('/')}
           >
             Proximity
@@ -25,8 +25,8 @@ const Header: React.FC = () => {
             onClick={() => navigate('/')}
             className={cn(
               "p-3 rounded-full transition-all duration-300",
-              location.pathname === '/' 
-                ? "text-primary bg-secondary" 
+              location.pathname === '/' || location.pathname === '/venues' || location.pathname.startsWith('/venue/') 
+                ? "text-[#3A86FF] bg-secondary" 
                 : "text-foreground/70 hover:bg-secondary hover:text-foreground"
             )}
             aria-label="Home"
@@ -35,30 +35,30 @@ const Header: React.FC = () => {
           </button>
           
           <button
-            onClick={() => navigate('/profile')}
-            className={cn(
-              "p-3 rounded-full transition-all duration-300",
-              location.pathname === '/profile' 
-                ? "text-primary bg-secondary" 
-                : "text-foreground/70 hover:bg-secondary hover:text-foreground"
-            )}
-            aria-label="Profile"
-          >
-            <User size={20} />
-          </button>
-          
-          <button
             onClick={() => navigate('/matches')}
             className={cn(
               "p-3 rounded-full transition-all duration-300 relative",
               location.pathname === '/matches' 
-                ? "text-primary bg-secondary" 
+                ? "text-[#3A86FF] bg-secondary" 
                 : "text-foreground/70 hover:bg-secondary hover:text-foreground"
             )}
             aria-label="Matches"
           >
             <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+            <span className="absolute top-1 right-1 w-2 h-2 bg-[#FF5A5F] rounded-full"></span>
+          </button>
+          
+          <button
+            onClick={() => navigate('/profile')}
+            className={cn(
+              "p-3 rounded-full transition-all duration-300",
+              location.pathname === '/profile' 
+                ? "text-[#3A86FF] bg-secondary" 
+                : "text-foreground/70 hover:bg-secondary hover:text-foreground"
+            )}
+            aria-label="Profile"
+          >
+            <User size={20} />
           </button>
         </nav>
       </div>
