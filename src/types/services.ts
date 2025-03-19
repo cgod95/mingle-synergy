@@ -1,4 +1,6 @@
 
+import { Venue, Match, User as AppUser } from '@/types';
+
 // Service layer interfaces for abstraction and testing
 export interface AuthService {
   signIn: (email: string, password: string) => Promise<UserCredential>;
