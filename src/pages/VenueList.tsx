@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
 import { venues } from '@/data/mockData';
 import { Venue } from '@/types';
-import { Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const VenueList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,14 +47,12 @@ const VenueList = () => {
   ];
   
   return (
-    <div className="min-h-screen bg-background text-foreground pt-16 pb-8">
-      <Header />
+    <div className="min-h-screen bg-background text-foreground pt-16 pb-24">
+      <Header title="Discover" />
       
       <main className="container mx-auto px-4 mt-6">
         <div className="flex flex-col gap-6">
           <section>
-            <h1 className="text-3xl font-semibold mb-6 animate-fade-in">All Venues</h1>
-            
             <div className="relative w-full mb-6 animate-slide-up">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <Search className="w-5 h-5 text-muted-foreground" />
