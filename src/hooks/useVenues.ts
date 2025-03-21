@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { venues } from '@/data/mockData';
 import { Venue } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from 'react-router-dom';
 
 // Define types
 interface VenueHookReturn {
@@ -19,6 +20,7 @@ export function useVenues(): VenueHookReturn {
   const [currentVenue, setCurrentVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Simulate loading
@@ -44,6 +46,9 @@ export function useVenues(): VenueHookReturn {
         title: zoneName ? `Checked into ${zoneName} at ${venue.name}` : `Checked into ${venue.name}`,
         description: "You're now visible at this venue for the next few hours.",
       });
+      
+      // Navigate to venue details page
+      navigate(`/venue/${venueId}`);
     }
   };
 

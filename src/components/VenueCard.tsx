@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Users, Clock, MapPin } from 'lucide-react';
 import { Venue } from '@/types';
 import { cn } from '@/lib/utils';
@@ -18,8 +16,6 @@ const VenueCard: React.FC<VenueCardProps> = ({
   onCheckIn,
   simplified = false
 }) => {
-  const navigate = useNavigate();
-  
   // Get timer based on venue type
   const getExpiryHours = (type: string) => {
     switch (type) {
@@ -32,15 +28,15 @@ const VenueCard: React.FC<VenueCardProps> = ({
   };
   
   const handleCardClick = () => {
-    navigate(`/venue/${venue.id}`);
+    if (onCheckIn) {
+      onCheckIn(venue.id);
+    }
   };
   
   const handleCheckIn = (e: React.MouseEvent, zoneName?: string) => {
     e.stopPropagation();
     if (onCheckIn) {
       onCheckIn(venue.id, zoneName);
-    } else {
-      navigate(`/venue/${venue.id}`);
     }
   };
   

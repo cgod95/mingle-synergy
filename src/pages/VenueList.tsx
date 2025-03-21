@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
@@ -41,10 +40,8 @@ const VenueList = () => {
   }, [searchQuery, activeFilter, nearbyVenues]);
   
   const handleQuickCheckIn = (venueId: string, zoneName?: string) => {
+    // The navigation is now handled in the useVenues hook
     checkInToVenue(venueId, zoneName);
-    
-    // Navigate to venue page
-    window.location.href = `/venue/${venueId}`;
   };
   
   const toggleVisibility = () => {
