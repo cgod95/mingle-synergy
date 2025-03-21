@@ -28,10 +28,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  // Load user from localStorage on initial mount
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error loading user from localStorage:', error);
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Subscribe to auth state changes
   useEffect(() => {
     const unsubscribe = authService.auth.onAuthStateChanged((user) => {
-      setCurrentUser(user);
-      setIsLoading(false);
+      if (user) {
+        setCurrentUser(user);
+        // Save user to localStorage for persistence
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      }
     });
 
     return unsubscribe;
@@ -40,7 +58,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = async (email: string, password: string): Promise<void> => {
     try {
       setIsLoading(true);
-      await authService.auth.signIn(email, password);
+      const result = await authService.auth.signIn(email, password);
+      setCurrentUser(result.user);
+      // Save user to localStorage for persistence
+      localStorage.setItem('currentUser', JSON.stringify(result.user));
+      toast({
+        title: 'Signed in successfully',
+        description: 'Welcome back!',
+      });
     } catch (error) {
       toast({
         title: 'Sign in failed',
@@ -56,7 +81,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signUp = async (email: string, password: string): Promise<void> => {
     try {
       setIsLoading(true);
-      await authService.auth.signUp(email, password);
+      const result = await authService.auth.signUp(email, password);
+      setCurrentUser(result.user);
+      // Save user to localStorage for persistence
+      localStorage.setItem('currentUser', JSON.stringify(result.user));
+      toast({
+        title: 'Account created successfully',
+        description: 'Welcome to Proximity!',
+      });
     } catch (error) {
       toast({
         title: 'Sign up failed',
@@ -72,6 +104,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signOut = async (): Promise<void> => {
     try {
       await authService.auth.signOut();
+      // Remove user from localStorage
+      localStorage.removeItem('currentUser');
+      setCurrentUser(null);
+      toast({
+        title: 'Signed out',
+        description: 'You have been signed out successfully',
+      });
     } catch (error) {
       toast({
         title: 'Sign out failed',

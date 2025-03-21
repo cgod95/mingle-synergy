@@ -24,7 +24,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
   const navigate = useNavigate();
   
   const handleCardClick = () => {
-    // Navigate directly to SimpleVenueView
+    // Navigate directly to SimpleVenueView for reliable user display
     navigate(`/simple-venue/${venue.id}`);
   };
   
@@ -41,6 +41,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
       onClick={handleCardClick}
     >
       <div className="aspect-video w-full overflow-hidden">
+        {/* Implement lazy loading for venue images */}
         <img 
           src={venue.image + "?auto=format&fit=crop&w=600&q=80"} 
           alt={venue.name}
@@ -72,6 +73,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
                   src={user.photos[0] + "?w=100&h=100&q=80"} 
                   alt={user.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
             ))}

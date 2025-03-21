@@ -16,26 +16,39 @@ import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
 import Onboarding from "./pages/Onboarding";
 import Matches from "./pages/Matches";
+import { lazy, Suspense, useState, useEffect } from "react";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-// Protected route component for testing - automatically passes through to children
+// Lazy load components that aren't immediately needed
+const LazyMatches = lazy(() => import("./pages/Matches"));
+const LazyProfile = lazy(() => import("./pages/Profile"));
+
+// Protected route with proper error handling
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, isLoading } = useAuth();
   
   if (isLoading) {
-    // Could add a loading spinner here
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin w-8 h-8 border-4 border-[#3A86FF] border-t-transparent rounded-full"></div>
+    </div>;
   }
   
-  // Bypassing auth check for development
+  // For development, bypass auth checks
   return <>{children}</>;
 };
 
-// Layout component that conditionally renders BottomNav
+// Layout component with error boundary
 const AppLayout = () => {
   const location = useLocation();
-  const { currentUser } = useAuth();
   
   // Simple check to see if user is on auth/onboarding pages
   const isAuthPage = () => {
@@ -43,14 +56,33 @@ const AppLayout = () => {
   };
 
   return (
-    <>
+    <ErrorBoundary
+      fallback={<div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+        <p className="text-muted-foreground mb-4">The application encountered an unexpected error.</p>
+        <button 
+          onClick={() => window.location.href = '/venues'}
+          className="px-4 py-2 bg-[#3A86FF] text-white rounded-lg"
+        >
+          Return to Home
+        </button>
+      </div>}
+    >
       <Routes>
-        <Route path="/" element={<VenueList />} />
+        <Route path="/" element={<Navigate to="/venues" replace />} />
         <Route path="/venues" element={<VenueList />} />
-        <Route path="/venue/:id" element={<SimpleVenueView />} />
+        <Route path="/venue/:id" element={<ActiveVenue />} />
         <Route path="/simple-venue/:id" element={<SimpleVenueView />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/matches" element={<Matches />} />
+        <Route path="/profile" element={
+          <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <LazyProfile />
+          </Suspense>
+        } />
+        <Route path="/matches" element={
+          <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <LazyMatches />
+          </Suspense>
+        } />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/onboarding" element={<Onboarding />} />
@@ -58,22 +90,35 @@ const AppLayout = () => {
       </Routes>
       
       {!isAuthPage() && <BottomNav />}
-    </>
+    </ErrorBoundary>
   );
 };
 
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppLayout />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <ErrorBoundary
+        fallback={<div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+          <h2 className="text-xl font-semibold mb-2">Application Error</h2>
+          <p className="text-muted-foreground mb-4">We're having trouble loading the app.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-[#3A86FF] text-white rounded-lg"
+          >
+            Reload Application
+          </button>
+        </div>}
+      >
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppLayout />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 };

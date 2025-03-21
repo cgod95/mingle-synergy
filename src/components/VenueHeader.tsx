@@ -29,7 +29,7 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
 
   const formatExpiryTime = () => {
     const now = new Date();
-    const expiryDate = expiryTime || new Date(now.getTime() + venue.expiryTime * 60 * 1000);
+    const expiryDate = expiryTime || new Date(now.getTime() + (venue.expiryTime || 120) * 60 * 1000);
     
     // Format as "4:37 PM"
     return expiryDate.toLocaleTimeString('en-US', { 
@@ -37,6 +37,15 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
       minute: '2-digit',
       hour12: true 
     });
+  };
+
+  const formatTimeRemaining = () => {
+    if (!timeRemaining) return '';
+    
+    const hours = Math.floor(timeRemaining / 3600);
+    const minutes = Math.floor((timeRemaining % 3600) / 60);
+    
+    return `${hours}h ${minutes}m remaining`;
   };
 
   return (

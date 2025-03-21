@@ -17,8 +17,17 @@ const mockUsers: Record<string, { email: string; password: string; user: User }>
 };
 
 class MockAuthService implements AuthService {
-  // Default to having a logged-in user for testing
-  private currentUser: User | null = mockUsers['test@example.com'].user;
+  // Load user from localStorage if available
+  private currentUser: User | null = (() => {
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      return savedUser ? JSON.parse(savedUser) : mockUsers['test@example.com'].user;
+    } catch (e) {
+      console.error('Error loading user from localStorage:', e);
+      return mockUsers['test@example.com'].user;
+    }
+  })();
+  
   private listeners: ((user: User | null) => void)[] = [];
 
   async signIn(email: string, password: string): Promise<UserCredential> {
@@ -29,6 +38,7 @@ class MockAuthService implements AuthService {
     }
     
     this.currentUser = mockUser.user;
+    localStorage.setItem('currentUser', JSON.stringify(mockUser.user));
     this.notifyListeners();
     
     return { user: mockUser.user };
@@ -49,16 +59,19 @@ class MockAuthService implements AuthService {
     
     mockUsers[email] = { email, password, user: newUser };
     this.currentUser = newUser;
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
     this.notifyListeners();
     
     return { user: newUser };
   }
 
   async signOut(): Promise<void> {
-    // For testing purposes, don't actually sign out
+    // For development, don't actually sign out
+    console.log('Sign out called but bypassed for development');
+    // Don't actually clear the user for demo purposes
     // this.currentUser = null;
-    console.log('Sign out called but skipped for testing');
-    // Don't notify listeners to maintain the logged-in state
+    // localStorage.removeItem('currentUser');
+    // this.notifyListeners();
   }
 
   async sendPasswordResetEmail(email: string): Promise<void> {
@@ -66,7 +79,6 @@ class MockAuthService implements AuthService {
       throw new Error('No user found with this email');
     }
     
-    // In a real mock, we might want to track that a reset was requested
     console.log(`Password reset email sent to ${email}`);
   }
 
