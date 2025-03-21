@@ -5,12 +5,12 @@
 
 // Constants for storage keys
 const STORAGE_KEYS = {
-  INTERESTS: 'mingle_interests',
-  MATCHES: 'mingle_matches',
-  USER_MESSAGES: 'mingle_user_messages',
-  CURRENT_USER: 'mingle_current_user',
-  LIKED_USERS: 'mingle_liked_users',
-  CHECKED_IN_VENUE: 'mingle_checked_in_venue',
+  INTERESTS: 'interests',
+  MATCHES: 'matches',
+  USER_MESSAGES: 'userMessages',
+  CURRENT_USER: 'currentUser',
+  LIKED_USERS: 'likedUsers',
+  CHECKED_IN_VENUE: 'checkedInVenue',
 };
 
 /**

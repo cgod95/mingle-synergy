@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { AppStateProvider } from "@/context/AppStateContext";
 import BottomNav from "./components/BottomNav";
 import Index from "./pages/Index";
 import VenueList from "./pages/VenueList";
@@ -110,13 +111,15 @@ const App = () => {
         </div>}
       >
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppLayout />
-            </BrowserRouter>
-          </TooltipProvider>
+          <AppStateProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppLayout />
+              </BrowserRouter>
+            </TooltipProvider>
+          </AppStateProvider>
         </AuthProvider>
       </ErrorBoundary>
     </QueryClientProvider>
