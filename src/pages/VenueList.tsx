@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
 import UserCard from '@/components/UserCard';
-import { Venue } from '@/types';
+import { Venue, Interest, Match } from '@/types';
 import { venues as mockVenues, users as mockUsers } from '@/data/mockData';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppState } from '@/context/AppStateContext';
@@ -15,13 +14,12 @@ const VenueList = () => {
   const { venueId } = useParams();
   const [venueUsers, setVenueUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { currentUser, interests, setInterests, matches, setMatches } = useAppState();
+  const { currentUser, interests, setInterests, matches, setMatches, matchedUser, setMatchedUser, showMatchModal, setShowMatchModal } = useAppState();
 
   // Fetch venues on component mount
   useEffect(() => {
     const fetchVenues = async () => {
       try {
-        // Simulate API call with mock data
         setTimeout(() => {
           setVenues(mockVenues);
           setLoading(false);
@@ -83,14 +81,12 @@ const VenueList = () => {
                 <h2 className="text-xl font-semibold mb-4">People Here</h2>
                 
                 {isLoading ? (
-                  // Loading skeleton
                   <div className="grid grid-cols-3 gap-4">
                     {[...Array(9)].map((_, i) => (
                       <div key={i} className="bg-gray-100 rounded-lg aspect-square animate-pulse"></div>
                     ))}
                   </div>
                 ) : venueUsers.length > 0 ? (
-                  // User grid
                   <div className="grid grid-cols-3 gap-4">
                     {venueUsers.map(user => (
                       <UserCard 
@@ -101,11 +97,12 @@ const VenueList = () => {
                         matches={matches}
                         setMatches={setMatches}
                         currentUser={currentUser}
+                        setMatchedUser={setMatchedUser}
+                        setShowMatchModal={setShowMatchModal}
                       />
                     ))}
                   </div>
                 ) : (
-                  // Empty state
                   <div className="py-12 text-center bg-gray-50 rounded-lg">
                     <div className="text-gray-400 mb-2">
                       <svg width="48" height="48" className="mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

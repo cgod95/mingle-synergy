@@ -1,22 +1,21 @@
-
 import React, { useState, useEffect } from 'react';
-import { User as UserType } from '@/types';
+import { User as UserType, Interest, Match } from '@/types';
 import { Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 
 interface UserCardProps {
   user: UserType;
-  onExpressInterest: (userId: string) => void;
+  interests: Interest[];
+  setInterests: React.Dispatch<React.SetStateAction<Interest[]>>;
+  matches: Match[];
+  setMatches: React.Dispatch<React.SetStateAction<Match[]>>;
+  currentUser: { id: string; [key: string]: any };
+  onExpressInterest?: (userId: string) => void;
   hasPendingInterest?: boolean;
   hasMatch?: boolean;
   isLikedByUser?: boolean;
   className?: string;
-  currentUser?: { id: string };
-  interests?: any[];
-  setInterests?: (interests: any[]) => void;
-  matches?: any[];
-  setMatches?: (matches: any[]) => void;
   setMatchedUser?: (user: UserType) => void;
   setShowMatchModal?: (show: boolean) => void;
 }
@@ -55,7 +54,9 @@ const UserCard: React.FC<UserCardProps> = ({
       target.classList.remove('scale-120');
     }, 200);
     
-    onExpressInterest(user.id);
+    if (onExpressInterest) {
+      onExpressInterest(user.id);
+    }
   };
   
   const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -122,7 +123,9 @@ const UserCard: React.FC<UserCardProps> = ({
     }
     
     // Also call the original handler for backward compatibility
-    onExpressInterest(user.id);
+    if (onExpressInterest) {
+      onExpressInterest(user.id);
+    }
     
     setIsProcessing(false);
   };
