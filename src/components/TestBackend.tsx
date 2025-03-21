@@ -3,8 +3,14 @@ import React, { useEffect, useState } from 'react';
 import services from '../services';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Helper type for test results
+type TestResult = {
+  success: boolean;
+  message: string;
+};
+
 const TestBackend = () => {
-  const [testResults, setTestResults] = useState<Record<string, {success: boolean, message: string}>>({});
+  const [testResults, setTestResults] = useState<Record<string, TestResult>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTest, setCurrentTest] = useState<string>('Initializing');
@@ -45,7 +51,7 @@ const TestBackend = () => {
         
         if (!existingUser) {
           // Only create if doesn't exist
-          await firebase.firestore().collection('users').doc(testUserId).set(testUser);
+          await window.firebase.firestore().collection('users').doc(testUserId).set(testUser);
           addResult('Create Test User', true, 'Test user created');
         } else {
           addResult('Test User Check', true, 'Test user already exists');
@@ -59,7 +65,8 @@ const TestBackend = () => {
       // Test getUserProfile
       try {
         const user = await services.user.getUserProfile(testUserId);
-        addResult('getUserProfile', !!user, user ? `Retrieved user: ${user.name}` : 'Failed to get user');
+        const success = !!user;
+        addResult('getUserProfile', success, user ? `Retrieved user: ${user.name}` : 'Failed to get user');
       } catch (e) {
         console.error('getUserProfile error:', e);
         addResult('getUserProfile', false, `Error: ${e.message}`);
@@ -68,7 +75,9 @@ const TestBackend = () => {
       setCurrentTest('UserService - updateUserProfile');
       // Test updateUserProfile
       try {
-        await services.user.updateUserProfile(testUserId, { lastActive: Date.now() });
+        await services.user.updateUserProfile(testUserId, { 
+          bio: 'Updated bio ' + Date.now() 
+        });
         addResult('updateUserProfile', true, 'User updated');
       } catch (e) {
         console.error('updateUserProfile error:', e);
@@ -107,7 +116,7 @@ const TestBackend = () => {
         
         if (!existingVenue) {
           // Only create if doesn't exist
-          await firebase.firestore().collection('venues').doc(testVenueId).set(testVenue);
+          await window.firebase.firestore().collection('venues').doc(testVenueId).set(testVenue);
           addResult('Create Test Venue', true, 'Test venue created');
         } else {
           addResult('Test Venue Check', true, 'Test venue already exists');
@@ -121,7 +130,8 @@ const TestBackend = () => {
       // Test getVenueById
       try {
         const venue = await services.venue.getVenueById(testVenueId);
-        addResult('getVenueById', !!venue, venue ? `Retrieved venue: ${venue.name}` : 'Failed to get venue');
+        const success = !!venue;
+        addResult('getVenueById', success, venue ? `Retrieved venue: ${venue.name}` : 'Failed to get venue');
       } catch (e) {
         console.error('getVenueById error:', e);
         addResult('getVenueById', false, `Error: ${e.message}`);
@@ -135,8 +145,9 @@ const TestBackend = () => {
         const lng = 151.2093;
         
         const venues = await services.venue.getNearbyVenues(lat, lng, 10);
-        addResult('getNearbyVenues', venues.length > 0, 
-          venues.length > 0 ? `Found ${venues.length} venues` : 'No venues found');
+        const success = venues.length > 0;
+        addResult('getNearbyVenues', success, 
+          success ? `Found ${venues.length} venues` : 'No venues found');
       } catch (e) {
         console.error('getNearbyVenues error:', e);
         addResult('getNearbyVenues', false, `Error: ${e.message}`);
@@ -197,7 +208,7 @@ const TestBackend = () => {
         
         if (!existingUser) {
           // Only create if doesn't exist
-          await firebase.firestore().collection('users').doc(matchedUserId).set(testUser);
+          await window.firebase.firestore().collection('users').doc(matchedUserId).set(testUser);
           addResult('Create Second Test User', true, 'Second test user created');
         } else {
           addResult('Second Test User Check', true, 'Second test user already exists');
