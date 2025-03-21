@@ -25,6 +25,15 @@ const VenueList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser, interests, setInterests, matches, setMatches, matchedUser, setMatchedUser, showMatchModal, setShowMatchModal } = useAppState();
 
+  // Add likes remaining state
+  const [likesRemaining, setLikesRemaining] = useState(() => {
+    if (venueId) {
+      const saved = localStorage.getItem(`likesRemaining-${venueId}`);
+      return saved ? parseInt(saved, 10) : 3;
+    }
+    return 3;
+  });
+
   // Add these functions to expose the notifications globally
   useEffect(() => {
     window.showToast = (message) => {
@@ -106,7 +115,14 @@ const VenueList = () => {
 
             {venueId && (
               <div className="mt-6">
-                <h2 className="text-xl font-semibold mb-4">People Here</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">People Here</h2>
+                  
+                  {/* Likes remaining indicator */}
+                  <div className="bg-white/90 px-3 py-1 rounded-full text-sm font-medium shadow-sm border border-gray-100">
+                    {likesRemaining} likes remaining
+                  </div>
+                </div>
                 
                 {isLoading ? (
                   <div className="grid grid-cols-3 gap-4">
@@ -127,6 +143,9 @@ const VenueList = () => {
                         currentUser={currentUser}
                         setMatchedUser={setMatchedUser}
                         setShowMatchModal={setShowMatchModal}
+                        likesRemaining={likesRemaining}
+                        setLikesRemaining={setLikesRemaining}
+                        venueId={venueId}
                       />
                     ))}
                   </div>

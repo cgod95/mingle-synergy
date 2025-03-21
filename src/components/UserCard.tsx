@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User as UserType, Interest, Match } from '@/types';
 
 interface UserCardProps {
@@ -16,6 +16,9 @@ interface UserCardProps {
   className?: string;
   setMatchedUser?: (user: UserType) => void;
   setShowMatchModal?: (show: boolean) => void;
+  likesRemaining: number;
+  setLikesRemaining: React.Dispatch<React.SetStateAction<number>>;
+  venueId?: string;
 }
 
 const UserCard: React.FC<UserCardProps> = ({ 
@@ -25,22 +28,47 @@ const UserCard: React.FC<UserCardProps> = ({
   matches, 
   setMatches, 
   currentUser,
-  className
+  className,
+  likesRemaining,
+  setLikesRemaining,
+  venueId = 'unknown'
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
+  // Check if user is already liked based on interests
+  const isAlreadyLiked = interests.some(
+    interest => interest.toUserId === user.id && interest.fromUserId === currentUser.id && interest.isActive
+  );
+  
+  const [isLiked, setIsLiked] = useState(isAlreadyLiked);
   
   const handleHeartClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     
+    // If already liked, don't do anything
+    if (isLiked) return;
+    
+    // Check if user has likes remaining
+    if (likesRemaining <= 0) {
+      if (window.showToast) {
+        window.showToast('You can only like 3 people per venue');
+      }
+      return;
+    }
+    
     console.log("Heart clicked for user:", user.id);
     setIsLiked(true);
+    
+    // Reduce likes remaining
+    setLikesRemaining(prev => prev - 1);
+    
+    // Store in localStorage to persist across page loads
+    localStorage.setItem(`likesRemaining-${venueId}`, String(likesRemaining - 1));
     
     const newInterest = {
       id: `int_${Date.now()}`,
       fromUserId: currentUser.id,
       toUserId: user.id,
-      venueId: user.currentVenue || 'unknown',
+      venueId: user.currentVenue || venueId,
       timestamp: Date.now(),
       isActive: true,
       expiresAt: Date.now() + (3 * 60 * 60 * 1000)
@@ -56,6 +84,7 @@ const UserCard: React.FC<UserCardProps> = ({
       window.showToast('Interest sent!');
     }
     
+    // Check for mutual interest
     const mutualInterest = interests.find(interest => 
       interest.fromUserId === user.id && 
       interest.toUserId === currentUser.id &&
@@ -67,7 +96,7 @@ const UserCard: React.FC<UserCardProps> = ({
         id: `match_${Date.now()}`,
         userId: currentUser.id,
         matchedUserId: user.id,
-        venueId: user.currentVenue || 'unknown',
+        venueId: user.currentVenue || venueId,
         timestamp: Date.now(),
         isActive: true,
         expiresAt: Date.now() + (3 * 60 * 60 * 1000),
@@ -87,13 +116,13 @@ const UserCard: React.FC<UserCardProps> = ({
   };
   
   return (
-    <div className={`relative rounded-lg overflow-hidden ${className}`}>
+    <div className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${className}`}>
       <img 
         src={user.photos?.[0]} 
         alt={user.name} 
         className="w-full aspect-square object-cover"
       />
-      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
         <div className="text-white">
           <div className="font-medium">{user.name}</div>
           <div className="text-sm">{user.age}</div>

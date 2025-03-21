@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import MatchNotification from '@/components/MatchNotification';
+import ZoneSelector from '@/components/ZoneSelector';
 import { User, Venue, Match, Interest } from '@/types';
 import { venues, getUsersAtVenue } from '@/data/mockData';
 import { Users, Heart, ArrowLeft, Clock } from 'lucide-react';
@@ -27,6 +28,20 @@ const SimpleVenueView = () => {
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState<{[key: string]: boolean}>({});
+  const [currentZone, setCurrentZone] = useState<string>('Main Area');
+  
+  // Add likes remaining state
+  const [likesRemaining, setLikesRemaining] = useState(() => {
+    if (id) {
+      const saved = localStorage.getItem(`likesRemaining-${id}`);
+      return saved ? parseInt(saved, 10) : 3;
+    }
+    return 3;
+  });
+
+  // Add interest sent animation state
+  const [showInterestSent, setShowInterestSent] = useState(false);
+  const [lastLikedUser, setLastLikedUser] = useState<User | null>(null);
   
   // New state for interests and matches
   const [interests, setInterests] = useState<Interest[]>(() => {
@@ -59,9 +74,16 @@ const SimpleVenueView = () => {
   // Add these functions to expose the notifications globally
   useEffect(() => {
     window.showToast = (message) => {
+      // Show toast
       setToastMessage(message);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+      
+      // For "Interest sent" message, show the animation instead
+      if (message === 'Interest sent!') {
+        setShowInterestSent(true);
+        setTimeout(() => setShowInterestSent(false), 3000);
+      }
     };
     
     window.showMatchModal = (user) => {
@@ -74,6 +96,17 @@ const SimpleVenueView = () => {
       delete window.showMatchModal;
     };
   }, []);
+  
+  // Track interests to update lastLikedUser
+  useEffect(() => {
+    if (interests.length > 0) {
+      const lastInterest = interests[interests.length - 1];
+      const likedUser = usersAtVenue.find(user => user.id === lastInterest.toUserId);
+      if (likedUser) {
+        setLastLikedUser(likedUser);
+      }
+    }
+  }, [interests, usersAtVenue]);
   
   // Load venue and users
   useEffect(() => {
@@ -135,6 +168,23 @@ const SimpleVenueView = () => {
     }
     setShowMatchModal(false);
   };
+  
+  // Handle zone selection
+  const handleZoneSelect = (zoneName: string) => {
+    setCurrentZone(zoneName);
+    toast({
+      title: "Zone Updated",
+      description: `You're now in ${zoneName}`,
+    });
+  };
+  
+  const availableZones = [
+    { id: 'z1', name: 'Main Area' },
+    { id: 'z2', name: 'Bar' },
+    { id: 'z3', name: 'Entrance' },
+    { id: 'z4', name: 'Outside' },
+    { id: 'z5', name: 'Upstairs' },
+  ];
   
   return (
     <ErrorBoundary
@@ -205,9 +255,38 @@ const SimpleVenueView = () => {
                 </div>
               </div>
               
+              {/* Meta information about the venue */}
+              <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-sm text-gray-500">Peak hours</span>
+                    <p className="font-medium">7:00 PM - 10:00 PM</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Current mood</span>
+                    <p className="font-medium">Buzzing</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Zone selector */}
+              <ZoneSelector 
+                activeZone={currentZone}
+                zones={availableZones}
+                onZoneSelect={handleZoneSelect}
+                className="mb-6"
+              />
+              
               {/* People Here Section */}
               <div>
-                <h2 className="text-[20px] font-semibold mb-4 text-[#202020]">People Here</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-[20px] font-semibold text-[#202020]">People Here</h2>
+                  
+                  {/* Likes remaining indicator */}
+                  <div className="bg-white/90 px-3 py-1 rounded-full text-sm font-medium shadow-sm border border-gray-100">
+                    {likesRemaining} likes remaining
+                  </div>
+                </div>
                 
                 {usersAtVenue.length > 0 ? (
                   <div className="grid grid-cols-3 gap-3 pb-16">
@@ -220,6 +299,9 @@ const SimpleVenueView = () => {
                         matches={matches}
                         setMatches={setMatches}
                         currentUser={currentUser}
+                        likesRemaining={likesRemaining}
+                        setLikesRemaining={setLikesRemaining}
+                        venueId={id || 'unknown'}
                       />
                     ))}
                   </div>
@@ -260,6 +342,27 @@ const SimpleVenueView = () => {
         {showToast && (
           <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50">
             {toastMessage}
+          </div>
+        )}
+
+        {/* Interest Sent Animation */}
+        {showInterestSent && lastLikedUser && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 animate-fade-in">
+            <div className="bg-white/95 rounded-2xl p-6 shadow-xl max-w-xs text-center transform scale-in">
+              <div className="w-16 h-16 mx-auto rounded-full bg-pink-100 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-1">Interest Sent!</h3>
+              <p className="text-gray-600 mb-4">You'll be notified if they like you back</p>
+              <button 
+                onClick={() => setShowInterestSent(false)}
+                className="bg-blue-500 text-white px-6 py-2 rounded-full font-medium"
+              >
+                Got it
+              </button>
+            </div>
           </div>
         )}
 
