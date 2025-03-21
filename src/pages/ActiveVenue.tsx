@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -6,7 +5,7 @@ import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
 import VenueHeader from '@/components/VenueHeader';
 import { User, Venue, Match } from '@/types';
-import { venues, getUsersAtVenue } from '@/data/mockData';
+import { venues, getUsersAtVenue, matches } from '@/data/mockData';
 import { Users } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { useVenues } from '@/hooks/useVenues';
@@ -33,28 +32,23 @@ const ActiveVenue = () => {
   const mockCurrentUserId = 'u6'; // For demonstration purposes
   
   useEffect(() => {
-    // Simulate loading
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
     
-    // Find venue
     if (id) {
       const foundVenue = venues.find(v => v.id === id);
       if (foundVenue) {
         setVenue(foundVenue);
         setIsCheckedIn(true);
         
-        // Load users at this venue
         const users = getUsersAtVenue(id);
         console.log(`Loaded ${users.length} users for venue ${id}`);
         setUsersAtVenue(users);
         
-        // Set expiry time
         const hours = getExpiryHours(foundVenue.type);
         setTimeRemaining(hours * 60 * 60);
         
-        // Set expiry time date object
         const expiryDate = new Date();
         expiryDate.setHours(expiryDate.getHours() + hours);
         setExpiryTime(expiryDate);
@@ -64,7 +58,6 @@ const ActiveVenue = () => {
     return () => clearTimeout(timer);
   }, [id]);
   
-  // Timer effect for countdown
   useEffect(() => {
     if (timeRemaining <= 0 || !isCheckedIn) return;
     
@@ -87,7 +80,6 @@ const ActiveVenue = () => {
     return () => clearInterval(countdown);
   }, [timeRemaining, isCheckedIn, toast, checkOutFromVenue]);
   
-  // Get timer based on venue type
   const getExpiryHours = (type: string) => {
     switch (type) {
       case 'cafe': return 1;
@@ -99,19 +91,16 @@ const ActiveVenue = () => {
   };
   
   const handleExpressInterest = (userId: string) => {
-    // Check if already interested
     if (interests.includes(userId)) {
       return;
     }
     
-    // Add to interests
     setInterests([...interests, userId]);
     toast({
       title: "Interest Sent!",
       description: "They'll be notified of your interest.",
     });
     
-    // Check if mutual interest - for demo purposes, simulate match after short delay
     setTimeout(() => {
       if (Math.random() > 0.5) {
         const newMatch: Match = {
@@ -121,13 +110,12 @@ const ActiveVenue = () => {
           venueId: id || '',
           timestamp: Date.now(),
           isActive: true,
-          expiresAt: Date.now() + 1000 * 60 * 60 * 3, // 3 hours
+          expiresAt: Date.now() + 1000 * 60 * 60 * 3,
           contactShared: false
         };
         
         setMatches(prev => {
           const updatedMatches = [...prev, newMatch];
-          // Limit to 10 most recent matches
           return updatedMatches.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
         });
         
@@ -182,20 +170,18 @@ const ActiveVenue = () => {
           </div>
         ) : venue ? (
           <div className="animate-fade-in">
-            {/* Compact Venue Header */}
             <VenueHeader
               venue={venue}
+              onCheckOut={handleCheckOut}
               isCheckedIn={isCheckedIn}
               isVisible={isVisible}
               activeZone={activeZone}
               timeRemaining={timeRemaining}
               expiryTime={expiryTime}
-              onCheckOut={handleCheckOut}
               onZoneSelect={handleZoneSelect}
               onToggleVisibility={toggleVisibility}
             />
             
-            {/* People Here Now Section - Main focus */}
             <div>
               <h2 className="text-lg font-medium mb-4">People Here Now</h2>
               

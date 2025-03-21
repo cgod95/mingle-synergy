@@ -9,11 +9,17 @@ import { useNavigate } from 'react-router-dom';
 interface VenueCardProps {
   venue: Venue;
   className?: string;
+  isCheckedIn?: boolean;
+  onCheckIn?: (venueId: string, zoneName?: string) => void;
+  onCheckOut?: () => void;
 }
 
 const VenueCard: React.FC<VenueCardProps> = ({ 
   venue, 
-  className
+  className,
+  isCheckedIn,
+  onCheckIn,
+  onCheckOut
 }) => {
   const navigate = useNavigate();
   

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
@@ -25,7 +24,6 @@ const VenueList = () => {
   } = useVenues();
   
   useEffect(() => {
-    // Filter venues based on search and type filter
     let results = nearbyVenues;
     
     if (searchQuery) {
@@ -71,7 +69,6 @@ const VenueList = () => {
       <main className="container mx-auto px-4 mt-6">
         <div className="flex flex-col gap-6">
           <section>
-            {/* Visibility Toggle */}
             <div className="mb-4 animate-slide-up">
               <ToggleButton 
                 isVisible={isVisible} 
@@ -79,7 +76,6 @@ const VenueList = () => {
               />
             </div>
             
-            {/* Current Location Section */}
             {currentVenue && (
               <div className="mb-6 animate-slide-up">
                 <div className="flex items-center justify-between mb-2">
@@ -88,8 +84,8 @@ const VenueList = () => {
                 
                 <VenueCard 
                   venue={currentVenue} 
-                  onCheckOut={checkOutFromVenue}
                   isCheckedIn={true}
+                  onCheckOut={checkOutFromVenue}
                   className="border-2 border-[#3A86FF]"
                 />
               </div>

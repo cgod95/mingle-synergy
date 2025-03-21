@@ -354,6 +354,42 @@ export const users: User[] = [
   }
 ];
 
+// Mock interests
+export const interests: Interest[] = [
+  {
+    id: 'i1',
+    fromUserId: 'u1',
+    toUserId: 'u2',
+    venueId: 'v1',
+    timestamp: Date.now() - 1000 * 60 * 30, // 30 minutes ago
+    isActive: true,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 24 // 24 hours from now
+  },
+  {
+    id: 'i2',
+    fromUserId: 'u2',
+    toUserId: 'u1',
+    venueId: 'v1',
+    timestamp: Date.now() - 1000 * 60 * 20, // 20 minutes ago
+    isActive: true,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 24 // 24 hours from now
+  }
+];
+
+// Mock matches
+export const matches: Match[] = [
+  {
+    id: 'm1',
+    userId: 'u1',
+    matchedUserId: 'u2',
+    venueId: 'v1',
+    timestamp: Date.now() - 1000 * 60 * 15, // 15 minutes ago
+    isActive: true,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 3, // 3 hours from now
+    contactShared: false
+  }
+];
+
 // Get users at a venue - Enhanced to ensure we always return results
 export const getUsersAtVenue = (venueId: string): User[] => {
   return users.map(user => ({ 

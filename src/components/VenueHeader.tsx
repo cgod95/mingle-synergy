@@ -7,17 +7,29 @@ import { ArrowLeft, Users, Clock } from 'lucide-react';
 interface VenueHeaderProps {
   venue: Venue;
   onCheckOut: () => void;
+  isCheckedIn?: boolean;
+  isVisible?: boolean;
+  activeZone?: string | null;
+  timeRemaining?: number;
+  expiryTime?: Date;
+  onZoneSelect?: (zoneName: string) => void;
+  onToggleVisibility?: () => void;
 }
 
 const VenueHeader: React.FC<VenueHeaderProps> = ({
   venue,
   onCheckOut,
+  isCheckedIn,
+  isVisible,
+  activeZone,
+  timeRemaining,
+  expiryTime,
 }) => {
   const navigate = useNavigate();
 
   const formatExpiryTime = () => {
     const now = new Date();
-    const expiryDate = new Date(now.getTime() + venue.expiryTime * 60 * 1000);
+    const expiryDate = expiryTime || new Date(now.getTime() + venue.expiryTime * 60 * 1000);
     
     // Format as "4:37 PM"
     return expiryDate.toLocaleTimeString('en-US', { 
