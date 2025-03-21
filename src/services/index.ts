@@ -8,9 +8,9 @@ import mockUserService from './mock/mockUserService';
 import mockVenueService from './mock/mockVenueService';
 import mockMatchService from './mock/mockMatchService';
 import firebaseUserService from './firebase/userService';
+import firebaseVenueService from './firebase/venueService';
 
 // Firebase service implementations will be imported here as they're developed
-// import firebaseVenueService from './firebase/venueService';
 // import firebaseMatchService from './firebase/matchService';
 
 // Determine which implementation to use
@@ -21,7 +21,7 @@ const USE_MOCK = true;
 const services = {
   auth: USE_MOCK ? mockAuthService : firebaseAuthService,
   user: USE_MOCK ? mockUserService : firebaseUserService, // Updated to use Firebase implementation
-  venue: USE_MOCK ? mockVenueService : null, // Will be replaced with firebaseVenueService
+  venue: USE_MOCK ? mockVenueService : firebaseVenueService, // Updated to use Firebase implementation
   match: USE_MOCK ? mockMatchService : null, // Will be replaced with firebaseMatchService
 };
 
