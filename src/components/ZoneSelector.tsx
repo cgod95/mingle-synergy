@@ -19,21 +19,21 @@ const ZoneSelector: React.FC<ZoneSelectorProps> = ({
   if (zones.length === 0) return null;
   
   return (
-    <div className={cn("mb-6", className)}>
-      <h3 className="text-lg font-medium mb-3">Where are you?</h3>
-      <div className="flex flex-wrap gap-3">
+    <div className={cn("", className)}>
+      <p className="text-sm font-medium mb-2 text-muted-foreground">Where are you?</p>
+      <div className="flex flex-wrap gap-2">
         {zones.map((zone) => (
           <button
             key={zone.id}
             onClick={() => onZoneSelect(zone.name)}
             className={cn(
-              "py-2 px-4 rounded-full text-sm flex items-center shadow-sm transition-all duration-300",
+              "py-1.5 px-3 rounded-full text-xs flex items-center shadow-sm transition-all duration-300",
               activeZone === zone.name
                 ? "bg-[#3A86FF] text-white shadow-[0_2px_10px_rgba(58,134,255,0.3)]"
                 : "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md"
             )}
           >
-            <MapPin size={14} className="mr-2" />
+            <MapPin size={12} className="mr-1" />
             {zone.name}
           </button>
         ))}

@@ -4,13 +4,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
-import ToggleButton from '@/components/ToggleButton';
-import ZoneSelector from '@/components/ZoneSelector';
-import CheckInTimer from '@/components/CheckInTimer';
+import VenueHeader from '@/components/VenueHeader';
 import { User, Venue, Match } from '@/types';
 import { venues } from '@/data/mockData';
-import { ArrowLeft, Users, MapPin } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Users } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { useVenues } from '@/hooks/useVenues';
 
@@ -134,27 +131,6 @@ const ActiveVenue = () => {
     }, 1000);
   };
   
-  const handleCheckIn = (zone?: string) => {
-    setIsCheckedIn(true);
-    if (zone) {
-      setActiveZone(zone);
-    }
-    
-    // Use the checkInToVenue from our hook
-    if (id && venue) {
-      checkInToVenue(id, zone);
-      
-      // Reset the timer based on venue type
-      const hours = getExpiryHours(venue.type);
-      setTimeRemaining(hours * 60 * 60);
-      
-      // Set expiry time date object
-      const expiryDate = new Date();
-      expiryDate.setHours(expiryDate.getHours() + hours);
-      setExpiryTime(expiryDate);
-    }
-  };
-  
   const handleCheckOut = () => {
     setIsCheckedIn(false);
     setActiveZone(null);
@@ -180,120 +156,42 @@ const ActiveVenue = () => {
     });
   };
   
-  const getVenueZones = () => {
-    if (!venue) return [];
-    
-    if (venue.type === 'bar') {
-      return [
-        { id: 'entrance', name: 'Near Entrance' },
-        { id: 'bar', name: 'At the Bar' },
-        { id: 'upstairs', name: 'Upstairs' }
-      ];
-    } else if (venue.type === 'restaurant') {
-      return [
-        { id: 'inside', name: 'Inside' },
-        { id: 'outside', name: 'Outside' },
-        { id: 'bar', name: 'At the Bar' }
-      ];
-    } else if (venue.type === 'cafe') {
-      return [
-        { id: 'counter', name: 'Near Counter' },
-        { id: 'seated', name: 'Seated Area' },
-        { id: 'outside', name: 'Outside' }
-      ];
-    } else if (venue.type === 'gym') {
-      return [
-        { id: 'weights', name: 'Weights Area' },
-        { id: 'cardio', name: 'Cardio Section' },
-        { id: 'studio', name: 'Studio Classes' }
-      ];
-    }
-    return [];
-  };
-  
-  const zones = getVenueZones();
-  
   return (
     <div className="min-h-screen bg-background text-foreground pt-16 pb-24">
       <Header />
       
       <main className="container mx-auto px-4 mt-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors"
-        >
-          <ArrowLeft className="mr-2 w-4 h-4" />
-          Back to Discover
-        </button>
-        
         {loading ? (
-          <div className="animate-pulse">
-            <div className="h-8 bg-muted rounded w-2/3 mb-4"></div>
-            <div className="h-6 bg-muted rounded w-full mb-6"></div>
+          <div className="space-y-4 animate-pulse">
+            <div className="h-8 bg-muted rounded w-2/3"></div>
+            <div className="h-32 bg-muted rounded w-full"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="aspect-[3/4] bg-muted rounded"></div>
+              ))}
+            </div>
           </div>
         ) : venue ? (
           <div className="animate-fade-in">
-            {/* Visibility Toggle */}
-            <div className="mb-4">
-              <ToggleButton 
-                isVisible={isVisible} 
-                onToggle={toggleVisibility} 
-              />
-            </div>
+            {/* Compact Venue Header */}
+            <VenueHeader
+              venue={venue}
+              isCheckedIn={isCheckedIn}
+              isVisible={isVisible}
+              activeZone={activeZone}
+              timeRemaining={timeRemaining}
+              expiryTime={expiryTime}
+              onCheckOut={handleCheckOut}
+              onZoneSelect={handleZoneSelect}
+              onToggleVisibility={toggleVisibility}
+            />
             
-            {/* Venue Header with Check-In Status */}
-            <div className="bg-card p-4 rounded-xl border border-border mb-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-3xl font-semibold mb-1">{venue.name}</h1>
-                  <p className="text-muted-foreground mb-2">
-                    {venue.address}
-                  </p>
-                  <div className="flex items-center text-[#3A86FF]">
-                    <Users className="mr-1" size={16} />
-                    <span className="font-medium">{venue.checkInCount} people here now</span>
-                  </div>
-                </div>
-                
-                {isCheckedIn ? (
-                  <div className="flex flex-col items-end">
-                    <CheckInTimer 
-                      timeRemaining={timeRemaining}
-                      expiryTime={expiryTime}
-                    />
-                    <button
-                      onClick={handleCheckOut}
-                      className="text-sm text-red-500 hover:text-red-600 mt-2 transition-colors"
-                    >
-                      Check Out
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleCheckIn()}
-                    className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors"
-                  >
-                    Check In
-                  </button>
-                )}
-              </div>
-              
-              {/* Zone Selector */}
-              {isCheckedIn && (
-                <ZoneSelector
-                  zones={zones}
-                  activeZone={activeZone}
-                  onZoneSelect={handleZoneSelect}
-                />
-              )}
-            </div>
-            
-            {/* People Here Now Section */}
-            <div className="mb-6">
-              <h2 className="text-xl font-medium mb-4">People Here Now</h2>
+            {/* People Here Now Section - Main focus */}
+            <div>
+              <h2 className="text-lg font-medium mb-4">People Here Now</h2>
               
               {usersAtVenue.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[calc(100vh-300px)] p-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[calc(100vh-220px)] pb-16 p-1">
                   {usersAtVenue.map((user) => (
                     <UserCard 
                       key={user.id} 
@@ -308,14 +206,20 @@ const ActiveVenue = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-card rounded-xl border border-border">
+                <div className="text-center py-8 bg-card rounded-xl border border-border/30 shadow-sm">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">
                     <Users className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <h3 className="text-xl font-medium mb-2">No one's here yet</h3>
-                  <p className="text-muted-foreground max-w-sm mx-auto">
+                  <p className="text-muted-foreground max-w-sm mx-auto mb-4">
                     Be the first to check in and others will see you here.
                   </p>
+                  <button
+                    onClick={() => navigate('/venues')}
+                    className="py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Find Another Venue
+                  </button>
                 </div>
               )}
             </div>
@@ -323,15 +227,15 @@ const ActiveVenue = () => {
         ) : (
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">
-              <MapPin className="w-8 h-8 text-muted-foreground" />
+              <Users className="w-8 h-8 text-muted-foreground" />
             </div>
             <h3 className="text-xl font-medium mb-2">Venue not found</h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               The venue you're looking for doesn't exist or has been removed.
             </p>
             <button
               onClick={() => navigate('/venues')}
-              className="mt-4 py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
               Discover Venues
             </button>

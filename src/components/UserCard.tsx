@@ -24,11 +24,12 @@ const UserCard: React.FC<UserCardProps> = ({
   return (
     <div 
       className={cn(
-        "relative overflow-hidden rounded-xl bg-card shadow-card border border-border/30 transition-all duration-300 animate-fade-in hover:shadow-card-hover",
+        "relative overflow-hidden rounded-xl bg-card border border-border/30 transition-all duration-300 animate-fade-in shadow-sm hover:shadow-card",
         hasMatch && "ring-2 ring-[#3A86FF] shadow-[0_0_15px_rgba(58,134,255,0.25)]",
         isLikedByUser && "border-[#FF5A5F]/30",
         className
       )}
+      onClick={() => onExpressInterest(user.id)}
     >
       <div className="aspect-[3/4] w-full overflow-hidden relative">
         <img 
@@ -40,7 +41,7 @@ const UserCard: React.FC<UserCardProps> = ({
         
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent pointer-events-none"></div>
         
-        <div className="absolute bottom-0 left-0 right-0 p-4">
+        <div className="absolute bottom-0 left-0 right-0 p-3">
           <div className="flex items-end justify-between">
             <div>
               <h3 className="text-base font-medium text-white">{user.name}</h3>
@@ -57,7 +58,7 @@ const UserCard: React.FC<UserCardProps> = ({
                 onExpressInterest(user.id);
               }}
               className={cn(
-                "rounded-full p-2.5 transition-all duration-300 transform",
+                "rounded-full p-2 transition-all duration-300 transform",
                 hasMatch 
                   ? "bg-[#3A86FF] text-white shadow-[0_0_15px_rgba(58,134,255,0.3)]" 
                   : hasPendingInterest 
@@ -68,7 +69,7 @@ const UserCard: React.FC<UserCardProps> = ({
               aria-label={hasMatch ? "Matched" : hasPendingInterest ? "Interest Sent" : "Express Interest"}
             >
               <Heart 
-                size={20} 
+                size={18} 
                 className={cn(
                   "transition-transform",
                   hasMatch && "fill-white", 
@@ -81,13 +82,13 @@ const UserCard: React.FC<UserCardProps> = ({
       </div>
       
       {hasMatch && (
-        <div className="absolute top-3 right-3 py-1 px-3 bg-[#3A86FF] text-white text-xs font-medium rounded-full shadow-md animate-fade-in">
+        <div className="absolute top-2 right-2 py-1 px-2 bg-[#3A86FF] text-white text-xs font-medium rounded-full shadow-md animate-fade-in">
           Match!
         </div>
       )}
       
       {isLikedByUser && !hasMatch && (
-        <div className="absolute top-3 right-3 py-1 px-3 bg-[#FF5A5F] text-white text-xs font-medium rounded-full shadow-md animate-fade-in">
+        <div className="absolute top-2 right-2 py-1 px-2 bg-[#FF5A5F] text-white text-xs font-medium rounded-full shadow-md animate-fade-in">
           Likes you
         </div>
       )}
