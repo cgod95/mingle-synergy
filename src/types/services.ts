@@ -17,6 +17,9 @@ export interface UserService {
   createUserProfile: (userId: string, data: UserProfile) => Promise<void>;
 }
 
+// Re-export the Venue type from @/types
+export { Venue } from '@/types';
+
 export interface VenueService {
   getVenues: () => Promise<Venue[]>;
   getVenueById: (id: string) => Promise<Venue | null>;
