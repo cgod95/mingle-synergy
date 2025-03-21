@@ -1,20 +1,48 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
 import UserCard from '@/components/UserCard';
-import { Venue, Interest, Match } from '@/types';
+import { Venue, Interest, Match, User } from '@/types';
 import { venues as mockVenues, users as mockUsers } from '@/data/mockData';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppState } from '@/context/AppStateContext';
+
+// Declare global window types for TypeScript
+declare global {
+  interface Window {
+    showToast?: (message: string) => void;
+    showMatchModal?: (user: User) => void;
+  }
+}
 
 const VenueList = () => {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { venueId } = useParams();
-  const [venueUsers, setVenueUsers] = useState([]);
+  const [venueUsers, setVenueUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser, interests, setInterests, matches, setMatches, matchedUser, setMatchedUser, showMatchModal, setShowMatchModal } = useAppState();
+
+  // Add these functions to expose the notifications globally
+  useEffect(() => {
+    window.showToast = (message) => {
+      // Use toast from context or local state
+    };
+    
+    window.showMatchModal = (user) => {
+      if (setMatchedUser && setShowMatchModal) {
+        setMatchedUser(user);
+        setShowMatchModal(true);
+      }
+    };
+    
+    return () => {
+      delete window.showToast;
+      delete window.showMatchModal;
+    };
+  }, [setMatchedUser, setShowMatchModal]);
 
   // Fetch venues on component mount
   useEffect(() => {

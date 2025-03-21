@@ -3,11 +3,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import MatchNotification from '@/components/MatchNotification';
-import { User, Venue, Match } from '@/types';
+import { User, Venue, Match, Interest } from '@/types';
 import { venues, getUsersAtVenue } from '@/data/mockData';
 import { Users, Heart, ArrowLeft, Clock } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import UserCard from '@/components/UserCard';
+
+// Declare global window types for TypeScript
+declare global {
+  interface Window {
+    showToast?: (message: string) => void;
+    showMatchModal?: (user: User) => void;
+  }
+}
 
 const SimpleVenueView = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,13 +26,54 @@ const SimpleVenueView = () => {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [likedUsers, setLikedUsers] = useState<string[]>([]);
   const [imagesLoaded, setImagesLoaded] = useState<{[key: string]: boolean}>({});
-  const [showMatchNotification, setShowMatchNotification] = useState(false);
-  const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   
-  // Mock current user ID
-  const currentUserId = 'u1';
+  // New state for interests and matches
+  const [interests, setInterests] = useState<Interest[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('interests') || '[]');
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [matches, setMatches] = useState<Match[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('matches') || '[]');
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [matchedUser, setMatchedUser] = useState<User | null>(null);
+  
+  // Mock current user (replace with your auth logic)
+  const currentUser = {
+    id: 'current-user-id',
+    name: 'Current User'
+  };
+  
+  // Add these functions to expose the notifications globally
+  useEffect(() => {
+    window.showToast = (message) => {
+      setToastMessage(message);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    };
+    
+    window.showMatchModal = (user) => {
+      setMatchedUser(user);
+      setShowMatchModal(true);
+    };
+    
+    return () => {
+      delete window.showToast;
+      delete window.showMatchModal;
+    };
+  }, []);
   
   // Load venue and users
   useEffect(() => {
@@ -51,59 +101,6 @@ const SimpleVenueView = () => {
     
   }, [id]);
   
-  // Simulate debounced like user function
-  const debouncedLikeUser = useCallback((userId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    // Animation on heart click
-    const target = e.currentTarget;
-    target.classList.add('scale-120');
-    setTimeout(() => {
-      target.classList.remove('scale-120');
-    }, 120);
-    
-    if (likedUsers.includes(userId)) {
-      setLikedUsers(prev => prev.filter(id => id !== userId));
-      toast({
-        title: "Interest removed",
-        description: "You've removed your interest",
-      });
-    } else {
-      setLikedUsers(prev => [...prev, userId]);
-      toast({
-        title: "Interest sent",
-        description: "They'll be notified of your interest",
-      });
-      
-      // Simulate match (50% chance)
-      if (Math.random() > 0.5) {
-        setTimeout(() => {
-          const newMatch: Match = {
-            id: `m${Date.now()}`,
-            userId: currentUserId,
-            matchedUserId: userId,
-            venueId: id || '',
-            timestamp: Date.now(),
-            isActive: true,
-            expiresAt: Date.now() + 1000 * 60 * 60 * 3, // 3 hours
-            contactShared: false
-          };
-          
-          setCurrentMatch(newMatch);
-          setShowMatchNotification(true);
-        }, 1000);
-      }
-    }
-  }, [likedUsers, toast, id, currentUserId]);
-  
-  // Add debouncing to the like function (200ms)
-  const handleLikeUser = (userId: string, e: React.MouseEvent) => {
-    e.persist();
-    setTimeout(() => {
-      debouncedLikeUser(userId, e);
-    }, 200);
-  };
-  
   const handleImageLoad = (userId: string) => {
     setImagesLoaded(prev => ({
       ...prev,
@@ -126,17 +123,17 @@ const SimpleVenueView = () => {
   };
   
   const handleCloseMatch = () => {
-    setShowMatchNotification(false);
+    setShowMatchModal(false);
   };
   
   const handleShareContact = () => {
-    if (currentMatch) {
+    if (matchedUser) {
       toast({
         title: "Contact Shared",
         description: "If they also share their contact, you'll both receive each other's info.",
       });
     }
-    setShowMatchNotification(false);
+    setShowMatchModal(false);
   };
   
   return (
@@ -215,52 +212,15 @@ const SimpleVenueView = () => {
                 {usersAtVenue.length > 0 ? (
                   <div className="grid grid-cols-3 gap-3 pb-16">
                     {usersAtVenue.map((user) => (
-                      <div 
+                      <UserCard
                         key={user.id}
-                        className="relative w-[100px] h-[140px] overflow-hidden rounded-xl bg-white border border-[#F1F5F9] shadow-[0px_2px_8px_rgba(0,0,0,0.05)] transition-opacity duration-100 hover:opacity-80 active:opacity-80"
-                      >
-                        <div className="w-full h-full relative">
-                          {!imagesLoaded[user.id] && (
-                            <div className="absolute inset-0 bg-[#F1F5F9] flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-[#3A86FF] border-t-transparent rounded-full animate-spin"></div>
-                            </div>
-                          )}
-                          <img 
-                            src={user.photos[0] + "?auto=format&fit=crop&w=300&q=80"} 
-                            alt={user.name}
-                            className={`w-full h-full object-cover ${!imagesLoaded[user.id] ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-                            loading="lazy"
-                            onLoad={() => handleImageLoad(user.id)}
-                          />
-                          
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#202020]/80 via-transparent to-transparent"></div>
-                          
-                          <div className="absolute bottom-0 left-0 right-0 p-2">
-                            <div className="flex items-end justify-between">
-                              <div className="overflow-hidden">
-                                <h3 className="text-[14px] font-medium text-white truncate">{user.name}</h3>
-                                <p className="text-[12px] text-white/80 truncate">{user.age}</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Heart button */}
-                          <button
-                            onClick={(e) => handleLikeUser(user.id, e)}
-                            className={`absolute bottom-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-120 transform ${
-                              likedUsers.includes(user.id) 
-                                ? "bg-[#3A86FF]"
-                                : "bg-white/50 backdrop-blur-sm hover:bg-white/70"
-                            }`}
-                            aria-label={likedUsers.includes(user.id) ? "Remove Interest" : "Express Interest"}
-                          >
-                            <Heart 
-                              size={14} 
-                              className={likedUsers.includes(user.id) ? "fill-white text-white" : "text-white"} 
-                            />
-                          </button>
-                        </div>
-                      </div>
+                        user={user}
+                        interests={interests}
+                        setInterests={setInterests}
+                        matches={matches}
+                        setMatches={setMatches}
+                        currentUser={currentUser}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -296,10 +256,65 @@ const SimpleVenueView = () => {
           )}
         </main>
         
-        {showMatchNotification && currentMatch && (
+        {/* Toast notification */}
+        {showToast && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50">
+            {toastMessage}
+          </div>
+        )}
+
+        {/* Match modal */}
+        {showMatchModal && matchedUser && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg w-5/6 max-w-md p-6 animate-fade-in">
+              <div className="text-center">
+                <div className="mb-2 text-blue-500">
+                  <svg className="w-16 h-16 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold mb-2">It's a Match!</h2>
+                <p className="text-gray-600 mb-4">You and {matchedUser.name} have expressed interest in each other.</p>
+                <img 
+                  src={matchedUser.photos?.[0]} 
+                  alt={matchedUser.name} 
+                  className="w-24 h-24 mx-auto rounded-full object-cover border-4 border-blue-100 mb-4"
+                />
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setShowMatchModal(false)} 
+                    className="flex-1 py-2 px-4 border border-gray-300 rounded-full text-gray-600"
+                  >
+                    Later
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowMatchModal(false);
+                      // Navigate to matches tab
+                    }}
+                    className="flex-1 py-2 px-4 bg-blue-500 rounded-full text-white"
+                  >
+                    Say Hello
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {showMatchModal === false && matchedUser && (
           <MatchNotification 
-            match={currentMatch}
-            currentUserId={currentUserId}
+            match={{
+              id: `match_${Date.now()}`,
+              userId: currentUser.id,
+              matchedUserId: matchedUser.id,
+              venueId: matchedUser.currentVenue || 'unknown',
+              timestamp: Date.now(),
+              isActive: true,
+              expiresAt: Date.now() + (3 * 60 * 60 * 1000),
+              contactShared: false
+            }}
+            currentUserId={currentUser.id}
             onClose={handleCloseMatch}
             onShareContact={handleShareContact}
           />

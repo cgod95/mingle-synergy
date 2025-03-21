@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { User as UserType, Interest, Match } from '@/types';
-import { Heart } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useToast } from "@/hooks/use-toast";
 
 interface UserCardProps {
   user: UserType;
@@ -22,177 +20,95 @@ interface UserCardProps {
 
 const UserCard: React.FC<UserCardProps> = ({ 
   user, 
-  onExpressInterest, 
-  hasPendingInterest = false,
-  hasMatch = false,
-  isLikedByUser = false,
-  className,
+  interests, 
+  setInterests, 
+  matches, 
+  setMatches, 
   currentUser,
-  interests = [],
-  setInterests,
-  matches = [],
-  setMatches,
-  setMatchedUser,
-  setShowMatchModal
+  className
 }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [isLiked, setIsLiked] = useState<boolean>(hasPendingInterest);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const { toast } = useToast();
+  const [isLiked, setIsLiked] = useState(false);
   
-  useEffect(() => {
-    setIsLiked(hasPendingInterest);
-  }, [hasPendingInterest]);
-
-  const handleExpressInterest = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    // Animation on heart click
-    const target = e.currentTarget;
-    target.classList.add('scale-120');
-    setTimeout(() => {
-      target.classList.remove('scale-120');
-    }, 200);
-    
-    if (onExpressInterest) {
-      onExpressInterest(user.id);
-    }
-  };
-  
-  const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleHeartClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     
-    if (isProcessing) return;
-    
-    setIsProcessing(true);
+    console.log("Heart clicked for user:", user.id);
     setIsLiked(true);
     
-    // Create interest object
-    const interest = {
-      id: `int_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      fromUserId: currentUser?.id || '',
+    const newInterest = {
+      id: `int_${Date.now()}`,
+      fromUserId: currentUser.id,
       toUserId: user.id,
-      venueId: user.currentVenue || '',
+      venueId: user.currentVenue || 'unknown',
       timestamp: Date.now(),
       isActive: true,
-      expiresAt: Date.now() + (3 * 60 * 60 * 1000) // 3 hours
+      expiresAt: Date.now() + (3 * 60 * 60 * 1000)
     };
     
-    // Add to interests array
-    if (setInterests) {
-      const updatedInterests = [...interests, interest];
-      setInterests(updatedInterests);
-      localStorage.setItem('interests', JSON.stringify(updatedInterests));
+    setInterests(prev => [...prev, newInterest]);
+    
+    const savedInterests = JSON.parse(localStorage.getItem('interests') || '[]');
+    savedInterests.push(newInterest);
+    localStorage.setItem('interests', JSON.stringify(savedInterests));
+    
+    if (window.showToast) {
+      window.showToast('Interest sent!');
     }
     
-    // Show toast notification
-    toast({
-      title: "Interest Sent!",
-      description: `You've expressed interest in ${user.name}`,
-    });
-    
-    // Check for match
-    const hasMatch = interests.some(int => 
-      int.fromUserId === user.id && 
-      int.toUserId === (currentUser?.id || '') &&
-      int.isActive
+    const mutualInterest = interests.find(interest => 
+      interest.fromUserId === user.id && 
+      interest.toUserId === currentUser.id &&
+      interest.isActive
     );
     
-    if (hasMatch && setMatches && setMatchedUser && setShowMatchModal) {
-      // Create match object
-      const match = {
-        id: `match_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        userId: currentUser?.id || '',
+    if (mutualInterest) {
+      const newMatch = {
+        id: `match_${Date.now()}`,
+        userId: currentUser.id,
         matchedUserId: user.id,
-        venueId: user.currentVenue || '',
+        venueId: user.currentVenue || 'unknown',
         timestamp: Date.now(),
         isActive: true,
-        expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3 hours
+        expiresAt: Date.now() + (3 * 60 * 60 * 1000),
         contactShared: false
       };
       
-      // Add to matches array
-      const updatedMatches = [...matches, match];
-      setMatches(updatedMatches);
-      localStorage.setItem('matches', JSON.stringify(updatedMatches));
+      setMatches(prev => [...prev, newMatch]);
       
-      // Show match notification
-      setMatchedUser(user);
-      setShowMatchModal(true);
+      const savedMatches = JSON.parse(localStorage.getItem('matches') || '[]');
+      savedMatches.push(newMatch);
+      localStorage.setItem('matches', JSON.stringify(savedMatches));
+      
+      if (window.showMatchModal) {
+        window.showMatchModal(user);
+      }
     }
-    
-    // Also call the original handler for backward compatibility
-    if (onExpressInterest) {
-      onExpressInterest(user.id);
-    }
-    
-    setIsProcessing(false);
   };
   
   return (
-    <div 
-      className={cn(
-        "relative w-[100px] h-[140px] overflow-hidden rounded-xl bg-white border border-[#E5E7EB] shadow-[0_2px_10px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_4px_15px_rgba(0,0,0,0.1)] active:opacity-90",
-        hasMatch && "shadow-[0_0_0_2px_rgba(58,134,255,0.1),0_2px_10px_rgba(0,0,0,0.08)]",
-        isLikedByUser && "border-[#FF5A5F]/30",
-        className
-      )}
-    >
-      <div className="w-full h-full relative">
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-[#F9FAFB] flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-[#3A86FF] border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
-        <img 
-          src={user.photos[0] + "?auto=format&fit=crop&w=300&q=80"} 
-          alt={user.name}
-          className={`w-full h-full object-cover ${!imageLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-          loading="lazy"
-          onLoad={() => setImageLoaded(true)}
-        />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-[#202020]/80 via-transparent to-transparent"></div>
-        
-        <div className="absolute bottom-0 left-0 right-0 p-2">
-          <div className="flex items-end justify-between">
-            <div className="overflow-hidden">
-              <h3 className="text-[14px] font-medium text-white truncate">{user.name}</h3>
-              <p className="text-[12px] text-white/80 truncate">{user.age}</p>
-            </div>
-          </div>
+    <div className={`relative rounded-lg overflow-hidden ${className}`}>
+      <img 
+        src={user.photos?.[0]} 
+        alt={user.name} 
+        className="w-full aspect-square object-cover"
+      />
+      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+        <div className="text-white">
+          <div className="font-medium">{user.name}</div>
+          <div className="text-sm">{user.age}</div>
         </div>
-        
-        {/* Heart button with updated implementation */}
-        <button
-          onClick={handleLike}
-          className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isLiked || hasPendingInterest || hasMatch
-              ? "bg-[#3A86FF] shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
-              : "bg-white/50 backdrop-blur-sm hover:bg-white/70"
-          }`}
-          aria-label="Express Interest"
-          disabled={isProcessing}
-        >
-          <Heart 
-            size={16} 
-            className={isLiked || hasPendingInterest || hasMatch ? "fill-white text-white" : "text-white"} 
-          />
-        </button>
       </div>
-      
-      {hasMatch && (
-        <div className="absolute top-2 right-2 py-1 px-2 bg-[#3A86FF] text-white text-[10px] font-medium rounded-full shadow-md animate-fade-in">
-          Match!
-        </div>
-      )}
-      
-      {isLikedByUser && !hasMatch && (
-        <div className="absolute top-2 right-2 py-1 px-2 bg-[#FF5A5F] text-white text-[10px] font-medium rounded-full shadow-md animate-fade-in">
-          Likes you
-        </div>
-      )}
+      <button 
+        onClick={handleHeartClick}
+        className={`absolute bottom-2 right-2 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 ${
+          isLiked ? 'bg-pink-500 text-white' : 'bg-white/80 text-gray-600 hover:bg-gray-100'
+        }`}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+      </button>
     </div>
   );
 };
