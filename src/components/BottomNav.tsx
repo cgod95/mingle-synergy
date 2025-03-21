@@ -1,12 +1,17 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Bell, User } from 'lucide-react';
+import { MapPin, Heart, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLocation as useUserLocation } from '@/hooks/useLocation';
 
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentVenue } = useUserLocation();
+  
+  // Determine if user is at a venue
+  const isAtVenue = !!currentVenue;
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t border-border">
@@ -15,8 +20,8 @@ const BottomNav: React.FC = () => {
           <button
             onClick={() => navigate('/venues')}
             className={cn(
-              "flex flex-col items-center gap-1 px-4 py-2",
-              location.pathname === '/venues' || location.pathname.startsWith('/venue/') 
+              "flex flex-col items-center gap-1 px-3 py-2",
+              location.pathname === '/venues' 
                 ? "text-[#3A86FF]" 
                 : "text-foreground/70"
             )}
@@ -27,9 +32,23 @@ const BottomNav: React.FC = () => {
           </button>
           
           <button
+            onClick={() => navigate(isAtVenue ? `/venue/${currentVenue.id}` : '/venues')}
+            className={cn(
+              "flex flex-col items-center gap-1 px-3 py-2",
+              location.pathname.startsWith('/venue/') 
+                ? "text-[#3A86FF]" 
+                : "text-foreground/70"
+            )}
+            aria-label="Active Venue"
+          >
+            <Heart size={24} />
+            <span className="text-xs">Active</span>
+          </button>
+          
+          <button
             onClick={() => navigate('/matches')}
             className={cn(
-              "flex flex-col items-center gap-1 px-4 py-2 relative",
+              "flex flex-col items-center gap-1 px-3 py-2 relative",
               location.pathname === '/matches' 
                 ? "text-[#3A86FF]" 
                 : "text-foreground/70"
@@ -43,7 +62,7 @@ const BottomNav: React.FC = () => {
           <button
             onClick={() => navigate('/profile')}
             className={cn(
-              "flex flex-col items-center gap-1 px-4 py-2",
+              "flex flex-col items-center gap-1 px-3 py-2",
               location.pathname === '/profile' 
                 ? "text-[#3A86FF]" 
                 : "text-foreground/70"
