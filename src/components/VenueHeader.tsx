@@ -49,37 +49,37 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#F1F5F9] p-4 mb-6 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] max-h-[120px] flex flex-col justify-between">
+    <div className="card-premium max-h-[120px] flex flex-col justify-between">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button 
             onClick={() => navigate('/venues')}
-            className="mr-3 text-[#505050] hover:text-[#202020]"
+            className="mr-3 text-[#202020] hover:text-black btn-icon"
             aria-label="Back"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-[18px] font-semibold text-[#202020] truncate">{venue.name}</h1>
-            <p className="text-[14px] text-[#505050] truncate">{venue.address}</p>
+            <h1 className="text-heading text-[#202020] truncate">{venue.name}</h1>
+            <p className="text-caption text-[#6B7280] truncate">{venue.address}</p>
           </div>
         </div>
         
         <button
           onClick={onCheckOut}
-          className="text-[14px] text-[#EF4444] hover:text-[#EF4444]/80 transition-colors"
+          className="text-caption text-[#EF4444] hover:text-[#EF4444]/80 transition-colors"
         >
           Check Out
         </button>
       </div>
       
-      <div className="flex items-center justify-between mt-2">
-        <div className="flex items-center text-[#3A86FF] text-[14px]">
+      <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center text-[#3A86FF] text-caption">
           <Users size={16} className="mr-1.5" />
           <span>{venue.checkInCount} people</span>
         </div>
         
-        <div className="flex items-center text-[#505050] text-[14px]">
+        <div className="flex items-center text-[#6B7280] text-caption">
           <Clock size={16} className="mr-1.5" />
           <span>Expires {formatExpiryTime()}</span>
         </div>

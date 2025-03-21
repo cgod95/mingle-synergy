@@ -21,13 +21,17 @@ const CheckInTimer: React.FC<CheckInTimerProps> = ({
     const seconds = timeRemaining % 60;
     
     return hours > 0 
-      ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      ? `${hours}h ${minutes.toString().padStart(2, '0')}m`
       : `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   // Format expiry time as local time (eg. "Expires at 3:45 PM")
   const formatExpiryTime = () => {
-    return `Expires at ${expiryTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    return `Expires at ${expiryTime.toLocaleTimeString([], { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    })}`;
   };
 
   // Calculate remaining percentage for progress indicator
@@ -40,21 +44,21 @@ const CheckInTimer: React.FC<CheckInTimerProps> = ({
 
   return (
     <div className={cn("flex flex-col items-end gap-1", className)}>
-      <div className="relative flex items-center space-x-2 bg-gradient-to-r from-[#3A86FF]/10 to-[#3A86FF]/5 px-4 py-2 rounded-lg shadow-sm">
+      <div className="relative flex items-center space-x-2 bg-gradient-to-r from-[#EBF2FF] to-[#F9FAFB] px-4 py-2 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
         <Clock className="text-[#3A86FF]" size={18} />
-        <span className="text-[#3A86FF] font-medium">
+        <span className="text-[#3A86FF] font-medium text-caption">
           {formatTimeRemaining()}
         </span>
         
         {/* Progress indicator */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#3A86FF]/20 rounded-b-lg overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#EBF2FF] rounded-b-xl overflow-hidden">
           <div 
-            className="h-full bg-[#3A86FF] rounded-b-lg transition-all duration-1000 ease-linear"
+            className="h-full bg-[#3A86FF] rounded-b-xl transition-all duration-1000 ease-linear"
             style={{ width: `${getExpiryPercentage()}%` }}
           />
         </div>
       </div>
-      <span className="text-xs text-muted-foreground">
+      <span className="text-[11px] text-[#6B7280]">
         {formatExpiryTime()}
       </span>
     </div>

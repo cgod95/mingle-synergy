@@ -31,7 +31,7 @@ const UserCard: React.FC<UserCardProps> = ({
     target.classList.add('scale-120');
     setTimeout(() => {
       target.classList.remove('scale-120');
-    }, 120);
+    }, 200);
     
     onExpressInterest(user.id);
   };
@@ -39,8 +39,8 @@ const UserCard: React.FC<UserCardProps> = ({
   return (
     <div 
       className={cn(
-        "relative w-[100px] h-[140px] overflow-hidden rounded-xl bg-white border border-[#F1F5F9] shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-opacity duration-100 hover:opacity-80 active:opacity-80",
-        hasMatch && "ring-2 ring-[#3A86FF] shadow-[0_0_15px_rgba(58,134,255,0.25)]",
+        "relative w-[100px] h-[140px] overflow-hidden rounded-xl bg-white border border-[#E5E7EB] shadow-[0_2px_10px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_4px_15px_rgba(0,0,0,0.1)] active:opacity-90",
+        hasMatch && "shadow-[0_0_0_2px_rgba(58,134,255,0.1),0_2px_10px_rgba(0,0,0,0.08)]",
         isLikedByUser && "border-[#FF5A5F]/30",
         className
       )}
@@ -48,7 +48,7 @@ const UserCard: React.FC<UserCardProps> = ({
     >
       <div className="w-full h-full relative">
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-[#F1F5F9] flex items-center justify-center">
+          <div className="absolute inset-0 bg-[#F9FAFB] flex items-center justify-center">
             <div className="w-6 h-6 border-2 border-[#3A86FF] border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
@@ -74,15 +74,15 @@ const UserCard: React.FC<UserCardProps> = ({
         {/* Heart button */}
         <button
           onClick={handleExpressInterest}
-          className={`absolute bottom-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-120 transform ${
+          className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
             hasPendingInterest || hasMatch
-              ? "bg-[#3A86FF]"
+              ? "bg-[#3A86FF] shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
               : "bg-white/50 backdrop-blur-sm hover:bg-white/70"
           }`}
           aria-label="Express Interest"
         >
           <Heart 
-            size={14} 
+            size={16} 
             className={hasPendingInterest || hasMatch ? "fill-white text-white" : "text-white"} 
           />
         </button>
@@ -90,7 +90,7 @@ const UserCard: React.FC<UserCardProps> = ({
       
       {hasMatch && (
         <div className="absolute top-2 right-2 py-1 px-2 bg-[#3A86FF] text-white text-[10px] font-medium rounded-full shadow-md animate-fade-in">
-          It's a Match
+          Match!
         </div>
       )}
       

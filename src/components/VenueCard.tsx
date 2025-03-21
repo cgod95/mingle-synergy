@@ -35,7 +35,8 @@ const VenueCard: React.FC<VenueCardProps> = ({
   return (
     <div 
       className={cn(
-        "group relative overflow-hidden rounded-xl bg-white border border-[#F1F5F9]/80 hover:shadow-[0px_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300 cursor-pointer animate-scale-in",
+        "group venue-card animate-scale-in",
+        isCheckedIn && "shadow-[0_0_0_2px_rgba(58,134,255,0.1),0_2px_10px_rgba(0,0,0,0.08)]",
         className
       )}
       onClick={handleCardClick}
@@ -53,12 +54,12 @@ const VenueCard: React.FC<VenueCardProps> = ({
       <div className="absolute inset-0 bg-gradient-to-t from-[#202020]/80 via-transparent to-transparent"></div>
       
       <div className="absolute bottom-0 left-0 right-0 p-4">
-        <h3 className="text-xl font-semibold text-white mb-1">{venue.name}</h3>
+        <h3 className="text-heading text-white mb-1">{venue.name}</h3>
         
-        <p className="text-sm text-white/90 mb-3 truncate">{venue.address}</p>
+        <p className="text-caption text-white/90 mb-3 truncate">{venue.address}</p>
         
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-1.5 text-[#3A86FF] text-sm font-medium">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-1.5 text-[#3A86FF] text-caption font-medium">
             <Users size={16} className="stroke-[2.5px]" />
             <span>{venue.checkInCount} people</span>
           </div>
@@ -66,9 +67,9 @@ const VenueCard: React.FC<VenueCardProps> = ({
         
         {/* Preview of people at venue */}
         {hasUsers && (
-          <div className="flex mb-3 -space-x-2 overflow-hidden">
+          <div className="flex mb-4 -space-x-2 overflow-hidden">
             {usersAtVenue.slice(0, 5).map((user) => (
-              <div key={user.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+              <div key={user.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                 <img 
                   src={user.photos[0] + "?w=100&h=100&q=80"} 
                   alt={user.name}
@@ -78,7 +79,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
               </div>
             ))}
             {usersAtVenue.length > 5 && (
-              <div className="w-8 h-8 rounded-full bg-[#3A86FF] border-2 border-white flex items-center justify-center text-xs font-medium text-white">
+              <div className="w-8 h-8 rounded-full bg-[#3A86FF] border-2 border-white flex items-center justify-center text-[10px] font-medium text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                 +{usersAtVenue.length - 5}
               </div>
             )}
@@ -86,7 +87,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
         )}
         
         <button
-          className="w-full py-2.5 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-all duration-300 shadow-[0_2px_10px_rgba(58,134,255,0.2)] hover:shadow-none transform hover:translate-y-0.5 flex items-center justify-center"
+          className="w-full py-3 bg-[#3A86FF] text-white rounded-full hover:brightness-105 active:scale-[0.98] transition-all duration-200 shadow-[0_2px_10px_rgba(58,134,255,0.2)] hover:shadow-[0_1px_5px_rgba(58,134,255,0.15)] text-button flex items-center justify-center"
           onClick={(e) => {
             e.stopPropagation();
             handleCardClick();
