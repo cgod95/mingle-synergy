@@ -4,9 +4,9 @@ import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
 import ToggleButton from '@/components/ToggleButton';
 import { Venue } from '@/types';
-import { Search, MapPin } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
-import { useLocation } from '@/hooks/useLocation';
+import { useVenues } from '@/hooks/useVenues';
 
 const VenueList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,9 +19,8 @@ const VenueList = () => {
     nearbyVenues, 
     currentVenue, 
     loading, 
-    permissionGranted, 
-    requestLocationPermission 
-  } = useLocation();
+    checkInToVenue
+  } = useVenues();
   
   useEffect(() => {
     // Filter venues based on search and type filter
@@ -42,10 +41,7 @@ const VenueList = () => {
   }, [searchQuery, activeFilter, nearbyVenues]);
   
   const handleQuickCheckIn = (venueId: string, zoneName?: string) => {
-    toast({
-      title: zoneName ? `Checked into ${zoneName}` : "Checked In!",
-      description: "You're now visible at this venue for the next few hours.",
-    });
+    checkInToVenue(venueId, zoneName);
     
     // Navigate to venue page
     window.location.href = `/venue/${venueId}`;
@@ -157,22 +153,6 @@ const VenueList = () => {
                     </div>
                   </div>
                 ))}
-              </div>
-            ) : !permissionGranted ? (
-              <div className="text-center py-12 animate-fade-in">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">
-                  <MapPin className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-xl font-medium mb-2">Enable location services</h3>
-                <p className="text-muted-foreground mb-4">
-                  We need your location to show you nearby venues and people.
-                </p>
-                <button
-                  onClick={() => requestLocationPermission()}
-                  className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors"
-                >
-                  Enable Location
-                </button>
               </div>
             ) : filteredVenues.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fade-in">

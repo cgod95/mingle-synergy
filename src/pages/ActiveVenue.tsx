@@ -6,15 +6,17 @@ import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
 import ToggleButton from '@/components/ToggleButton';
 import { User, Venue, Match } from '@/types';
-import { venues, users, getUsersAtVenue } from '@/data/mockData';
+import { venues, getUsersAtVenue } from '@/data/mockData';
 import { ArrowLeft, Users, MapPin, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/components/ui/use-toast";
+import { useVenues } from '@/hooks/useVenues';
 
 const ActiveVenue = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkInToVenue, checkOutFromVenue } = useVenues();
   
   const [venue, setVenue] = useState<Venue | null>(null);
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
@@ -23,7 +25,7 @@ const ActiveVenue = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [showMatchNotification, setShowMatchNotification] = useState(false);
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
-  const [isCheckedIn, setIsCheckedIn] = useState(true); // Default to checked in
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [activeZone, setActiveZone] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
@@ -42,10 +44,6 @@ const ActiveVenue = () => {
       if (foundVenue) {
         setVenue(foundVenue);
         setUsersAtVenue(getUsersAtVenue(id));
-        
-        // Set check-in time based on venue type
-        const hours = getExpiryHours(foundVenue.type);
-        setTimeRemaining(hours * 60 * 60); // Convert to seconds
       }
     }
     
@@ -61,6 +59,7 @@ const ActiveVenue = () => {
         if (prev <= 1) {
           clearInterval(countdown);
           setIsCheckedIn(false);
+          checkOutFromVenue();
           toast({
             title: "Check-in expired",
             description: "You've been automatically checked out.",
@@ -72,7 +71,7 @@ const ActiveVenue = () => {
     }, 1000);
     
     return () => clearInterval(countdown);
-  }, [timeRemaining, isCheckedIn, toast]);
+  }, [timeRemaining, isCheckedIn, toast, checkOutFromVenue]);
   
   // Get timer based on venue type
   const getExpiryHours = (type: string) => {
@@ -139,22 +138,23 @@ const ActiveVenue = () => {
     setIsCheckedIn(true);
     if (zone) {
       setActiveZone(zone);
-      toast({
-        title: `Checked into ${zone}`,
-        description: "You're now visible in this zone for the next few hours.",
-      });
-    } else {
-      toast({
-        title: "Checked In!",
-        description: "You're now visible at this venue for the next few hours.",
-      });
     }
     
-    // Reset the timer based on venue type
-    if (venue) {
+    // Use the checkInToVenue from our hook
+    if (id && venue) {
+      checkInToVenue(id, zone);
+      
+      // Reset the timer based on venue type
       const hours = getExpiryHours(venue.type);
       setTimeRemaining(hours * 60 * 60);
     }
+  };
+  
+  const handleCheckOut = () => {
+    setIsCheckedIn(false);
+    setActiveZone(null);
+    checkOutFromVenue();
+    setTimeRemaining(0);
   };
   
   const toggleVisibility = () => {
@@ -232,16 +232,22 @@ const ActiveVenue = () => {
                 </p>
               </div>
               
-              {isCheckedIn && (
-                <div className="flex items-center space-x-2 bg-[#3A86FF]/10 px-3 py-2 rounded-lg">
-                  <Clock className="text-[#3A86FF]" size={18} />
-                  <span className="text-[#3A86FF] font-medium">
-                    {formatTimeRemaining()}
-                  </span>
+              {isCheckedIn ? (
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center space-x-2 bg-[#3A86FF]/10 px-3 py-2 rounded-lg">
+                    <Clock className="text-[#3A86FF]" size={18} />
+                    <span className="text-[#3A86FF] font-medium">
+                      {formatTimeRemaining()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleCheckOut}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Check Out
+                  </button>
                 </div>
-              )}
-              
-              {!isCheckedIn && (
+              ) : (
                 <button
                   onClick={() => handleCheckIn()}
                   className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors"

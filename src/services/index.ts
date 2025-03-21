@@ -14,8 +14,8 @@ import mockMatchService from './mock/mockMatchService';
 // import firebaseMatchService from './firebase/matchService';
 
 // Determine which implementation to use
-// Setting default to use Firebase unless explicitly set to use mocks
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_SERVICES === 'true';
+// Setting default to use mock services
+const USE_MOCK = true;
 
 // Export services
 const services = {
