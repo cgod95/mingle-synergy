@@ -41,6 +41,7 @@ export function useVenues(): VenueHookReturn {
   useEffect(() => {
     if (currentVenue) {
       const users = getUsersAtVenue(currentVenue.id);
+      console.log(`Loading ${users.length} users for venue ${currentVenue.id}`);
       setUsersAtVenue(users);
     } else {
       setUsersAtVenue([]);
@@ -54,13 +55,15 @@ export function useVenues(): VenueHookReturn {
 
   // Check in to a venue
   const checkInToVenue = (venueId: string, zoneName?: string): void => {
+    console.log(`Checking in to venue: ${venueId}, zone: ${zoneName || 'default'}`);
     const venue = venues.find(v => v.id === venueId);
     
     if (venue) {
       setCurrentVenue(venue);
       
-      // Load users at the venue
+      // Load users at the venue - do this immediately to ensure we have users
       const users = getUsersAtVenue(venueId);
+      console.log(`Found ${users.length} users at venue ${venueId}`);
       setUsersAtVenue(users);
       
       // Notify user

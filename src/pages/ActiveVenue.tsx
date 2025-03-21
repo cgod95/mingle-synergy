@@ -6,7 +6,7 @@ import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
 import VenueHeader from '@/components/VenueHeader';
 import { User, Venue, Match } from '@/types';
-import { venues } from '@/data/mockData';
+import { venues, getUsersAtVenue } from '@/data/mockData';
 import { Users } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { useVenues } from '@/hooks/useVenues';
@@ -15,7 +15,7 @@ const ActiveVenue = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { checkInToVenue, checkOutFromVenue, usersAtVenue } = useVenues();
+  const { checkInToVenue, checkOutFromVenue } = useVenues();
   
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +28,7 @@ const ActiveVenue = () => {
   const [activeZone, setActiveZone] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [expiryTime, setExpiryTime] = useState<Date>(new Date());
+  const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   
   const mockCurrentUserId = 'u6'; // For demonstration purposes
   
@@ -35,7 +36,7 @@ const ActiveVenue = () => {
     // Simulate loading
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 500);
     
     // Find venue
     if (id) {
@@ -43,6 +44,11 @@ const ActiveVenue = () => {
       if (foundVenue) {
         setVenue(foundVenue);
         setIsCheckedIn(true);
+        
+        // Load users at this venue
+        const users = getUsersAtVenue(id);
+        console.log(`Loaded ${users.length} users for venue ${id}`);
+        setUsersAtVenue(users);
         
         // Set expiry time
         const hours = getExpiryHours(foundVenue.type);
@@ -155,6 +161,9 @@ const ActiveVenue = () => {
         : "Other users can now discover you",
     });
   };
+  
+  console.log('Current venue:', venue?.name);
+  console.log('Users at venue:', usersAtVenue.length, usersAtVenue.map(u => u.name).join(', '));
   
   return (
     <div className="min-h-screen bg-background text-foreground pt-16 pb-24">
