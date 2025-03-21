@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Server } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -27,6 +27,14 @@ const Index = () => {
             className="w-full py-6 text-lg"
           >
             Sign In
+          </Button>
+          
+          <Button 
+            onClick={() => navigate('/test-backend')}
+            variant="outline"
+            className="w-full py-3 mt-4 text-sm bg-amber-50 hover:bg-amber-100 border-amber-200"
+          >
+            <Server className="w-4 h-4 mr-2" /> Test Firebase Backend
           </Button>
         </div>
         
