@@ -28,11 +28,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
-  // Uncomment for production use
-  // if (!currentUser) {
-  //   return <Navigate to="/sign-in" />;
-  // }
-  
+  // Bypassing auth check for development
   return <>{children}</>;
 };
 
@@ -51,7 +47,7 @@ const AppLayout = () => {
       <Routes>
         <Route path="/" element={<VenueList />} />
         <Route path="/venues" element={<VenueList />} />
-        <Route path="/venue/:id" element={<ActiveVenue />} />
+        <Route path="/venue/:id" element={<SimpleVenueView />} />
         <Route path="/simple-venue/:id" element={<SimpleVenueView />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/matches" element={<Matches />} />
