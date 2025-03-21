@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -38,6 +39,15 @@ const ActiveVenue = () => {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [expiryTime, setExpiryTime] = useState<Date>(new Date());
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
+  
+  // Add likesRemaining state
+  const [likesRemaining, setLikesRemaining] = useState(() => {
+    if (id) {
+      const saved = localStorage.getItem(`likesRemaining-${id}`);
+      return saved ? parseInt(saved, 10) : 3;
+    }
+    return 3;
+  });
   
   const currentUser = { id: 'u6', name: 'Demo User' };
   
@@ -263,6 +273,9 @@ const ActiveVenue = () => {
                           m => (m.userId === currentUser.id && m.matchedUserId === user.id) || 
                                (m.userId === user.id && m.matchedUserId === currentUser.id)
                         )}
+                        likesRemaining={likesRemaining}
+                        setLikesRemaining={setLikesRemaining}
+                        venueId={id || 'unknown'}
                       />
                     ))}
                   </div>
