@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Users, Clock, MapPin, LogIn, LogOut } from 'lucide-react';
 import { Venue } from '@/types';
 import { cn } from '@/lib/utils';
 import { getUsersAtVenue } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
 
 interface VenueCardProps {
   venue: Venue;
@@ -22,6 +22,8 @@ const VenueCard: React.FC<VenueCardProps> = ({
   isCheckedIn = false,
   simplified = false
 }) => {
+  const navigate = useNavigate();
+  
   // Get timer based on venue type
   const getExpiryHours = (type: string) => {
     switch (type) {
@@ -37,16 +39,16 @@ const VenueCard: React.FC<VenueCardProps> = ({
     if (isCheckedIn && onCheckOut) {
       // Don't do anything on card click if already checked in
       return;
-    } else if (onCheckIn) {
-      onCheckIn(venue.id);
+    } else {
+      // Navigate directly to SimpleVenueView
+      navigate(`/simple-venue/${venue.id}`);
     }
   };
   
   const handleCheckIn = (e: React.MouseEvent, zoneName?: string) => {
     e.stopPropagation();
-    if (onCheckIn) {
-      onCheckIn(venue.id, zoneName);
-    }
+    // Navigate directly to SimpleVenueView instead of using onCheckIn
+    navigate(`/simple-venue/${venue.id}`);
   };
   
   const handleCheckOut = (e: React.MouseEvent) => {
@@ -153,32 +155,12 @@ const VenueCard: React.FC<VenueCardProps> = ({
           >
             <LogOut size={16} className="mr-2" /> Check Out
           </button>
-        ) : zones.length > 0 ? (
-          <div className="space-y-2 mb-3">
-            <div className="grid grid-cols-2 gap-2">
-              {zones.map((zone) => (
-                <button
-                  key={zone.id}
-                  className="py-2 px-3 text-sm bg-secondary/80 text-secondary-foreground rounded-lg hover:bg-secondary transition-colors flex items-center justify-center shadow-sm"
-                  onClick={(e) => handleCheckIn(e, zone.name)}
-                >
-                  <MapPin size={14} className="mr-1.5" /> {zone.name}
-                </button>
-              ))}
-            </div>
-            <button
-              className="w-full py-2.5 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-all duration-300 shadow-button hover:shadow-none transform hover:translate-y-0.5 flex items-center justify-center"
-              onClick={(e) => handleCheckIn(e)}
-            >
-              <LogIn size={16} className="mr-2" /> Quick Check In
-            </button>
-          </div>
         ) : (
           <button
             className="w-full py-2.5 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-all duration-300 shadow-button hover:shadow-none transform hover:translate-y-0.5 flex items-center justify-center"
             onClick={(e) => handleCheckIn(e)}
           >
-            <LogIn size={16} className="mr-2" /> Check In
+            <LogIn size={16} className="mr-2" /> View People Here
           </button>
         )}
       </div>

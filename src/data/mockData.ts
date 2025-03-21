@@ -402,6 +402,248 @@ export const users: User[] = [
     matches: [],
     likedUsers: [],
     blockedUsers: []
+  },
+  {
+    id: 'u17',
+    name: 'Sarah',
+    photos: ['https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600'],
+    bio: 'Beach lover and surfer',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'North End',
+    zone: 'North End',
+    isVisible: true,
+    interests: ['surfing', 'volleyball'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 26,
+    ageRangePreference: {
+      min: 24,
+      max: 36
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u18',
+    name: 'Jake',
+    photos: ['https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600'],
+    bio: 'Surfer and yoga enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'South End',
+    zone: 'South End',
+    isVisible: true,
+    interests: ['surfing', 'yoga'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 29,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u19',
+    name: 'Alice',
+    photos: ['https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600'],
+    bio: 'Ocean swimmer and volleyball player',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'Volleyball Courts',
+    zone: 'Volleyball Courts',
+    isVisible: true,
+    interests: ['swimming', 'volleyball'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 28,
+    ageRangePreference: {
+      min: 26,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u20',
+    name: 'Marcus',
+    photos: ['https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600'],
+    bio: 'Lifeguard and fitness enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'Lifeguard Tower',
+    zone: 'Lifeguard Tower',
+    isVisible: true,
+    interests: ['swimming', 'fitness'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 32,
+    ageRangePreference: {
+      min: 28,
+      max: 36
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u21',
+    name: 'Olivia',
+    photos: ['https://images.unsplash.com/photo-1535295972055-1c762f4483e5?w=600'],
+    bio: 'Beach volleyball player and sun seeker',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'Volleyball Courts',
+    zone: 'Volleyball Courts',
+    isVisible: true,
+    interests: ['volleyball', 'tanning'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 27,
+    ageRangePreference: {
+      min: 26,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u22',
+    name: 'Daniel',
+    photos: ['https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=600'],
+    bio: 'Surfer and beach volleyball enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'South End',
+    zone: 'South End',
+    isVisible: true,
+    interests: ['surfing', 'volleyball'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 31,
+    ageRangePreference: {
+      min: 27,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u23',
+    name: 'Emma',
+    photos: ['https://images.unsplash.com/photo-1614644147798-f8c0fc9da7f6?w=600'],
+    bio: 'Beach reader and swimmer',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'North End',
+    zone: 'North End',
+    isVisible: true,
+    interests: ['reading', 'swimming'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 29,
+    ageRangePreference: {
+      min: 27,
+      max: 40
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u24',
+    name: 'Tom',
+    photos: ['https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=600'],
+    bio: 'Passionate surfer and coffee lover',
+    isCheckedIn: true,
+    currentVenue: 'v5',
+    currentZone: 'Café Area',
+    zone: 'Café Area',
+    isVisible: true,
+    interests: ['surfing', 'coffee'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 30,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u25',
+    name: 'Lily',
+    photos: ['https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=600'],
+    bio: 'Plant enthusiast and nature photographer',
+    isCheckedIn: true,
+    currentVenue: 'v6',
+    currentZone: 'Rose Garden',
+    zone: 'Rose Garden',
+    isVisible: true,
+    interests: ['plants', 'photography'],
+    gender: 'female',
+    interestedIn: ['male', 'female'],
+    age: 28,
+    ageRangePreference: {
+      min: 25,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u26',
+    name: 'Nathan',
+    photos: ['https://images.unsplash.com/photo-1534614971-6be99a7a3ffd?w=600'],
+    bio: 'Botanist and meditation enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v6',
+    currentZone: 'Main Lawn',
+    zone: 'Main Lawn',
+    isVisible: true,
+    interests: ['botany', 'meditation'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 32,
+    ageRangePreference: {
+      min: 28,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u27',
+    name: 'Grace',
+    photos: ['https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600'],
+    bio: 'Avid reader and picnic lover',
+    isCheckedIn: true,
+    currentVenue: 'v6',
+    currentZone: 'Pond Area',
+    zone: 'Pond Area',
+    isVisible: true,
+    interests: ['reading', 'picnics'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 27,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
   }
 ];
 
@@ -450,9 +692,12 @@ export const matches: Match[] = [
   }
 ];
 
-// Get users at a venue
+// Get users at a venue - Enhanced to ensure we always return results
 export const getUsersAtVenue = (venueId: string): User[] => {
-  return users.filter(user => user.currentVenue === venueId && user.isVisible);
+  console.log(`Getting users for venue ${venueId}`);
+  const venueUsers = users.filter(user => user.currentVenue === venueId && user.isVisible);
+  console.log(`Found ${venueUsers.length} users at venue ${venueId}`);
+  return venueUsers;
 };
 
 // Check if there is a mutual interest

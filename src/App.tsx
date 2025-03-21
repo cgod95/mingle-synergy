@@ -9,6 +9,7 @@ import BottomNav from "./components/BottomNav";
 import Index from "./pages/Index";
 import VenueList from "./pages/VenueList";
 import ActiveVenue from "./pages/ActiveVenue";
+import SimpleVenueView from "./pages/SimpleVenueView";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
@@ -51,6 +52,7 @@ const AppLayout = () => {
         <Route path="/" element={<VenueList />} />
         <Route path="/venues" element={<VenueList />} />
         <Route path="/venue/:id" element={<ActiveVenue />} />
+        <Route path="/simple-venue/:id" element={<SimpleVenueView />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/matches" element={<Matches />} />
         <Route path="/sign-up" element={<SignUp />} />
