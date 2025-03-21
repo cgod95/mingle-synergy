@@ -120,6 +120,7 @@ export default {
         'card': '0 4px 20px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 10px 25px rgba(0, 0, 0, 0.12)',
         'button': '0 2px 10px rgba(58, 134, 255, 0.2)',
+        'bubble': '0px 4px 12px rgba(0, 0, 0, 0.05)',
       },
       backdropBlur: {
         xs: "2px",
@@ -153,6 +154,10 @@ export default {
             fontWeight: '400',
           },
         },
+      },
+      fontFamily: {
+        'ginto': ['"Ginto Normal"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'sans': ['"Ginto Normal"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
       },
     },
   },

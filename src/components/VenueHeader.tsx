@@ -49,7 +49,7 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#F1F5F9] p-4 mb-6 shadow-[0px_2px_8px_rgba(0,0,0,0.05)] max-h-[120px] flex flex-col justify-between">
+    <div className="bg-white rounded-xl border border-[#F1F5F9] p-4 mb-6 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] max-h-[120px] flex flex-col justify-between">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button 

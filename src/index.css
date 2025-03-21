@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -32,7 +33,7 @@
     --input: 214 32% 91%;
     --ring: 217 90% 61%; /* #3A86FF */
 
-    --radius: 1rem;
+    --radius: 1.5rem; /* Updated for bubble design */
   }
 
   .dark {
@@ -66,33 +67,55 @@
   }
 }
 
+/* Custom Ginto Normal font */
+@font-face {
+  font-family: 'Ginto Normal';
+  src: url('/fonts/ginto-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ginto Normal';
+  src: url('/fonts/ginto-normal-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ginto Normal';
+  src: url('/fonts/ginto-normal-bold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-ginto;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: 'Roboto', 'SF Pro Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   }
   
   h1 {
-    @apply tracking-tight;
-    font-family: 'Roboto', 'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    @apply tracking-tight font-ginto font-semibold text-[24px];
   }
   
   h2 {
-    @apply tracking-tight;
-    font-family: 'Roboto', 'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    @apply tracking-tight font-ginto font-semibold text-[20px];
   }
   
   h3 {
-    font-family: 'Roboto', 'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    @apply font-ginto font-medium text-[16px];
   }
   
   p {
-    @apply leading-relaxed;
+    @apply leading-relaxed font-ginto text-[14px];
   }
 }
 
@@ -186,30 +209,55 @@
   transition: opacity 300ms;
 }
 
+/* Message bubble styling */
+.message-bubble {
+  background-color: #F0F4FE;
+  border-radius: 18px;
+  padding: 10px 14px;
+  max-width: 80%;
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #202020;
+  align-self: flex-end;
+}
+
 /* Cards and UI Elements */
 @layer components {
   .card-premium {
-    @apply rounded-xl bg-card border border-border/40 shadow-card transition-all duration-300 hover:shadow-card-hover;
+    @apply rounded-xl bg-card border border-border/40 shadow-bubble transition-all duration-300 hover:shadow-card-hover;
   }
   
   .btn-primary {
-    @apply bg-primary text-primary-foreground rounded-lg px-4 py-2 shadow-button transition-all duration-300 hover:bg-primary/90 hover:shadow-none active:scale-95;
+    @apply bg-primary text-primary-foreground rounded-full px-4 py-2 shadow-button transition-all duration-300 hover:bg-primary/90 hover:shadow-none active:scale-95;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground rounded-lg px-4 py-2 transition-all duration-300 hover:bg-secondary/80 active:scale-95;
+    @apply bg-secondary text-secondary-foreground rounded-full px-4 py-2 transition-all duration-300 hover:bg-secondary/80 active:scale-95;
   }
   
   .btn-tertiary {
-    @apply bg-transparent text-foreground hover:bg-secondary rounded-lg px-4 py-2 transition-all duration-300 active:scale-95;
+    @apply bg-transparent text-foreground hover:bg-secondary rounded-full px-4 py-2 transition-all duration-300 active:scale-95;
   }
   
   .btn-outline {
-    @apply bg-transparent border border-border text-foreground rounded-lg px-4 py-2 transition-all duration-300 hover:bg-secondary/50 active:scale-95;
+    @apply bg-transparent border border-border text-foreground rounded-full px-4 py-2 transition-all duration-300 hover:bg-secondary/50 active:scale-95;
   }
   
   .btn-icon {
     @apply rounded-full p-2 transition-all duration-300 flex items-center justify-center;
+  }
+  
+  .floating-action-button {
+    @apply fixed bottom-20 right-4 w-14 h-14 rounded-full bg-[#3A86FF] text-white flex items-center justify-center shadow-[0px_4px_12px_rgba(58,134,255,0.3)] z-10;
+  }
+  
+  .venue-card {
+    @apply rounded-2xl bg-white border border-border/40 shadow-bubble transition-all duration-300 hover:shadow-card-hover overflow-hidden;
+  }
+  
+  .user-card {
+    @apply rounded-2xl bg-white border-2 border-[#F1F5F9] shadow-bubble transition-all duration-200;
   }
 }
 

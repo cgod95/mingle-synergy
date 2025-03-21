@@ -73,7 +73,7 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
         ))}
       </div>
       
-      <div className="relative w-full max-w-md rounded-2xl bg-card shadow-[0_10px_50px_rgba(0,0,0,0.15)] border border-border/50 overflow-hidden animate-scale-in">
+      <div className="relative w-full max-w-md rounded-[24px] bg-card shadow-[0_10px_50px_rgba(0,0,0,0.15)] border border-border/50 overflow-hidden animate-scale-in">
         <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#3A86FF]/30 to-transparent"></div>
         
         <button 
@@ -92,7 +92,7 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
             <Sparkles className="text-yellow-400 w-6 h-6 animate-pulse-once" />
           </div>
           
-          <h2 className="text-3xl font-bold text-foreground mb-2 text-center">It's a Match!</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-2 text-center font-ginto">You matched with {matchedUser.name}!</h2>
           <p className="text-center text-muted-foreground mb-8 max-w-xs">
             You and {matchedUser.name} have expressed interest in each other.
           </p>
@@ -109,7 +109,7 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
           
           <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-8">
             <Clock size={16} />
-            <span>This match expires in {hoursRemaining}h {minutesRemaining}m</span>
+            <span>Expires in {hoursRemaining}h {minutesRemaining}m</span>
           </div>
           
           {showShareOption ? (
@@ -122,14 +122,14 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
                 <Button
                   variant="outline"
                   onClick={() => setShowShareOption(false)}
-                  className="py-6"
+                  className="py-6 rounded-full"
                 >
                   Not now
                 </Button>
                 
                 <Button
                   onClick={handleShareContact}
-                  className="bg-gradient-to-r from-[#3A86FF] to-[#4A94FF] text-white shadow-button hover:shadow-none py-6"
+                  className="bg-gradient-to-r from-[#3A86FF] to-[#4A94FF] text-white shadow-button hover:shadow-none py-6 rounded-full"
                 >
                   Share <Share2 className="ml-2 w-4 h-4" />
                 </Button>
@@ -140,16 +140,16 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="py-6"
+                className="py-6 rounded-full"
               >
                 Later
               </Button>
               
               <Button
                 onClick={() => setShowShareOption(true)}
-                className="bg-gradient-to-r from-[#3A86FF] to-[#4A94FF] text-white shadow-button hover:shadow-none py-6"
+                className="bg-gradient-to-r from-[#3A86FF] to-[#4A94FF] text-white shadow-button hover:shadow-none py-6 rounded-full"
               >
-                Share Contact
+                Share your contact to connect
               </Button>
             </div>
           )}

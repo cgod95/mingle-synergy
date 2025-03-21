@@ -39,7 +39,7 @@ const UserCard: React.FC<UserCardProps> = ({
   return (
     <div 
       className={cn(
-        "relative w-[100px] h-[140px] overflow-hidden rounded-xl bg-white border border-[#F1F5F9] shadow-[0px_2px_8px_rgba(0,0,0,0.05)] transition-opacity duration-100 hover:opacity-80 active:opacity-80",
+        "relative w-[100px] h-[140px] overflow-hidden rounded-xl bg-white border border-[#F1F5F9] shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-opacity duration-100 hover:opacity-80 active:opacity-80",
         hasMatch && "ring-2 ring-[#3A86FF] shadow-[0_0_15px_rgba(58,134,255,0.25)]",
         isLikedByUser && "border-[#FF5A5F]/30",
         className

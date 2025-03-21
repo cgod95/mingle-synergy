@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ 
-  title = "Proximity",
+  title = "Mingle",
   showBackButton = false
 }) => {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           ) : null}
           
-          <div className="text-[#3A86FF] font-semibold text-xl">
+          <div className="text-[#3A86FF] font-semibold text-2xl font-ginto">
             {title}
           </div>
         </div>
