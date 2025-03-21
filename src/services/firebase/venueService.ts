@@ -11,6 +11,7 @@ const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): 
     name: firestoreData?.name || '',
     type: firestoreData?.type || 'other',
     address: firestoreData?.address || '',
+    city: firestoreData?.city || '',
     image: firestoreData?.image || '',
     checkInCount: firestoreData?.checkInCount || 0,
     expiryTime: firestoreData?.expiryTime || 120, // Default 2 hours in minutes
@@ -129,8 +130,6 @@ class FirebaseVenueService implements VenueService {
       const venues = await this.getVenues();
       
       return venues.filter(venue => {
-        if (!venue.latitude || !venue.longitude) return false;
-        
         const distance = calculateDistance(
           { latitude, longitude },
           { latitude: venue.latitude, longitude: venue.longitude }

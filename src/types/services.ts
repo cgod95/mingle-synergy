@@ -1,5 +1,5 @@
 
-import { Venue, Match, User as AppUser } from '@/types';
+import { Match, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
 export interface AuthService {
@@ -17,14 +17,29 @@ export interface UserService {
   createUserProfile: (userId: string, data: UserProfile) => Promise<void>;
 }
 
-// Re-export the Venue type from @/types
-export { Venue } from '@/types';
+// Define the Venue type directly in services.ts
+export type Venue = {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  type: string;
+  checkInCount: number;
+  expiryTime: number;
+  zones: string[];
+  image: string;
+  checkedInUsers: string[];
+};
 
 export interface VenueService {
   getVenues: () => Promise<Venue[]>;
   getVenueById: (id: string) => Promise<Venue | null>;
   checkInToVenue: (userId: string, venueId: string) => Promise<void>;
   checkOutFromVenue: (userId: string) => Promise<void>;
+  getNearbyVenues?: (latitude: number, longitude: number, radiusKm?: number) => Promise<Venue[]>;
+  getVenuesByIds?: (venueIds: string[]) => Promise<Venue[]>;
 }
 
 export interface MatchService {
