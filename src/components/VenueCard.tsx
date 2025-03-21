@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Users, Clock, MapPin } from 'lucide-react';
+import { Users, Clock, MapPin, LogIn, LogOut } from 'lucide-react';
 import { Venue } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +8,8 @@ interface VenueCardProps {
   venue: Venue;
   className?: string;
   onCheckIn?: (venueId: string, zoneName?: string) => void;
+  onCheckOut?: () => void;
+  isCheckedIn?: boolean;
   simplified?: boolean;
 }
 
@@ -14,6 +17,8 @@ const VenueCard: React.FC<VenueCardProps> = ({
   venue, 
   className, 
   onCheckIn,
+  onCheckOut,
+  isCheckedIn = false,
   simplified = false
 }) => {
   // Get timer based on venue type
@@ -28,7 +33,10 @@ const VenueCard: React.FC<VenueCardProps> = ({
   };
   
   const handleCardClick = () => {
-    if (onCheckIn) {
+    if (isCheckedIn && onCheckOut) {
+      // Don't do anything on card click if already checked in
+      return;
+    } else if (onCheckIn) {
       onCheckIn(venue.id);
     }
   };
@@ -37,6 +45,13 @@ const VenueCard: React.FC<VenueCardProps> = ({
     e.stopPropagation();
     if (onCheckIn) {
       onCheckIn(venue.id, zoneName);
+    }
+  };
+  
+  const handleCheckOut = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onCheckOut) {
+      onCheckOut();
     }
   };
   
@@ -72,6 +87,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
     <div 
       className={cn(
         "group relative overflow-hidden rounded-xl bg-card shadow-sm border border-border/50 hover:shadow-md transition-all duration-300 cursor-pointer animate-scale-in",
+        isCheckedIn && "ring-2 ring-[#3A86FF]",
         className
       )}
       onClick={handleCardClick}
@@ -104,7 +120,14 @@ const VenueCard: React.FC<VenueCardProps> = ({
           </div>
         </div>
         
-        {zones.length > 0 ? (
+        {isCheckedIn ? (
+          <button
+            className="w-full py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
+            onClick={handleCheckOut}
+          >
+            <LogOut size={16} className="mr-2" /> Check Out
+          </button>
+        ) : zones.length > 0 ? (
           <div className="grid grid-cols-2 gap-2 mb-3">
             {zones.map((zone) => (
               <button
@@ -119,7 +142,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
               className="py-1.5 px-2 text-xs bg-[#3A86FF] text-white rounded-full hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center col-span-2"
               onClick={(e) => handleCheckIn(e)}
             >
-              Quick Check In
+              <LogIn size={12} className="mr-1" /> Quick Check In
             </button>
           </div>
         ) : (
@@ -127,7 +150,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
             className="w-full py-2 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center"
             onClick={(e) => handleCheckIn(e)}
           >
-            Check In
+            <LogIn size={16} className="mr-2" /> Check In
           </button>
         )}
       </div>

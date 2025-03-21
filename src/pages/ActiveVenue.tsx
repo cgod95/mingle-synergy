@@ -5,9 +5,11 @@ import Header from '@/components/Header';
 import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
 import ToggleButton from '@/components/ToggleButton';
+import ZoneSelector from '@/components/ZoneSelector';
+import CheckInTimer from '@/components/CheckInTimer';
 import { User, Venue, Match } from '@/types';
-import { venues, getUsersAtVenue } from '@/data/mockData';
-import { ArrowLeft, Users, MapPin, Clock } from 'lucide-react';
+import { venues } from '@/data/mockData';
+import { ArrowLeft, Users, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/components/ui/use-toast";
 import { useVenues } from '@/hooks/useVenues';
@@ -16,10 +18,9 @@ const ActiveVenue = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { checkInToVenue, checkOutFromVenue } = useVenues();
+  const { checkInToVenue, checkOutFromVenue, usersAtVenue } = useVenues();
   
   const [venue, setVenue] = useState<Venue | null>(null);
-  const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [interests, setInterests] = useState<string[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -29,6 +30,7 @@ const ActiveVenue = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [activeZone, setActiveZone] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [expiryTime, setExpiryTime] = useState<Date>(new Date());
   
   const mockCurrentUserId = 'u6'; // For demonstration purposes
   
@@ -43,7 +45,16 @@ const ActiveVenue = () => {
       const foundVenue = venues.find(v => v.id === id);
       if (foundVenue) {
         setVenue(foundVenue);
-        setUsersAtVenue(getUsersAtVenue(id));
+        setIsCheckedIn(true);
+        
+        // Set expiry time
+        const hours = getExpiryHours(foundVenue.type);
+        setTimeRemaining(hours * 60 * 60);
+        
+        // Set expiry time date object
+        const expiryDate = new Date();
+        expiryDate.setHours(expiryDate.getHours() + hours);
+        setExpiryTime(expiryDate);
       }
     }
     
@@ -82,17 +93,6 @@ const ActiveVenue = () => {
       case 'gym': return 2;
       default: return 3;
     }
-  };
-  
-  // Format time remaining as MM:SS
-  const formatTimeRemaining = () => {
-    const hours = Math.floor(timeRemaining / 3600);
-    const minutes = Math.floor((timeRemaining % 3600) / 60);
-    const seconds = timeRemaining % 60;
-    
-    return hours > 0 
-      ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-      : `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
   
   const handleExpressInterest = (userId: string) => {
@@ -147,6 +147,11 @@ const ActiveVenue = () => {
       // Reset the timer based on venue type
       const hours = getExpiryHours(venue.type);
       setTimeRemaining(hours * 60 * 60);
+      
+      // Set expiry time date object
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + hours);
+      setExpiryTime(expiryDate);
     }
   };
   
@@ -155,6 +160,14 @@ const ActiveVenue = () => {
     setActiveZone(null);
     checkOutFromVenue();
     setTimeRemaining(0);
+  };
+  
+  const handleZoneSelect = (zoneName: string) => {
+    setActiveZone(zoneName);
+    toast({
+      title: `Now at: ${zoneName}`,
+      description: `Other users will see you in the ${zoneName} area`,
+    });
   };
   
   const toggleVisibility = () => {
@@ -174,21 +187,25 @@ const ActiveVenue = () => {
       return [
         { id: 'entrance', name: 'Near Entrance' },
         { id: 'bar', name: 'At the Bar' },
+        { id: 'upstairs', name: 'Upstairs' }
       ];
     } else if (venue.type === 'restaurant') {
       return [
         { id: 'inside', name: 'Inside' },
         { id: 'outside', name: 'Outside' },
+        { id: 'bar', name: 'At the Bar' }
       ];
     } else if (venue.type === 'cafe') {
       return [
         { id: 'counter', name: 'Near Counter' },
         { id: 'seated', name: 'Seated Area' },
+        { id: 'outside', name: 'Outside' }
       ];
     } else if (venue.type === 'gym') {
       return [
         { id: 'weights', name: 'Weights Area' },
         { id: 'cardio', name: 'Cardio Section' },
+        { id: 'studio', name: 'Studio Classes' }
       ];
     }
     return [];
@@ -224,67 +241,59 @@ const ActiveVenue = () => {
               />
             </div>
             
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h1 className="text-3xl font-semibold mb-1">{venue.name}</h1>
-                <p className="text-muted-foreground">
-                  {venue.checkInCount} people here now
-                </p>
+            {/* Venue Header with Check-In Status */}
+            <div className="bg-card p-4 rounded-xl border border-border mb-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h1 className="text-3xl font-semibold mb-1">{venue.name}</h1>
+                  <p className="text-muted-foreground mb-2">
+                    {venue.address}
+                  </p>
+                  <div className="flex items-center text-[#3A86FF]">
+                    <Users className="mr-1" size={16} />
+                    <span className="font-medium">{venue.checkInCount} people here now</span>
+                  </div>
+                </div>
+                
+                {isCheckedIn ? (
+                  <div className="flex flex-col items-end">
+                    <CheckInTimer 
+                      timeRemaining={timeRemaining}
+                      expiryTime={expiryTime}
+                    />
+                    <button
+                      onClick={handleCheckOut}
+                      className="text-sm text-red-500 hover:text-red-600 mt-2 transition-colors"
+                    >
+                      Check Out
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleCheckIn()}
+                    className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors"
+                  >
+                    Check In
+                  </button>
+                )}
               </div>
               
-              {isCheckedIn ? (
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center space-x-2 bg-[#3A86FF]/10 px-3 py-2 rounded-lg">
-                    <Clock className="text-[#3A86FF]" size={18} />
-                    <span className="text-[#3A86FF] font-medium">
-                      {formatTimeRemaining()}
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleCheckOut}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Check Out
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleCheckIn()}
-                  className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors"
-                >
-                  Check In
-                </button>
+              {/* Zone Selector */}
+              {isCheckedIn && (
+                <ZoneSelector
+                  zones={zones}
+                  activeZone={activeZone}
+                  onZoneSelect={handleZoneSelect}
+                />
               )}
             </div>
             
-            {isCheckedIn && zones.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-lg font-medium mb-3">Where are you?</h2>
-                <div className="flex flex-wrap gap-2">
-                  {zones.map((zone) => (
-                    <button
-                      key={zone.id}
-                      onClick={() => handleCheckIn(zone.name)}
-                      className={cn(
-                        "py-2 px-3 rounded-full text-sm flex items-center",
-                        activeZone === zone.name
-                          ? "bg-[#3A86FF] text-white"
-                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                      )}
-                    >
-                      <MapPin size={14} className="mr-1" />
-                      {zone.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
+            {/* People Here Now Section */}
             <div className="mb-6">
               <h2 className="text-xl font-medium mb-4">People Here Now</h2>
               
               {usersAtVenue.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[calc(100vh-300px)] p-1">
                   {usersAtVenue.map((user) => (
                     <UserCard 
                       key={user.id} 

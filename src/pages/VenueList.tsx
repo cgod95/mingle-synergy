@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
@@ -18,7 +19,9 @@ const VenueList = () => {
     nearbyVenues, 
     currentVenue, 
     loading, 
-    checkInToVenue
+    checkInToVenue,
+    checkOutFromVenue,
+    isUserCheckedInToVenue
   } = useVenues();
   
   useEffect(() => {
@@ -40,7 +43,6 @@ const VenueList = () => {
   }, [searchQuery, activeFilter, nearbyVenues]);
   
   const handleQuickCheckIn = (venueId: string, zoneName?: string) => {
-    // The navigation is now handled in the useVenues hook
     checkInToVenue(venueId, zoneName);
   };
   
@@ -86,7 +88,8 @@ const VenueList = () => {
                 
                 <VenueCard 
                   venue={currentVenue} 
-                  onCheckIn={handleQuickCheckIn}
+                  onCheckOut={checkOutFromVenue}
+                  isCheckedIn={true}
                   className="border-2 border-[#3A86FF]"
                 />
               </div>
@@ -158,6 +161,8 @@ const VenueList = () => {
                     key={venue.id} 
                     venue={venue} 
                     onCheckIn={handleQuickCheckIn}
+                    onCheckOut={checkOutFromVenue}
+                    isCheckedIn={isUserCheckedInToVenue(venue.id)}
                   />
                 ))}
               </div>

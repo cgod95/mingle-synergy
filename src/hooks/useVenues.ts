@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { venues } from '@/data/mockData';
-import { Venue } from '@/types';
+import { venues, getUsersAtVenue } from '@/data/mockData';
+import { Venue, User } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
 
@@ -9,15 +9,18 @@ import { useNavigate } from 'react-router-dom';
 interface VenueHookReturn {
   nearbyVenues: Venue[];
   currentVenue: Venue | null;
+  usersAtVenue: User[];
   loading: boolean;
   checkInToVenue: (venueId: string, zoneName?: string) => void;
   checkOutFromVenue: () => void;
+  isUserCheckedInToVenue: (venueId: string) => boolean;
 }
 
 // Main hook function
 export function useVenues(): VenueHookReturn {
   const [nearbyVenues, setNearbyVenues] = useState<Venue[]>([]);
   const [currentVenue, setCurrentVenue] = useState<Venue | null>(null);
+  const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -34,12 +37,31 @@ export function useVenues(): VenueHookReturn {
     return () => clearTimeout(timer);
   }, []);
 
+  // Load users at venue whenever currentVenue changes
+  useEffect(() => {
+    if (currentVenue) {
+      const users = getUsersAtVenue(currentVenue.id);
+      setUsersAtVenue(users);
+    } else {
+      setUsersAtVenue([]);
+    }
+  }, [currentVenue]);
+
+  // Check if user is checked in to a specific venue
+  const isUserCheckedInToVenue = (venueId: string): boolean => {
+    return currentVenue?.id === venueId;
+  };
+
   // Check in to a venue
   const checkInToVenue = (venueId: string, zoneName?: string): void => {
     const venue = venues.find(v => v.id === venueId);
     
     if (venue) {
       setCurrentVenue(venue);
+      
+      // Load users at the venue
+      const users = getUsersAtVenue(venueId);
+      setUsersAtVenue(users);
       
       // Notify user
       toast({
@@ -55,18 +77,24 @@ export function useVenues(): VenueHookReturn {
   // Check out from a venue
   const checkOutFromVenue = (): void => {
     setCurrentVenue(null);
+    setUsersAtVenue([]);
     
     toast({
       title: "Checked out",
       description: "You're no longer checked in to any venue.",
     });
+    
+    // Navigate back to venues list
+    navigate('/venues');
   };
 
   return {
     nearbyVenues,
     currentVenue,
+    usersAtVenue,
     loading,
     checkInToVenue,
-    checkOutFromVenue
+    checkOutFromVenue,
+    isUserCheckedInToVenue
   };
 }
