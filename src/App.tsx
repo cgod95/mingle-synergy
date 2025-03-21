@@ -18,7 +18,7 @@ import Matches from "./pages/Matches";
 
 const queryClient = new QueryClient();
 
-// Protected route component
+// Protected route component for testing - automatically passes through to children
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, isLoading } = useAuth();
   
@@ -27,9 +27,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
-  if (!currentUser) {
-    return <Navigate to="/sign-in" />;
-  }
+  // Uncomment for production use
+  // if (!currentUser) {
+  //   return <Navigate to="/sign-in" />;
+  // }
   
   return <>{children}</>;
 };
@@ -47,18 +48,18 @@ const AppLayout = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={currentUser ? <Navigate to="/venues" /> : <Index />} />
-        <Route path="/venues" element={<ProtectedRoute><VenueList /></ProtectedRoute>} />
-        <Route path="/venue/:id" element={<ProtectedRoute><ActiveVenue /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+        <Route path="/" element={<VenueList />} />
+        <Route path="/venues" element={<VenueList />} />
+        <Route path="/venue/:id" element={<ActiveVenue />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/matches" element={<Matches />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
-        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       
-      {!isAuthPage() && currentUser && <BottomNav />}
+      {!isAuthPage() && <BottomNav />}
     </>
   );
 };

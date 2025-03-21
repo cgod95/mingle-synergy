@@ -8,6 +8,7 @@ export interface User {
   isCheckedIn: boolean;
   currentVenue?: string;
   currentZone?: string;
+  zone?: string; // Added for compatibility with UserCard component
   isVisible: boolean;
   interests: string[];
   gender: 'male' | 'female' | 'non-binary' | 'other';

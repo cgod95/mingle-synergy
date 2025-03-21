@@ -17,7 +17,8 @@ const mockUsers: Record<string, { email: string; password: string; user: User }>
 };
 
 class MockAuthService implements AuthService {
-  private currentUser: User | null = null;
+  // Default to having a logged-in user for testing
+  private currentUser: User | null = mockUsers['test@example.com'].user;
   private listeners: ((user: User | null) => void)[] = [];
 
   async signIn(email: string, password: string): Promise<UserCredential> {
@@ -54,8 +55,10 @@ class MockAuthService implements AuthService {
   }
 
   async signOut(): Promise<void> {
-    this.currentUser = null;
-    this.notifyListeners();
+    // For testing purposes, don't actually sign out
+    // this.currentUser = null;
+    console.log('Sign out called but skipped for testing');
+    // Don't notify listeners to maintain the logged-in state
   }
 
   async sendPasswordResetEmail(email: string): Promise<void> {
