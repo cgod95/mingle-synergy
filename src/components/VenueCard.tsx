@@ -3,6 +3,7 @@ import React from 'react';
 import { Users, Clock, MapPin, LogIn, LogOut } from 'lucide-react';
 import { Venue } from '@/types';
 import { cn } from '@/lib/utils';
+import { getUsersAtVenue } from '@/data/mockData';
 
 interface VenueCardProps {
   venue: Venue;
@@ -71,6 +72,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
       return [
         { id: 'counter', name: 'Near Counter' },
         { id: 'seated', name: 'Seated Area' },
+        { id: 'outside', name: 'Outside' },
       ];
     } else if (venue.type === 'gym') {
       return [
@@ -82,6 +84,10 @@ const VenueCard: React.FC<VenueCardProps> = ({
   };
   
   const zones = getVenueZones();
+
+  // Get users at this venue for preview
+  const usersAtVenue = getUsersAtVenue(venue.id);
+  const hasUsers = usersAtVenue.length > 0;
   
   return (
     <div 
@@ -108,7 +114,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
         
         <p className="text-sm text-muted-foreground mb-3 truncate">{venue.address}</p>
         
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-1.5 text-[#3A86FF] text-sm font-medium">
             <Users size={16} className="stroke-[2.5px]" />
             <span>{venue.checkInCount} people</span>
@@ -119,6 +125,26 @@ const VenueCard: React.FC<VenueCardProps> = ({
             <span>{getExpiryHours(venue.type)} hrs</span>
           </div>
         </div>
+        
+        {/* Preview of people at venue */}
+        {hasUsers && (
+          <div className="flex mb-3 -space-x-2 overflow-hidden">
+            {usersAtVenue.slice(0, 5).map((user) => (
+              <div key={user.id} className="w-8 h-8 rounded-full border-2 border-background overflow-hidden">
+                <img 
+                  src={user.photos[0] + "?w=100&h=100&q=80"} 
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+            {usersAtVenue.length > 5 && (
+              <div className="w-8 h-8 rounded-full bg-primary/90 border-2 border-background flex items-center justify-center text-xs font-medium text-white">
+                +{usersAtVenue.length - 5}
+              </div>
+            )}
+          </div>
+        )}
         
         {isCheckedIn ? (
           <button

@@ -58,12 +58,12 @@ const UserCard: React.FC<UserCardProps> = ({
                 onExpressInterest(user.id);
               }}
               className={cn(
-                "rounded-full p-2 transition-all duration-300 transform",
+                "rounded-full p-2 transition-all duration-300 transform hover:scale-110 active:scale-90",
                 hasMatch 
                   ? "bg-[#3A86FF] text-white shadow-[0_0_15px_rgba(58,134,255,0.3)]" 
                   : hasPendingInterest 
                     ? "bg-[#FF5A5F] text-white shadow-[0_0_15px_rgba(255,90,95,0.3)]"
-                    : "bg-background/60 backdrop-blur-sm text-white hover:bg-[#FF5A5F] hover:text-white hover:scale-110 active:scale-90",
+                    : "bg-background/60 backdrop-blur-sm text-white hover:bg-[#FF5A5F] hover:text-white",
                 hasMatch && "animate-heart-beat"
               )}
               aria-label={hasMatch ? "Matched" : hasPendingInterest ? "Interest Sent" : "Express Interest"}

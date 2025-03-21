@@ -1,4 +1,3 @@
-
 import { User, Venue, Match, Interest } from '@/types';
 
 // Mock venues
@@ -68,6 +67,8 @@ export const users: User[] = [
     bio: 'Coffee enthusiast and book lover',
     isCheckedIn: true,
     currentVenue: 'v1',
+    currentZone: 'Near Counter',
+    zone: 'Near Counter',
     isVisible: true,
     interests: ['coffee', 'books'],
     gender: 'male',
@@ -88,6 +89,8 @@ export const users: User[] = [
     bio: 'Art lover and photographer',
     isCheckedIn: true,
     currentVenue: 'v1',
+    currentZone: 'Seated Area',
+    zone: 'Seated Area',
     isVisible: true,
     interests: ['art', 'photography'],
     gender: 'female',
@@ -175,6 +178,226 @@ export const users: User[] = [
     ageRangePreference: {
       min: 25,
       max: 35
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u7',
+    name: 'Emma',
+    photos: ['https://images.unsplash.com/photo-1614644147798-f8c0fc9da7f6'],
+    bio: 'Avid reader and coffee addict',
+    isCheckedIn: true,
+    currentVenue: 'v1',
+    currentZone: 'Near Counter',
+    zone: 'Near Counter',
+    isVisible: true,
+    interests: ['reading', 'coffee'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 27,
+    ageRangePreference: {
+      min: 25,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u8',
+    name: 'Michael',
+    photos: ['https://images.unsplash.com/photo-1500648767791-00dcc994a43e'],
+    bio: 'Professional photographer, looking for inspiration',
+    isCheckedIn: true,
+    currentVenue: 'v1',
+    currentZone: 'Outside',
+    zone: 'Outside',
+    isVisible: true,
+    interests: ['photography', 'arts'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 31,
+    ageRangePreference: {
+      min: 27,
+      max: 36
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u9',
+    name: 'Sophia',
+    photos: ['https://images.unsplash.com/photo-1535295972055-1c762f4483e5'],
+    bio: 'Yoga teacher and plant-based chef',
+    isCheckedIn: true,
+    currentVenue: 'v1',
+    currentZone: 'Seated Area',
+    zone: 'Seated Area',
+    isVisible: true,
+    interests: ['yoga', 'cooking'],
+    gender: 'female',
+    interestedIn: ['male', 'female'],
+    age: 29,
+    ageRangePreference: {
+      min: 25,
+      max: 40
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u10',
+    name: 'Liam',
+    photos: ['https://images.unsplash.com/photo-1492562080023-ab3db95bfbce'],
+    bio: 'Finance professional, loves live music',
+    isCheckedIn: true,
+    currentVenue: 'v2',
+    currentZone: 'At the Bar',
+    zone: 'At the Bar',
+    isVisible: true,
+    interests: ['music', 'cocktails'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 32,
+    ageRangePreference: {
+      min: 28,
+      max: 38
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u11',
+    name: 'Olivia',
+    photos: ['https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8'],
+    bio: 'Opera singer and wine enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v2',
+    currentZone: 'Near Entrance',
+    zone: 'Near Entrance',
+    isVisible: true,
+    interests: ['classical music', 'wine'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 28,
+    ageRangePreference: {
+      min: 27,
+      max: 40
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u12',
+    name: 'Noah',
+    photos: ['https://images.unsplash.com/photo-1534614971-6be99a7a3ffd'],
+    bio: 'Musician and craft beer enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v2',
+    currentZone: 'At the Bar',
+    zone: 'At the Bar',
+    isVisible: true,
+    interests: ['guitar', 'craft beer'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 30,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u13',
+    name: 'Ava',
+    photos: ['https://images.unsplash.com/photo-1531746020798-e6953c6e8e04'],
+    bio: 'Fitness instructor, loves hiking and healthy eating',
+    isCheckedIn: true,
+    currentVenue: 'v3',
+    currentZone: 'Cardio Section',
+    zone: 'Cardio Section',
+    isVisible: true,
+    interests: ['fitness', 'nutrition'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 26,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u14',
+    name: 'William',
+    photos: ['https://images.unsplash.com/photo-1504257432389-52343af06ae3'],
+    bio: 'Personal trainer and sports enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v3',
+    currentZone: 'Weights Area',
+    zone: 'Weights Area',
+    isVisible: true,
+    interests: ['weightlifting', 'sports'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 29,
+    ageRangePreference: {
+      min: 24,
+      max: 34
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u15',
+    name: 'Isabella',
+    photos: ['https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600'],
+    bio: 'Wine connoisseur and food blogger',
+    isCheckedIn: true,
+    currentVenue: 'v4',
+    currentZone: 'Inside',
+    zone: 'Inside',
+    isVisible: true,
+    interests: ['wine', 'food'],
+    gender: 'female',
+    interestedIn: ['male'],
+    age: 31,
+    ageRangePreference: {
+      min: 29,
+      max: 42
+    },
+    matches: [],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u16',
+    name: 'James',
+    photos: ['https://images.unsplash.com/photo-1506794778202-cad84cf45f1d'],
+    bio: 'Chef and whiskey enthusiast',
+    isCheckedIn: true,
+    currentVenue: 'v4',
+    currentZone: 'At the Bar',
+    zone: 'At the Bar',
+    isVisible: true,
+    interests: ['cooking', 'whiskey'],
+    gender: 'male',
+    interestedIn: ['female'],
+    age: 34,
+    ageRangePreference: {
+      min: 28,
+      max: 38
     },
     matches: [],
     likedUsers: [],
