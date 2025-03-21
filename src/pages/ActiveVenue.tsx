@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -40,10 +39,9 @@ const ActiveVenue = () => {
   const [expiryTime, setExpiryTime] = useState<Date>(new Date());
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   
-  const mockCurrentUserId = 'u6'; // For demonstration purposes
+  const currentUser = { id: 'u6', name: 'Demo User' };
   
   useEffect(() => {
-    // Load persisted data
     setInterests(getInterests());
     setMatches(getMatches());
     setLikedUsers(getLikedUsers());
@@ -115,7 +113,7 @@ const ActiveVenue = () => {
     
     const newInterest: Interest = {
       id: `int_${Date.now()}`,
-      fromUserId: mockCurrentUserId,
+      fromUserId: currentUser.id,
       toUserId: userId,
       venueId: id || '',
       timestamp: Date.now(),
@@ -147,11 +145,10 @@ const ActiveVenue = () => {
   };
   
   const checkForMatch = (userId: string) => {
-    // Simulate a match with 50% probability for demo purposes
     if (Math.random() > 0.5) {
       const newMatch: Match = {
         id: `m${Date.now()}`,
-        userId: mockCurrentUserId,
+        userId: currentUser.id,
         matchedUserId: userId,
         venueId: id || '',
         timestamp: Date.now(),
@@ -255,11 +252,16 @@ const ActiveVenue = () => {
                       <UserCard 
                         key={user.id} 
                         user={user}
+                        interests={interests}
+                        setInterests={setInterests}
+                        matches={matches}
+                        setMatches={setMatches}
+                        currentUser={currentUser}
                         onExpressInterest={handleExpressInterest}
                         hasPendingInterest={likedUsers.includes(user.id)}
                         hasMatch={matches.some(
-                          m => (m.userId === mockCurrentUserId && m.matchedUserId === user.id) || 
-                               (m.userId === user.id && m.matchedUserId === mockCurrentUserId)
+                          m => (m.userId === currentUser.id && m.matchedUserId === user.id) || 
+                               (m.userId === user.id && m.matchedUserId === currentUser.id)
                         )}
                       />
                     ))}
@@ -310,7 +312,7 @@ const ActiveVenue = () => {
         {showMatchNotification && currentMatch && (
           <MatchNotification 
             match={currentMatch}
-            currentUserId={mockCurrentUserId}
+            currentUserId={currentUser.id}
             onClose={() => setShowMatchNotification(false)}
           />
         )}
