@@ -86,8 +86,8 @@ const VenueCard: React.FC<VenueCardProps> = ({
   return (
     <div 
       className={cn(
-        "group relative overflow-hidden rounded-xl bg-card shadow-sm border border-border/50 hover:shadow-md transition-all duration-300 cursor-pointer animate-scale-in",
-        isCheckedIn && "ring-2 ring-[#3A86FF]",
+        "group relative overflow-hidden rounded-xl bg-card shadow-card border border-border/30 hover:shadow-card-hover transition-all duration-300 cursor-pointer animate-scale-in",
+        isCheckedIn && "ring-2 ring-[#3A86FF] shadow-[0_0_15px_rgba(58,134,255,0.25)]",
         className
       )}
       onClick={handleCardClick}
@@ -101,20 +101,20 @@ const VenueCard: React.FC<VenueCardProps> = ({
         />
       </div>
       
-      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent"></div>
       
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <h3 className="text-lg font-medium text-foreground mb-1">{venue.name}</h3>
+      <div className="absolute bottom-0 left-0 right-0 p-5">
+        <h3 className="text-xl font-medium text-foreground mb-1">{venue.name}</h3>
         
-        <p className="text-sm text-muted-foreground mb-2 truncate">{venue.address}</p>
+        <p className="text-sm text-muted-foreground mb-3 truncate">{venue.address}</p>
         
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-1 text-[#3A86FF] text-sm">
-            <Users size={16} />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-1.5 text-[#3A86FF] text-sm font-medium">
+            <Users size={16} className="stroke-[2.5px]" />
             <span>{venue.checkInCount} people</span>
           </div>
           
-          <div className="flex items-center space-x-1 text-muted-foreground text-sm">
+          <div className="flex items-center space-x-1.5 text-muted-foreground text-sm">
             <Clock size={16} />
             <span>{getExpiryHours(venue.type)} hrs</span>
           </div>
@@ -122,32 +122,34 @@ const VenueCard: React.FC<VenueCardProps> = ({
         
         {isCheckedIn ? (
           <button
-            className="w-full py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
+            className="w-full py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-300 shadow-sm hover:shadow-none transform hover:translate-y-0.5 flex items-center justify-center"
             onClick={handleCheckOut}
           >
             <LogOut size={16} className="mr-2" /> Check Out
           </button>
         ) : zones.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            {zones.map((zone) => (
-              <button
-                key={zone.id}
-                className="py-1.5 px-2 text-xs bg-[#002855]/10 text-[#002855] rounded-full hover:bg-[#3A86FF]/20 transition-colors flex items-center justify-center"
-                onClick={(e) => handleCheckIn(e, zone.name)}
-              >
-                <MapPin size={12} className="mr-1" /> {zone.name}
-              </button>
-            ))}
+          <div className="space-y-2 mb-3">
+            <div className="grid grid-cols-2 gap-2">
+              {zones.map((zone) => (
+                <button
+                  key={zone.id}
+                  className="py-2 px-3 text-sm bg-secondary/80 text-secondary-foreground rounded-lg hover:bg-secondary transition-colors flex items-center justify-center shadow-sm"
+                  onClick={(e) => handleCheckIn(e, zone.name)}
+                >
+                  <MapPin size={14} className="mr-1.5" /> {zone.name}
+                </button>
+              ))}
+            </div>
             <button
-              className="py-1.5 px-2 text-xs bg-[#3A86FF] text-white rounded-full hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center col-span-2"
+              className="w-full py-2.5 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-all duration-300 shadow-button hover:shadow-none transform hover:translate-y-0.5 flex items-center justify-center"
               onClick={(e) => handleCheckIn(e)}
             >
-              <LogIn size={12} className="mr-1" /> Quick Check In
+              <LogIn size={16} className="mr-2" /> Quick Check In
             </button>
           </div>
         ) : (
           <button
-            className="w-full py-2 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center"
+            className="w-full py-2.5 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-all duration-300 shadow-button hover:shadow-none transform hover:translate-y-0.5 flex items-center justify-center"
             onClick={(e) => handleCheckIn(e)}
           >
             <LogIn size={16} className="mr-2" /> Check In

@@ -24,8 +24,8 @@ const UserCard: React.FC<UserCardProps> = ({
   return (
     <div 
       className={cn(
-        "relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-300 animate-fade-in",
-        hasMatch && "ring-2 ring-[#3A86FF]",
+        "relative overflow-hidden rounded-xl bg-card shadow-card border border-border/30 transition-all duration-300 animate-fade-in hover:shadow-card-hover",
+        hasMatch && "ring-2 ring-[#3A86FF] shadow-[0_0_15px_rgba(58,134,255,0.25)]",
         isLikedByUser && "border-[#FF5A5F]/30",
         className
       )}
@@ -34,15 +34,22 @@ const UserCard: React.FC<UserCardProps> = ({
         <img 
           src={user.photos[0] + "?auto=format&fit=crop&w=600&q=80"} 
           alt={user.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
           loading="lazy"
         />
         
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent pointer-events-none"></div>
         
-        <div className="absolute bottom-0 left-0 right-0 p-3">
+        <div className="absolute bottom-0 left-0 right-0 p-4">
           <div className="flex items-end justify-between">
-            <h3 className="text-base font-medium text-white">{user.name}</h3>
+            <div>
+              <h3 className="text-base font-medium text-white">{user.name}</h3>
+              {user.zone && (
+                <div className="flex items-center mt-1 text-xs text-white/80">
+                  <span>{user.zone}</span>
+                </div>
+              )}
+            </div>
             
             <button
               onClick={(e) => {
@@ -50,19 +57,21 @@ const UserCard: React.FC<UserCardProps> = ({
                 onExpressInterest(user.id);
               }}
               className={cn(
-                "rounded-full p-2 transition-all duration-300",
+                "rounded-full p-2.5 transition-all duration-300 transform",
                 hasMatch 
-                  ? "bg-[#3A86FF] text-white" 
+                  ? "bg-[#3A86FF] text-white shadow-[0_0_15px_rgba(58,134,255,0.3)]" 
                   : hasPendingInterest 
-                    ? "bg-[#FF5A5F] text-white"
-                    : "bg-background/40 backdrop-blur-sm text-white hover:bg-[#FF5A5F] hover:text-white"
+                    ? "bg-[#FF5A5F] text-white shadow-[0_0_15px_rgba(255,90,95,0.3)]"
+                    : "bg-background/60 backdrop-blur-sm text-white hover:bg-[#FF5A5F] hover:text-white hover:scale-110 active:scale-90",
+                hasMatch && "animate-heart-beat"
               )}
               aria-label={hasMatch ? "Matched" : hasPendingInterest ? "Interest Sent" : "Express Interest"}
             >
               <Heart 
-                size={18} 
+                size={20} 
                 className={cn(
-                  hasMatch && "fill-white animate-pulse-once", 
+                  "transition-transform",
+                  hasMatch && "fill-white", 
                   hasPendingInterest && "fill-white"
                 )} 
               />
@@ -72,13 +81,13 @@ const UserCard: React.FC<UserCardProps> = ({
       </div>
       
       {hasMatch && (
-        <div className="absolute top-2 right-2 py-1 px-2 bg-[#3A86FF] text-white text-xs rounded-full animate-fade-in">
+        <div className="absolute top-3 right-3 py-1 px-3 bg-[#3A86FF] text-white text-xs font-medium rounded-full shadow-md animate-fade-in">
           Match!
         </div>
       )}
       
       {isLikedByUser && !hasMatch && (
-        <div className="absolute top-2 right-2 py-1 px-2 bg-[#FF5A5F] text-white text-xs rounded-full animate-fade-in">
+        <div className="absolute top-3 right-3 py-1 px-3 bg-[#FF5A5F] text-white text-xs font-medium rounded-full shadow-md animate-fade-in">
           Likes you
         </div>
       )}

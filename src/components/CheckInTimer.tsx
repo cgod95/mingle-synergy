@@ -30,13 +30,29 @@ const CheckInTimer: React.FC<CheckInTimerProps> = ({
     return `Expires at ${expiryTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
   };
 
+  // Calculate remaining percentage for progress indicator
+  const getExpiryPercentage = () => {
+    // This is a simple example - would need actual check-in start time for accuracy
+    // Assuming 3-hour expiry time (10800 seconds) for this example
+    const totalDuration = 10800;
+    return Math.min(100, Math.max(0, (timeRemaining / totalDuration) * 100));
+  };
+
   return (
     <div className={cn("flex flex-col items-end gap-1", className)}>
-      <div className="flex items-center space-x-2 bg-[#3A86FF]/10 px-3 py-2 rounded-lg">
+      <div className="relative flex items-center space-x-2 bg-gradient-to-r from-[#3A86FF]/10 to-[#3A86FF]/5 px-4 py-2 rounded-lg shadow-sm">
         <Clock className="text-[#3A86FF]" size={18} />
         <span className="text-[#3A86FF] font-medium">
           {formatTimeRemaining()}
         </span>
+        
+        {/* Progress indicator */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#3A86FF]/20 rounded-b-lg overflow-hidden">
+          <div 
+            className="h-full bg-[#3A86FF] rounded-b-lg transition-all duration-1000 ease-linear"
+            style={{ width: `${getExpiryPercentage()}%` }}
+          />
+        </div>
       </div>
       <span className="text-xs text-muted-foreground">
         {formatExpiryTime()}
