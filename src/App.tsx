@@ -17,6 +17,7 @@ import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
 import Onboarding from "./pages/Onboarding";
 import Matches from "./pages/Matches";
+import TestBackend from "./components/TestBackend";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
@@ -87,6 +88,7 @@ const AppLayout = () => {
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/test-backend" element={<TestBackend />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       
