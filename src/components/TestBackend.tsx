@@ -4,9 +4,10 @@ import services from '../services';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const TestBackend = () => {
-  const [testResults, setTestResults] = useState<{[key: string]: {success: boolean, message: string}}>({});
+  const [testResults, setTestResults] = useState<Record<string, {success: boolean, message: string}>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentTest, setCurrentTest] = useState<string>('Initializing');
 
   // Add a test result
   const addResult = (test: string, success: boolean, message: string) => {
@@ -17,187 +18,372 @@ const TestBackend = () => {
     }));
   };
 
+  // Test user service
+  const testUserService = async () => {
+    try {
+      setCurrentTest('UserService - Init');
+      addResult('UserService Init', true, 'Service initialized');
+      
+      setCurrentTest('UserService - Creating test user');
+      // Use a fixed ID for testing
+      const testUserId = 'test-user-1';
+      
+      // Create test user data if needed
+      try {
+        const testUser = {
+          id: testUserId,
+          name: 'Test User',
+          email: 'test@example.com',
+          photos: ['https://randomuser.me/api/portraits/men/1.jpg'],
+          isCheckedIn: false,
+          currentVenue: null,
+          createdAt: Date.now()
+        };
+        
+        // Try to get user first
+        const existingUser = await services.user.getUserById(testUserId);
+        
+        if (!existingUser) {
+          // Only create if doesn't exist
+          await firebase.firestore().collection('users').doc(testUserId).set(testUser);
+          addResult('Create Test User', true, 'Test user created');
+        } else {
+          addResult('Test User Check', true, 'Test user already exists');
+        }
+      } catch (e) {
+        console.error('Error creating test user:', e);
+        addResult('Create Test User', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('UserService - getUserById');
+      // Test getUserById
+      try {
+        const user = await services.user.getUserById(testUserId);
+        addResult('getUserById', !!user, user ? `Retrieved user: ${user.name}` : 'Failed to get user');
+      } catch (e) {
+        console.error('getUserById error:', e);
+        addResult('getUserById', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('UserService - updateUser');
+      // Test updateUser
+      try {
+        const updateResult = await services.user.updateUser(testUserId, { lastActive: Date.now() });
+        addResult('updateUser', updateResult, updateResult ? 'User updated' : 'Failed to update user');
+      } catch (e) {
+        console.error('updateUser error:', e);
+        addResult('updateUser', false, `Error: ${e.message}`);
+      }
+      
+    } catch (error) {
+      console.error('User service test error:', error);
+      addResult('UserService', false, `Error: ${error.message}`);
+    }
+  };
+
+  // Test venue service 
+  const testVenueService = async () => {
+    try {
+      setCurrentTest('VenueService - Init');
+      addResult('VenueService Init', true, 'Service initialized');
+      
+      // Create test venue if needed
+      setCurrentTest('VenueService - Creating test venue');
+      const testVenueId = 'test-venue-1';
+      try {
+        const testVenue = {
+          id: testVenueId,
+          name: 'Test Cafe',
+          address: '123 Test St, Sydney',
+          city: 'Sydney',
+          latitude: -33.8688,
+          longitude: 151.2093,
+          type: 'cafe',
+          checkedInUsers: []
+        };
+        
+        // Try to get venue first
+        const existingVenue = await services.venue.getVenueById(testVenueId);
+        
+        if (!existingVenue) {
+          // Only create if doesn't exist
+          await firebase.firestore().collection('venues').doc(testVenueId).set(testVenue);
+          addResult('Create Test Venue', true, 'Test venue created');
+        } else {
+          addResult('Test Venue Check', true, 'Test venue already exists');
+        }
+      } catch (e) {
+        console.error('Error creating test venue:', e);
+        addResult('Create Test Venue', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('VenueService - getVenueById');
+      // Test getVenueById
+      try {
+        const venue = await services.venue.getVenueById(testVenueId);
+        addResult('getVenueById', !!venue, venue ? `Retrieved venue: ${venue.name}` : 'Failed to get venue');
+      } catch (e) {
+        console.error('getVenueById error:', e);
+        addResult('getVenueById', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('VenueService - getNearbyVenues');
+      // Test getNearbyVenues
+      try {
+        // Use Sydney coordinates
+        const lat = -33.8688;
+        const lng = 151.2093;
+        
+        const venues = await services.venue.getNearbyVenues(lat, lng, 10);
+        addResult('getNearbyVenues', venues.length > 0, 
+          venues.length > 0 ? `Found ${venues.length} venues` : 'No venues found');
+      } catch (e) {
+        console.error('getNearbyVenues error:', e);
+        addResult('getNearbyVenues', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('VenueService - checkInToVenue');
+      // Test check-in
+      try {
+        const userId = 'test-user-1';
+        const checkInResult = await services.venue.checkInToVenue(userId, testVenueId, 'Main Area');
+        addResult('checkInToVenue', checkInResult, checkInResult ? 'Checked in to venue' : 'Failed to check in');
+      } catch (e) {
+        console.error('checkInToVenue error:', e);
+        addResult('checkInToVenue', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('VenueService - checkOutFromVenue');
+      // Test check-out
+      try {
+        const userId = 'test-user-1';
+        const checkOutResult = await services.venue.checkOutFromVenue(userId, testVenueId);
+        addResult('checkOutFromVenue', checkOutResult, checkOutResult ? 'Checked out of venue' : 'Failed to check out');
+      } catch (e) {
+        console.error('checkOutFromVenue error:', e);
+        addResult('checkOutFromVenue', false, `Error: ${e.message}`);
+      }
+      
+    } catch (error) {
+      console.error('Venue service test error:', error);
+      addResult('VenueService', false, `Error: ${error.message}`);
+    }
+  };
+
+  // Test match service
+  const testMatchService = async () => {
+    try {
+      setCurrentTest('MatchService - Init');
+      addResult('MatchService Init', true, 'Service initialized');
+      
+      const userId = 'test-user-1';
+      const matchedUserId = 'test-user-2';
+      
+      // Create second test user if needed
+      setCurrentTest('MatchService - Creating second test user');
+      try {
+        const testUser = {
+          id: matchedUserId,
+          name: 'Test User 2',
+          email: 'test2@example.com',
+          photos: ['https://randomuser.me/api/portraits/men/2.jpg'],
+          isCheckedIn: false,
+          currentVenue: null,
+          createdAt: Date.now()
+        };
+        
+        // Try to get user first
+        const existingUser = await services.user.getUserById(matchedUserId);
+        
+        if (!existingUser) {
+          // Only create if doesn't exist
+          await firebase.firestore().collection('users').doc(matchedUserId).set(testUser);
+          addResult('Create Second Test User', true, 'Second test user created');
+        } else {
+          addResult('Second Test User Check', true, 'Second test user already exists');
+        }
+      } catch (e) {
+        console.error('Error creating second test user:', e);
+        addResult('Create Second Test User', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('MatchService - createMatch');
+      // Test createMatch
+      let newMatchId = '';
+      try {
+        const newMatch = await services.match.createMatch({
+          userId,
+          matchedUserId,
+          venueId: 'test-venue-1',
+          timestamp: Date.now(),
+          isActive: true,
+          expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3 hours
+          contactShared: false
+        });
+        
+        newMatchId = newMatch?.id || '';
+        addResult('createMatch', !!newMatch, newMatch ? `Match created with ID: ${newMatch.id}` : 'Failed to create match');
+      } catch (e) {
+        console.error('createMatch error:', e);
+        addResult('createMatch', false, `Error: ${e.message}`);
+      }
+      
+      if (newMatchId) {
+        setCurrentTest('MatchService - getMatchById');
+        // Test getMatchById
+        try {
+          const match = await services.match.getMatchById(newMatchId);
+          addResult('getMatchById', !!match, match ? 'Match retrieved' : 'Failed to get match');
+        } catch (e) {
+          console.error('getMatchById error:', e);
+          addResult('getMatchById', false, `Error: ${e.message}`);
+        }
+        
+        setCurrentTest('MatchService - updateMatch');
+        // Test updateMatch
+        try {
+          const updateResult = await services.match.updateMatch(newMatchId, { contactShared: true });
+          addResult('updateMatch', updateResult, updateResult ? 'Match updated' : 'Failed to update match');
+        } catch (e) {
+          console.error('updateMatch error:', e);
+          addResult('updateMatch', false, `Error: ${e.message}`);
+        }
+        
+        setCurrentTest('MatchService - expireMatch');
+        // Test expireMatch
+        try {
+          const expireResult = await services.match.expireMatch(newMatchId);
+          addResult('expireMatch', expireResult, expireResult ? 'Match expired' : 'Failed to expire match');
+        } catch (e) {
+          console.error('expireMatch error:', e);
+          addResult('expireMatch', false, `Error: ${e.message}`);
+        }
+      }
+      
+      setCurrentTest('MatchService - getMatchesByUserId');
+      // Test getMatchesByUserId
+      try {
+        const userMatches = await services.match.getMatchesByUserId(userId);
+        addResult('getMatchesByUserId', true, `Found ${userMatches.length} matches for user`);
+      } catch (e) {
+        console.error('getMatchesByUserId error:', e);
+        addResult('getMatchesByUserId', false, `Error: ${e.message}`);
+      }
+      
+      setCurrentTest('MatchService - checkForMatch');
+      // Test checkForMatch
+      try {
+        const existingMatch = await services.match.checkForMatch(userId, matchedUserId);
+        addResult('checkForMatch', true, existingMatch ? 'Found existing match' : 'No match found');
+      } catch (e) {
+        console.error('checkForMatch error:', e);
+        addResult('checkForMatch', false, `Error: ${e.message}`);
+      }
+      
+    } catch (error) {
+      console.error('Match service test error:', error);
+      addResult('MatchService', false, `Error: ${error.message}`);
+    }
+  };
+
   // Run all tests
   useEffect(() => {
     const runTests = async () => {
       try {
         setIsLoading(true);
+        console.log('Starting Firebase backend tests...');
         
-        // Test user service
-        try {
-          addResult('UserService Init', true, 'Service initialized');
-          
-          // Get current user (assuming one exists in auth)
-          const currentUser = await services.auth.getCurrentUser();
-          const userId = currentUser?.uid || 'test-user-1';
-          addResult('Current User', !!currentUser, currentUser ? `User found: ${userId}` : 'No user found, using test ID');
-          
-          // Test getUserProfile
-          const user = await services.user.getUserProfile(userId);
-          addResult('getUserProfile', !!user, user ? `Retrieved user: ${user.name}` : 'Failed to get user');
-          
-          // Test updateUserProfile
-          try {
-            await services.user.updateUserProfile(userId, { 
-              isVisible: true,
-              bio: `Updated at ${new Date().toISOString()}`
-            });
-            addResult('updateUserProfile', true, 'User updated successfully');
-          } catch (error) {
-            console.error('Update user error:', error);
-            addResult('updateUserProfile', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-          }
-        } catch (error) {
-          console.error('User service test error:', error);
-          addResult('UserService', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        // Import Firebase
+        setCurrentTest('Importing Firebase');
+        const firebase = await import('../services/firebase').then(module => module.default);
+        console.log('Firebase imported:', firebase);
         
-        // Test venue service
-        try {
-          addResult('VenueService Init', true, 'Service initialized');
-          
-          // Use Sydney coordinates for testing
-          const lat = -33.8688;
-          const lng = 151.2093;
-          
-          // Test getVenues
-          const allVenues = await services.venue.getVenues();
-          addResult('getVenues', allVenues.length > 0, 
-            allVenues.length > 0 ? `Found ${allVenues.length} venues` : 'No venues found');
-          
-          // Test getNearbyVenues
-          const venues = await services.venue.getNearbyVenues!(lat, lng, 10);
-          addResult('getNearbyVenues', venues.length > 0, 
-            venues.length > 0 ? `Found ${venues.length} nearby venues` : 'No nearby venues found');
-          
-          if (allVenues.length > 0) {
-            const testVenue = allVenues[0];
-            
-            // Test getVenueById
-            const venue = await services.venue.getVenueById(testVenue.id);
-            addResult('getVenueById', !!venue, venue ? `Retrieved venue: ${venue.name}` : 'Failed to get venue');
-            
-            // Test check-in
-            const userId = 'test-user-1';
-            try {
-              await services.venue.checkInToVenue(userId, testVenue.id);
-              addResult('checkInToVenue', true, 'Checked in to venue');
-            } catch (error) {
-              console.error('Check-in error:', error);
-              addResult('checkInToVenue', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-            }
-            
-            // Test check-out
-            try {
-              await services.venue.checkOutFromVenue(userId);
-              addResult('checkOutFromVenue', true, 'Checked out of venue');
-            } catch (error) {
-              console.error('Check-out error:', error);
-              addResult('checkOutFromVenue', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-            }
-          }
-        } catch (error) {
-          console.error('Venue service test error:', error);
-          addResult('VenueService', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        // Make firebase available globally for test functions
+        window.firebase = firebase;
         
-        // Test match service
-        try {
-          addResult('MatchService Init', true, 'Service initialized');
-          
-          const userId = 'test-user-1';
-          const matchedUserId = 'test-user-2';
-          
-          // Test createMatch
-          try {
-            const newMatch = await services.match.createMatch({
-              userId,
-              matchedUserId,
-              venueId: 'test-venue-1',
-              timestamp: Date.now(),
-              isActive: true,
-              expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3 hours
-              contactShared: false
-            });
-            
-            addResult('createMatch', !!newMatch, newMatch ? 'Match created' : 'Failed to create match');
-            
-            if (newMatch) {
-              // Test getMatches (assuming it retrieves all matches for a user)
-              const userMatches = await services.match.getMatches(userId);
-              addResult('getMatches', userMatches.length > 0, 
-                `Found ${userMatches.length} matches for user`);
-              
-              // Test updateMatch
-              try {
-                await services.match.updateMatch(newMatch.id, { contactShared: true });
-                addResult('updateMatch', true, 'Match updated successfully');
-              } catch (error) {
-                console.error('Update match error:', error);
-                addResult('updateMatch', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-              }
-            }
-          } catch (error) {
-            console.error('Create match error:', error);
-            addResult('createMatch', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-          }
-        } catch (error) {
-          console.error('Match service test error:', error);
-          addResult('MatchService', false, `Error: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        // Test services one by one
+        await testUserService();
+        await testVenueService();
+        await testMatchService();
         
       } catch (err) {
         console.error('Test error:', err);
-        setError(err instanceof Error ? err.message : String(err));
+        setError(err.message);
       } finally {
         setIsLoading(false);
+        setCurrentTest('Tests completed');
       }
     };
 
     runTests();
   }, []);
 
+  // Run individual tests
+  const runSingleTest = async (testFn: () => Promise<void>) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await testFn();
+    } catch (err) {
+      console.error('Test error:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 container mx-auto max-w-3xl">
       <h1 className="text-2xl font-bold mb-6">Firebase Backend Tests</h1>
       
-      {isLoading && (
-        <div className="space-y-3">
-          <div className="text-blue-500 mb-4">Running tests...</div>
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
+      {isLoading ? (
+        <div className="p-4 bg-blue-50 rounded-lg mb-4">
+          <div className="text-blue-500 font-medium">{currentTest}...</div>
+          <div className="mt-2 h-1 w-full bg-blue-100 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full animate-pulse" style={{width: '100%'}}></div>
+          </div>
         </div>
-      )}
-      
-      {error && (
-        <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
-          <p className="font-bold">Error occurred during tests:</p>
-          <p>{error}</p>
+      ) : error ? (
+        <div className="p-4 bg-red-50 rounded-lg mb-4">
+          <div className="text-red-500 font-medium">Error occurred during tests:</div>
+          <div className="mt-1 text-red-800">{error}</div>
         </div>
-      )}
+      ) : null}
       
-      {!isLoading && (
-        <div className="space-y-4">
-          {Object.entries(testResults).length === 0 ? (
-            <div className="text-amber-700 bg-amber-100 p-4 rounded-lg">
-              No test results available. Check the console for errors.
+      <div className="space-y-2 mb-6">
+        <button 
+          onClick={() => runSingleTest(testUserService)} 
+          className="mr-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+          disabled={isLoading}
+        >
+          Test User Service
+        </button>
+        <button 
+          onClick={() => runSingleTest(testVenueService)} 
+          className="mr-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+          disabled={isLoading}
+        >
+          Test Venue Service
+        </button>
+        <button 
+          onClick={() => runSingleTest(testMatchService)} 
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+          disabled={isLoading}
+        >
+          Test Match Service
+        </button>
+      </div>
+      
+      <div className="space-y-4">
+        {Object.entries(testResults).map(([test, result]) => (
+          <div key={test} className={`p-3 rounded-lg ${result.success ? 'bg-green-100' : 'bg-red-100'}`}>
+            <div className="font-medium">{test}</div>
+            <div className={result.success ? 'text-green-700' : 'text-red-700'}>
+              {result.message}
             </div>
-          ) : (
-            Object.entries(testResults).map(([test, result]) => (
-              <div key={test} className={`p-4 rounded-lg border ${result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                <div className="font-medium flex items-center gap-2">
-                  <span className={`inline-block w-3 h-3 rounded-full ${result.success ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                  {test}
-                </div>
-                <div className={result.success ? 'text-green-700 mt-1' : 'text-red-700 mt-1'}>
-                  {result.message}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

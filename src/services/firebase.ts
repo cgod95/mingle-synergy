@@ -22,4 +22,17 @@ export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 export const storage = getStorage(app);
 
+// For backwards compatibility with the old Firebase SDK syntax
+const firebase = {
+  firestore: () => firestore,
+  auth: () => auth,
+  storage: () => storage,
+  app: app
+};
+
+// Make Firebase available at window level for testing purposes
+if (typeof window !== 'undefined') {
+  window.firebase = firebase;
+}
+
 export default app;
