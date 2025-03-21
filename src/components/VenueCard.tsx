@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Users, Heart, MapPin } from 'lucide-react';
+import { Users, Heart, MapPin, Coffee, Wine, Utensils, Dumbbell } from 'lucide-react';
 import { Venue } from '@/types';
 import { cn } from '@/lib/utils';
 import { getUsersAtVenue } from '@/data/mockData';
@@ -32,6 +32,17 @@ const VenueCard: React.FC<VenueCardProps> = ({
   const usersAtVenue = getUsersAtVenue(venue.id);
   const hasUsers = usersAtVenue.length > 0;
   
+  // Get venue type icon
+  const getVenueIcon = () => {
+    switch (venue.type?.toLowerCase()) {
+      case 'cafe': return <Coffee size={20} className="text-[#6B7280]" />;
+      case 'bar': return <Wine size={20} className="text-[#6B7280]" />;
+      case 'restaurant': return <Utensils size={20} className="text-[#6B7280]" />;
+      case 'gym': return <Dumbbell size={20} className="text-[#6B7280]" />;
+      default: return <MapPin size={20} className="text-[#6B7280]" />;
+    }
+  };
+  
   return (
     <div 
       className={cn(
@@ -41,8 +52,13 @@ const VenueCard: React.FC<VenueCardProps> = ({
       )}
       onClick={handleCardClick}
     >
-      <div className="aspect-video w-full overflow-hidden">
-        {/* Implement lazy loading for venue images */}
+      <div className="aspect-video w-full overflow-hidden relative">
+        {/* Venue type icon */}
+        <div className="absolute top-3 right-3 bg-white/80 w-8 h-8 flex items-center justify-center rounded-full z-10 shadow-sm">
+          {getVenueIcon()}
+        </div>
+        
+        {/* Venue image */}
         <img 
           src={venue.image + "?auto=format&fit=crop&w=600&q=80"} 
           alt={venue.name}
@@ -65,10 +81,10 @@ const VenueCard: React.FC<VenueCardProps> = ({
           </div>
         </div>
         
-        {/* Preview of people at venue */}
+        {/* Enhanced preview of people at venue */}
         {hasUsers && (
           <div className="flex mb-4 -space-x-2 overflow-hidden">
-            {usersAtVenue.slice(0, 5).map((user) => (
+            {usersAtVenue.slice(0, 4).map((user) => (
               <div key={user.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                 <img 
                   src={user.photos[0] + "?w=100&h=100&q=80"} 
@@ -78,9 +94,9 @@ const VenueCard: React.FC<VenueCardProps> = ({
                 />
               </div>
             ))}
-            {usersAtVenue.length > 5 && (
+            {usersAtVenue.length > 4 && (
               <div className="w-8 h-8 rounded-full bg-[#3A86FF] border-2 border-white flex items-center justify-center text-[10px] font-medium text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-                +{usersAtVenue.length - 5}
+                +{usersAtVenue.length - 4}
               </div>
             )}
           </div>

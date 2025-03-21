@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Venue } from '@/types';
-import { ArrowLeft, Users, Clock } from 'lucide-react';
+import { ArrowLeft, Users, Clock, Coffee, Wine, Utensils, Dumbbell, MapPin } from 'lucide-react';
 
 interface VenueHeaderProps {
   venue: Venue;
@@ -24,6 +24,8 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
   activeZone,
   timeRemaining,
   expiryTime,
+  onZoneSelect,
+  onToggleVisibility
 }) => {
   const navigate = useNavigate();
 
@@ -47,6 +49,17 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
     
     return `${hours}h ${minutes}m remaining`;
   };
+  
+  // Get venue type icon
+  const getVenueIcon = () => {
+    switch (venue.type?.toLowerCase()) {
+      case 'cafe': return <Coffee size={18} className="text-[#6B7280]" />;
+      case 'bar': return <Wine size={18} className="text-[#6B7280]" />;
+      case 'restaurant': return <Utensils size={18} className="text-[#6B7280]" />;
+      case 'gym': return <Dumbbell size={18} className="text-[#6B7280]" />;
+      default: return <MapPin size={18} className="text-[#6B7280]" />;
+    }
+  };
 
   return (
     <div className="card-premium max-h-[120px] flex flex-col justify-between">
@@ -60,7 +73,12 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-heading text-[#202020] truncate">{venue.name}</h1>
+            <div className="flex items-center">
+              <h1 className="text-heading text-[#202020] truncate">{venue.name}</h1>
+              <div className="ml-2 bg-gray-100 p-1 rounded-full">
+                {getVenueIcon()}
+              </div>
+            </div>
             <p className="text-caption text-[#6B7280] truncate">{venue.address}</p>
           </div>
         </div>
@@ -82,6 +100,22 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
         <div className="flex items-center text-[#6B7280] text-caption">
           <Clock size={16} className="mr-1.5" />
           <span>Expires {formatExpiryTime()}</span>
+        </div>
+      </div>
+      
+      {/* Meta information about the venue */}
+      <div className="mt-3 bg-gray-50 px-3 py-2 rounded-lg">
+        <div className="flex justify-between items-center text-xs">
+          <div>
+            <span className="text-gray-500 block">Peak times</span>
+            <p className="font-medium">7:00 PM - 10:00 PM</p>
+          </div>
+          <div>
+            <span className="text-gray-500 block">Current mood</span>
+            <p className="font-medium">
+              {venue.checkInCount > 10 ? 'Buzzing' : venue.checkInCount > 5 ? 'Active' : 'Quiet'}
+            </p>
+          </div>
         </div>
       </div>
     </div>

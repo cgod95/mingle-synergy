@@ -6,11 +6,13 @@ import { ArrowLeft } from 'lucide-react';
 interface HeaderProps {
   title?: string;
   showBackButton?: boolean;
+  isCheckedIn?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   title = "Mingle",
-  showBackButton = false
+  showBackButton = false,
+  isCheckedIn = false
 }) => {
   const navigate = useNavigate();
   
@@ -32,6 +34,14 @@ const Header: React.FC<HeaderProps> = ({
             {title}
           </div>
         </div>
+        
+        {/* Check-in status indicator */}
+        {isCheckedIn && (
+          <div className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full flex items-center">
+            <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
+            Checked in
+          </div>
+        )}
       </div>
     </header>
   );

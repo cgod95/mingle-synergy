@@ -114,6 +114,28 @@
     font-family: var(--font-primary);
   }
   
+  /* New Typography Classes */
+  .heading-large { 
+    @apply text-[24px] leading-[32px] font-semibold mb-4 tracking-[-0.5px];
+    font-family: var(--font-primary);
+  }
+  
+  .heading-medium { 
+    @apply text-[18px] leading-[24px] font-semibold mb-3;
+    font-family: var(--font-primary);
+  }
+  
+  .body-text {
+    @apply text-[15px] leading-[22px] tracking-[0] text-[#333333];
+    font-family: var(--font-primary);
+  }
+  
+  .caption-text {
+    @apply text-[13px] leading-[18px] text-[#666666];
+    font-family: var(--font-primary);
+  }
+  
+  /* Existing Typography Classes */
   .text-display {
     @apply text-[28px] leading-[34px] font-semibold tracking-[-0.3px];
     font-family: var(--font-primary);
@@ -155,6 +177,11 @@
   p {
     @apply text-body text-foreground/80;
   }
+  
+  /* Card Styling */
+  .card {
+    @apply p-4 mb-3 rounded-2xl;
+  }
 }
 
 /* Enhanced animations */
@@ -194,6 +221,16 @@
 }
 
 /* Heart tap animation */
+.scale-heart {
+  animation: scale-up-down 300ms ease-in-out;
+}
+
+@keyframes scale-up-down {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
 .scale-120 {
   animation: scaleHeart 120ms ease-in-out;
 }
@@ -309,7 +346,7 @@
   }
   
   .user-card {
-    @apply rounded-2xl bg-white border-2 border-[#F1F5F9] shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-all duration-300;
+    @apply rounded-xl bg-white border-2 border-[#F1F5F9] shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
   }
   
   .message-input {
@@ -335,6 +372,40 @@
   
   .header-premium {
     @apply h-14 flex items-center justify-between px-4 border-b border-black/5 text-heading;
+  }
+  
+  /* New styles for enhanced user grid */
+  .user-grid {
+    @apply grid grid-cols-3 gap-3;
+  }
+  
+  .user-grid-item {
+    @apply relative rounded-xl overflow-hidden shadow-sm transition-transform active:scale-95;
+  }
+  
+  .user-name-overlay {
+    @apply absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-8 pb-2 px-2;
+  }
+  
+  .like-button {
+    @apply absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center bg-white/80 shadow-sm transition-colors active:bg-pink-100;
+  }
+  
+  /* Match card styling */
+  .match-card {
+    @apply flex items-start space-x-3 mb-3 p-3 rounded-xl bg-white shadow-sm;
+  }
+  
+  .match-user-avatar {
+    @apply w-12 h-12 rounded-full object-cover;
+  }
+  
+  .match-user-info {
+    @apply flex-1;
+  }
+  
+  .match-notification {
+    @apply fixed inset-0 bg-blue-500/95 flex items-center justify-center z-50 animate-fade-in;
   }
 }
 

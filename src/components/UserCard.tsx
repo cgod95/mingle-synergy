@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User as UserType, Interest, Match } from '@/types';
+import { Heart } from 'lucide-react';
 
 interface UserCardProps {
   user: UserType;
@@ -39,6 +40,7 @@ const UserCard: React.FC<UserCardProps> = ({
   );
   
   const [isLiked, setIsLiked] = useState(isAlreadyLiked);
+  const [isAnimating, setIsAnimating] = useState(false);
   
   const handleHeartClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,6 +56,10 @@ const UserCard: React.FC<UserCardProps> = ({
       }
       return;
     }
+    
+    // Add animation class
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 300);
     
     console.log("Heart clicked for user:", user.id);
     setIsLiked(true);
@@ -122,22 +128,37 @@ const UserCard: React.FC<UserCardProps> = ({
         alt={user.name} 
         className="w-full aspect-square object-cover"
       />
-      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+      
+      {/* Improved user name overlay with gradient */}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-8 pb-2 px-2">
         <div className="text-white">
           <div className="font-medium">{user.name}</div>
           <div className="text-sm">{user.age}</div>
         </div>
       </div>
+      
+      {/* Enhanced like button with animation */}
       <button 
         onClick={handleHeartClick}
-        className={`absolute bottom-2 right-2 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 ${
-          isLiked ? 'bg-pink-500 text-white' : 'bg-white/80 text-gray-600 hover:bg-gray-100'
-        }`}
+        className={`absolute bottom-2 right-2 w-8 h-8 flex items-center justify-center rounded-full shadow-sm transition-all duration-200 ${
+          isLiked 
+            ? 'bg-pink-500 text-white' 
+            : 'bg-white/80 text-gray-600 hover:bg-gray-100'
+        } ${isAnimating ? 'scale-heart' : ''}`}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-        </svg>
+        <Heart 
+          size={20} 
+          fill={isLiked ? "currentColor" : "none"} 
+          strokeWidth={2}
+        />
       </button>
+      
+      {/* Likes remaining indicator */}
+      {likesRemaining < 3 && (
+        <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+          {likesRemaining} likes left
+        </div>
+      )}
     </div>
   );
 };

@@ -3,10 +3,15 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Users, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getMatches } from '@/utils/localStorageUtils';
 
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Get unread matches for badge
+  const matches = getMatches();
+  const unreadMatches = matches.filter(match => !match.contactShared).length;
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t border-[#E5E7EB]">
@@ -54,7 +59,12 @@ const BottomNav: React.FC = () => {
             )}
             aria-label="Matches"
           >
-            <div className="pt-1">
+            <div className="pt-1 relative">
+              {unreadMatches > 0 && (
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                  {unreadMatches > 9 ? '9+' : unreadMatches}
+                </div>
+              )}
               <MessageCircle size={24} />
               <span className="text-caption mt-1 block">Matches</span>
             </div>

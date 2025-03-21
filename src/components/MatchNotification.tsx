@@ -50,7 +50,7 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
   };
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in backdrop-blur-sm">
+    <div className="match-notification">
       <div className="absolute inset-0 bg-background/60 backdrop-blur-lg" onClick={onClose}></div>
       
       {/* Celebration elements */}
@@ -92,20 +92,31 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
             <Sparkles className="text-yellow-400 w-6 h-6 animate-pulse-once" />
           </div>
           
-          <h2 className="text-3xl font-bold text-foreground mb-2 text-center font-ginto">You matched with {matchedUser.name}!</h2>
-          <p className="text-center text-muted-foreground mb-8 max-w-xs">
+          <h2 className="heading-large mb-2 text-center">You matched with {matchedUser.name}!</h2>
+          
+          <p className="text-center text-muted-foreground mb-8 max-w-xs body-text">
             You and {matchedUser.name} have expressed interest in each other.
           </p>
           
-          <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-[0_0_20px_rgba(58,134,255,0.2)] mb-5">
-            <img 
-              src={matchedUser.photos[0] + "?auto=format&fit=crop&w=200&q=80"} 
-              alt={matchedUser.name}
-              className="w-full h-full object-cover"
-            />
+          {/* User photos side by side */}
+          <div className="flex justify-center items-center mb-6">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-[0_0_20px_rgba(58,134,255,0.2)] -mr-3">
+              <img 
+                src={users.find(u => u.id === currentUserId)?.photos[0] || ''} 
+                alt="You"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-[0_0_20px_rgba(58,134,255,0.2)] -ml-3">
+              <img 
+                src={matchedUser.photos[0]} 
+                alt={matchedUser.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
           
-          <h3 className="text-2xl font-semibold text-foreground mb-1">{matchedUser.name}</h3>
+          <h3 className="text-xl font-semibold text-foreground mb-1">{matchedUser.name}</h3>
           
           <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-8">
             <Clock size={16} />
@@ -142,14 +153,14 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
                 onClick={onClose}
                 className="py-6 rounded-full"
               >
-                Later
+                Keep Browsing
               </Button>
               
               <Button
                 onClick={() => setShowShareOption(true)}
                 className="bg-gradient-to-r from-[#3A86FF] to-[#4A94FF] text-white shadow-button hover:shadow-none py-6 rounded-full"
               >
-                Share your contact to connect
+                Send a Message
               </Button>
             </div>
           )}
