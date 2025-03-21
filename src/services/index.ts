@@ -12,8 +12,8 @@ import firebaseVenueService from './firebase/venueService';
 import firebaseMatchService from './firebase/matchService';
 
 // Determine which implementation to use
-// Setting to use Firebase services
-const USE_MOCK = false;
+// Setting to use mock services for Lovable development environment
+const USE_MOCK = true;
 
 // Export services
 const services = {

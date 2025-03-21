@@ -1,71 +1,34 @@
 
-import React, { useEffect, useState } from 'react';
-import { firestore } from '../services/firebase';
-import { doc, getDoc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const TestBackend = () => {
-  const [status, setStatus] = useState('Initializing...');
-  const [results, setResults] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  // Add a test result
-  const addResult = (message: string) => {
-    console.log(message);
-    setResults(prev => [...prev, message]);
-  };
-
-  // Test basic Firebase connectivity
-  const testFirebaseConnection = async () => {
-    try {
-      setStatus('Testing Firebase connection...');
-      addResult('Attempting to connect to Firebase...');
-      
-      // Test Firestore
-      const testDocRef = doc(firestore, 'test', 'test');
-      const testDoc = await getDoc(testDocRef);
-      addResult(`Firestore connection successful: ${testDoc.exists() ? 'Document exists' : 'Document does not exist'}`);
-      
-      // Create a test document
-      await setDoc(testDocRef, {
-        timestamp: serverTimestamp()
-      });
-      addResult('Successfully wrote to Firestore');
-      
-      setStatus('Firebase connection test completed');
-    } catch (err) {
-      console.error('Firebase connection error:', err);
-      setError(`Firebase error: ${err instanceof Error ? err.message : String(err)}`);
-      setStatus('Test failed');
-    }
-  };
-
-  useEffect(() => {
-    testFirebaseConnection();
-  }, []);
-
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Firebase Connection Test</h1>
+      <h1 className="text-2xl font-bold mb-4">Development Environment</h1>
       
-      <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-        <div className="font-medium">Status: {status}</div>
-        {error && <div className="text-red-500 mt-2">{error}</div>}
+      <div className="p-4 bg-yellow-100 border-l-4 border-yellow-400 mb-4">
+        <p className="font-medium">Mock Services Active</p>
+        <p className="text-sm">Using mock data for development. Firebase integration will be completed in production environment.</p>
       </div>
       
-      <div className="space-y-2">
-        {results.map((result, index) => (
-          <div key={index} className="p-3 bg-blue-50 rounded-lg">
-            {result}
-          </div>
-        ))}
+      <div className="p-4 bg-blue-50 rounded-lg">
+        <h2 className="font-medium mb-2">Mock Data Status:</h2>
+        <ul className="list-disc list-inside space-y-1">
+          <li>Users: 12 mock profiles</li>
+          <li>Venues: 8 Sydney locations</li>
+          <li>Matches: Generated dynamically</li>
+        </ul>
       </div>
       
-      <button 
-        onClick={testFirebaseConnection}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
-      >
-        Run Test Again
-      </button>
+      <p className="mt-6 text-gray-700">
+        Continue development using mock services. All UI components and interactions 
+        will function with the mock data providers.
+      </p>
+      
+      <Link to="/" className="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg">
+        Return to Main App
+      </Link>
     </div>
   );
 };
