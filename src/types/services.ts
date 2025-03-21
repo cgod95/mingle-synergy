@@ -1,5 +1,5 @@
 
-import { Match, User as AppUser } from '@/types';
+import { Match as AppMatch, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
 export interface AuthService {
@@ -41,6 +41,18 @@ export interface VenueService {
   getNearbyVenues?: (latitude: number, longitude: number, radiusKm?: number) => Promise<Venue[]>;
   getVenuesByIds?: (venueIds: string[]) => Promise<Venue[]>;
 }
+
+// Define the Match type
+export type Match = {
+  id: string;
+  userId: string;
+  matchedUserId: string;
+  venueId: string;
+  timestamp: number;
+  isActive: boolean;
+  expiresAt: number;
+  contactShared: boolean;
+};
 
 export interface MatchService {
   getMatches: (userId: string) => Promise<Match[]>;
