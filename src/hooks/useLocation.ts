@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { venues } from '@/data/mockData';
 import { Venue } from '@/types';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 export function useLocation() {
   const [currentLocation, setCurrentLocation] = useState<GeolocationCoordinates | null>(null);
@@ -36,10 +37,15 @@ export function useLocation() {
           toast({
             title: `You're at ${mockCurrentVenue.name}`,
             description: "Tap to check in and see who's here",
-            action: {
-              label: "Check In",
-              onClick: () => window.location.href = `/venue/${mockCurrentVenue.id}`
-            }
+            action: (
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => window.location.href = `/venue/${mockCurrentVenue.id}`}
+              >
+                Check In
+              </Button>
+            )
           });
         }, 2000);
       }
@@ -65,10 +71,15 @@ export function useLocation() {
         toast({
           title: `You're at ${mockCurrentVenue.name}`,
           description: "Tap to check in and see who's here",
-          action: {
-            label: "Check In",
-            onClick: () => window.location.href = `/venue/${mockCurrentVenue.id}`
-          }
+          action: (
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => window.location.href = `/venue/${mockCurrentVenue.id}`}
+            >
+              Check In
+            </Button>
+          )
         });
       }
     }, 500);
