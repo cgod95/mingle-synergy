@@ -99,10 +99,6 @@ const Matches = () => {
                   key={match.id} 
                   match={match} 
                   user={user as User} 
-                  currentUserId={currentUserId}
-                  onShareContact={() => handleShareContact(match.id)}
-                  onSendMessage={(message) => handleSendMessage(match.id, message)}
-                  sentMessage={sentMessages[match.id]}
                 />
               ))}
             </div>
@@ -126,97 +122,105 @@ const Matches = () => {
 interface MatchCardProps { 
   match: MatchType; 
   user: User; 
-  currentUserId: string;
-  onShareContact: () => void;
-  onSendMessage: (message: string) => void;
-  sentMessage?: string;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ 
-  match, 
-  user, 
-  currentUserId,
-  onShareContact,
-  onSendMessage,
-  sentMessage
-}) => {
+const MatchCard: React.FC<MatchCardProps> = ({ match, user }) => {
+  const [hasSharedContact, setHasSharedContact] = useState(match.contactShared);
   const [message, setMessage] = useState('');
-  const timeLeft = formatDistanceToNow(match.expiresAt, { addSuffix: true });
-  const venue = venues.find(v => v.id === match.venueId);
+  const [showMessage, setShowMessage] = useState(false);
   
-  const expiryTimeInHours = Math.max(0, (match.expiresAt - Date.now()) / (1000 * 60 * 60));
-  const hours = Math.floor(expiryTimeInHours);
-  const minutes = Math.floor((expiryTimeInHours - hours) * 60);
-  const formattedExpiry = `Expires in ${hours}h ${minutes}m`;
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim()) {
-      onSendMessage(message);
-      setMessage('');
+  const handleShareContact = () => {
+    // Update match in state and localStorage
+    const updatedMatch = { ...match, contactShared: true };
+    const storedMatches = localStorage.getItem('userMatches');
+    if (storedMatches) {
+      const matches = JSON.parse(storedMatches);
+      const updatedMatches = matches.map((m: MatchType) => 
+        m.id === match.id ? updatedMatch : m
+      );
+      localStorage.setItem('userMatches', JSON.stringify(updatedMatches));
     }
+    setHasSharedContact(true);
+  };
+  
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
+    setShowMessage(true);
+    // You would normally save this message to a messages array
+  };
+  
+  // Calculate time remaining
+  const timeRemaining = () => {
+    const now = Date.now();
+    const remaining = match.expiresAt - now;
+    if (remaining <= 0) return 'Expired';
+    
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
   };
   
   return (
-    <div className="rounded-2xl border border-border overflow-hidden bg-card animate-scale-in shadow-bubble">
-      <div className="flex items-center p-4">
-        <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-4">
+      <div className="p-4">
+        <div className="flex items-center">
           <img 
             src={user.photos[0]} 
             alt={user.name} 
-            className="w-full h-full object-cover"
+            className="w-14 h-14 rounded-full object-cover border-2 border-white shadow"
           />
-        </div>
-        
-        <div className="flex-1">
-          <h3 className="text-lg font-medium">{user.name}</h3>
-          <p className="text-sm text-muted-foreground">
-            Matched at {venue?.name || 'a venue'}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {formattedExpiry}
-          </p>
-        </div>
-        
-        {!match.contactShared && (
-          <Button 
-            onClick={onShareContact}
-            className="rounded-full"
+          <div className="ml-3 flex-1">
+            <h3 className="font-semibold text-lg">{user.name}</h3>
+            <p className="text-sm text-gray-600">
+              Matched at {match.venueId.replace(/-/g, ' ')}
+            </p>
+            <p className="text-xs text-gray-500">
+              Expires in {timeRemaining()}
+            </p>
+          </div>
+          <button
+            onClick={handleShareContact}
+            disabled={hasSharedContact}
+            className={`px-4 py-2 rounded-full text-sm font-medium ${
+              hasSharedContact 
+                ? 'bg-gray-100 text-gray-500' 
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
           >
-            Share Contact 
-            <Share2 className="ml-1 w-4 h-4" />
-          </Button>
+            {hasSharedContact ? 'Shared' : 'Share Contact'}
+          </button>
+        </div>
+        
+        {showMessage && (
+          <div className="mt-4">
+            <div className="bg-blue-500 text-white px-4 py-2 rounded-tl-lg rounded-tr-lg rounded-br-lg inline-block max-w-[85%] ml-auto">
+              {message}
+            </div>
+          </div>
         )}
-      </div>
-      
-      {/* Message section */}
-      <div className="p-4 pt-0">
-        {sentMessage ? (
-          <div className="message-bubble">{sentMessage}</div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex items-end gap-2">
-            <Textarea
-              placeholder="Tell them where you are..."
+        
+        {!showMessage && (
+          <div className="mt-4 flex">
+            <input
+              type="text"
               value={message}
-              onChange={(e) => setMessage(e.target.value.slice(0, 100))}
-              className="flex-1 resize-none rounded-2xl"
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Tell them where you are..."
+              className="flex-1 border border-gray-200 rounded-l-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
               maxLength={100}
             />
-            <Button 
-              type="submit" 
-              size="icon" 
-              className="rounded-full"
+            <button
+              onClick={handleSendMessage}
               disabled={!message.trim()}
+              className={`px-4 py-2 rounded-r-full text-sm font-medium ${
+                !message.trim() 
+                  ? 'bg-gray-100 text-gray-500' 
+                  : 'bg-blue-500 text-white'
+              }`}
             >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        )}
-        
-        {message && (
-          <p className="text-xs text-right text-muted-foreground mt-1">
-            {message.length}/100
-          </p>
+              Send
+            </button>
+          </div>
         )}
       </div>
     </div>
