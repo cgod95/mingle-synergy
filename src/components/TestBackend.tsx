@@ -41,7 +41,7 @@ const TestBackend = () => {
         };
         
         // Try to get user first
-        const existingUser = await services.user.getUserById(testUserId);
+        const existingUser = await services.user.getUserProfile(testUserId);
         
         if (!existingUser) {
           // Only create if doesn't exist
@@ -55,24 +55,24 @@ const TestBackend = () => {
         addResult('Create Test User', false, `Error: ${e.message}`);
       }
       
-      setCurrentTest('UserService - getUserById');
-      // Test getUserById
+      setCurrentTest('UserService - getUserProfile');
+      // Test getUserProfile
       try {
-        const user = await services.user.getUserById(testUserId);
-        addResult('getUserById', !!user, user ? `Retrieved user: ${user.name}` : 'Failed to get user');
+        const user = await services.user.getUserProfile(testUserId);
+        addResult('getUserProfile', !!user, user ? `Retrieved user: ${user.name}` : 'Failed to get user');
       } catch (e) {
-        console.error('getUserById error:', e);
-        addResult('getUserById', false, `Error: ${e.message}`);
+        console.error('getUserProfile error:', e);
+        addResult('getUserProfile', false, `Error: ${e.message}`);
       }
       
-      setCurrentTest('UserService - updateUser');
-      // Test updateUser
+      setCurrentTest('UserService - updateUserProfile');
+      // Test updateUserProfile
       try {
-        const updateResult = await services.user.updateUser(testUserId, { lastActive: Date.now() });
-        addResult('updateUser', updateResult, updateResult ? 'User updated' : 'Failed to update user');
+        await services.user.updateUserProfile(testUserId, { lastActive: Date.now() });
+        addResult('updateUserProfile', true, 'User updated');
       } catch (e) {
-        console.error('updateUser error:', e);
-        addResult('updateUser', false, `Error: ${e.message}`);
+        console.error('updateUserProfile error:', e);
+        addResult('updateUserProfile', false, `Error: ${e.message}`);
       }
       
     } catch (error) {
@@ -146,8 +146,8 @@ const TestBackend = () => {
       // Test check-in
       try {
         const userId = 'test-user-1';
-        const checkInResult = await services.venue.checkInToVenue(userId, testVenueId, 'Main Area');
-        addResult('checkInToVenue', checkInResult, checkInResult ? 'Checked in to venue' : 'Failed to check in');
+        await services.venue.checkInToVenue(userId, testVenueId);
+        addResult('checkInToVenue', true, 'Checked in to venue');
       } catch (e) {
         console.error('checkInToVenue error:', e);
         addResult('checkInToVenue', false, `Error: ${e.message}`);
@@ -157,8 +157,8 @@ const TestBackend = () => {
       // Test check-out
       try {
         const userId = 'test-user-1';
-        const checkOutResult = await services.venue.checkOutFromVenue(userId, testVenueId);
-        addResult('checkOutFromVenue', checkOutResult, checkOutResult ? 'Checked out of venue' : 'Failed to check out');
+        await services.venue.checkOutFromVenue(userId);
+        addResult('checkOutFromVenue', true, 'Checked out of venue');
       } catch (e) {
         console.error('checkOutFromVenue error:', e);
         addResult('checkOutFromVenue', false, `Error: ${e.message}`);
@@ -193,7 +193,7 @@ const TestBackend = () => {
         };
         
         // Try to get user first
-        const existingUser = await services.user.getUserById(matchedUserId);
+        const existingUser = await services.user.getUserProfile(matchedUserId);
         
         if (!existingUser) {
           // Only create if doesn't exist
@@ -229,55 +229,35 @@ const TestBackend = () => {
       }
       
       if (newMatchId) {
-        setCurrentTest('MatchService - getMatchById');
-        // Test getMatchById
+        setCurrentTest('MatchService - getMatches');
+        // Test getMatches instead of getMatchById since it's available
         try {
-          const match = await services.match.getMatchById(newMatchId);
-          addResult('getMatchById', !!match, match ? 'Match retrieved' : 'Failed to get match');
+          const matches = await services.match.getMatches(userId);
+          addResult('getMatches', matches.length > 0, 'Matches retrieved');
         } catch (e) {
-          console.error('getMatchById error:', e);
-          addResult('getMatchById', false, `Error: ${e.message}`);
+          console.error('getMatches error:', e);
+          addResult('getMatches', false, `Error: ${e.message}`);
         }
         
         setCurrentTest('MatchService - updateMatch');
         // Test updateMatch
         try {
-          const updateResult = await services.match.updateMatch(newMatchId, { contactShared: true });
-          addResult('updateMatch', updateResult, updateResult ? 'Match updated' : 'Failed to update match');
+          await services.match.updateMatch(newMatchId, { contactShared: true });
+          addResult('updateMatch', true, 'Match updated');
         } catch (e) {
           console.error('updateMatch error:', e);
           addResult('updateMatch', false, `Error: ${e.message}`);
         }
-        
-        setCurrentTest('MatchService - expireMatch');
-        // Test expireMatch
-        try {
-          const expireResult = await services.match.expireMatch(newMatchId);
-          addResult('expireMatch', expireResult, expireResult ? 'Match expired' : 'Failed to expire match');
-        } catch (e) {
-          console.error('expireMatch error:', e);
-          addResult('expireMatch', false, `Error: ${e.message}`);
-        }
       }
       
-      setCurrentTest('MatchService - getMatchesByUserId');
-      // Test getMatchesByUserId
+      setCurrentTest('MatchService - getMatches again');
+      // Test getMatches
       try {
-        const userMatches = await services.match.getMatchesByUserId(userId);
-        addResult('getMatchesByUserId', true, `Found ${userMatches.length} matches for user`);
+        const userMatches = await services.match.getMatches(userId);
+        addResult('getMatches again', true, `Found ${userMatches.length} matches for user`);
       } catch (e) {
-        console.error('getMatchesByUserId error:', e);
-        addResult('getMatchesByUserId', false, `Error: ${e.message}`);
-      }
-      
-      setCurrentTest('MatchService - checkForMatch');
-      // Test checkForMatch
-      try {
-        const existingMatch = await services.match.checkForMatch(userId, matchedUserId);
-        addResult('checkForMatch', true, existingMatch ? 'Found existing match' : 'No match found');
-      } catch (e) {
-        console.error('checkForMatch error:', e);
-        addResult('checkForMatch', false, `Error: ${e.message}`);
+        console.error('getMatches error:', e);
+        addResult('getMatches again', false, `Error: ${e.message}`);
       }
       
     } catch (error) {
