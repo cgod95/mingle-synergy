@@ -4,14 +4,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
-import { User, Venue, Match, Interest } from '@/types';
-import { venues, users, getUsersAtVenue, hasMutualInterest } from '@/data/mockData';
-import { Clock, ArrowLeft, MapPin, Users } from 'lucide-react';
+import { User, Venue, Match } from '@/types';
+import { venues, users, getUsersAtVenue } from '@/data/mockData';
+import { ArrowLeft, Users, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from "@/components/ui/use-toast";
 
 const ActiveVenue = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const [venue, setVenue] = useState<Venue | null>(null);
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
@@ -21,6 +23,7 @@ const ActiveVenue = () => {
   const [showMatchNotification, setShowMatchNotification] = useState(false);
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [activeZone, setActiveZone] = useState<string | null>(null);
   
   const mockCurrentUserId = 'u6'; // For demonstration purposes
   
@@ -50,6 +53,10 @@ const ActiveVenue = () => {
     
     // Add to interests
     setInterests([...interests, userId]);
+    toast({
+      title: "Interest Sent!",
+      description: "They'll be notified of your interest.",
+    });
     
     // Check if mutual interest - for demo purposes, simulate match after short delay
     setTimeout(() => {
@@ -72,15 +79,37 @@ const ActiveVenue = () => {
     }, 1000);
   };
   
-  const handleCheckIn = () => {
+  const handleCheckIn = (zone?: string) => {
     setIsCheckedIn(true);
-    
-    // Show toast or some UI indication
-    // Could be implemented with a toast library
+    if (zone) {
+      setActiveZone(zone);
+      toast({
+        title: `Checked into ${zone}`,
+        description: "You're now visible in this zone for the next few hours.",
+      });
+    } else {
+      toast({
+        title: "Checked In!",
+        description: "You're now visible at this venue for the next few hours.",
+      });
+    }
   };
   
+  const getVenueZones = () => {
+    if (!venue || !venue.zones) return [];
+    
+    return [
+      { id: 'entrance', name: 'Near Entrance' },
+      { id: 'bar', name: 'At the Bar' },
+      { id: 'lounge', name: 'Lounge Area' },
+      { id: 'outside', name: 'Outside' },
+    ];
+  };
+  
+  const zones = getVenueZones();
+  
   return (
-    <div className="min-h-screen bg-background text-foreground pt-16 pb-8">
+    <div className="min-h-screen bg-background text-foreground pt-16 pb-24">
       <Header />
       
       <main className="container mx-auto px-4 mt-6">
@@ -89,62 +118,60 @@ const ActiveVenue = () => {
           className="flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="mr-2 w-4 h-4" />
-          Back
+          Back to Discover
         </button>
         
         {loading ? (
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-2/3 mb-4"></div>
             <div className="h-6 bg-muted rounded w-full mb-6"></div>
-            <div className="aspect-video w-full bg-muted rounded-xl mb-6"></div>
           </div>
         ) : venue ? (
           <div className="animate-fade-in">
-            <h1 className="text-3xl font-semibold mb-2">{venue.name}</h1>
-            <p className="text-muted-foreground mb-4">{venue.address}</p>
-            
-            <div className="relative rounded-xl overflow-hidden mb-6">
-              <img 
-                src={venue.image + "?auto=format&fit=crop&w=1200&q=80"}
-                alt={venue.name}
-                className="w-full aspect-[21/9] object-cover"
-              />
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent"></div>
-              
-              <div className="absolute bottom-0 left-0 right-0 p-6 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-1 text-white">
-                    <Users size={20} />
-                    <span className="font-medium">{venue.checkInCount} checked in</span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-1 text-white">
-                    <Clock size={20} />
-                    <span className="font-medium">Expires in {venue.expiryTime / 60}h</span>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={handleCheckIn}
-                  className={cn(
-                    "py-2 px-4 rounded-lg transition-all",
-                    isCheckedIn 
-                      ? "bg-secondary text-secondary-foreground" 
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
-                  )}
-                  disabled={isCheckedIn}
-                >
-                  {isCheckedIn ? 'Checked In' : 'Check In'}
-                </button>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h1 className="text-3xl font-semibold mb-1">{venue.name}</h1>
+                <p className="text-muted-foreground">{venue.checkInCount} people here now</p>
               </div>
+              
+              {!isCheckedIn && (
+                <button
+                  onClick={() => handleCheckIn()}
+                  className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors"
+                >
+                  Check In
+                </button>
+              )}
             </div>
+            
+            {zones.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-lg font-medium mb-3">Where are you?</h2>
+                <div className="flex flex-wrap gap-2">
+                  {zones.map((zone) => (
+                    <button
+                      key={zone.id}
+                      onClick={() => handleCheckIn(zone.name)}
+                      className={cn(
+                        "py-2 px-3 rounded-full text-sm flex items-center",
+                        activeZone === zone.name
+                          ? "bg-[#3A86FF] text-white"
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      )}
+                    >
+                      <MapPin size={14} className="mr-1" />
+                      {zone.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="mb-6">
               <h2 className="text-xl font-medium mb-4">People Here Now</h2>
               
               {usersAtVenue.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {usersAtVenue.map((user) => (
                     <UserCard 
                       key={user.id} 
@@ -181,7 +208,7 @@ const ActiveVenue = () => {
               The venue you're looking for doesn't exist or has been removed.
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/venues')}
               className="mt-4 py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
               Discover Venues

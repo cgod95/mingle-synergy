@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Heart, User, Bell } from 'lucide-react';
+import { MapPin, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const BottomNav: React.FC = () => {
@@ -16,7 +16,7 @@ const BottomNav: React.FC = () => {
             onClick={() => navigate('/venues')}
             className={cn(
               "flex flex-col items-center gap-1 px-4 py-2",
-              location.pathname === '/' || location.pathname === '/venues' || location.pathname.startsWith('/venue/') 
+              location.pathname === '/venues' || location.pathname.startsWith('/venue/') 
                 ? "text-[#3A86FF]" 
                 : "text-foreground/70"
             )}
@@ -38,7 +38,6 @@ const BottomNav: React.FC = () => {
           >
             <Bell size={24} />
             <span className="text-xs">Matches</span>
-            <span className="absolute top-0 right-3 w-2 h-2 bg-[#FF5A5F] rounded-full"></span>
           </button>
           
           <button
@@ -52,7 +51,7 @@ const BottomNav: React.FC = () => {
             aria-label="Profile"
           >
             <User size={24} />
-            <span className="text-xs">Profile</span>
+            <span className="text-xs">You</span>
           </button>
         </nav>
       </div>

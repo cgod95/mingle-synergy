@@ -20,7 +20,7 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
       className={cn(
         "flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300",
         isVisible 
-          ? "bg-secondary text-foreground" 
+          ? "bg-[#3A86FF]/10 text-[#3A86FF]" 
           : "bg-muted text-muted-foreground",
         className
       )}

@@ -1,15 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
 import { venues } from '@/data/mockData';
 import { Venue } from '@/types';
 import { Search } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
 
 const VenueList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>(venues);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
   
   useEffect(() => {
     // Simulate loading
@@ -37,6 +40,15 @@ const VenueList = () => {
     
     setFilteredVenues(results);
   }, [searchQuery, activeFilter]);
+  
+  const handleQuickCheckIn = (venueId: string) => {
+    // This would typically call your service to check in
+    // For now we just show a toast notification
+    toast({
+      title: "Checked In!",
+      description: "You're now visible at this venue for the next few hours.",
+    });
+  };
   
   const venueTypes = [
     { id: 'cafe', label: 'Cafes' },
@@ -71,7 +83,7 @@ const VenueList = () => {
                 onClick={() => setActiveFilter(null)}
                 className={`px-4 py-2 rounded-full whitespace-nowrap flex-shrink-0 transition-all ${
                   activeFilter === null
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-[#3A86FF] text-white'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
               >
@@ -84,7 +96,7 @@ const VenueList = () => {
                   onClick={() => setActiveFilter(type.id)}
                   className={`px-4 py-2 rounded-full whitespace-nowrap flex-shrink-0 transition-all ${
                     activeFilter === type.id
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-[#3A86FF] text-white'
                       : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
@@ -115,7 +127,12 @@ const VenueList = () => {
             ) : filteredVenues.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-fade-in">
                 {filteredVenues.map((venue) => (
-                  <VenueCard key={venue.id} venue={venue} />
+                  <VenueCard 
+                    key={venue.id} 
+                    venue={venue} 
+                    onCheckIn={handleQuickCheckIn}
+                    simplified={true}
+                  />
                 ))}
               </div>
             ) : (

@@ -30,10 +30,6 @@ const UserCard: React.FC<UserCardProps> = ({
         className
       )}
     >
-      {isLikedByUser && !hasMatch && (
-        <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-[#FF5A5F]/20 to-transparent h-16"></div>
-      )}
-      
       <div className="aspect-[3/4] w-full overflow-hidden">
         <img 
           src={user.photos[0] + "?auto=format&fit=crop&w=600&q=80"} 
@@ -49,18 +45,6 @@ const UserCard: React.FC<UserCardProps> = ({
         <div className="flex items-end justify-between">
           <div>
             <h3 className="text-lg font-medium text-white">{user.name}</h3>
-            {user.interests && user.interests.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1 max-w-[80%]">
-                {user.interests.slice(0, 3).map((interest, idx) => (
-                  <span 
-                    key={idx} 
-                    className="text-xs px-2 py-0.5 bg-background/50 backdrop-blur-sm rounded-full text-white"
-                  >
-                    {interest}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
           
           <button

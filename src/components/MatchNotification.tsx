@@ -72,19 +72,6 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
           
           <h3 className="text-xl font-medium text-foreground mb-1">{matchedUser.name}</h3>
           
-          {matchedUser.interests && matchedUser.interests.length > 0 && (
-            <div className="flex flex-wrap gap-1 justify-center mb-4">
-              {matchedUser.interests.slice(0, 3).map((interest, idx) => (
-                <span 
-                  key={idx} 
-                  className="text-xs px-2 py-0.5 bg-secondary rounded-full text-secondary-foreground"
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
-          )}
-          
           <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
             <Clock size={16} />
             <span>This match expires in {hoursRemaining}h {minutesRemaining}m</span>
@@ -93,7 +80,7 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
           {showShareOption ? (
             <div className="w-full space-y-4">
               <p className="text-center text-sm text-muted-foreground">
-                Share your contact details with {matchedUser.name}? If they also share, you'll both receive each other's info after the match window.
+                Share your contact details with {matchedUser.name}?
               </p>
               
               <div className="grid grid-cols-2 gap-3">
@@ -125,7 +112,7 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
                 onClick={() => setShowShareOption(true)}
                 className="bg-[#3A86FF] hover:bg-[#3A86FF]/90"
               >
-                Connect
+                Share Contact
               </Button>
             </div>
           )}

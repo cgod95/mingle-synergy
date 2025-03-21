@@ -1,19 +1,25 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Header from '@/components/Header';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { matches, users, venues } from '@/data/mockData';
 import { User, Match as MatchType } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
-import { Heart } from 'lucide-react';
+import { Heart, Share2 } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
 
 const Matches = () => {
   const currentUserId = 'u1'; // In a real app, this would come from auth
+  const { toast } = useToast();
   
-  // Get matches for current user
-  const userMatches = matches.filter(
-    match => (match.userId === currentUserId || match.matchedUserId === currentUserId) && match.isActive
-  );
+  // Get matches for current user, limited to 10 most recent
+  const userMatches = matches
+    .filter(match => 
+      (match.userId === currentUserId || match.matchedUserId === currentUserId) && 
+      match.isActive && 
+      match.expiresAt > Date.now()
+    )
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 10);
   
   // Find matched users from the userMatches
   const matchedUsers = userMatches.map(match => {
@@ -21,6 +27,13 @@ const Matches = () => {
     const user = users.find(u => u.id === matchedUserId);
     return { match, user };
   }).filter(({ user }) => user !== undefined);
+  
+  const handleShareContact = (matchId: string) => {
+    toast({
+      title: "Contact Shared",
+      description: "If they also share their contact, you'll both receive each other's info.",
+    });
+  };
   
   return (
     <div className="min-h-screen bg-background text-foreground pt-16 pb-24">
@@ -41,7 +54,8 @@ const Matches = () => {
                 key={match.id} 
                 match={match} 
                 user={user as User} 
-                currentUserId={currentUserId} 
+                currentUserId={currentUserId}
+                onShareContact={() => handleShareContact(match.id)}
               />
             ))}
           </div>
@@ -61,7 +75,17 @@ const Matches = () => {
   );
 };
 
-const MatchCard = ({ match, user, currentUserId }: { match: MatchType; user: User; currentUserId: string }) => {
+const MatchCard = ({ 
+  match, 
+  user, 
+  currentUserId,
+  onShareContact
+}: { 
+  match: MatchType; 
+  user: User; 
+  currentUserId: string;
+  onShareContact: () => void;
+}) => {
   const timeLeft = formatDistanceToNow(match.expiresAt, { addSuffix: true });
   const venue = venues.find(v => v.id === match.venueId);
   
@@ -86,8 +110,12 @@ const MatchCard = ({ match, user, currentUserId }: { match: MatchType; user: Use
           </p>
         </div>
         
-        <button className="bg-[#3A86FF] text-white px-4 py-2 rounded-lg text-sm">
-          {match.contactShared ? 'Message' : 'Share Contact'}
+        <button 
+          className="bg-[#3A86FF] text-white px-4 py-2 rounded-lg text-sm flex items-center"
+          onClick={onShareContact}
+        >
+          {match.contactShared ? 'Shared' : 'Share Contact'} 
+          {!match.contactShared && <Share2 className="ml-1 w-4 h-4" />}
         </button>
       </div>
     </div>
