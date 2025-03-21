@@ -48,7 +48,7 @@ const BottomNav: React.FC = () => {
                 ? "text-[#3A86FF]" 
                 : "text-foreground/70"
             )}
-            aria-label="Profile"
+            aria-label="You"
           >
             <User size={24} />
             <span className="text-xs">You</span>

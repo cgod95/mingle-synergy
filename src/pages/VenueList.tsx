@@ -2,30 +2,30 @@
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import VenueCard from '@/components/VenueCard';
-import { venues } from '@/data/mockData';
+import ToggleButton from '@/components/ToggleButton';
 import { Venue } from '@/types';
-import { Search } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import { useLocation } from '@/hooks/useLocation';
 
 const VenueList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [filteredVenues, setFilteredVenues] = useState<Venue[]>(venues);
-  const [loading, setLoading] = useState(true);
+  const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
+  const [isVisible, setIsVisible] = useState(true);
   const { toast } = useToast();
   
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  const { 
+    nearbyVenues, 
+    currentVenue, 
+    loading, 
+    permissionGranted, 
+    requestLocationPermission 
+  } = useLocation();
   
   useEffect(() => {
     // Filter venues based on search and type filter
-    let results = venues;
+    let results = nearbyVenues;
     
     if (searchQuery) {
       results = results.filter(venue => 
@@ -39,14 +39,25 @@ const VenueList = () => {
     }
     
     setFilteredVenues(results);
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery, activeFilter, nearbyVenues]);
   
-  const handleQuickCheckIn = (venueId: string) => {
-    // This would typically call your service to check in
-    // For now we just show a toast notification
+  const handleQuickCheckIn = (venueId: string, zoneName?: string) => {
     toast({
-      title: "Checked In!",
+      title: zoneName ? `Checked into ${zoneName}` : "Checked In!",
       description: "You're now visible at this venue for the next few hours.",
+    });
+    
+    // Navigate to venue page
+    window.location.href = `/venue/${venueId}`;
+  };
+  
+  const toggleVisibility = () => {
+    setIsVisible(!isVisible);
+    toast({
+      title: isVisible ? "You're now invisible" : "You're now visible",
+      description: isVisible 
+        ? "You won't appear in other users' discovery" 
+        : "Other users can now discover you",
     });
   };
   
@@ -65,6 +76,29 @@ const VenueList = () => {
       <main className="container mx-auto px-4 mt-6">
         <div className="flex flex-col gap-6">
           <section>
+            {/* Visibility Toggle */}
+            <div className="mb-4 animate-slide-up">
+              <ToggleButton 
+                isVisible={isVisible} 
+                onToggle={toggleVisibility} 
+              />
+            </div>
+            
+            {/* Current Location Section */}
+            {currentVenue && (
+              <div className="mb-6 animate-slide-up">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-xl font-semibold">You're at</h2>
+                </div>
+                
+                <VenueCard 
+                  venue={currentVenue} 
+                  onCheckIn={handleQuickCheckIn}
+                  className="border-2 border-[#3A86FF]"
+                />
+              </div>
+            )}
+            
             <div className="relative w-full mb-6 animate-slide-up">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <Search className="w-5 h-5 text-muted-foreground" />
@@ -106,8 +140,8 @@ const VenueList = () => {
             </div>
             
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {Array(6).fill(0).map((_, i) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {Array(3).fill(0).map((_, i) => (
                   <div 
                     key={i} 
                     className="rounded-xl bg-card shadow-sm border border-border/50 animate-pulse"
@@ -124,14 +158,29 @@ const VenueList = () => {
                   </div>
                 ))}
               </div>
+            ) : !permissionGranted ? (
+              <div className="text-center py-12 animate-fade-in">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">
+                  <MapPin className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-medium mb-2">Enable location services</h3>
+                <p className="text-muted-foreground mb-4">
+                  We need your location to show you nearby venues and people.
+                </p>
+                <button
+                  onClick={() => requestLocationPermission()}
+                  className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors"
+                >
+                  Enable Location
+                </button>
+              </div>
             ) : filteredVenues.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-fade-in">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fade-in">
                 {filteredVenues.map((venue) => (
                   <VenueCard 
                     key={venue.id} 
                     venue={venue} 
                     onCheckIn={handleQuickCheckIn}
-                    simplified={true}
                   />
                 ))}
               </div>

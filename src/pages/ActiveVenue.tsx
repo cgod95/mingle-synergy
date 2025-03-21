@@ -4,9 +4,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
+import ToggleButton from '@/components/ToggleButton';
 import { User, Venue, Match } from '@/types';
 import { venues, users, getUsersAtVenue } from '@/data/mockData';
-import { ArrowLeft, Users, MapPin } from 'lucide-react';
+import { ArrowLeft, Users, MapPin, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -22,8 +23,10 @@ const ActiveVenue = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [showMatchNotification, setShowMatchNotification] = useState(false);
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [isCheckedIn, setIsCheckedIn] = useState(true); // Default to checked in
+  const [isVisible, setIsVisible] = useState(true);
   const [activeZone, setActiveZone] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
   
   const mockCurrentUserId = 'u6'; // For demonstration purposes
   
@@ -39,11 +42,59 @@ const ActiveVenue = () => {
       if (foundVenue) {
         setVenue(foundVenue);
         setUsersAtVenue(getUsersAtVenue(id));
+        
+        // Set check-in time based on venue type
+        const hours = getExpiryHours(foundVenue.type);
+        setTimeRemaining(hours * 60 * 60); // Convert to seconds
       }
     }
     
     return () => clearTimeout(timer);
   }, [id]);
+  
+  // Timer effect for countdown
+  useEffect(() => {
+    if (timeRemaining <= 0 || !isCheckedIn) return;
+    
+    const countdown = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(countdown);
+          setIsCheckedIn(false);
+          toast({
+            title: "Check-in expired",
+            description: "You've been automatically checked out.",
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(countdown);
+  }, [timeRemaining, isCheckedIn, toast]);
+  
+  // Get timer based on venue type
+  const getExpiryHours = (type: string) => {
+    switch (type) {
+      case 'cafe': return 1;
+      case 'bar': return 3;
+      case 'restaurant': return 2;
+      case 'gym': return 2;
+      default: return 3;
+    }
+  };
+  
+  // Format time remaining as MM:SS
+  const formatTimeRemaining = () => {
+    const hours = Math.floor(timeRemaining / 3600);
+    const minutes = Math.floor((timeRemaining % 3600) / 60);
+    const seconds = timeRemaining % 60;
+    
+    return hours > 0 
+      ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
   
   const handleExpressInterest = (userId: string) => {
     // Check if already interested
@@ -72,7 +123,12 @@ const ActiveVenue = () => {
           contactShared: false
         };
         
-        setMatches([...matches, newMatch]);
+        setMatches(prev => {
+          const updatedMatches = [...prev, newMatch];
+          // Limit to 10 most recent matches
+          return updatedMatches.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+        });
+        
         setCurrentMatch(newMatch);
         setShowMatchNotification(true);
       }
@@ -93,17 +149,49 @@ const ActiveVenue = () => {
         description: "You're now visible at this venue for the next few hours.",
       });
     }
+    
+    // Reset the timer based on venue type
+    if (venue) {
+      const hours = getExpiryHours(venue.type);
+      setTimeRemaining(hours * 60 * 60);
+    }
+  };
+  
+  const toggleVisibility = () => {
+    setIsVisible(!isVisible);
+    toast({
+      title: isVisible ? "You're now invisible" : "You're now visible",
+      description: isVisible 
+        ? "You won't appear in other users' discovery" 
+        : "Other users can now discover you",
+    });
   };
   
   const getVenueZones = () => {
-    if (!venue || !venue.zones) return [];
+    if (!venue) return [];
     
-    return [
-      { id: 'entrance', name: 'Near Entrance' },
-      { id: 'bar', name: 'At the Bar' },
-      { id: 'lounge', name: 'Lounge Area' },
-      { id: 'outside', name: 'Outside' },
-    ];
+    if (venue.type === 'bar') {
+      return [
+        { id: 'entrance', name: 'Near Entrance' },
+        { id: 'bar', name: 'At the Bar' },
+      ];
+    } else if (venue.type === 'restaurant') {
+      return [
+        { id: 'inside', name: 'Inside' },
+        { id: 'outside', name: 'Outside' },
+      ];
+    } else if (venue.type === 'cafe') {
+      return [
+        { id: 'counter', name: 'Near Counter' },
+        { id: 'seated', name: 'Seated Area' },
+      ];
+    } else if (venue.type === 'gym') {
+      return [
+        { id: 'weights', name: 'Weights Area' },
+        { id: 'cardio', name: 'Cardio Section' },
+      ];
+    }
+    return [];
   };
   
   const zones = getVenueZones();
@@ -128,11 +216,30 @@ const ActiveVenue = () => {
           </div>
         ) : venue ? (
           <div className="animate-fade-in">
+            {/* Visibility Toggle */}
+            <div className="mb-4">
+              <ToggleButton 
+                isVisible={isVisible} 
+                onToggle={toggleVisibility} 
+              />
+            </div>
+            
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h1 className="text-3xl font-semibold mb-1">{venue.name}</h1>
-                <p className="text-muted-foreground">{venue.checkInCount} people here now</p>
+                <p className="text-muted-foreground">
+                  {venue.checkInCount} people here now
+                </p>
               </div>
+              
+              {isCheckedIn && (
+                <div className="flex items-center space-x-2 bg-[#3A86FF]/10 px-3 py-2 rounded-lg">
+                  <Clock className="text-[#3A86FF]" size={18} />
+                  <span className="text-[#3A86FF] font-medium">
+                    {formatTimeRemaining()}
+                  </span>
+                </div>
+              )}
               
               {!isCheckedIn && (
                 <button
@@ -144,7 +251,7 @@ const ActiveVenue = () => {
               )}
             </div>
             
-            {zones.length > 0 && (
+            {isCheckedIn && zones.length > 0 && (
               <div className="mb-6">
                 <h2 className="text-lg font-medium mb-3">Where are you?</h2>
                 <div className="flex flex-wrap gap-2">
@@ -171,7 +278,7 @@ const ActiveVenue = () => {
               <h2 className="text-xl font-medium mb-4">People Here Now</h2>
               
               {usersAtVenue.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {usersAtVenue.map((user) => (
                     <UserCard 
                       key={user.id} 

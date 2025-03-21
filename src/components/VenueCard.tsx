@@ -44,6 +44,34 @@ const VenueCard: React.FC<VenueCardProps> = ({
     }
   };
   
+  // Predefined zones for each venue
+  const getVenueZones = () => {
+    if (venue.type === 'bar') {
+      return [
+        { id: 'entrance', name: 'Near Entrance' },
+        { id: 'bar', name: 'At the Bar' },
+      ];
+    } else if (venue.type === 'restaurant') {
+      return [
+        { id: 'inside', name: 'Inside' },
+        { id: 'outside', name: 'Outside' },
+      ];
+    } else if (venue.type === 'cafe') {
+      return [
+        { id: 'counter', name: 'Near Counter' },
+        { id: 'seated', name: 'Seated Area' },
+      ];
+    } else if (venue.type === 'gym') {
+      return [
+        { id: 'weights', name: 'Weights Area' },
+        { id: 'cardio', name: 'Cardio Section' },
+      ];
+    }
+    return [];
+  };
+  
+  const zones = getVenueZones();
+  
   return (
     <div 
       className={cn(
@@ -80,34 +108,31 @@ const VenueCard: React.FC<VenueCardProps> = ({
           </div>
         </div>
         
-        {simplified ? (
+        {zones.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {zones.map((zone) => (
+              <button
+                key={zone.id}
+                className="py-1.5 px-2 text-xs bg-[#002855]/10 text-[#002855] rounded-full hover:bg-[#3A86FF]/20 transition-colors flex items-center justify-center"
+                onClick={(e) => handleCheckIn(e, zone.name)}
+              >
+                <MapPin size={12} className="mr-1" /> {zone.name}
+              </button>
+            ))}
+            <button
+              className="py-1.5 px-2 text-xs bg-[#3A86FF] text-white rounded-full hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center col-span-2"
+              onClick={(e) => handleCheckIn(e)}
+            >
+              Quick Check In
+            </button>
+          </div>
+        ) : (
           <button
             className="w-full py-2 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center"
             onClick={(e) => handleCheckIn(e)}
           >
             Check In
           </button>
-        ) : (
-          venue.zones && venue.zones.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {venue.zones.map((zone) => (
-                <button
-                  key={zone.id}
-                  className="py-1.5 px-2 text-xs bg-[#002855]/10 text-[#002855] rounded-full hover:bg-[#3A86FF]/20 transition-colors flex items-center justify-center"
-                  onClick={(e) => handleCheckIn(e, zone.name)}
-                >
-                  <MapPin size={12} className="mr-1" /> {zone.name}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <button
-              className="w-full py-2 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors flex items-center justify-center"
-              onClick={(e) => handleCheckIn(e)}
-            >
-              Check In
-            </button>
-          )
         )}
       </div>
     </div>
