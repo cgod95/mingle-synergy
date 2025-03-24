@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { User, Interest, Match } from '@/types';
 import { Heart } from 'lucide-react';
 import OptimizedImage from '../shared/OptimizedImage';
@@ -83,4 +83,5 @@ const UserGrid: React.FC<UserGridProps> = ({
   );
 };
 
-export default UserGrid;
+// Export with memo to prevent unnecessary re-renders
+export default memo(UserGrid);
