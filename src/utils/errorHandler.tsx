@@ -1,5 +1,6 @@
 
 import React from 'react';
+import * as Sentry from '@sentry/react';
 
 // Simple error logging function
 export const logError = (error: Error, context: Record<string, any> = {}) => {
@@ -25,6 +26,19 @@ export const logError = (error: Error, context: Record<string, any> = {}) => {
 export const logUserAction = (action: string, data: Record<string, any> = {}) => {
   if (process.env.NODE_ENV === 'development') {
     console.log(`[USER ACTION] ${action}`, data);
+  }
+};
+
+// Initialize error tracking (use your own DSN in production)
+export const initErrorTracking = () => {
+  if (import.meta.env.PROD) {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN || '', // Replace with your Sentry DSN
+      integrations: [new Sentry.BrowserTracing()],
+      tracesSampleRate: 0.5,
+      environment: import.meta.env.VITE_ENVIRONMENT || 'development',
+      enabled: import.meta.env.PROD,
+    });
   }
 };
 
