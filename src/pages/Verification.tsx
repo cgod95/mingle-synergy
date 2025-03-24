@@ -8,6 +8,7 @@ import { useAppState } from '@/context/AppStateContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import VerificationStep from '@/components/verification/VerificationStep';
+import { User } from '@/types';
 
 const Verification = () => {
   const { currentUser } = useAppState();
@@ -58,7 +59,7 @@ const Verification = () => {
           </div>
         ) : currentUser ? (
           <VerificationStep
-            currentUser={currentUser}
+            currentUser={currentUser as User}
             onComplete={handleVerificationComplete}
             onBack={handleBack}
           />

@@ -1,7 +1,8 @@
+
 // User types
 export interface User {
   id: string;
-  name: string;
+  name?: string;
   photos: string[];
   bio?: string;
   isCheckedIn: boolean;
@@ -10,16 +11,16 @@ export interface User {
   zone?: string; // Added for compatibility with UserCard component
   isVisible: boolean;
   interests: string[];
-  gender: 'male' | 'female' | 'non-binary' | 'other';
-  interestedIn: ('male' | 'female' | 'non-binary' | 'other')[];
-  age: number;
-  ageRangePreference: {
+  gender?: 'male' | 'female' | 'non-binary' | 'other';
+  interestedIn?: ('male' | 'female' | 'non-binary' | 'other')[];
+  age?: number;
+  ageRangePreference?: {
     min: number;
     max: number;
   };
-  matches: string[]; // IDs of matched users
-  likedUsers: string[]; // IDs of users this user has liked
-  blockedUsers: string[]; // IDs of users this user has blocked
+  matches?: string[]; // IDs of matched users
+  likedUsers?: string[]; // IDs of users this user has liked
+  blockedUsers?: string[]; // IDs of users this user has blocked
   // Verification fields
   isVerified?: boolean;
   pendingVerification?: boolean;
