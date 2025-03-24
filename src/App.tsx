@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,8 @@ import { AppStateProvider } from "@/context/AppStateContext";
 import { ToastProvider } from "@/components/ui/toast/ToastContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import BottomNav from "./components/BottomNav";
+import NetworkStatus from "./components/ui/NetworkStatus";
+import UpdateNotification from "./components/ui/UpdateNotification";
 import Index from "./pages/Index";
 import VenueList from "./pages/VenueList";
 import ActiveVenue from "./pages/ActiveVenue";
@@ -21,6 +24,7 @@ import Matches from "./pages/Matches";
 import TestBackend from "./components/TestBackend";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import LoadingScreen from "./components/ui/LoadingScreen";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,14 +82,14 @@ const AppLayout = () => {
         } />
         <Route path="/profile" element={
           <PrivateRoute>
-            <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
               <LazyProfile />
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/matches" element={
           <PrivateRoute>
-            <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <Suspense fallback={<LoadingScreen message="Loading matches..." />}>
               <LazyMatches />
             </Suspense>
           </PrivateRoute>
@@ -96,6 +100,8 @@ const AppLayout = () => {
       </Routes>
       
       {!isAuthPage() && <BottomNav />}
+      <NetworkStatus />
+      <UpdateNotification />
     </ErrorBoundary>
   );
 };
