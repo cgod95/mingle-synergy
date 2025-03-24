@@ -1,30 +1,157 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import MatchNotification from '@/components/MatchNotification';
-import { User, Venue, Match, Interest } from '@/types';
-import { venues, getUsersAtVenue } from '@/data/mockData';
-import { Users } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
+import { User, Venue } from '@/types';
+import { venues } from '@/data/mockData';
+import { Users, Heart } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PageTransition, StaggeredList, StaggeredItem } from '@/components/animations/Transitions';
 
-declare global {
-  interface Window {
-    showToast?: (message: string) => void;
-    showMatchModal?: (user: User) => void;
-  }
+// Define component interfaces for internal use
+interface InternalUser {
+  id: string;
+  name: string;
+  age?: number;
+  photos: string[];
+  currentZone?: string;
 }
 
-const SimpleVenueView = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+interface InternalVenue {
+  id: string;
+  name: string;
+  address?: string;
+}
+
+// Internal components
+const VenueHeader = ({ venue, onCheckOut }) => (
+  <div className="p-4 bg-white rounded-xl shadow-sm mb-4">
+    <div className="flex justify-between items-start">
+      <div>
+        <h1 className="text-xl font-bold">{venue.name}</h1>
+        {venue.address && <p className="text-gray-600 text-sm">{venue.address}</p>}
+      </div>
+      <button 
+        onClick={onCheckOut}
+        className="text-red-500 text-sm font-medium"
+      >
+        Check Out
+      </button>
+    </div>
+  </div>
+);
+
+const LikesCounter = ({ count }) => (
+  <div className="mb-4 px-4 py-2 bg-blue-50 rounded-lg inline-flex items-center">
+    <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs mr-2">
+      {count}
+    </div>
+    <span className="text-sm font-medium text-blue-800">likes remaining</span>
+  </div>
+);
+
+const UserGrid = ({ users, onLikeUser, likesRemaining }) => (
+  <div className="grid grid-cols-3 gap-3">
+    {users.map(user => (
+      <div key={user.id} className="relative rounded-xl overflow-hidden shadow-sm">
+        <img 
+          src={user.photos[0]} 
+          alt={user.name}
+          className="w-full aspect-square object-cover"
+        />
+        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+          <div className="text-white">
+            <div className="font-medium">{user.name}</div>
+            {user.age && <div className="text-sm">{user.age}</div>}
+          </div>
+        </div>
+        <button 
+          onClick={() => likesRemaining > 0 && onLikeUser(user.id)}
+          disabled={likesRemaining <= 0}
+          className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center ${
+            likesRemaining > 0 
+              ? 'bg-white/80 text-gray-600 hover:bg-gray-100' 
+              : 'bg-gray-300/80 text-gray-400'
+          }`}
+        >
+          <Heart size={20} strokeWidth={2} />
+        </button>
+      </div>
+    ))}
+  </div>
+);
+
+const EmptyState = ({ message }) => (
+  <div className="py-12 text-center bg-gray-50 rounded-lg">
+    <div className="text-gray-400 mb-2">
+      <Users size={48} className="mx-auto" />
+    </div>
+    <p className="text-gray-500 font-medium">{message}</p>
+    <p className="text-gray-400 text-sm mt-1">Be the first to check in</p>
+  </div>
+);
+
+const ZoneSelector = ({ zones, selectedZone, onZoneSelect, users }) => {
+  // Count users in each zone
+  const userCountByZone = zones.reduce((counts, zone) => {
+    counts[zone] = users.filter(user => user.currentZone === zone).length;
+    return counts;
+  }, {});
   
-  const [venue, setVenue] = useState<Venue | null>(null);
-  const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
+  return (
+    <div className="mb-6">
+      <h3 className="text-sm font-medium text-gray-700 mb-2">Where are you?</h3>
+      
+      <div className="flex flex-wrap gap-2">
+        {zones.map(zone => {
+          const isActive = zone === selectedZone;
+          const userCount = userCountByZone[zone] || 0;
+          
+          return (
+            <button
+              key={zone}
+              onClick={() => onZoneSelect(zone)}
+              className={`px-3 py-1.5 rounded-full text-sm ${
+                isActive 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              {zone}
+              {userCount > 0 && <span className="ml-1 text-xs">({userCount})</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Toast notification component
+const ToastNotification = ({ message, onClose, duration = 3000 }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, duration);
+    
+    return () => clearTimeout(timer);
+  }, [onClose, duration]);
+  
+  return (
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50">
+      {message}
+    </div>
+  );
+};
+
+// Main component
+const SimpleVenueView = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  const [venue, setVenue] = useState(null);
+  const [usersAtVenue, setUsersAtVenue] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentZone, setCurrentZone] = useState<string>('Main Area');
+  const [currentZone, setCurrentZone] = useState('Main Area');
   
   const [likesRemaining, setLikesRemaining] = useState(() => {
     if (id) {
@@ -34,29 +161,10 @@ const SimpleVenueView = () => {
     return 3;
   });
 
-  const [showInterestSent, setShowInterestSent] = useState(false);
-  const [lastLikedUser, setLastLikedUser] = useState<User | null>(null);
-  
-  const [interests, setInterests] = useState<Interest[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('interests') || '[]');
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const [matches, setMatches] = useState<Match[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('matches') || '[]');
-    } catch (e) {
-      return [];
-    }
-  });
-
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [showMatchModal, setShowMatchModal] = useState(false);
-  const [matchedUser, setMatchedUser] = useState<User | null>(null);
+  const [showInterestSent, setShowInterestSent] = useState(false);
+  const [lastLikedUser, setLastLikedUser] = useState(null);
   
   const currentUser = {
     id: 'current-user-id',
@@ -75,26 +183,10 @@ const SimpleVenueView = () => {
       }
     };
     
-    window.showMatchModal = (user) => {
-      setMatchedUser(user);
-      setShowMatchModal(true);
-    };
-    
     return () => {
       delete window.showToast;
-      delete window.showMatchModal;
     };
   }, []);
-  
-  useEffect(() => {
-    if (interests.length > 0) {
-      const lastInterest = interests[interests.length - 1];
-      const likedUser = usersAtVenue.find(user => user.id === lastInterest.toUserId);
-      if (likedUser) {
-        setLastLikedUser(likedUser);
-      }
-    }
-  }, [interests, usersAtVenue]);
   
   useEffect(() => {
     if (!id) return;
@@ -102,8 +194,43 @@ const SimpleVenueView = () => {
     const foundVenue = venues.find(v => v.id === id);
     setVenue(foundVenue || null);
     
-    const users = getUsersAtVenue(id);
-    setUsersAtVenue(users);
+    // Mock data for users at this venue
+    const mockUsers = [
+      {
+        id: 'user1',
+        name: 'Alex',
+        age: 28,
+        photos: ['https://randomuser.me/api/portraits/men/32.jpg'],
+        currentZone: 'Bar',
+        isCheckedIn: true,
+        isVisible: true,
+        interests: ['music', 'travel'],
+        gender: 'male',
+        interestedIn: ['female'],
+        ageRangePreference: { min: 21, max: 35 },
+        matches: [],
+        likedUsers: [],
+        blockedUsers: []
+      },
+      {
+        id: 'user2',
+        name: 'Jordan',
+        age: 26,
+        photos: ['https://randomuser.me/api/portraits/women/44.jpg'],
+        currentZone: 'Main Area',
+        isCheckedIn: true,
+        isVisible: true,
+        interests: ['hiking', 'cooking'],
+        gender: 'female',
+        interestedIn: ['male'],
+        ageRangePreference: { min: 25, max: 35 },
+        matches: [],
+        likedUsers: [],
+        blockedUsers: []
+      },
+    ];
+    
+    setUsersAtVenue(mockUsers);
     
     setTimeout(() => {
       setLoading(false);
@@ -111,34 +238,45 @@ const SimpleVenueView = () => {
     
   }, [id]);
   
-  const handleCloseMatch = () => {
-    setShowMatchModal(false);
+  const handleCheckOut = () => {
+    navigate('/venues');
   };
   
-  const handleShareContact = () => {
-    if (matchedUser) {
-      toast({
-        title: "Contact Shared",
-        description: "If they also share their contact, you'll both receive each other's info.",
-      });
+  const handleLikeUser = (userId) => {
+    if (likesRemaining <= 0) return;
+    
+    // Find the user
+    const user = usersAtVenue.find(u => u.id === userId);
+    if (user) {
+      setLastLikedUser(user);
     }
-    setShowMatchModal(false);
+    
+    // Update likes remaining
+    setLikesRemaining(prev => {
+      const newValue = prev - 1;
+      localStorage.setItem(`likesRemaining-${id}`, String(newValue));
+      return newValue;
+    });
+    
+    // Show toast notification
+    setToastMessage('Interest sent!');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+    
+    setShowInterestSent(true);
+    setTimeout(() => setShowInterestSent(false), 3000);
   };
   
-  const handleZoneSelect = (zoneName: string) => {
+  const handleZoneSelect = (zoneName) => {
     setCurrentZone(zoneName);
-    toast({
-      title: "Zone Updated",
-      description: `You're now in ${zoneName}`,
-    });
   };
   
   const availableZones = [
-    { id: 'z1', name: 'Main Area' },
-    { id: 'z2', name: 'Bar' },
-    { id: 'z3', name: 'Entrance' },
-    { id: 'z4', name: 'Outside' },
-    { id: 'z5', name: 'Upstairs' },
+    'Main Area', 
+    'Bar', 
+    'Entrance', 
+    'Outside', 
+    'Upstairs'
   ];
   
   return (
@@ -149,7 +287,7 @@ const SimpleVenueView = () => {
           <p className="text-muted-foreground mb-4">Unable to load venue information.</p>
           <button 
             onClick={() => navigate('/venues')}
-            className="px-4 py-2 bg-[#3A86FF] text-white rounded-lg"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg"
           >
             Return to Venues
           </button>
@@ -157,8 +295,6 @@ const SimpleVenueView = () => {
       }
     >
       <div className="min-h-screen bg-[#F9FAFB] text-[#202020] pt-16 pb-24">
-        <Header />
-        
         <PageTransition>
           <main className="container mx-auto px-4 mt-4">
             {loading ? (
@@ -175,7 +311,7 @@ const SimpleVenueView = () => {
               <div className="animate-fade-in">
                 <VenueHeader 
                   venue={venue} 
-                  onCheckOut={() => navigate('/venues')} 
+                  onCheckOut={handleCheckOut} 
                 />
                 
                 <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
@@ -192,10 +328,10 @@ const SimpleVenueView = () => {
                 </div>
                 
                 <ZoneSelector 
-                  activeZone={currentZone}
                   zones={availableZones}
+                  selectedZone={currentZone}
                   onZoneSelect={handleZoneSelect}
-                  className="mb-6"
+                  users={usersAtVenue}
                 />
                 
                 <div>
@@ -206,17 +342,15 @@ const SimpleVenueView = () => {
                   </div>
                   
                   <StaggeredList>
-                    <UserGrid
-                      users={usersAtVenue}
-                      interests={interests}
-                      setInterests={setInterests}
-                      matches={matches}
-                      setMatches={setMatches}
-                      currentUser={currentUser}
-                      likesRemaining={likesRemaining}
-                      setLikesRemaining={setLikesRemaining}
-                      venueId={id || 'unknown'}
-                    />
+                    {usersAtVenue.length > 0 ? (
+                      <UserGrid
+                        users={usersAtVenue}
+                        onLikeUser={handleLikeUser}
+                        likesRemaining={likesRemaining}
+                      />
+                    ) : (
+                      <EmptyState message="No one's here yet" />
+                    )}
                   </StaggeredList>
                 </div>
               </div>
@@ -241,9 +375,10 @@ const SimpleVenueView = () => {
         </PageTransition>
         
         {showToast && (
-          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50">
-            {toastMessage}
-          </div>
+          <ToastNotification
+            message={toastMessage}
+            onClose={() => setShowToast(false)}
+          />
         )}
 
         {showInterestSent && lastLikedUser && (
@@ -264,62 +399,6 @@ const SimpleVenueView = () => {
               </button>
             </div>
           </div>
-        )}
-
-        {showMatchModal && matchedUser && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg w-5/6 max-w-md p-6 animate-fade-in">
-              <div className="text-center">
-                <div className="mb-2 text-blue-500">
-                  <svg className="w-16 h-16 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                  </svg>
-                </div>
-                <h2 className="text-xl font-bold mb-2">It's a Match!</h2>
-                <p className="text-gray-600 mb-4">You and {matchedUser.name} have expressed interest in each other.</p>
-                <img 
-                  src={matchedUser.photos?.[0]} 
-                  alt={matchedUser.name} 
-                  className="w-24 h-24 mx-auto rounded-full object-cover border-4 border-blue-100 mb-4"
-                />
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={() => setShowMatchModal(false)} 
-                    className="flex-1 py-2 px-4 border border-gray-300 rounded-full text-gray-600"
-                  >
-                    Later
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setShowMatchModal(false);
-                      // Navigate to matches tab
-                    }}
-                    className="flex-1 py-2 px-4 bg-blue-500 rounded-full text-white"
-                  >
-                    Say Hello
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {showMatchModal === false && matchedUser && (
-          <MatchNotification 
-            match={{
-              id: `match_${Date.now()}`,
-              userId: currentUser.id,
-              matchedUserId: matchedUser.id,
-              venueId: matchedUser.currentVenue || 'unknown',
-              timestamp: Date.now(),
-              isActive: true,
-              expiresAt: Date.now() + (3 * 60 * 60 * 1000),
-              contactShared: false
-            }}
-            currentUserId={currentUser.id}
-            onClose={handleCloseMatch}
-            onShareContact={handleShareContact}
-          />
         )}
       </div>
     </ErrorBoundary>
