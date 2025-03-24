@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppStateProvider } from "@/context/AppStateContext";
+import PrivateRoute from "./components/auth/PrivateRoute";
 import BottomNav from "./components/BottomNav";
 import Index from "./pages/Index";
 import VenueList from "./pages/VenueList";
@@ -34,20 +35,6 @@ const queryClient = new QueryClient({
 const LazyMatches = lazy(() => import("./pages/Matches"));
 const LazyProfile = lazy(() => import("./pages/Profile"));
 
-// Protected route with proper error handling
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin w-8 h-8 border-4 border-[#3A86FF] border-t-transparent rounded-full"></div>
-    </div>;
-  }
-  
-  // For development, bypass auth checks
-  return <>{children}</>;
-};
-
 // Layout component with error boundary
 const AppLayout = () => {
   const location = useLocation();
@@ -72,22 +59,43 @@ const AppLayout = () => {
     >
       <Routes>
         <Route path="/" element={<Navigate to="/venues" replace />} />
-        <Route path="/venues" element={<VenueList />} />
-        <Route path="/venue/:id" element={<ActiveVenue />} />
-        <Route path="/simple-venue/:id" element={<SimpleVenueView />} />
-        <Route path="/profile" element={
-          <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
-            <LazyProfile />
-          </Suspense>
-        } />
-        <Route path="/matches" element={
-          <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
-            <LazyMatches />
-          </Suspense>
-        } />
+        
+        {/* Public routes */}
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        
+        {/* Protected routes */}
+        <Route path="/venues" element={
+          <PrivateRoute>
+            <VenueList />
+          </PrivateRoute>
+        } />
+        <Route path="/venue/:id" element={
+          <PrivateRoute>
+            <ActiveVenue />
+          </PrivateRoute>
+        } />
+        <Route path="/simple-venue/:id" element={
+          <PrivateRoute>
+            <SimpleVenueView />
+          </PrivateRoute>
+        } />
+        <Route path="/profile" element={
+          <PrivateRoute>
+            <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+              <LazyProfile />
+            </Suspense>
+          </PrivateRoute>
+        } />
+        <Route path="/matches" element={
+          <PrivateRoute>
+            <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+              <LazyMatches />
+            </Suspense>
+          </PrivateRoute>
+        } />
+        
         <Route path="/test-backend" element={<TestBackend />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Interest, Match } from '@/types';
 import { getInterests, getMatches } from '@/utils/localStorageUtils';
+import services from '@/services';
 
 interface AppStateContextType {
   currentUser: { id: string; name?: string } | null;
@@ -16,6 +17,12 @@ interface AppStateContextType {
   setMatchedUser: React.Dispatch<React.SetStateAction<User | null>>;
   showMatchModal: boolean;
   setShowMatchModal: React.Dispatch<React.SetStateAction<boolean>>;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<User | null>;
+  logout: () => Promise<void>;
+  expressInterest: (userId: string, venueId: string) => Promise<boolean>;
+  shareContact: (matchId: string) => Promise<boolean>;
 }
 
 const AppStateContext = createContext<AppStateContextType | null>(null);
@@ -42,6 +49,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   
   const [matchedUser, setMatchedUser] = useState<User | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // For demo purposes
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Persist to localStorage on change
   useEffect(() => {
@@ -59,6 +68,110 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     localStorage.setItem('likedUsers', JSON.stringify(likedUsers));
   }, [likedUsers]);
+
+  // Authentication actions
+  const login = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      const { user } = await services.auth.signIn(email, password);
+      
+      if (user) {
+        setCurrentUser({
+          id: user.uid,
+          name: user.displayName || email.split('@')[0]
+        });
+        setIsAuthenticated(true);
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Login error:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const logout = async () => {
+    try {
+      setIsLoading(true);
+      await services.auth.signOut();
+      // For demo purposes, we don't actually clear the user
+      // setCurrentUser(null);
+      // setIsAuthenticated(false);
+      console.log('User logged out (but kept in state for demo)');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Interest and match actions
+  const expressInterest = async (userId: string, venueId: string): Promise<boolean> => {
+    if (!currentUser) return false;
+    
+    try {
+      // Create new interest
+      const newInterest: Omit<Interest, 'id'> = {
+        fromUserId: currentUser.id,
+        toUserId: userId,
+        venueId: venueId,
+        timestamp: Date.now(),
+        isActive: true,
+        expiresAt: Date.now() + 1000 * 60 * 60 * 24 // 24 hours
+      };
+      
+      // Update interests state
+      const interestId = `int-${Date.now()}`;
+      const interestWithId = { ...newInterest, id: interestId };
+      setInterests(prev => [...prev, interestWithId]);
+      
+      // Check for mutual interest
+      const mutualInterest = interests.find(
+        i => i.fromUserId === userId && i.toUserId === currentUser.id && i.isActive
+      );
+      
+      if (mutualInterest) {
+        // Create a match
+        const newMatch: Omit<Match, 'id'> = {
+          userId: currentUser.id,
+          matchedUserId: userId,
+          venueId: venueId,
+          timestamp: Date.now(),
+          isActive: true,
+          expiresAt: Date.now() + 1000 * 60 * 60 * 3, // 3 hours
+          contactShared: false
+        };
+        
+        const matchId = `match-${Date.now()}`;
+        const matchWithId = { ...newMatch, id: matchId };
+        setMatches(prev => [...prev, matchWithId]);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Express interest error:', error);
+      return false;
+    }
+  };
+  
+  const shareContact = async (matchId: string): Promise<boolean> => {
+    try {
+      // Update match in state
+      setMatches(prev => prev.map(match => {
+        if (match.id === matchId) {
+          return { ...match, contactShared: true };
+        }
+        return match;
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Share contact error:', error);
+      return false;
+    }
+  };
   
   // Expose state and updaters
   const value = {
@@ -74,6 +187,12 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     setMatchedUser,
     showMatchModal,
     setShowMatchModal,
+    isAuthenticated,
+    isLoading,
+    login,
+    logout,
+    expressInterest,
+    shareContact
   };
   
   return (
