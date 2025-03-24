@@ -1,4 +1,3 @@
-
 interface Firebase {
   firestore: () => any;
   auth: () => any;
@@ -9,6 +8,7 @@ interface Firebase {
 declare global {
   interface Window {
     firebase: Firebase;
+    showToast?: (message: string) => void;
   }
 }
 

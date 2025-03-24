@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppStateProvider } from "@/context/AppStateContext";
+import { ToastProvider } from "@/components/ui/toast/ToastContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import BottomNav from "./components/BottomNav";
 import Index from "./pages/Index";
@@ -31,15 +31,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Lazy load components that aren't immediately needed
 const LazyMatches = lazy(() => import("./pages/Matches"));
 const LazyProfile = lazy(() => import("./pages/Profile"));
 
-// Layout component with error boundary
 const AppLayout = () => {
   const location = useLocation();
   
-  // Simple check to see if user is on auth/onboarding pages
   const isAuthPage = () => {
     return ['/sign-up', '/sign-in', '/onboarding'].includes(location.pathname);
   };
@@ -60,12 +57,10 @@ const AppLayout = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/venues" replace />} />
         
-        {/* Public routes */}
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/onboarding" element={<Onboarding />} />
         
-        {/* Protected routes */}
         <Route path="/venues" element={
           <PrivateRoute>
             <VenueList />
@@ -123,11 +118,13 @@ const App = () => {
         <AuthProvider>
           <AppStateProvider>
             <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppLayout />
-              </BrowserRouter>
+              <ToastProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppLayout />
+                </BrowserRouter>
+              </ToastProvider>
             </TooltipProvider>
           </AppStateProvider>
         </AuthProvider>

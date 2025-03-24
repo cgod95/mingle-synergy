@@ -10,7 +10,7 @@ import VenueHeader from '@/components/venue/VenueHeader';
 import ZoneSelector from '@/components/venue/ZoneSelector';
 import LikesCounter from '@/components/venue/LikesCounter';
 import UserGrid from '@/components/venue/UserGrid';
-import ToastNotification from '@/components/venue/ToastNotification';
+import { useToast } from '@/components/ui/toast/ToastContext';
 import { getFromStorage, saveToStorage } from '@/utils/localStorageUtils';
 
 // Empty state component
@@ -53,6 +53,7 @@ const InterestSentModal = ({ user, onClose }: { user: User | null, onClose: () =
 const SimpleVenueView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   
   const [venue, setVenue] = useState<Venue | null>(null);
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
@@ -75,8 +76,6 @@ const SimpleVenueView = () => {
     return [];
   });
 
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const [showInterestSent, setShowInterestSent] = useState(false);
   const [lastLikedUser, setLastLikedUser] = useState<User | null>(null);
   
@@ -84,23 +83,6 @@ const SimpleVenueView = () => {
     id: 'current-user-id',
     name: 'Current User'
   };
-  
-  useEffect(() => {
-    window.showToast = (message: string) => {
-      setToastMessage(message);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-      
-      if (message === 'Interest sent!') {
-        setShowInterestSent(true);
-        setTimeout(() => setShowInterestSent(false), 3000);
-      }
-    };
-    
-    return () => {
-      delete window.showToast;
-    };
-  }, []);
   
   useEffect(() => {
     if (!id) return;
@@ -180,9 +162,7 @@ const SimpleVenueView = () => {
     }
     
     // Show toast notification
-    setToastMessage('Interest sent!');
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    showToast('Interest sent!', 'success');
     
     setShowInterestSent(true);
     setTimeout(() => setShowInterestSent(false), 3000);
@@ -302,13 +282,6 @@ const SimpleVenueView = () => {
           </main>
         </PageTransition>
         
-        {showToast && (
-          <ToastNotification
-            message={toastMessage}
-            onClose={() => setShowToast(false)}
-          />
-        )}
-
         {showInterestSent && lastLikedUser && (
           <InterestSentModal
             user={lastLikedUser}
