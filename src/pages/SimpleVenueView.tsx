@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -8,12 +7,7 @@ import { venues, getUsersAtVenue } from '@/data/mockData';
 import { Users } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-
-// Import our new components
-import VenueHeader from '@/components/venue/VenueHeader';
-import ZoneSelector from '@/components/ZoneSelector'; // Using the existing one
-import LikesCounter from '@/components/venue/LikesCounter';
-import UserGrid from '@/components/venue/UserGrid';
+import { PageTransition, StaggeredList, StaggeredItem } from '@/components/animations/Transitions';
 
 declare global {
   interface Window {
@@ -165,82 +159,86 @@ const SimpleVenueView = () => {
       <div className="min-h-screen bg-[#F9FAFB] text-[#202020] pt-16 pb-24">
         <Header />
         
-        <main className="container mx-auto px-4 mt-4">
-          {loading ? (
-            <div className="space-y-4 animate-pulse">
-              <div className="h-8 bg-[#F1F5F9] rounded w-2/3"></div>
-              <div className="h-16 bg-[#F1F5F9] rounded w-full"></div>
-              <div className="grid grid-cols-3 gap-3">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="aspect-[5/7] bg-[#F1F5F9] rounded-xl"></div>
-                ))}
-              </div>
-            </div>
-          ) : venue ? (
-            <div className="animate-fade-in">
-              <VenueHeader 
-                venue={venue} 
-                onCheckOut={() => navigate('/venues')} 
-              />
-              
-              <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-sm text-gray-500">Peak hours</span>
-                    <p className="font-medium">7:00 PM - 10:00 PM</p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-500">Current mood</span>
-                    <p className="font-medium">Buzzing</p>
-                  </div>
+        <PageTransition>
+          <main className="container mx-auto px-4 mt-4">
+            {loading ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-8 bg-[#F1F5F9] rounded w-2/3"></div>
+                <div className="h-16 bg-[#F1F5F9] rounded w-full"></div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="aspect-[5/7] bg-[#F1F5F9] rounded-xl"></div>
+                  ))}
                 </div>
               </div>
-              
-              <ZoneSelector 
-                activeZone={currentZone}
-                zones={availableZones}
-                onZoneSelect={handleZoneSelect}
-                className="mb-6"
-              />
-              
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-[20px] font-semibold text-[#202020]">People Here</h2>
-                  
-                  <LikesCounter count={likesRemaining} />
+            ) : venue ? (
+              <div className="animate-fade-in">
+                <VenueHeader 
+                  venue={venue} 
+                  onCheckOut={() => navigate('/venues')} 
+                />
+                
+                <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm text-gray-500">Peak hours</span>
+                      <p className="font-medium">7:00 PM - 10:00 PM</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Current mood</span>
+                      <p className="font-medium">Buzzing</p>
+                    </div>
+                  </div>
                 </div>
                 
-                <UserGrid
-                  users={usersAtVenue}
-                  interests={interests}
-                  setInterests={setInterests}
-                  matches={matches}
-                  setMatches={setMatches}
-                  currentUser={currentUser}
-                  likesRemaining={likesRemaining}
-                  setLikesRemaining={setLikesRemaining}
-                  venueId={id || 'unknown'}
+                <ZoneSelector 
+                  activeZone={currentZone}
+                  zones={availableZones}
+                  onZoneSelect={handleZoneSelect}
+                  className="mb-6"
                 />
+                
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-[20px] font-semibold text-[#202020]">People Here</h2>
+                    
+                    <LikesCounter count={likesRemaining} />
+                  </div>
+                  
+                  <StaggeredList>
+                    <UserGrid
+                      users={usersAtVenue}
+                      interests={interests}
+                      setInterests={setInterests}
+                      matches={matches}
+                      setMatches={setMatches}
+                      currentUser={currentUser}
+                      likesRemaining={likesRemaining}
+                      setLikesRemaining={setLikesRemaining}
+                      venueId={id || 'unknown'}
+                    />
+                  </StaggeredList>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#F1F5F9] mb-4">
-                <Users className="w-8 h-8 text-[#505050]" />
+            ) : (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#F1F5F9] mb-4">
+                  <Users className="w-8 h-8 text-[#505050]" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-[#202020]">Venue not found</h3>
+                <p className="text-[#505050] mb-4">
+                  The venue you're looking for doesn't exist.
+                </p>
+                <button
+                  onClick={() => navigate('/venues')}
+                  className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors shadow-[0_2px_10px_rgba(58,134,255,0.2)]"
+                >
+                  Back
+                </button>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-[#202020]">Venue not found</h3>
-              <p className="text-[#505050] mb-4">
-                The venue you're looking for doesn't exist.
-              </p>
-              <button
-                onClick={() => navigate('/venues')}
-                className="py-2 px-4 bg-[#3A86FF] text-white rounded-lg hover:bg-[#3A86FF]/90 transition-colors shadow-[0_2px_10px_rgba(58,134,255,0.2)]"
-              >
-                Back
-              </button>
-            </div>
-          )}
-        </main>
+            )}
+          </main>
+        </PageTransition>
         
         {showToast && (
           <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50">
