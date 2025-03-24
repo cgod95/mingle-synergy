@@ -4,10 +4,12 @@ import App from './App.tsx'
 import './index.css'
 import * as serviceWorker from './serviceWorker'
 import { errorHandler } from './services/errorHandler'
+import { initErrorTracking } from './utils/errorHandler'
 
-// Initialize error handler before rendering the app
+// Initialize error handlers before rendering the app
 if (typeof window !== 'undefined') {
   errorHandler.init();
+  initErrorTracking();
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

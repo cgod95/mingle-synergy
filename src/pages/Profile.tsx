@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { Slider } from "@/components/ui/slider";
 import usePerformance from '@/hooks/usePerformance';
 import { withAnalytics } from '@/components/withAnalytics';
+import { withErrorBoundary } from '@/components/ErrorBoundary';
+import { logUserAction } from '@/utils/errorHandler';
 
 const Profile = () => {
   usePerformance('ProfilePage');
@@ -24,14 +26,17 @@ const Profile = () => {
   
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
+    logUserAction('toggle_profile_visibility', { visible: !isVisible });
   };
   
   const handleSignOut = () => {
+    logUserAction('user_sign_out');
     navigate('/sign-in');
   };
   
   const handleAgeRangeChange = (values: number[]) => {
     setAgeRange(values);
+    logUserAction('update_age_preference', { min: values[0], max: values[1] });
   };
   
   return (
@@ -164,4 +169,16 @@ const Profile = () => {
   );
 };
 
-export default withAnalytics(Profile, 'Profile');
+export default withErrorBoundary(
+  withAnalytics(Profile, 'Profile'),
+  <div className="flex flex-col items-center justify-center min-h-screen p-4">
+    <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+    <p className="text-muted-foreground mb-4">We couldn't load your profile right now.</p>
+    <button 
+      onClick={() => window.location.href = '/venues'}
+      className="px-4 py-2 bg-[#3A86FF] text-white rounded-lg"
+    >
+      Go to Venues
+    </button>
+  </div>
+);

@@ -1,5 +1,6 @@
 
 import { trackError } from './appAnalytics';
+import { logError } from '@/utils/errorHandler';
 
 interface ErrorWithCode extends Error {
   code?: string;
@@ -28,7 +29,7 @@ class ErrorHandler {
   
   // Handle promise rejections
   private handlePromiseRejection(event: PromiseRejectionEvent) {
-    const error = event.reason;
+    const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
     this.trackApplicationError(error, 'unhandled_promise_rejection');
   }
   
@@ -45,8 +46,10 @@ class ErrorHandler {
   // Track application errors
   trackApplicationError(error: Error, source = 'application', additionalData?: Record<string, any>) {
     const errorWithCode = error as ErrorWithCode;
+    
+    // Track with Firebase Analytics
     trackError(
-      errorWithCode.code || 'unknown',
+      errorWithCode.code || error.name || 'unknown',
       error.message,
       {
         source,
@@ -54,6 +57,12 @@ class ErrorHandler {
         ...additionalData
       }
     );
+    
+    // Also log with Sentry
+    logError(error, {
+      source,
+      ...additionalData
+    });
   }
 }
 

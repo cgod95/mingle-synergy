@@ -1,5 +1,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
+import { logError } from '@/utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -28,7 +30,13 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log error to console in development
+    // Log error to Sentry and Firebase Analytics
+    logError(error, {
+      componentStack: errorInfo.componentStack,
+      source: 'ErrorBoundary'
+    });
+    
+    // Also log to console in development
     console.error('Error caught by boundary:', error);
     console.error('Component stack:', errorInfo.componentStack);
   }
@@ -41,3 +49,20 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+// Higher order component for wrapping components with error boundary
+export const withErrorBoundary = (
+  Component: React.ComponentType<any>,
+  fallback: ReactNode
+) => {
+  const WithErrorBoundary = (props: any) => (
+    <ErrorBoundary fallback={fallback}>
+      <Component {...props} />
+    </ErrorBoundary>
+  );
+  
+  const displayName = Component.displayName || Component.name || 'Component';
+  WithErrorBoundary.displayName = `withErrorBoundary(${displayName})`;
+  
+  return WithErrorBoundary;
+};
