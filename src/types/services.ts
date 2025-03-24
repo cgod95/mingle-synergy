@@ -1,4 +1,3 @@
-
 import { Match as AppMatch, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
@@ -52,12 +51,20 @@ export type Match = {
   isActive: boolean;
   expiresAt: number;
   contactShared: boolean;
+  userRequestedReconnect?: boolean;
+  matchedUserRequestedReconnect?: boolean;
+  reconnectRequestedAt?: number | null;
+  reconnectedAt?: number | null;
+  met?: boolean;
+  metAt?: number | null;
 };
 
 export interface MatchService {
   getMatches: (userId: string) => Promise<Match[]>;
   createMatch: (matchData: Omit<Match, 'id'>) => Promise<Match>;
   updateMatch: (matchId: string, data: Partial<Match>) => Promise<void>;
+  requestReconnect: (matchId: string, userId: string) => Promise<boolean>;
+  markAsMet: (matchId: string) => Promise<boolean>;
 }
 
 // Firebase types for use in our services

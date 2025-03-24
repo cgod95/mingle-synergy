@@ -1,4 +1,3 @@
-
 import { firestore } from '../firebase';
 import { MatchService, Match } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData } from 'firebase/firestore';
@@ -13,8 +12,42 @@ const transformFirestoreMatch = (firestoreData: DocumentData, matchId: string): 
     timestamp: firestoreData?.timestamp?.toMillis() || Date.now(),
     isActive: firestoreData?.isActive !== false,
     expiresAt: firestoreData?.expiresAt || (Date.now() + (3 * 60 * 60 * 1000)),
-    contactShared: firestoreData?.contactShared || false
+    contactShared: firestoreData?.contactShared || false,
+    userRequestedReconnect: firestoreData?.userRequestedReconnect || false,
+    matchedUserRequestedReconnect: firestoreData?.matchedUserRequestedReconnect || false,
+    reconnectRequestedAt: firestoreData?.reconnectRequestedAt?.toMillis() || null,
+    reconnectedAt: firestoreData?.reconnectedAt?.toMillis() || null,
   };
+};
+
+// Helper function for reconnecting a match
+const reconnectMatch = async (matchId: string): Promise<void> => {
+  try {
+    const matchDocRef = doc(firestore, 'matches', matchId);
+    const matchDoc = await getDoc(matchDocRef);
+    
+    if (!matchDoc.exists()) {
+      throw new Error('Match not found');
+    }
+    
+    // Create a new expiry time (3 hours from now)
+    const newExpiryTime = Date.now() + (3 * 60 * 60 * 1000);
+    
+    // Update the match
+    await updateDoc(matchDocRef, {
+      isActive: true,
+      expiresAt: newExpiryTime,
+      userRequestedReconnect: false,
+      matchedUserRequestedReconnect: false,
+      reconnectedAt: serverTimestamp()
+    });
+    
+    // Notify both users
+    // This would typically be handled via cloud functions to send push notifications
+  } catch (error) {
+    console.error('Error reconnecting match:', error);
+    throw new Error('Failed to reconnect match');
+  }
 };
 
 class FirebaseMatchService implements MatchService {
@@ -90,6 +123,60 @@ class FirebaseMatchService implements MatchService {
     } catch (error) {
       console.error('Error updating match:', error);
       throw new Error('Failed to update match');
+    }
+  }
+
+  async requestReconnect(matchId: string, userId: string): Promise<boolean> {
+    try {
+      const matchDocRef = doc(firestore, 'matches', matchId);
+      const matchDoc = await getDoc(matchDocRef);
+      
+      if (!matchDoc.exists()) {
+        throw new Error('Match not found');
+      }
+      
+      const matchData = matchDoc.data();
+      
+      // Verify the user is part of this match
+      if (matchData.userId !== userId && matchData.matchedUserId !== userId) {
+        throw new Error('Unauthorized');
+      }
+      
+      // Determine who is requesting reconnection
+      const isRequestor = matchData.userId === userId;
+      const requestField = isRequestor ? 'userRequestedReconnect' : 'matchedUserRequestedReconnect';
+      
+      // Update the match with the reconnection request
+      await updateDoc(matchDocRef, {
+        [requestField]: true,
+        reconnectRequestedAt: serverTimestamp()
+      });
+      
+      // Check if both users have requested reconnection
+      if (isRequestor && matchData.matchedUserRequestedReconnect) {
+        await reconnectMatch(matchId);
+      } else if (!isRequestor && matchData.userRequestedReconnect) {
+        await reconnectMatch(matchId);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error requesting reconnect:', error);
+      return false;
+    }
+  }
+
+  async markAsMet(matchId: string): Promise<boolean> {
+    try {
+      const matchDocRef = doc(firestore, 'matches', matchId);
+      await updateDoc(matchDocRef, {
+        met: true,
+        metAt: serverTimestamp()
+      });
+      return true;
+    } catch (error) {
+      console.error('Error marking match as met:', error);
+      return false;
     }
   }
 }
