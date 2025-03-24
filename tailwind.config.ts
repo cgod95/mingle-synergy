@@ -53,14 +53,25 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // New Hinge-inspired color palette
+        hinge: {
+          coral: "#F3643E",
+          navy: "#212832",
+          background: "#F9F9F9",
+          teal: "#BDD9DC",
+          text: {
+            primary: "#212832",
+            secondary: "#7B8794",
+          },
+        },
       },
       spacing: {
         xs: '8px',
-        sm: '16px',
-        md: '24px',
-        lg: '32px',
-        xl: '48px',
-        '2xl': '64px',
+        sm: '12px', // Updated to use tighter spacing
+        md: '16px',
+        lg: '24px',
+        xl: '32px',
+        '2xl': '48px',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -117,10 +128,10 @@ export default {
         "float": "float 3s ease-in-out infinite",
       },
       boxShadow: {
-        'card': '0 4px 20px rgba(0, 0, 0, 0.08)',
-        'card-hover': '0 10px 25px rgba(0, 0, 0, 0.12)',
-        'button': '0 2px 10px rgba(58, 134, 255, 0.2)',
-        'bubble': '0px 4px 12px rgba(0, 0, 0, 0.05)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.05)', // Updated for more subtle shadows
+        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
+        'button': '0 2px 8px rgba(243, 100, 62, 0.2)',
+        'bubble': '0px 2px 8px rgba(0, 0, 0, 0.05)',
       },
       backdropBlur: {
         xs: "2px",
@@ -157,8 +168,9 @@ export default {
       },
       fontFamily: {
         'inter': ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        'ginto': ['"Ginto Normal"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        'sans': ['Inter', '"Ginto Normal"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'georgia': ['Georgia', 'Times New Roman', 'serif'],
+        'sans': ['Inter', 'Basis Grotesque', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'serif': ['Georgia', 'Tiempos Headline', 'Times New Roman', 'serif'],
       },
     },
   },
