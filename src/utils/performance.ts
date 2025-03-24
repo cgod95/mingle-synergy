@@ -1,20 +1,25 @@
 
-import { memo } from 'react';
+import { memo, ComponentType } from 'react';
 
 // Helper to memoize components with proper displayName
-export function memoWithName<T extends React.ComponentType<any>>(
+export function memoWithName<T extends ComponentType<any>>(
   component: T,
   propsAreEqual?: (prevProps: React.ComponentProps<T>, nextProps: React.ComponentProps<T>) => boolean
-): T {
-  const memoized = memo(component, propsAreEqual);
-  memoized.displayName = `Memo(${component.displayName || component.name || 'Component'})`;
-  return memoized as T;
+): typeof component {
+  // Use type assertion to handle the complex typing
+  const memoized = memo(component, propsAreEqual) as unknown as T;
+  
+  // Preserve the original display name
+  const displayName = component.displayName || component.name || 'Component';
+  memoized.displayName = `Memo(${displayName})`;
+  
+  return memoized;
 }
 
 // Simple hook to measure component render time
 export function useRenderTiming(componentName: string) {
   if (process.env.NODE_ENV !== 'development') {
-    return;
+    return () => {};
   }
   
   const startTime = performance.now();
