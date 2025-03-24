@@ -103,4 +103,22 @@ export interface UserProfile {
   matches: string[]; // IDs of matched users
   likedUsers: string[]; // IDs of users this user has liked
   blockedUsers: string[]; // IDs of users this user has blocked
+  // Add verification fields
+  isVerified?: boolean;
+  pendingVerification?: boolean;
+  lastVerificationAttempt?: number | null;
+  verificationSelfie?: string;
+}
+
+// Add a VerificationService interface
+export interface VerificationService {
+  getVerificationStatus: (userId: string) => Promise<VerificationStatus>;
+  submitVerification: (userId: string, selfieUrl: string) => Promise<boolean>;
+  shouldRequestVerification: (userId: string) => Promise<boolean>;
+}
+
+export interface VerificationStatus {
+  isVerified: boolean;
+  pendingVerification: boolean;
+  lastVerificationAttempt: number | null;
 }

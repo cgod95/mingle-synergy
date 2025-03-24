@@ -1,10 +1,11 @@
 
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, RefreshCw, Upload, AlertTriangle } from 'lucide-react';
-import OptimizedImage from '@/components/shared/OptimizedImage';
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import services from '@/services';
+import { storage } from '@/services/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface SelfieVerificationProps {
   userId: string;
@@ -19,7 +20,6 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
   
   const startCamera = async () => {
     try {
@@ -37,9 +37,9 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
       console.error('Error accessing camera:', error);
       setCameraError('Could not access camera. Please check permissions.');
       toast({
+        variant: "destructive",
         title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
-        variant: "destructive"
+        description: "Could not access camera. Please check permissions."
       });
     }
   };
@@ -90,92 +90,101 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
     setIsUploading(true);
     
     try {
-      // In a real app, we would upload to Firebase Storage
-      // For now, simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Convert data URL to blob
+      const response = await fetch(capturedImage);
+      const blob = await response.blob();
       
-      toast({
-        title: "Verification Submitted",
-        description: "Your selfie has been submitted for verification.",
-        variant: "default"
-      });
+      // Upload to Firebase Storage
+      const selfieRef = ref(storage, `verification/${userId}/selfie_${Date.now()}.jpg`);
+      await uploadBytes(selfieRef, blob);
       
-      onVerificationComplete();
+      // Get the download URL
+      const downloadURL = await getDownloadURL(selfieRef);
+      
+      // Update user verification status using our service
+      const success = await services.verification.submitVerification(userId, downloadURL);
+      
+      if (success) {
+        toast({
+          title: "Verification Submitted",
+          description: "Your selfie has been submitted for verification."
+        });
+        onVerificationComplete();
+      } else {
+        throw new Error("Failed to submit verification");
+      }
     } catch (error) {
       console.error('Error uploading verification photo:', error);
       toast({
+        variant: "destructive",
         title: "Upload Failed",
-        description: "Failed to upload verification photo. Please try again.",
-        variant: "destructive"
+        description: "Failed to upload verification photo. Please try again."
       });
     } finally {
       setIsUploading(false);
     }
   };
   
+  // Clean up camera on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+  
   return (
-    <div className="flex flex-col h-full p-6 bg-background">
+    <div className="flex flex-col h-full">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Verify Your Identity</h1>
+        <h2 className="text-xl font-bold mb-2">Verify Your Identity</h2>
         <p className="text-muted-foreground">
-          To keep our community safe, we need a quick selfie to verify your identity.
+          To keep our community safe, please take a selfie to verify your identity.
         </p>
       </div>
       
-      <div className="flex-1 mb-6">
-        <div className="bg-card rounded-xl overflow-hidden shadow-sm border border-border/30 relative mb-4 h-[350px] flex items-center justify-center">
-          {isCapturing ? (
-            <video 
-              ref={videoRef} 
-              autoPlay 
-              playsInline 
-              className="w-full h-full object-cover"
-            />
-          ) : capturedImage ? (
-            <img 
-              src={capturedImage} 
-              alt="Verification selfie" 
-              className="w-full h-full object-cover"
-            />
-          ) : cameraError ? (
-            <div className="flex flex-col items-center justify-center p-4 text-center">
-              <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
-              <p className="text-destructive font-medium mb-2">Camera Access Error</p>
-              <p className="text-muted-foreground text-sm">{cameraError}</p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center">
-              <Camera className="w-12 h-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Click "Start Camera" to begin</p>
-            </div>
-          )}
-          
-          <canvas ref={canvasRef} className="hidden" />
-        </div>
+      <div className="bg-muted rounded-xl overflow-hidden relative mb-6 flex-1 flex items-center justify-center">
+        {isCapturing ? (
+          <video 
+            ref={videoRef} 
+            autoPlay 
+            playsInline 
+            className="w-full h-full object-cover"
+          />
+        ) : capturedImage ? (
+          <img 
+            src={capturedImage} 
+            alt="Verification selfie" 
+            className="w-full h-full object-cover"
+          />
+        ) : cameraError ? (
+          <div className="text-center p-6">
+            <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+            <p className="text-muted-foreground text-sm">{cameraError}</p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={startCamera}
+            >
+              Try Again
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center p-6">
+            <Camera className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground text-sm">Your selfie will only be used for verification purposes</p>
+          </div>
+        )}
         
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <p className="flex items-center">
-            <span className="inline-block w-4 h-4 rounded-full bg-primary mr-2 text-xs text-white flex items-center justify-center">1</span>
-            Position your face clearly in the camera
-          </p>
-          <p className="flex items-center">
-            <span className="inline-block w-4 h-4 rounded-full bg-primary mr-2 text-xs text-white flex items-center justify-center">2</span>
-            Ensure good lighting for a clear image
-          </p>
-          <p className="flex items-center">
-            <span className="inline-block w-4 h-4 rounded-full bg-primary mr-2 text-xs text-white flex items-center justify-center">3</span>
-            Remove glasses and face coverings
-          </p>
-        </div>
+        <canvas ref={canvasRef} className="hidden" />
       </div>
       
       <div className="mt-auto">
         {isCapturing ? (
           <Button
             onClick={capturePhoto}
-            className="w-full py-6 rounded-full"
+            className="w-full"
             size="lg"
           >
+            <Camera className="mr-2" />
             Take Photo
           </Button>
         ) : capturedImage ? (
@@ -183,32 +192,43 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
             <Button
               onClick={uploadSelfie}
               disabled={isUploading}
-              className="w-full py-6 rounded-full"
+              className="w-full"
               size="lg"
             >
-              {isUploading ? 'Uploading...' : 'Submit Verification'}
-              {!isUploading && <Upload className="ml-2 w-4 h-4" />}
+              {isUploading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                  Uploading...
+                </span>
+              ) : (
+                <>
+                  <Upload className="mr-2" />
+                  Submit Verification
+                </>
+              )}
             </Button>
             
             <Button
               onClick={retakePhoto}
               disabled={isUploading}
               variant="outline"
-              className="w-full py-6 rounded-full"
-              size="lg"
+              className="w-full"
             >
+              <RefreshCw className="mr-2" />
               Retake Photo
-              <RefreshCw className="ml-2 w-4 h-4" />
             </Button>
           </div>
         ) : (
           <Button
             onClick={startCamera}
-            className="w-full py-6 rounded-full"
+            className="w-full"
             size="lg"
           >
+            <Camera className="mr-2" />
             Start Camera
-            <Camera className="ml-2 w-4 h-4" />
           </Button>
         )}
       </div>
