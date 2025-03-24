@@ -1,45 +1,35 @@
 
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
-import { trackError } from '@/services/appAnalytics';
-
-// Initialize error tracking (use your own DSN in production)
-export const initErrorTracking = () => {
-  if (import.meta.env.PROD) {
-    Sentry.init({
-      dsn: import.meta.env.VITE_SENTRY_DSN || '', // Replace with your Sentry DSN
-      integrations: [new BrowserTracing()],
-      tracesSampleRate: 0.5,
-      environment: import.meta.env.VITE_ENVIRONMENT || 'development',
-      enabled: import.meta.env.PROD,
-    });
-  }
-};
 
 // Log errors with context
-export const logError = (error: Error, context: Record<string, any> = {}) => {
-  console.error(error);
+export const logError = (error: Error, context: Record<string, any> = {}): void => {
+  console.error('Application error:', error);
+  console.error('Error context:', context);
   
-  // Log to Firebase Analytics
-  trackError(
-    error.name || 'unknown_error',
-    error.message,
-    {
-      stack: error.stack,
-      ...context
-    }
-  );
-  
-  // Log to Sentry in production
   if (import.meta.env.PROD) {
-    Sentry.captureException(error, {
-      extra: context
-    });
+    try {
+      console.error(
+        `[ERROR] ${new Date().toISOString()} - ${error.message}`,
+        { stack: error.stack, ...context }
+      );
+      
+      // Also log to Sentry in production
+      Sentry.captureException(error, {
+        extra: context
+      });
+    } catch (loggingError) {
+      console.error('Error during error logging:', loggingError);
+    }
   }
 };
 
-// Log user actions for analytics
-export const logUserAction = (action: string, data: Record<string, any> = {}) => {
+// Log user actions for debugging
+export const logUserAction = (action: string, data: Record<string, any> = {}): void => {
+  if (import.meta.env.DEV) {
+    console.log(`[USER ACTION] ${action}`, data);
+  }
+  
+  // Add breadcrumb in production for Sentry
   if (import.meta.env.PROD) {
     Sentry.addBreadcrumb({
       category: 'user-action',
@@ -50,9 +40,15 @@ export const logUserAction = (action: string, data: Record<string, any> = {}) =>
   }
 };
 
-// Create Error Boundary component
-export const withErrorBoundary = (Component: React.ComponentType, fallback: React.ReactNode) => {
-  return Sentry.withErrorBoundary(Component, {
-    fallback: () => <>{fallback}</>
-  });
+// Initialize error tracking with Sentry
+export const initErrorTracking = (): void => {
+  if (import.meta.env.PROD) {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN || '', // Replace with your Sentry DSN
+      integrations: [new Sentry.BrowserTracing()],
+      tracesSampleRate: 0.5,
+      environment: import.meta.env.VITE_ENVIRONMENT || 'development',
+      enabled: import.meta.env.PROD,
+    });
+  }
 };
