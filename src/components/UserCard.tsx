@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { User as UserType, Interest, Match } from '@/types';
 import { Heart } from 'lucide-react';
+import OptimizedImage from './shared/OptimizedImage';
 
 interface UserCardProps {
   user: UserType;
@@ -34,7 +34,6 @@ const UserCard: React.FC<UserCardProps> = ({
   setLikesRemaining,
   venueId = 'unknown'
 }) => {
-  // Check if user is already liked based on interests
   const isAlreadyLiked = interests.some(
     interest => interest.toUserId === user.id && interest.fromUserId === currentUser.id && interest.isActive
   );
@@ -46,10 +45,8 @@ const UserCard: React.FC<UserCardProps> = ({
     e.stopPropagation();
     e.preventDefault();
     
-    // If already liked, don't do anything
     if (isLiked) return;
     
-    // Check if user has likes remaining
     if (likesRemaining <= 0) {
       if (window.showToast) {
         window.showToast('You can only like 3 people per venue');
@@ -57,17 +54,14 @@ const UserCard: React.FC<UserCardProps> = ({
       return;
     }
     
-    // Add animation class
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
     
     console.log("Heart clicked for user:", user.id);
     setIsLiked(true);
     
-    // Reduce likes remaining
     setLikesRemaining(prev => prev - 1);
     
-    // Store in localStorage to persist across page loads
     localStorage.setItem(`likesRemaining-${venueId}`, String(likesRemaining - 1));
     
     const newInterest = {
@@ -90,7 +84,6 @@ const UserCard: React.FC<UserCardProps> = ({
       window.showToast('Interest sent!');
     }
     
-    // Check for mutual interest
     const mutualInterest = interests.find(interest => 
       interest.fromUserId === user.id && 
       interest.toUserId === currentUser.id &&
@@ -123,13 +116,14 @@ const UserCard: React.FC<UserCardProps> = ({
   
   return (
     <div className={`relative rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${className}`}>
-      <img 
+      <OptimizedImage 
         src={user.photos?.[0]} 
         alt={user.name} 
-        className="w-full aspect-square object-cover"
+        className="w-full aspect-square"
+        width={300}
+        height={300}
       />
       
-      {/* Improved user name overlay with gradient */}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-8 pb-2 px-2">
         <div className="text-white">
           <div className="font-medium">{user.name}</div>
@@ -137,7 +131,6 @@ const UserCard: React.FC<UserCardProps> = ({
         </div>
       </div>
       
-      {/* Enhanced like button with animation */}
       <button 
         onClick={handleHeartClick}
         className={`absolute bottom-2 right-2 w-8 h-8 flex items-center justify-center rounded-full shadow-sm transition-all duration-200 ${
@@ -153,7 +146,6 @@ const UserCard: React.FC<UserCardProps> = ({
         />
       </button>
       
-      {/* Likes remaining indicator */}
       {likesRemaining < 3 && (
         <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
           {likesRemaining} likes left

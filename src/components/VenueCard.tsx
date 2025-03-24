@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Users, Heart, MapPin, Coffee, Wine, Utensils, Dumbbell } from 'lucide-react';
 import { Venue } from '@/types';
 import { cn } from '@/lib/utils';
 import { getUsersAtVenue } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
+import OptimizedImage from './shared/OptimizedImage';
 
 interface VenueCardProps {
   venue: Venue;
@@ -24,15 +24,12 @@ const VenueCard: React.FC<VenueCardProps> = ({
   const navigate = useNavigate();
   
   const handleCardClick = () => {
-    // Navigate directly to SimpleVenueView for reliable user display
     navigate(`/simple-venue/${venue.id}`);
   };
   
-  // Get users at this venue for preview
   const usersAtVenue = getUsersAtVenue(venue.id);
   const hasUsers = usersAtVenue.length > 0;
   
-  // Get venue type icon
   const getVenueIcon = () => {
     switch (venue.type?.toLowerCase()) {
       case 'cafe': return <Coffee size={20} className="text-[#6B7280]" />;
@@ -53,17 +50,16 @@ const VenueCard: React.FC<VenueCardProps> = ({
       onClick={handleCardClick}
     >
       <div className="aspect-video w-full overflow-hidden relative">
-        {/* Venue type icon */}
         <div className="absolute top-3 right-3 bg-white/80 w-8 h-8 flex items-center justify-center rounded-full z-10 shadow-sm">
           {getVenueIcon()}
         </div>
         
-        {/* Venue image */}
-        <img 
-          src={venue.image + "?auto=format&fit=crop&w=600&q=80"} 
+        <OptimizedImage 
+          src={venue.image} 
           alt={venue.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
+          className="w-full h-full"
+          width={600}
+          height={400}
         />
       </div>
       
@@ -81,16 +77,15 @@ const VenueCard: React.FC<VenueCardProps> = ({
           </div>
         </div>
         
-        {/* Enhanced preview of people at venue */}
         {hasUsers && (
           <div className="flex mb-4 -space-x-2 overflow-hidden">
             {usersAtVenue.slice(0, 4).map((user) => (
               <div key={user.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-                <img 
-                  src={user.photos[0] + "?w=100&h=100&q=80"} 
+                <OptimizedImage 
+                  src={user.photos[0]} 
                   alt={user.name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
+                  width={100}
+                  height={100}
                 />
               </div>
             ))}

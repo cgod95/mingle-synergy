@@ -2,6 +2,7 @@
 import React from 'react';
 import { User, Interest, Match } from '@/types';
 import { Heart } from 'lucide-react';
+import OptimizedImage from '../shared/OptimizedImage';
 
 interface UserGridProps {
   users: User[];
@@ -47,10 +48,12 @@ const UserGrid: React.FC<UserGridProps> = ({
         
         return (
           <div key={user.id} className="relative rounded-xl overflow-hidden shadow-sm">
-            <img 
+            <OptimizedImage 
               src={user.photos[0]} 
               alt={user.name}
-              className="w-full aspect-square object-cover"
+              className="w-full aspect-square"
+              width={300}
+              height={300}
             />
             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
               <div className="text-white">
