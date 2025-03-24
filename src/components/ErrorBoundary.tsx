@@ -1,11 +1,10 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import * as Sentry from '@sentry/react';
-import { logError } from '@/utils/errorHandler';
+import { logError } from '../utils/errorHandler';
 
 interface Props {
   children: ReactNode;
-  fallback: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -30,7 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log error to Sentry and Firebase Analytics
+    // Log error to console and service
     logError(error, {
       componentStack: errorInfo.componentStack,
       source: 'ErrorBoundary'
@@ -43,7 +42,22 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (this.state.hasError) {
-      return this.props.fallback;
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      
+      return (
+        <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
+          <h2 className="text-lg font-medium text-red-800 mb-2">Something went wrong</h2>
+          <p className="text-red-600 mb-4">{this.state.error?.message || "An unexpected error occurred"}</p>
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Try again
+          </button>
+        </div>
+      );
     }
 
     return this.props.children;
@@ -53,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
 // Higher order component for wrapping components with error boundary
 export const withErrorBoundary = (
   Component: React.ComponentType<any>,
-  fallback: ReactNode
+  fallback?: ReactNode
 ) => {
   const WithErrorBoundary = (props: any) => (
     <ErrorBoundary fallback={fallback}>
@@ -66,3 +80,5 @@ export const withErrorBoundary = (
   
   return WithErrorBoundary;
 };
+
+export default ErrorBoundary;
