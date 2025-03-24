@@ -3,15 +3,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import MatchNotification from '@/components/MatchNotification';
-import ZoneSelector from '@/components/ZoneSelector';
 import { User, Venue, Match, Interest } from '@/types';
 import { venues, getUsersAtVenue } from '@/data/mockData';
-import { Users, Heart, ArrowLeft, Clock } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import UserCard from '@/components/UserCard';
 
-// Declare global window types for TypeScript
+// Import our new components
+import VenueHeader from '@/components/venue/VenueHeader';
+import ZoneSelector from '@/components/ZoneSelector'; // Using the existing one
+import LikesCounter from '@/components/venue/LikesCounter';
+import UserGrid from '@/components/venue/UserGrid';
+
 declare global {
   interface Window {
     showToast?: (message: string) => void;
@@ -27,10 +30,8 @@ const SimpleVenueView = () => {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imagesLoaded, setImagesLoaded] = useState<{[key: string]: boolean}>({});
   const [currentZone, setCurrentZone] = useState<string>('Main Area');
   
-  // Add likes remaining state
   const [likesRemaining, setLikesRemaining] = useState(() => {
     if (id) {
       const saved = localStorage.getItem(`likesRemaining-${id}`);
@@ -39,11 +40,9 @@ const SimpleVenueView = () => {
     return 3;
   });
 
-  // Add interest sent animation state
   const [showInterestSent, setShowInterestSent] = useState(false);
   const [lastLikedUser, setLastLikedUser] = useState<User | null>(null);
   
-  // New state for interests and matches
   const [interests, setInterests] = useState<Interest[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('interests') || '[]');
@@ -65,21 +64,17 @@ const SimpleVenueView = () => {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchedUser, setMatchedUser] = useState<User | null>(null);
   
-  // Mock current user (replace with your auth logic)
   const currentUser = {
     id: 'current-user-id',
     name: 'Current User'
   };
   
-  // Add these functions to expose the notifications globally
   useEffect(() => {
     window.showToast = (message) => {
-      // Show toast
       setToastMessage(message);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       
-      // For "Interest sent" message, show the animation instead
       if (message === 'Interest sent!') {
         setShowInterestSent(true);
         setTimeout(() => setShowInterestSent(false), 3000);
@@ -97,7 +92,6 @@ const SimpleVenueView = () => {
     };
   }, []);
   
-  // Track interests to update lastLikedUser
   useEffect(() => {
     if (interests.length > 0) {
       const lastInterest = interests[interests.length - 1];
@@ -108,52 +102,20 @@ const SimpleVenueView = () => {
     }
   }, [interests, usersAtVenue]);
   
-  // Load venue and users
   useEffect(() => {
     if (!id) return;
     
-    // Find venue
     const foundVenue = venues.find(v => v.id === id);
     setVenue(foundVenue || null);
     
-    // Get users at this venue - all 12 users will be at each venue
     const users = getUsersAtVenue(id);
     setUsersAtVenue(users);
     
-    // Initialize image loading state
-    const initialLoadingState: {[key: string]: boolean} = {};
-    users.forEach(user => {
-      initialLoadingState[user.id] = false;
-    });
-    setImagesLoaded(initialLoadingState);
-    
-    // Simulate loading
     setTimeout(() => {
       setLoading(false);
     }, 300);
     
   }, [id]);
-  
-  const handleImageLoad = (userId: string) => {
-    setImagesLoaded(prev => ({
-      ...prev,
-      [userId]: true
-    }));
-  };
-  
-  const formatExpiryTime = () => {
-    if (!venue) return '';
-    
-    const now = new Date();
-    const expiryDate = new Date(now.getTime() + (venue.expiryTime || 120) * 60 * 1000);
-    
-    // Format as "4:37 PM"
-    return expiryDate.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
-  };
   
   const handleCloseMatch = () => {
     setShowMatchModal(false);
@@ -169,7 +131,6 @@ const SimpleVenueView = () => {
     setShowMatchModal(false);
   };
   
-  // Handle zone selection
   const handleZoneSelect = (zoneName: string) => {
     setCurrentZone(zoneName);
     toast({
@@ -217,45 +178,11 @@ const SimpleVenueView = () => {
             </div>
           ) : venue ? (
             <div className="animate-fade-in">
-              {/* Venue Header - max 120px height */}
-              <div className="bg-white rounded-xl border border-[#F1F5F9] p-4 mb-6 shadow-[0px_2px_8px_rgba(0,0,0,0.05)] max-h-[120px] flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <button 
-                      onClick={() => navigate('/venues')}
-                      className="mr-3 text-[#505050] hover:text-[#202020]"
-                      aria-label="Back"
-                    >
-                      <ArrowLeft size={20} />
-                    </button>
-                    <div>
-                      <h1 className="text-[18px] font-semibold text-[#202020] truncate">{venue.name}</h1>
-                      <p className="text-[14px] text-[#505050] truncate">{venue.address}</p>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={() => navigate('/venues')}
-                    className="text-[14px] text-[#EF4444] hover:text-[#EF4444]/80 transition-colors"
-                  >
-                    Check Out
-                  </button>
-                </div>
-                
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center text-[#3A86FF] text-[14px]">
-                    <Users size={16} className="mr-1.5" />
-                    <span>{venue.checkInCount} people</span>
-                  </div>
-                  
-                  <div className="flex items-center text-[#505050] text-[14px]">
-                    <Clock size={16} className="mr-1.5" />
-                    <span>Expires {formatExpiryTime()}</span>
-                  </div>
-                </div>
-              </div>
+              <VenueHeader 
+                venue={venue} 
+                onCheckOut={() => navigate('/venues')} 
+              />
               
-              {/* Meta information about the venue */}
               <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
                 <div className="flex justify-between items-center">
                   <div>
@@ -269,7 +196,6 @@ const SimpleVenueView = () => {
                 </div>
               </div>
               
-              {/* Zone selector */}
               <ZoneSelector 
                 activeZone={currentZone}
                 zones={availableZones}
@@ -277,46 +203,24 @@ const SimpleVenueView = () => {
                 className="mb-6"
               />
               
-              {/* People Here Section */}
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-[20px] font-semibold text-[#202020]">People Here</h2>
                   
-                  {/* Likes remaining indicator */}
-                  <div className="bg-white/90 px-3 py-1 rounded-full text-sm font-medium shadow-sm border border-gray-100">
-                    {likesRemaining} likes remaining
-                  </div>
+                  <LikesCounter count={likesRemaining} />
                 </div>
                 
-                {usersAtVenue.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-3 pb-16">
-                    {usersAtVenue.map((user) => (
-                      <UserCard
-                        key={user.id}
-                        user={user}
-                        interests={interests}
-                        setInterests={setInterests}
-                        matches={matches}
-                        setMatches={setMatches}
-                        currentUser={currentUser}
-                        likesRemaining={likesRemaining}
-                        setLikesRemaining={setLikesRemaining}
-                        venueId={id || 'unknown'}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 mt-10 bg-white rounded-xl border border-[#F1F5F9] shadow-[0px_2px_8px_rgba(0,0,0,0.05)]">
-                    <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
-                      {/* Silhouette placeholder */}
-                      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M32 32C38.6274 32 44 26.6274 44 20C44 13.3726 38.6274 8 32 8C25.3726 8 20 13.3726 20 20C20 26.6274 25.3726 32 32 32Z" fill="#F1F5F9"/>
-                        <path d="M54 56C54 42.7452 44.2548 32 32 32C19.7452 32 10 42.7452 10 56" stroke="#F1F5F9" strokeWidth="4"/>
-                      </svg>
-                    </div>
-                    <p className="text-[16px] text-[#505050]">No one here yet. Be the first.</p>
-                  </div>
-                )}
+                <UserGrid
+                  users={usersAtVenue}
+                  interests={interests}
+                  setInterests={setInterests}
+                  matches={matches}
+                  setMatches={setMatches}
+                  currentUser={currentUser}
+                  likesRemaining={likesRemaining}
+                  setLikesRemaining={setLikesRemaining}
+                  venueId={id || 'unknown'}
+                />
               </div>
             </div>
           ) : (
@@ -338,14 +242,12 @@ const SimpleVenueView = () => {
           )}
         </main>
         
-        {/* Toast notification */}
         {showToast && (
           <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50">
             {toastMessage}
           </div>
         )}
 
-        {/* Interest Sent Animation */}
         {showInterestSent && lastLikedUser && (
           <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 animate-fade-in">
             <div className="bg-white/95 rounded-2xl p-6 shadow-xl max-w-xs text-center transform scale-in">
@@ -366,7 +268,6 @@ const SimpleVenueView = () => {
           </div>
         )}
 
-        {/* Match modal */}
         {showMatchModal && matchedUser && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-5/6 max-w-md p-6 animate-fade-in">
