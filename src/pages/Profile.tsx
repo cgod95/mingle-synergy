@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import ToggleButton from '@/components/ToggleButton';
@@ -6,8 +5,12 @@ import { User, LogOut, Plus, Camera, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { Slider } from "@/components/ui/slider";
+import usePerformance from '@/hooks/usePerformance';
+import { withAnalytics } from '@/components/withAnalytics';
 
 const Profile = () => {
+  usePerformance('ProfilePage');
+
   const [isVisible, setIsVisible] = useState(true);
   const [name, setName] = useState('Riley');
   const [photo, setPhoto] = useState('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80');
@@ -24,7 +27,6 @@ const Profile = () => {
   };
   
   const handleSignOut = () => {
-    // This would typically call your auth service to sign out
     navigate('/sign-in');
   };
   
@@ -69,7 +71,6 @@ const Profile = () => {
             </div>
           </div>
           
-          {/* Photo management section */}
           <div className="card bg-white rounded-xl shadow-sm mb-6 animate-scale-in">
             <div className="flex justify-between items-center mb-4">
               <h2 className="heading-medium m-0">Photos</h2>
@@ -96,7 +97,6 @@ const Profile = () => {
             </div>
           </div>
           
-          {/* Preferences section */}
           <div className="card bg-white rounded-xl shadow-sm mb-6 animate-scale-in" style={{ animationDelay: '100ms' }}>
             <h2 className="heading-medium">Preferences</h2>
             <div className="space-y-6">
@@ -164,4 +164,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default withAnalytics(Profile, 'Profile');

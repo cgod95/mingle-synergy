@@ -30,7 +30,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Add query params for image optimization if src is from unsplash or similar
   const optimizedSrc = src.includes('unsplash.com') || src.includes('images.unsplash.com') 
-    ? `${src}${src.includes('?') ? '&' : '?'}auto=format&fit=crop&w=${width || 400}&q=80` 
+    ? `${src}${src.includes('?') ? '&' : '?'}auto=format&fit=crop&w=${width || 400}&q=${width && width < 200 ? 70 : 80}` 
     : src;
 
   return (
@@ -57,6 +57,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           onError={handleError}
           className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 w-full h-full object-cover`}
           loading="lazy"
+          decoding="async"
+          fetchPriority={width && width > 300 ? "high" : "auto"}
         />
       )}
     </div>
