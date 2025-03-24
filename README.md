@@ -1,69 +1,118 @@
-# Welcome to your Lovable project
 
-## Project info
+# Mingle - Meet People Nearby
 
-**URL**: https://lovable.dev/projects/f12777e0-cedf-4daf-ba83-a4af37928152
+Mingle is a location-based social connection app that facilitates real-world meetings between people at the same venues. The app focuses on immediate, in-person interactions rather than extended digital conversations.
 
-## How can I edit this code?
+## Core Features
 
-There are several ways of editing your application.
+- **Venue-Based Discovery:** Find people checked into the same venues as you
+- **Minimal Digital Interaction:** Limited to initial interest expression and optional contact sharing
+- **Time-Limited Matches:** Matches expire in 3 hours to encourage prompt meetings
+- **Venue Zone Indicators:** Specify your location within large venues for easier meetings
+- **Selfie Verification:** Ensures user authenticity and safety
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f12777e0-cedf-4daf-ba83-a4af37928152) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js (v14 or higher)
+- npm or yarn
+- Firebase account
 
-**Use your preferred IDE**
+### Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/mingle.git
+cd mingle
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. Install dependencies:
+```bash
+npm install
+```
 
-Follow these steps:
+3. Create a `.env` file in the project root with your Firebase configuration:
+```
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Deployment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+To deploy the app to Firebase Hosting:
 
-**Use GitHub Codespaces**
+1. Build the production version:
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Deploy to Firebase:
+```bash
+npm run deploy
+```
 
-## What technologies are used for this project?
+## Technology Stack
 
-This project is built with .
+- **Frontend:** React, TypeScript, Tailwind CSS, shadcn/ui
+- **State Management:** React Context API
+- **Backend:** Firebase (Authentication, Firestore, Storage)
+- **Deployment:** Firebase Hosting
+- **Build Tool:** Vite
+- **PWA Support:** Service Worker with offline capabilities
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project Structure
 
-## How can I deploy this project?
+```
+src/
+├── components/     # Reusable UI components
+├── contexts/       # React context providers
+├── hooks/          # Custom React hooks
+├── pages/          # Page components
+├── services/       # Firebase service interfaces
+├── types/          # TypeScript type definitions
+└── utils/          # Utility functions
+```
 
-Simply open [Lovable](https://lovable.dev/projects/f12777e0-cedf-4daf-ba83-a4af37928152) and click on Share -> Publish.
+## Performance Optimizations
 
-## I want to use a custom domain - is that possible?
+Mingle includes several performance optimizations:
+- Code splitting with dynamic imports
+- Service worker for offline capability
+- Image optimization
+- Firebase performance monitoring
+- Bundle size optimization
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Development Workflow
+
+- Feature branches should be created from `develop`
+- Pull requests should target `develop`
+- `main` branch is deployed to production
+
+## Offline Support
+
+Mingle implements a service worker that provides:
+- Caching of static assets
+- Offline fallback page
+- Background sync for pending actions
+
+## Analytics
+
+User interactions are tracked anonymously to improve the app experience:
+- Venue check-ins/check-outs
+- Matches and connections
+- Screen views
+- Feature usage
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
