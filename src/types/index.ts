@@ -47,10 +47,19 @@ export interface Match {
   userId: string;
   matchedUserId: string;
   venueId: string;
+  venueName?: string;
   timestamp: number;
   isActive: boolean;
   expiresAt: number;
   contactShared: boolean;
+  // Add new properties for reconnection feature
+  userRequestedReconnect?: boolean;
+  matchedUserRequestedReconnect?: boolean;
+  reconnectRequestedAt?: number | null;
+  reconnectedAt?: number | null;
+  // Add property for tracking if users met
+  met?: boolean;
+  metAt?: number | null;
 }
 
 // Interest expression

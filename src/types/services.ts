@@ -1,3 +1,4 @@
+
 import { Match as AppMatch, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
@@ -47,6 +48,7 @@ export type Match = {
   userId: string;
   matchedUserId: string;
   venueId: string;
+  venueName?: string;
   timestamp: number;
   isActive: boolean;
   expiresAt: number;
