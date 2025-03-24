@@ -6,13 +6,13 @@ interface LikesCounterProps {
   count: number;
 }
 
-const LikesCounter: React.FC<LikesCounterProps> = ({ count }) => {
-  return (
-    <div className="bg-white/90 px-3 py-1 rounded-full text-sm font-medium shadow-sm border border-gray-100 flex items-center mb-4">
-      <Heart size={14} className="mr-1.5 text-[#3A86FF]" />
-      <span>{count} likes remaining</span>
+const LikesCounter: React.FC<LikesCounterProps> = ({ count }) => (
+  <div className="mb-4 px-4 py-2 bg-blue-50 rounded-lg inline-flex items-center">
+    <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs mr-2">
+      {count}
     </div>
-  );
-};
+    <span className="text-sm font-medium text-blue-800">likes remaining</span>
+  </div>
+);
 
 export default LikesCounter;

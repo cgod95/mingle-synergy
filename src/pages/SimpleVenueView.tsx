@@ -3,84 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Venue } from '@/types';
 import { venues } from '@/data/mockData';
-import { Users, Heart } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { PageTransition, StaggeredList, StaggeredItem } from '@/components/animations/Transitions';
+import { PageTransition, StaggeredList } from '@/components/animations/Transitions';
+import VenueHeader from '@/components/venue/VenueHeader';
+import ZoneSelector from '@/components/venue/ZoneSelector';
+import LikesCounter from '@/components/venue/LikesCounter';
+import UserGrid from '@/components/venue/UserGrid';
+import ToastNotification from '@/components/venue/ToastNotification';
+import { getFromStorage, saveToStorage } from '@/utils/localStorageUtils';
 
-// Define component interfaces for internal use
-interface InternalUser {
-  id: string;
-  name: string;
-  age?: number;
-  photos: string[];
-  currentZone?: string;
-}
-
-interface InternalVenue {
-  id: string;
-  name: string;
-  address?: string;
-}
-
-// Internal components
-const VenueHeader = ({ venue, onCheckOut }) => (
-  <div className="p-4 bg-white rounded-xl shadow-sm mb-4">
-    <div className="flex justify-between items-start">
-      <div>
-        <h1 className="text-xl font-bold">{venue.name}</h1>
-        {venue.address && <p className="text-gray-600 text-sm">{venue.address}</p>}
-      </div>
-      <button 
-        onClick={onCheckOut}
-        className="text-red-500 text-sm font-medium"
-      >
-        Check Out
-      </button>
-    </div>
-  </div>
-);
-
-const LikesCounter = ({ count }) => (
-  <div className="mb-4 px-4 py-2 bg-blue-50 rounded-lg inline-flex items-center">
-    <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs mr-2">
-      {count}
-    </div>
-    <span className="text-sm font-medium text-blue-800">likes remaining</span>
-  </div>
-);
-
-const UserGrid = ({ users, onLikeUser, likesRemaining }) => (
-  <div className="grid grid-cols-3 gap-3">
-    {users.map(user => (
-      <div key={user.id} className="relative rounded-xl overflow-hidden shadow-sm">
-        <img 
-          src={user.photos[0]} 
-          alt={user.name}
-          className="w-full aspect-square object-cover"
-        />
-        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-          <div className="text-white">
-            <div className="font-medium">{user.name}</div>
-            {user.age && <div className="text-sm">{user.age}</div>}
-          </div>
-        </div>
-        <button 
-          onClick={() => likesRemaining > 0 && onLikeUser(user.id)}
-          disabled={likesRemaining <= 0}
-          className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center ${
-            likesRemaining > 0 
-              ? 'bg-white/80 text-gray-600 hover:bg-gray-100' 
-              : 'bg-gray-300/80 text-gray-400'
-          }`}
-        >
-          <Heart size={20} strokeWidth={2} />
-        </button>
-      </div>
-    ))}
-  </div>
-);
-
-const EmptyState = ({ message }) => (
+// Empty state component
+const EmptyState = ({ message }: { message: string }) => (
   <div className="py-12 text-center bg-gray-50 rounded-lg">
     <div className="text-gray-400 mb-2">
       <Users size={48} className="mx-auto" />
@@ -90,55 +24,27 @@ const EmptyState = ({ message }) => (
   </div>
 );
 
-const ZoneSelector = ({ zones, selectedZone, onZoneSelect, users }) => {
-  // Count users in each zone
-  const userCountByZone = zones.reduce((counts, zone) => {
-    counts[zone] = users.filter(user => user.currentZone === zone).length;
-    return counts;
-  }, {});
+// Interest sent modal component
+const InterestSentModal = ({ user, onClose }: { user: User | null, onClose: () => void }) => {
+  if (!user) return null;
   
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-medium text-gray-700 mb-2">Where are you?</h3>
-      
-      <div className="flex flex-wrap gap-2">
-        {zones.map(zone => {
-          const isActive = zone === selectedZone;
-          const userCount = userCountByZone[zone] || 0;
-          
-          return (
-            <button
-              key={zone}
-              onClick={() => onZoneSelect(zone)}
-              className={`px-3 py-1.5 rounded-full text-sm ${
-                isActive 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-100 text-gray-700'
-              }`}
-            >
-              {zone}
-              {userCount > 0 && <span className="ml-1 text-xs">({userCount})</span>}
-            </button>
-          );
-        })}
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 animate-fade-in">
+      <div className="bg-white/95 rounded-2xl p-6 shadow-xl max-w-xs text-center transform scale-in">
+        <div className="w-16 h-16 mx-auto rounded-full bg-pink-100 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </div>
+        <h3 className="text-xl font-bold mb-1">Interest Sent!</h3>
+        <p className="text-gray-600 mb-4">You'll be notified if they like you back</p>
+        <button 
+          onClick={onClose}
+          className="bg-blue-500 text-white px-6 py-2 rounded-full font-medium"
+        >
+          Got it
+        </button>
       </div>
-    </div>
-  );
-};
-
-// Toast notification component
-const ToastNotification = ({ message, onClose, duration = 3000 }) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
-    }, duration);
-    
-    return () => clearTimeout(timer);
-  }, [onClose, duration]);
-  
-  return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50">
-      {message}
     </div>
   );
 };
@@ -148,23 +54,31 @@ const SimpleVenueView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const [venue, setVenue] = useState(null);
-  const [usersAtVenue, setUsersAtVenue] = useState([]);
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentZone, setCurrentZone] = useState('Main Area');
   
+  // Get likes remaining from local storage
   const [likesRemaining, setLikesRemaining] = useState(() => {
     if (id) {
-      const saved = localStorage.getItem(`likesRemaining-${id}`);
-      return saved ? parseInt(saved, 10) : 3;
+      return getFromStorage<number>(`likesRemaining-${id}`, 3);
     }
     return 3;
+  });
+
+  // Get liked users from local storage
+  const [likedUsers, setLikedUsers] = useState<string[]>(() => {
+    if (id) {
+      return getFromStorage<string[]>(`likedUsers-${id}`, []);
+    }
+    return [];
   });
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showInterestSent, setShowInterestSent] = useState(false);
-  const [lastLikedUser, setLastLikedUser] = useState(null);
+  const [lastLikedUser, setLastLikedUser] = useState<User | null>(null);
   
   const currentUser = {
     id: 'current-user-id',
@@ -172,7 +86,7 @@ const SimpleVenueView = () => {
   };
   
   useEffect(() => {
-    window.showToast = (message) => {
+    window.showToast = (message: string) => {
       setToastMessage(message);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
@@ -242,8 +156,8 @@ const SimpleVenueView = () => {
     navigate('/venues');
   };
   
-  const handleLikeUser = (userId) => {
-    if (likesRemaining <= 0) return;
+  const handleLikeUser = (userId: string) => {
+    if (likesRemaining <= 0 || likedUsers.includes(userId)) return;
     
     // Find the user
     const user = usersAtVenue.find(u => u.id === userId);
@@ -251,12 +165,19 @@ const SimpleVenueView = () => {
       setLastLikedUser(user);
     }
     
-    // Update likes remaining
-    setLikesRemaining(prev => {
-      const newValue = prev - 1;
-      localStorage.setItem(`likesRemaining-${id}`, String(newValue));
-      return newValue;
-    });
+    // Update likes remaining and save to local storage
+    const newLikesRemaining = likesRemaining - 1;
+    setLikesRemaining(newLikesRemaining);
+    if (id) {
+      saveToStorage(`likesRemaining-${id}`, newLikesRemaining);
+    }
+    
+    // Update liked users and save to local storage
+    const newLikedUsers = [...likedUsers, userId];
+    setLikedUsers(newLikedUsers);
+    if (id) {
+      saveToStorage(`likedUsers-${id}`, newLikedUsers);
+    }
     
     // Show toast notification
     setToastMessage('Interest sent!');
@@ -267,7 +188,7 @@ const SimpleVenueView = () => {
     setTimeout(() => setShowInterestSent(false), 3000);
   };
   
-  const handleZoneSelect = (zoneName) => {
+  const handleZoneSelect = (zoneName: string) => {
     setCurrentZone(zoneName);
   };
   
@@ -278,6 +199,11 @@ const SimpleVenueView = () => {
     'Outside', 
     'Upstairs'
   ];
+
+  // Filter users by selected zone
+  const filteredUsers = usersAtVenue.filter(user => 
+    user.currentZone === currentZone
+  );
   
   return (
     <ErrorBoundary
@@ -311,7 +237,8 @@ const SimpleVenueView = () => {
               <div className="animate-fade-in">
                 <VenueHeader 
                   venue={venue} 
-                  onCheckOut={handleCheckOut} 
+                  onCheckOut={handleCheckOut}
+                  expiryTime={Date.now() + (3 * 60 * 60 * 1000)} // 3 hours from now
                 />
                 
                 <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
@@ -342,11 +269,12 @@ const SimpleVenueView = () => {
                   </div>
                   
                   <StaggeredList>
-                    {usersAtVenue.length > 0 ? (
+                    {filteredUsers.length > 0 ? (
                       <UserGrid
-                        users={usersAtVenue}
+                        users={filteredUsers}
                         onLikeUser={handleLikeUser}
                         likesRemaining={likesRemaining}
+                        likedUsers={likedUsers}
                       />
                     ) : (
                       <EmptyState message="No one's here yet" />
@@ -382,23 +310,10 @@ const SimpleVenueView = () => {
         )}
 
         {showInterestSent && lastLikedUser && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 animate-fade-in">
-            <div className="bg-white/95 rounded-2xl p-6 shadow-xl max-w-xs text-center transform scale-in">
-              <div className="w-16 h-16 mx-auto rounded-full bg-pink-100 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-1">Interest Sent!</h3>
-              <p className="text-gray-600 mb-4">You'll be notified if they like you back</p>
-              <button 
-                onClick={() => setShowInterestSent(false)}
-                className="bg-blue-500 text-white px-6 py-2 rounded-full font-medium"
-              >
-                Got it
-              </button>
-            </div>
-          </div>
+          <InterestSentModal
+            user={lastLikedUser}
+            onClose={() => setShowInterestSent(false)}
+          />
         )}
       </div>
     </ErrorBoundary>

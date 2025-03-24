@@ -1,65 +1,53 @@
 
 import React from 'react';
-import { User, Interest, Match } from '@/types';
-import UserCard from '@/components/UserCard';
-import EmptyState from '@/components/shared/EmptyState';
+import { User } from '@/types';
+import { Heart } from 'lucide-react';
 
 interface UserGridProps {
   users: User[];
-  interests: Interest[];
-  setInterests: React.Dispatch<React.SetStateAction<Interest[]>>;
-  matches: Match[];
-  setMatches: React.Dispatch<React.SetStateAction<Match[]>>;
-  currentUser: { id: string; name: string };
+  onLikeUser: (userId: string) => void;
   likesRemaining: number;
-  setLikesRemaining: React.Dispatch<React.SetStateAction<number>>;
-  venueId: string;
+  likedUsers?: string[];
 }
 
-const UserGrid: React.FC<UserGridProps> = ({
-  users,
-  interests,
-  setInterests,
-  matches,
-  setMatches,
-  currentUser,
-  likesRemaining,
-  setLikesRemaining,
-  venueId
-}) => {
-  if (users.length === 0) {
-    return (
-      <div className="text-center py-12 mt-10 bg-white rounded-xl border border-[#F1F5F9] shadow-[0px_2px_8px_rgba(0,0,0,0.05)]">
-        <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
-          {/* Silhouette placeholder */}
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M32 32C38.6274 32 44 26.6274 44 20C44 13.3726 38.6274 8 32 8C25.3726 8 20 13.3726 20 20C20 26.6274 25.3726 32 32 32Z" fill="#F1F5F9"/>
-            <path d="M54 56C54 42.7452 44.2548 32 32 32C19.7452 32 10 42.7452 10 56" stroke="#F1F5F9" strokeWidth="4"/>
-          </svg>
+const UserGrid: React.FC<UserGridProps> = ({ 
+  users, 
+  onLikeUser, 
+  likesRemaining, 
+  likedUsers = [] 
+}) => (
+  <div className="grid grid-cols-3 gap-3">
+    {users.map(user => {
+      const isLiked = likedUsers.includes(user.id);
+      
+      return (
+        <div key={user.id} className="relative rounded-xl overflow-hidden shadow-sm">
+          <img 
+            src={user.photos[0]} 
+            alt={user.name}
+            className="w-full aspect-square object-cover"
+          />
+          <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+            <div className="text-white">
+              <div className="font-medium">{user.name}</div>
+              {user.age && <div className="text-sm">{user.age}</div>}
+            </div>
+          </div>
+          <button 
+            onClick={() => !isLiked && likesRemaining > 0 && onLikeUser(user.id)}
+            disabled={isLiked || likesRemaining <= 0}
+            className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center ${
+              isLiked ? 'bg-pink-500 text-white' : 
+              likesRemaining > 0 ? 'bg-white/80 text-gray-600 hover:bg-gray-100' : 
+              'bg-gray-300/80 text-gray-400'
+            }`}
+          >
+            <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
+          </button>
         </div>
-        <p className="text-[16px] text-[#505050]">No one here yet. Be the first.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-3 gap-3 pb-16">
-      {users.map((user) => (
-        <UserCard
-          key={user.id}
-          user={user}
-          interests={interests}
-          setInterests={setInterests}
-          matches={matches}
-          setMatches={setMatches}
-          currentUser={currentUser}
-          likesRemaining={likesRemaining}
-          setLikesRemaining={setLikesRemaining}
-          venueId={venueId}
-        />
-      ))}
-    </div>
-  );
-};
+      );
+    })}
+  </div>
+);
 
 export default UserGrid;

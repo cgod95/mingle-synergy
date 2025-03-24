@@ -1,40 +1,36 @@
 
 import React from 'react';
+import { User } from '@/types';
 import { MapPin } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface ZoneSelectorProps {
-  activeZone: string | null;
-  zones: { id: string; name: string }[];
-  onZoneSelect: (zoneName: string) => void;
-  className?: string;
+  zones: string[];
+  selectedZone: string;
+  onZoneSelect: (zone: string) => void;
+  users: User[];
 }
 
-const ZoneSelector: React.FC<ZoneSelectorProps> = ({
-  activeZone,
-  zones,
-  onZoneSelect,
-  className
-}) => {
-  if (zones.length === 0) return null;
+const ZoneSelector: React.FC<ZoneSelectorProps> = ({ zones, selectedZone, onZoneSelect, users }) => {
+  const userCountByZone = zones.reduce((counts, zone) => {
+    counts[zone] = users.filter(user => user.currentZone === zone).length;
+    return counts;
+  }, {} as Record<string, number>);
   
   return (
-    <div className={cn("", className)}>
-      <p className="text-sm font-medium mb-2 text-muted-foreground">Where are you?</p>
+    <div className="mb-6">
+      <h3 className="text-sm font-medium text-gray-700 mb-2">Where are you?</h3>
       <div className="flex flex-wrap gap-2">
-        {zones.map((zone) => (
+        {zones.map(zone => (
           <button
-            key={zone.id}
-            onClick={() => onZoneSelect(zone.name)}
-            className={cn(
-              "py-1.5 px-3 rounded-full text-xs flex items-center shadow-sm transition-all duration-300",
-              activeZone === zone.name
-                ? "bg-[#3A86FF] text-white shadow-[0_2px_10px_rgba(58,134,255,0.3)]"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md"
-            )}
+            key={zone}
+            onClick={() => onZoneSelect(zone)}
+            className={`px-3 py-1.5 rounded-full text-sm flex items-center ${
+              selectedZone === zone ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'
+            }`}
           >
             <MapPin size={12} className="mr-1" />
-            {zone.name}
+            {zone}
+            {userCountByZone[zone] > 0 && <span className="ml-1 text-xs">({userCountByZone[zone]})</span>}
           </button>
         ))}
       </div>
