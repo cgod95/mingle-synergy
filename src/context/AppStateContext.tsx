@@ -4,6 +4,27 @@ import { User, Interest, Match } from '@/types';
 import { getInterests, getMatches } from '@/utils/localStorageUtils';
 import services from '@/services';
 
+// Explicitly define what a UserType looks like for TypeScript
+type UserType = {
+  id: string;
+  name: string;
+  photos: string[];
+  isCheckedIn: boolean;
+  currentVenue: string | null;
+  currentZone?: string | null;
+  age?: number;
+  gender?: string;
+  interestedIn?: string[];
+  email?: string;
+  bio?: string;
+  ageRangePreference?: [number, number];
+  createdAt?: number;
+  lastActive?: number;
+  matches?: string[];
+  likedUsers?: string[];
+  blockedUsers?: string[];
+};
+
 interface AppStateContextType {
   currentUser: { id: string; name?: string } | null;
   setCurrentUser: React.Dispatch<React.SetStateAction<{ id: string; name?: string } | null>>;
