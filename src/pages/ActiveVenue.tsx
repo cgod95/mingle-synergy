@@ -2,15 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
-import UserCard from '@/components/UserCard';
 import MatchNotification from '@/components/MatchNotification';
 import VenueHeader from '@/components/VenueHeader';
 import { User, Venue, Match, Interest } from '@/types';
 import { venues, getUsersAtVenue, matches } from '@/data/mockData';
 import { Users, Plus } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useVenues } from '@/hooks/useVenues';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import VenueDetails from '@/components/venue/VenueDetails';
+import UserGrid from '@/components/venue/UserGrid';
+import LikesCounter from '@/components/venue/LikesCounter';
 import { 
   saveInterests, 
   getInterests, 
@@ -210,6 +212,11 @@ const ActiveVenue = () => {
     });
   };
   
+  // Format the expiry time for the VenueDetails component
+  const formatExpiryTime = () => {
+    return expiryTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+  
   return (
     <ErrorBoundary
       fallback={
@@ -256,29 +263,20 @@ const ActiveVenue = () => {
               <div>
                 <h2 className="text-lg font-medium mb-4">People Here</h2>
                 
+                <LikesCounter count={likesRemaining} />
+                
                 {usersAtVenue.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-3 overflow-y-auto max-h-[calc(100vh-220px)] pb-16 p-1">
-                    {usersAtVenue.map((user) => (
-                      <UserCard 
-                        key={user.id} 
-                        user={user}
-                        interests={interests}
-                        setInterests={setInterests}
-                        matches={matches}
-                        setMatches={setMatches}
-                        currentUser={currentUser}
-                        onExpressInterest={handleExpressInterest}
-                        hasPendingInterest={likedUsers.includes(user.id)}
-                        hasMatch={matches.some(
-                          m => (m.userId === currentUser.id && m.matchedUserId === user.id) || 
-                               (m.userId === user.id && m.matchedUserId === currentUser.id)
-                        )}
-                        likesRemaining={likesRemaining}
-                        setLikesRemaining={setLikesRemaining}
-                        venueId={id || 'unknown'}
-                      />
-                    ))}
-                  </div>
+                  <UserGrid
+                    users={usersAtVenue}
+                    interests={interests}
+                    setInterests={setInterests}
+                    matches={matches}
+                    setMatches={setMatches}
+                    currentUser={currentUser}
+                    likesRemaining={likesRemaining}
+                    setLikesRemaining={setLikesRemaining}
+                    venueId={id || 'unknown'}
+                  />
                 ) : (
                   <div className="text-center py-8 bg-card rounded-2xl border border-border/30 shadow-bubble">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">

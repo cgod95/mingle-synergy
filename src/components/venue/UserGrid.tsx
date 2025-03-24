@@ -2,6 +2,7 @@
 import React from 'react';
 import { User, Interest, Match } from '@/types';
 import UserCard from '@/components/UserCard';
+import EmptyState from '@/components/shared/EmptyState';
 
 interface UserGridProps {
   users: User[];
