@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
-import SelfieVerification from '@/components/verification/SelfieVerification';
 import { useToast } from "@/components/ui/use-toast";
 import services from '@/services';
 import { useAppState } from '@/context/AppStateContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import VerificationStep from '@/components/verification/VerificationStep';
 
 const Verification = () => {
   const { currentUser } = useAppState();
@@ -23,9 +23,17 @@ const Verification = () => {
   
   const handleVerificationComplete = () => {
     setVerificationComplete(true);
+    toast({
+      title: "Verification submitted",
+      description: "Your verification has been submitted successfully."
+    });
     setTimeout(() => {
       navigate('/');
     }, 3000);
+  };
+  
+  const handleBack = () => {
+    navigate(-1);
   };
   
   return (
@@ -49,9 +57,10 @@ const Verification = () => {
             <p className="text-sm text-muted-foreground">Redirecting you to the home page...</p>
           </div>
         ) : currentUser ? (
-          <SelfieVerification
-            userId={currentUser.id}
-            onVerificationComplete={handleVerificationComplete}
+          <VerificationStep
+            currentUser={currentUser}
+            onComplete={handleVerificationComplete}
+            onBack={handleBack}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center">
@@ -59,19 +68,6 @@ const Verification = () => {
           </div>
         )}
       </div>
-      
-      {!verificationComplete && (
-        <div className="p-4 border-t border-border">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="flex items-center text-muted-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

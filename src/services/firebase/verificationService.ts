@@ -1,15 +1,9 @@
 
 import { firestore } from '../firebase';
-import { User } from '@/types';
+import { VerificationService, VerificationStatus } from '@/types/services';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
-export interface VerificationStatus {
-  isVerified: boolean;
-  pendingVerification: boolean;
-  lastVerificationAttempt: number | null;
-}
-
-class FirebaseVerificationService {
+class FirebaseVerificationService implements VerificationService {
   async getVerificationStatus(userId: string): Promise<VerificationStatus> {
     try {
       const userDocRef = doc(firestore, 'users', userId);
@@ -19,7 +13,7 @@ class FirebaseVerificationService {
         throw new Error('User not found');
       }
       
-      const userData = userDoc.data() as User;
+      const userData = userDoc.data();
       
       return {
         isVerified: userData.isVerified || false,

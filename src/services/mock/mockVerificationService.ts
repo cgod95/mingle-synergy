@@ -1,7 +1,7 @@
 
-import { VerificationStatus } from '../firebase/verificationService';
+import { VerificationService, VerificationStatus } from '@/types/services';
 
-class MockVerificationService {
+class MockVerificationService implements VerificationService {
   async getVerificationStatus(userId: string): Promise<VerificationStatus> {
     console.log(`[Mock] Getting verification status for user ${userId}`);
     
