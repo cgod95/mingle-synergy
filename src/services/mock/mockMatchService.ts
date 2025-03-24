@@ -1,7 +1,7 @@
 
 import { MatchService } from '@/types/services';
-import { Match, User } from '@/types';
-import { matches, users } from '@/data/mockData';
+import { Match } from '@/types/services';
+import { matches } from '@/data/mockData';
 
 class MockMatchService implements MatchService {
   async getMatches(userId: string): Promise<Match[]> {
@@ -24,9 +24,6 @@ class MockMatchService implements MatchService {
     // Add to our mock data
     matches.push(newMatch);
     
-    // Update the users' match lists
-    this.updateUserMatches(matchData.userId, matchData.matchedUserId);
-    
     console.log(`[Mock] Created new match between ${matchData.userId} and ${matchData.matchedUserId}`);
     
     return newMatch;
@@ -48,24 +45,83 @@ class MockMatchService implements MatchService {
     console.log(`[Mock] Updated match ${matchId} with:`, data);
   }
 
-  private updateUserMatches(userId1: string, userId2: string): void {
-    // Find both users
-    const user1Index = users.findIndex(u => u.id === userId1);
-    const user2Index = users.findIndex(u => u.id === userId2);
-    
-    if (user1Index === -1 || user2Index === -1) {
-      console.error('One or both users not found');
-      return;
+  async requestReconnect(matchId: string, userId: string): Promise<boolean> {
+    try {
+      const matchIndex = matches.findIndex(m => m.id === matchId);
+      
+      if (matchIndex === -1) {
+        console.error(`[Mock] Match ${matchId} not found`);
+        return false;
+      }
+      
+      const match = matches[matchIndex];
+      
+      // Verify the user is part of this match
+      if (match.userId !== userId && match.matchedUserId !== userId) {
+        console.error(`[Mock] User ${userId} not authorized for match ${matchId}`);
+        return false;
+      }
+      
+      // Determine who is requesting reconnection
+      const isRequestor = match.userId === userId;
+      
+      // Update the match with the reconnection request
+      if (isRequestor) {
+        matches[matchIndex] = {
+          ...match,
+          userRequestedReconnect: true,
+          reconnectRequestedAt: Date.now()
+        };
+      } else {
+        matches[matchIndex] = {
+          ...match,
+          matchedUserRequestedReconnect: true,
+          reconnectRequestedAt: Date.now()
+        };
+      }
+      
+      // Check if both users have requested reconnection
+      const updatedMatch = matches[matchIndex];
+      if (updatedMatch.userRequestedReconnect && updatedMatch.matchedUserRequestedReconnect) {
+        // Reconnect the match
+        matches[matchIndex] = {
+          ...updatedMatch,
+          isActive: true,
+          expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3 hours
+          userRequestedReconnect: false,
+          matchedUserRequestedReconnect: false,
+          reconnectedAt: Date.now()
+        };
+      }
+      
+      console.log(`[Mock] Reconnect requested for match ${matchId} by user ${userId}`);
+      return true;
+    } catch (error) {
+      console.error('[Mock] Error requesting reconnect:', error);
+      return false;
     }
-    
-    // Update user1's matches
-    if (!users[user1Index].matches.includes(userId2)) {
-      users[user1Index].matches.push(userId2);
-    }
-    
-    // Update user2's matches
-    if (!users[user2Index].matches.includes(userId1)) {
-      users[user2Index].matches.push(userId1);
+  }
+  
+  async markAsMet(matchId: string): Promise<boolean> {
+    try {
+      const matchIndex = matches.findIndex(m => m.id === matchId);
+      
+      if (matchIndex === -1) {
+        console.error(`[Mock] Match ${matchId} not found`);
+        return false;
+      }
+      
+      matches[matchIndex] = {
+        ...matches[matchIndex],
+        met: true,
+        metAt: Date.now()
+      };
+      
+      console.log(`[Mock] Match ${matchId} marked as met`);
+      return true;
+    } catch (error) {
+      console.error('[Mock] Error marking match as met:', error);
+      return false;
     }
   }
 }
