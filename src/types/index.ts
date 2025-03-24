@@ -1,4 +1,3 @@
-
 // User types
 export interface User {
   id: string;
@@ -21,6 +20,11 @@ export interface User {
   matches: string[]; // IDs of matched users
   likedUsers: string[]; // IDs of users this user has liked
   blockedUsers: string[]; // IDs of users this user has blocked
+  // Verification fields
+  isVerified?: boolean;
+  pendingVerification?: boolean;
+  lastVerificationAttempt?: number | null;
+  verificationSelfie?: string;
 }
 
 // Venue types
