@@ -4,7 +4,7 @@ import App from './App.tsx'
 import './index.css'
 import * as serviceWorker from './serviceWorker'
 import { errorHandler } from './services/errorHandler'
-import { initErrorTracking } from './utils/errorHandler'
+import { initErrorTracking } from './utils/errorHandler.tsx'
 
 // Initialize error handlers before rendering the app
 if (typeof window !== 'undefined') {
