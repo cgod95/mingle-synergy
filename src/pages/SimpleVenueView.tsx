@@ -108,8 +108,8 @@ const SimpleVenueView = () => {
     const foundVenue = venues.find(v => v.id === id);
     setVenue(foundVenue || null);
     
-    // Mock data for users at this venue
-    const mockUsers = [
+    // Mock data for users at this venue with proper type handling
+    const mockUsers: User[] = [
       {
         id: 'user1',
         name: 'Alex',
@@ -119,8 +119,8 @@ const SimpleVenueView = () => {
         isCheckedIn: true,
         isVisible: true,
         interests: ['music', 'travel'],
-        gender: 'male',
-        interestedIn: ['female'],
+        gender: 'male' as const,
+        interestedIn: ['female'] as ('male' | 'female' | 'non-binary' | 'other')[],
         ageRangePreference: { min: 21, max: 35 },
         matches: [],
         likedUsers: [],
@@ -135,8 +135,8 @@ const SimpleVenueView = () => {
         isCheckedIn: true,
         isVisible: true,
         interests: ['hiking', 'cooking'],
-        gender: 'female',
-        interestedIn: ['male'],
+        gender: 'female' as const,
+        interestedIn: ['male'] as ('male' | 'female' | 'non-binary' | 'other')[],
         ageRangePreference: { min: 25, max: 35 },
         matches: [],
         likedUsers: [],
