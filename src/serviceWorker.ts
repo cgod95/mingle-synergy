@@ -3,7 +3,7 @@
 export function register() {
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swUrl = '/service-worker.js';
+      const swUrl = `${import.meta.env.BASE_URL}service-worker.js`;
       
       navigator.serviceWorker
         .register(swUrl)
