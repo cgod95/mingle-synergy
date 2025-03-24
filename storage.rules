@@ -2,28 +2,27 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Default deny all access
+    // Default rule - deny all
     match /{allPaths=**} {
       allow read, write: if false;
     }
     
-    // User profile photos
-    match /users/{userId}/profile/{fileName} {
+    // User profile pictures
+    match /users/{userId}/profile/{imageId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
     // Verification photos
-    match /verification/{userId}/{fileName} {
-      // Only the user can upload their verification photo
+    match /users/{userId}/verification/{imageId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
     // Venue photos
-    match /venues/{venueId}/{fileName} {
-      allow read: if true;  // Anyone can see venue photos
-      allow write: if request.auth != null; // Only authenticated users can upload
+    match /venues/{venueId}/{imageId} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }
