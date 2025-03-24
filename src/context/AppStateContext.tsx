@@ -19,7 +19,7 @@ interface AppStateContextType {
   setShowMatchModal: React.Dispatch<React.SetStateAction<boolean>>;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<User | null>;
+  login: (email: string, password: string) => Promise<{ id: string; name?: string } | null>;
   logout: () => Promise<void>;
   expressInterest: (userId: string, venueId: string) => Promise<boolean>;
   shareContact: (matchId: string) => Promise<boolean>;
@@ -76,14 +76,16 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
       const { user } = await services.auth.signIn(email, password);
       
       if (user) {
-        setCurrentUser({
+        const userInfo = {
           id: user.uid,
           name: user.displayName || email.split('@')[0]
-        });
+        };
+        setCurrentUser(userInfo);
         setIsAuthenticated(true);
+        return userInfo;
       }
       
-      return user;
+      return null;
     } catch (error) {
       console.error('Login error:', error);
       return null;
@@ -174,7 +176,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
   
   // Expose state and updaters
-  const value = {
+  const value: AppStateContextType = {
     currentUser,
     setCurrentUser,
     interests,
