@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { trackScreenView } from '../services/analytics';
+import { trackScreenView } from '../services/appAnalytics';
 
 export const withAnalytics = <P extends object>(
   WrappedComponent: React.ComponentType<P>,

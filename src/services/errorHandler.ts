@@ -1,5 +1,5 @@
 
-import { trackError } from './analytics';
+import { trackError } from './appAnalytics';
 
 interface ErrorWithCode extends Error {
   code?: string;
