@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
           name: 'Mingle',
           short_name: 'Mingle',
           description: 'Meet people nearby in real time',
-          theme_color: '#3A86FF',
+          theme_color: '#F3643E',
           background_color: '#ffffff',
           display: 'standalone',
           orientation: 'portrait',
