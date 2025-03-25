@@ -1,243 +1,149 @@
 
 :root {
   /* Replace white background with warmer, off-white colors */
-  --bg-primary: #F8F7F4;  /* Warm off-white for main background */
+  --bg-primary: #FCFCFC;  /* Warm off-white for main background */
   --bg-secondary: #FFFFFF; /* Pure white for cards and elements */
-  --bg-tertiary: #F0F2F5;  /* Light gray for secondary elements */
+  --bg-tertiary: #F8F8F8;  /* Light gray for secondary elements */
   
   /* Add depth with shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   
   /* Ensure high contrast text colors */
-  --text-primary: #2D3748;    /* Dark gray */
-  --text-secondary: #4A5568;  /* Medium gray */
-  --text-tertiary: #718096;   /* Light gray */
+  --text-primary: #000000;    /* Black */
+  --text-secondary: #767676;  /* Medium gray */
+  --text-tertiary: #A1A1A1;   /* Light gray */
   --text-inverse: #FFFFFF;    /* White text for dark backgrounds */
   
   /* Brand colors */
-  --brand-primary: #F0957D;   /* Softer coral */
-  --brand-secondary: #6B7F94; /* Soft navy blue */
-  --brand-accent: #A0CCDA;    /* Soft teal */
+  --brand-primary: #F3643E;   /* Hinge red-orange */
+  --brand-secondary: #212126; /* Dark charcoal */
+  --brand-accent: #EFEFEF;    /* Light gray accent */
   
   /* Status colors */
   --success: #34D399;
   --warning: #FBBF24;
   --error: #EF4444;
   
-  /* Override all yellow with softer colors */
-  --yellow-50: #FDF5E9;
-  --yellow-100: #FCEBD3;
-  --yellow-200: #F9D6A7;
-  --yellow-300: #F6C27B;
-  --yellow-400: #F3AD50;
-  --yellow-500: #F09924;
-  --yellow-600: #D17E18;
-  --yellow-700: #A15F12;
-  --yellow-800: #71400C;
-  --yellow-900: #422506;
+  /* Border colors */
+  --border: #EFEFEF;
   
-  /* Replace any instances of primary yellow */
-  --primary-yellow: #F0957D;  /* Use our coral color instead */
-  --primary-highlight: #F0957D;
+  /* Input backgrounds */
+  --input-bg: #F8F8F8;
+  
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
 }
 
-/* Apply new background color to the body */
+/* Apply base styles */
 body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Card styling */
+/* Card styles */
 .card {
   background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  border-radius: 12px;
+  overflow: hidden;
 }
 
-/* Direct overrides for specific yellow elements */
-.bg-yellow-500 {
-  background-color: var(--brand-primary) !important;
+/* Button styles */
+.btn-primary {
+  background-color: var(--brand-primary);
+  color: white;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  padding: 12px 24px;
+  border: none;
+  transition: background-color 0.2s;
 }
 
-.text-yellow-500 {
-  color: var(--text-secondary) !important; /* Use a neutral color instead */
+.btn-primary:hover {
+  background-color: #E5543E;
 }
 
-/* Check for any tailwind yellow classes that might be used */
-.bg-yellow-400, .bg-yellow-300, .bg-yellow-600 {
-  background-color: var(--brand-primary) !important;
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  padding: 12px 24px;
+  border: 1px solid var(--border);
 }
 
-/* Also override any inline styles that might use yellow */
-[style*="background-color: yellow"], 
-[style*="background-color: #FFFF00"],
-[style*="background-color: rgb(255, 255, 0)"] {
-  background-color: var(--brand-primary) !important;
+/* Input styles */
+input, textarea, select {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 16px;
 }
 
-/* NEW CSS OVERRIDES FOR FORM ELEMENTS */
-
-/* Target the specific form inputs */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-textarea {
-  background-color: #F9FAFB !important; /* Light gray background */
-  border: 1px solid #E2E8F0 !important; /* Light gray border */
-  border-radius: 0.5rem !important;
-  padding: 0.75rem 1rem !important;
-  color: #2D3748 !important; /* Dark text */
-  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(243, 100, 62, 0.2);
 }
 
-/* Focus states for form elements */
-input:focus, 
-textarea:focus, 
-select:focus {
-  outline: none !important;
-  border-color: var(--brand-primary) !important;
-  box-shadow: 0 0 0 3px rgba(240, 149, 125, 0.2) !important;
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
 }
 
-/* Target yellow containers */
-.yellow-container,
-[class*="border-yellow"],
-[style*="border-color: yellow"],
-[style*="background-color: yellow"] {
-  border-color: #F8F7F4 !important; /* Very light off-white instead of yellow */
-  background-color: #FFFFFF !important; /* White background */
+p {
+  color: var(--text-secondary);
 }
 
-/* Form wrapper styles */
-form, 
-.form-container,
-[class*="container"],
-.rounded-lg {
-  background-color: #FFFFFF !important;
-  border-color: #E2E8F0 !important;
+/* Utility classes */
+.text-primary {
+  color: var(--text-primary);
 }
 
-/* Target any element with yellow background */
-[class*="bg-yellow"],
-.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, 
-.bg-yellow-400, .bg-yellow-500, .bg-yellow-600, .bg-yellow-700 {
-  background-color: #FFFFFF !important;
+.text-secondary {
+  color: var(--text-secondary);
 }
 
-/* Make buttons more modern */
-.btn, 
-button[type="submit"], 
-[class*="btn-primary"] {
-  border-radius: 0.5rem !important;
-  padding: 0.75rem 1.5rem !important;
-  font-weight: 500 !important;
-  transition: transform 0.2s, background-color 0.2s !important;
-  background-color: var(--brand-primary) !important;
-  border: none !important;
-  color: white !important;
+.text-tertiary {
+  color: var(--text-tertiary);
 }
 
-.btn:hover, 
-button[type="submit"]:hover {
-  transform: translateY(-1px) !important;
-  background-color: #E8806B !important; /* Slightly darker coral */
+.text-brand {
+  color: var(--brand-primary);
 }
 
-/* Ensure the input fields are white */
-input {
-  background-color: #F9FAFB !important;
+.bg-brand {
+  background-color: var(--brand-primary);
 }
 
-/* Replace specific yellow input placeholders */
-::placeholder {
-  color: #A0AEC0 !important; /* Medium gray for placeholders */
+.rounded-full {
+  border-radius: var(--radius-full);
 }
 
-/* Fix the border colors */
-.border, .border-2, .border-4, .border-yellow-500 {
-  border-color: #E2E8F0 !important;
+/* Animation utilities */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
-/* NEW GLOBAL OVERRIDES FOR UPDATED UI */
-
-/* Global overrides to kill all yellow */
-body, #root, main, div, section, header, footer, aside, nav {
-  background-color: var(--bg-primary);
-}
-
-/* Navigation bar specific styles */
-.bottom-navigation,
-.nav-bar,
-[class*="bottom-nav"],
-nav[class*="fixed"],
-[class*="tab-bar"] {
-  background-color: var(--bg-secondary) !important;
-  border-top: 1px solid var(--bg-tertiary) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-.nav-item.active {
-  color: var(--brand-primary) !important;
-}
-
-/* Fix tab indicator */
-.tab-indicator,
-.active-tab-indicator {
-  background-color: var(--brand-primary) !important;
-}
-
-/* Header bar */
-.header-bar,
-header,
-[class*="app-header"] {
-  background-color: var(--bg-secondary) !important;
-  border-bottom: 1px solid var(--bg-tertiary) !important;
-}
-
-/* Toggle switch specific fix */
-.toggle-switch,
-[class*="toggle-switch"],
-[class*="switch-track"] {
-  background-color: #D1D5DB !important;
-}
-
-.toggle-switch.active,
-.toggle-switch[aria-checked="true"],
-[class*="toggle-switch"].active,
-[class*="switch-track"].active {
-  background-color: var(--brand-primary) !important;
-}
-
-.toggle-switch .toggle-handle,
-[class*="toggle-handle"],
-[class*="switch-thumb"] {
-  background-color: white !important;
-}
-
-/* Cards */
-.card,
-[class*="card"],
-.venue-card,
-.match-card,
-.user-card {
-  background-color: var(--bg-secondary) !important;
-  border-radius: 12px !important;
-  box-shadow: var(--shadow-sm) !important;
-  border: none !important;
-}
-
-/* Fix text colors */
-h1, h2, h3, h4, h5, h6,
-.heading {
-  color: var(--text-primary) !important;
-}
-
-/* Specifically target match/venue cards */
-.match-gradient,
-.venue-gradient,
-[class*="gradient-overlay"],
-[style*="background: linear-gradient"] {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.7) 100%) !important;
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
