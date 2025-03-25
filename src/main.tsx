@@ -5,7 +5,6 @@ import './index.css'
 import * as serviceWorker from './serviceWorker'
 import { errorHandler } from './services/errorHandler'
 import { initErrorTracking } from './utils/errorHandler'
-import QueryProvider from './providers/QueryProvider'
 
 // Initialize error handlers before rendering the app
 if (typeof window !== 'undefined') {
@@ -13,11 +12,7 @@ if (typeof window !== 'undefined') {
   initErrorTracking();
 }
 
-createRoot(document.getElementById("root")!).render(
-  <QueryProvider>
-    <App />
-  </QueryProvider>
-);
+createRoot(document.getElementById("root")!).render(<App />);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
