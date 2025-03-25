@@ -36,7 +36,7 @@ const VisibilityToggle: React.FC<VisibilityToggleProps> = ({
           checked={isVisible}
           onCheckedChange={onToggle}
           disabled={isLoading}
-          className="data-[state=checked]:bg-brand-primary"
+          className={`${isLoading ? 'opacity-50' : ''} data-[state=checked]:bg-brand-primary`}
         />
       </div>
     </div>

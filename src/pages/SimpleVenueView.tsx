@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Venue } from '@/types';
@@ -10,10 +9,10 @@ import VenueHeader from '@/components/venue/VenueHeader';
 import ZoneSelector from '@/components/venue/ZoneSelector';
 import LikesCounter from '@/components/venue/LikesCounter';
 import UserGrid from '@/components/venue/UserGrid';
+import VisibilityToggle from '@/components/venue/VisibilityToggle';
 import { useToast } from '@/components/ui/toast/ToastContext';
 import { getFromStorage, saveToStorage } from '@/utils/localStorageUtils';
 
-// Empty state component
 const EmptyState = ({ message }: { message: string }) => (
   <div className="py-12 text-center bg-gray-50 rounded-lg">
     <div className="text-gray-400 mb-2">
@@ -24,7 +23,6 @@ const EmptyState = ({ message }: { message: string }) => (
   </div>
 );
 
-// Interest sent modal component
 const InterestSentModal = ({ user, onClose }: { user: User | null, onClose: () => void }) => {
   if (!user) return null;
   
@@ -49,7 +47,6 @@ const InterestSentModal = ({ user, onClose }: { user: User | null, onClose: () =
   );
 };
 
-// Main component
 const SimpleVenueView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -59,8 +56,14 @@ const SimpleVenueView = () => {
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentZone, setCurrentZone] = useState('Main Area');
+  const [isVisible, setIsVisible] = useState(() => {
+    if (id) {
+      return getFromStorage<boolean>(`isVisible-${id}`, true);
+    }
+    return true;
+  });
+  const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   
-  // Get likes remaining from local storage
   const [likesRemaining, setLikesRemaining] = useState(() => {
     if (id) {
       return getFromStorage<number>(`likesRemaining-${id}`, 3);
@@ -68,7 +71,6 @@ const SimpleVenueView = () => {
     return 3;
   });
 
-  // Get liked users from local storage
   const [likedUsers, setLikedUsers] = useState<string[]>(() => {
     if (id) {
       return getFromStorage<string[]>(`likedUsers-${id}`, []);
@@ -90,7 +92,6 @@ const SimpleVenueView = () => {
     const foundVenue = venues.find(v => v.id === id);
     setVenue(foundVenue || null);
     
-    // Mock data for users at this venue with proper type handling
     const mockUsers: User[] = [
       {
         id: 'user1',
@@ -141,27 +142,23 @@ const SimpleVenueView = () => {
   const handleLikeUser = (userId: string) => {
     if (likesRemaining <= 0 || likedUsers.includes(userId)) return;
     
-    // Find the user
     const user = usersAtVenue.find(u => u.id === userId);
     if (user) {
       setLastLikedUser(user);
     }
     
-    // Update likes remaining and save to local storage
     const newLikesRemaining = likesRemaining - 1;
     setLikesRemaining(newLikesRemaining);
     if (id) {
       saveToStorage(`likesRemaining-${id}`, newLikesRemaining);
     }
     
-    // Update liked users and save to local storage
     const newLikedUsers = [...likedUsers, userId];
     setLikedUsers(newLikedUsers);
     if (id) {
       saveToStorage(`likedUsers-${id}`, newLikedUsers);
     }
     
-    // Show toast notification
     showToast('Interest sent!', 'success');
     
     setShowInterestSent(true);
@@ -180,7 +177,28 @@ const SimpleVenueView = () => {
     'Upstairs'
   ];
 
-  // Filter users by selected zone
+  const toggleVisibility = async () => {
+    try {
+      setIsTogglingVisibility(true);
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const newVisibility = !isVisible;
+      setIsVisible(newVisibility);
+      
+      if (id) {
+        saveToStorage(`isVisible-${id}`, newVisibility);
+      }
+      
+      showToast(newVisibility ? 'You are now visible' : 'You are now invisible', 'success');
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      showToast('Failed to update visibility', 'error');
+    } finally {
+      setIsTogglingVisibility(false);
+    }
+  };
+
   const filteredUsers = usersAtVenue.filter(user => 
     user.currentZone === currentZone
   );
@@ -219,6 +237,12 @@ const SimpleVenueView = () => {
                   venue={venue} 
                   onCheckOut={handleCheckOut}
                   expiryTime={Date.now() + (3 * 60 * 60 * 1000)} // 3 hours from now
+                />
+                
+                <VisibilityToggle 
+                  isVisible={isVisible}
+                  onToggle={toggleVisibility}
+                  isLoading={isTogglingVisibility}
                 />
                 
                 <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">

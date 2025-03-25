@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Users } from 'lucide-react';
+import ToggleButton from '../ToggleButton';
 
 interface VenueDetailsProps {
   venue: {
@@ -11,9 +12,17 @@ interface VenueDetailsProps {
   };
   expiryTime: string;
   onCheckOut: () => void;
+  isVisible?: boolean;
+  onToggleVisibility?: () => void;
 }
 
-const VenueDetails: React.FC<VenueDetailsProps> = ({ venue, expiryTime, onCheckOut }) => {
+const VenueDetails: React.FC<VenueDetailsProps> = ({ 
+  venue, 
+  expiryTime, 
+  onCheckOut,
+  isVisible = true,
+  onToggleVisibility
+}) => {
   return (
     <div className="mb-6">
       <div className="flex items-start justify-between mb-2">
@@ -37,6 +46,16 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ venue, expiryTime, onCheckO
           </button>
         </div>
       </div>
+      
+      {onToggleVisibility && (
+        <div className="mt-4">
+          <ToggleButton 
+            isVisible={isVisible}
+            onToggle={onToggleVisibility}
+            className="w-full"
+          />
+        </div>
+      )}
     </div>
   );
 };
