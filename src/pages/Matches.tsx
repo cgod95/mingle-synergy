@@ -217,8 +217,6 @@ const Matches: React.FC = () => {
                         match={match}
                         user={getMatchedUser(match)}
                         onShareContact={handleShareContact}
-                        onReconnectRequest={handleReconnectRequest}
-                        onWeMetClick={handleWeMetClick}
                       />
                     ))}
                   </div>
@@ -238,8 +236,6 @@ const Matches: React.FC = () => {
                         match={match}
                         user={getMatchedUser(match)}
                         onShareContact={handleShareContact}
-                        onReconnectRequest={handleReconnectRequest}
-                        onWeMetClick={handleWeMetClick}
                       />
                     ))}
                   </div>
