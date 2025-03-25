@@ -1,14 +1,12 @@
-
-import { getApp, getApps } from 'firebase/app';
+import { app } from '../firebase/init';
 import { getAnalytics, logEvent, Analytics } from 'firebase/analytics';
 
 // Simple wrapper for analytics events with error handling
 const logAnalyticsEvent = (eventName: string, eventParams: Record<string, any> = {}): void => {
   try {
-    // Only attempt to use analytics if Firebase is initialized
-    if (getApps().length) {
-      const app = getApp();
-      const analytics = getAnalytics(app);
+    // Get analytics instance on demand to avoid circular dependencies
+    const analytics = getAnalytics(app);
+    if (analytics) {
       logEvent(analytics, eventName, eventParams);
     }
   } catch (error) {

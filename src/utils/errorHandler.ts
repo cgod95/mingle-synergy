@@ -1,7 +1,6 @@
+
 import * as Sentry from '@sentry/react';
 import React from 'react';
-import { analytics } from '@/firebase/config';
-import { logEvent } from 'firebase/analytics';
 
 // Define error severity levels
 export enum ErrorSeverity {
@@ -45,18 +44,23 @@ export const logError = (
   
   // Log to analytics in both dev and prod for error tracking
   try {
-    // Dynamically import analytics to avoid circular dependencies
-    const { analytics } = require('../firebase/config');
-    
-    if (analytics) {
-      logEvent(analytics, 'app_error', {
-        error_message: error.message,
-        error_code: appError.code || 'unknown',
-        error_severity: severity,
-        error_context: JSON.stringify(context).substring(0, 500), // Limit context length
-        error_stack: error.stack?.substring(0, 500) // Limit stack trace length
-      });
-    }
+    // Use dynamic import to avoid circular dependencies
+    import('../firebase/config').then(({ analytics }) => {
+      if (analytics) {
+        import('firebase/analytics').then(({ logEvent }) => {
+          logEvent(analytics, 'app_error', {
+            error_message: error.message,
+            error_code: appError.code || 'unknown',
+            error_severity: severity,
+            error_context: JSON.stringify(context).substring(0, 500), // Limit context length
+            error_stack: error.stack?.substring(0, 500) // Limit stack trace length
+          });
+        });
+      }
+    }).catch(e => {
+      // Silently fail if analytics import fails
+      console.warn('Analytics import failed:', e);
+    });
   } catch (loggingError) {
     // Silently fail if analytics isn't ready yet
     console.warn('Unable to log to analytics:', loggingError);
