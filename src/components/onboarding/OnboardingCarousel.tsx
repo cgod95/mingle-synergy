@@ -5,7 +5,11 @@ import { Clock, MapPin, Users, MessageSquare } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const OnboardingCarousel: React.FC = () => {
+interface OnboardingCarouselProps {
+  onComplete?: () => void;
+}
+
+const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
   
@@ -13,22 +17,22 @@ const OnboardingCarousel: React.FC = () => {
     {
       title: "This isn't a dating app",
       description: "It's an anti-dating app that helps you meet people in real life, not just chat endlessly online.",
-      icon: <MessageSquare className="h-16 w-16 text-[#F3643E]" />
+      icon: <MessageSquare className="h-16 w-16 text-brand-primary" />
     },
     {
       title: "Seize the moment",
       description: "When you match, you have just 3 hours to introduce yourself. No endless waiting - just real connections.",
-      icon: <Clock className="h-16 w-16 text-[#F3643E]" />
+      icon: <Clock className="h-16 w-16 text-brand-primary" />
     },
     {
       title: "Be in the same place",
       description: "We show you people who are at the same venue as you right now. No more guessing if they're really nearby.",
-      icon: <MapPin className="h-16 w-16 text-[#F3643E]" />
+      icon: <MapPin className="h-16 w-16 text-brand-primary" />
     },
     {
       title: "Say hi in person",
       description: "The most powerful way to connect is face to face. We give you the courage to walk over and introduce yourself.",
-      icon: <Users className="h-16 w-16 text-[#F3643E]" />
+      icon: <Users className="h-16 w-16 text-brand-primary" />
     }
   ];
   
@@ -36,31 +40,39 @@ const OnboardingCarousel: React.FC = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Last slide, proceed to app
-      navigate('/venues');
-      // Save that user has seen onboarding
-      localStorage.setItem('onboardingComplete', 'true');
+      // Last slide, complete onboarding and go to sign up
+      if (onComplete) {
+        onComplete();
+      } else {
+        localStorage.setItem('onboardingSeen', 'true');
+      }
+      navigate('/sign-up');
     }
   };
   
   const handleSkip = () => {
-    navigate('/venues');
-    localStorage.setItem('onboardingComplete', 'true');
+    // Skip onboarding, mark as seen and go to sign up
+    if (onComplete) {
+      onComplete();
+    } else {
+      localStorage.setItem('onboardingSeen', 'true');
+    }
+    navigate('/sign-up');
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-bg-primary">
       <div className="flex-1 flex flex-col justify-center px-6 py-12">
         <div className="max-w-md mx-auto text-center">
           <div className="flex justify-center mb-6">
             {slides[currentSlide].icon}
           </div>
           
-          <h1 className="text-2xl font-semibold text-[#212832] mb-3">
+          <h1 className="text-2xl font-semibold text-text-primary mb-3">
             {slides[currentSlide].title}
           </h1>
           
-          <p className="text-[#7B8794] mb-8">
+          <p className="text-text-secondary mb-8 text-base leading-relaxed">
             {slides[currentSlide].description}
           </p>
           
@@ -71,7 +83,7 @@ const OnboardingCarousel: React.FC = () => {
                 key={index}
                 className={cn(
                   "h-2 w-2 rounded-full",
-                  index === currentSlide ? "bg-[#F3643E]" : "bg-gray-300"
+                  index === currentSlide ? "bg-brand-primary" : "bg-text-tertiary/30"
                 )}
               />
             ))}
@@ -83,7 +95,7 @@ const OnboardingCarousel: React.FC = () => {
         <div className="max-w-md mx-auto">
           <Button
             onClick={handleNext}
-            className="w-full py-6 bg-[#F3643E] hover:bg-[#F3643E]/90 text-white rounded-full font-medium text-base"
+            className="w-full py-6 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full font-medium text-base"
           >
             {currentSlide < slides.length - 1 ? 'Next' : 'Get Started'}
           </Button>
@@ -92,7 +104,7 @@ const OnboardingCarousel: React.FC = () => {
             <Button
               onClick={handleSkip}
               variant="ghost"
-              className="w-full py-6 text-[#7B8794] font-medium text-base mt-4"
+              className="w-full py-6 text-text-secondary font-medium text-base mt-4"
             >
               Skip
             </Button>

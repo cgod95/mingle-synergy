@@ -41,22 +41,27 @@ const LazyProfile = lazy(() => import("./pages/Profile"));
 
 const AppLayout = () => {
   const location = useLocation();
-  const { user, loading } = useAuth();
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(() => {
-    return localStorage.getItem('onboardingComplete') === 'true';
+  const { currentUser, isLoading } = useAuth();
+  const [onboardingSeen, setOnboardingSeen] = useState<boolean>(() => {
+    return localStorage.getItem('onboardingSeen') === 'true';
   });
   
   useEffect(() => {
     // Check if onboarding is complete whenever user changes
-    const isComplete = localStorage.getItem('onboardingComplete') === 'true';
-    setOnboardingComplete(isComplete);
-  }, [user]);
+    const isComplete = localStorage.getItem('onboardingSeen') === 'true';
+    setOnboardingSeen(isComplete);
+  }, [currentUser]);
+  
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('onboardingSeen', 'true');
+    setOnboardingSeen(true);
+  };
   
   const isAuthPage = () => {
     return ['/sign-up', '/sign-in', '/onboarding', '/onboarding-carousel'].includes(location.pathname);
   };
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingScreen message="Loading your profile..." />;
   }
 
@@ -67,50 +72,63 @@ const AppLayout = () => {
         <p className="text-muted-foreground mb-4">The application encountered an unexpected error.</p>
         <button 
           onClick={() => window.location.href = '/venues'}
-          className="px-4 py-2 bg-[#F3643E] text-white rounded-lg"
+          className="px-4 py-2 bg-brand-primary text-white rounded-lg"
         >
           Return to Home
         </button>
       </div>}
     >
       <Routes>
-        <Route path="/" element={<Navigate to="/venues" replace />} />
+        <Route path="/" element={
+          onboardingSeen ? 
+            (currentUser ? <Navigate to="/venues" replace /> : <Navigate to="/sign-in" replace />) : 
+            <Navigate to="/onboarding-carousel" replace />
+        } />
         
-        <Route path="/sign-up" element={<SignUp />} />
-        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={
+          onboardingSeen ? <SignUp /> : <Navigate to="/onboarding-carousel" replace />
+        } />
+        
+        <Route path="/sign-in" element={
+          onboardingSeen ? <SignIn /> : <Navigate to="/onboarding-carousel" replace />
+        } />
+        
         <Route path="/onboarding" element={<Onboarding />} />
+        
         <Route path="/onboarding-carousel" element={
-          <PrivateRoute>
-            {onboardingComplete ? <Navigate to="/venues" replace /> : <OnboardingCarousel />}
-          </PrivateRoute>
+          <OnboardingCarousel onComplete={handleOnboardingComplete} />
         } />
         
         <Route path="/venues" element={
           <PrivateRoute>
-            {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <VenueList />}
+            <VenueList />
           </PrivateRoute>
         } />
+        
         <Route path="/venue/:id" element={
           <PrivateRoute>
-            {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <ActiveVenue />}
+            <ActiveVenue />
           </PrivateRoute>
         } />
+        
         <Route path="/simple-venue/:id" element={
           <PrivateRoute>
-            {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <SimpleVenueView />}
+            <SimpleVenueView />
           </PrivateRoute>
         } />
+        
         <Route path="/profile" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
-              {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <LazyProfile />}
+              <LazyProfile />
             </Suspense>
           </PrivateRoute>
         } />
+        
         <Route path="/matches" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Loading matches..." />}>
-              {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <LazyMatches />}
+              <LazyMatches />
             </Suspense>
           </PrivateRoute>
         } />
@@ -135,7 +153,7 @@ const App = () => {
           <p className="text-muted-foreground mb-4">We're having trouble loading the app.</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-[#F3643E] text-white rounded-lg"
+            className="px-4 py-2 bg-brand-primary text-white rounded-lg"
           >
             Reload Application
           </button>

@@ -49,21 +49,21 @@ const SignIn = () => {
   };
   
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#3A86FF] mb-2">Proximity</h1>
-          <p className="text-muted-foreground">Connect with people in the real world</p>
+          <h1 className="text-3xl font-bold text-brand-primary mb-2">Proximity</h1>
+          <p className="text-text-secondary font-medium">Connect with people in the real world</p>
         </div>
         
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-scale-in">
-          <h2 className="text-2xl font-semibold mb-6">Welcome back</h2>
+        <div className="bg-bg-secondary rounded-2xl border border-border p-6 shadow-sm animate-scale-in">
+          <h2 className="text-2xl font-semibold mb-6 text-text-primary">Welcome back</h2>
           
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <label htmlFor="email" className="text-sm font-medium text-text-primary">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-text-tertiary" />
                 <Input
                   id="email"
                   type="email"
@@ -77,8 +77,8 @@ const SignIn = () => {
             
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="password" className="text-sm font-medium">Password</label>
-                <Link to="/forgot-password" className="text-xs text-[#3A86FF]">
+                <label htmlFor="password" className="text-sm font-medium text-text-primary">Password</label>
+                <Link to="/forgot-password" className="text-xs text-brand-primary">
                   Forgot password?
                 </Link>
               </div>
@@ -93,7 +93,7 @@ const SignIn = () => {
             
             <Button 
               type="submit"
-              className="w-full bg-[#3A86FF] hover:bg-[#3A86FF]/90"
+              className="w-full bg-brand-primary hover:bg-brand-primary/90"
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign In'} {!isLoading && <ArrowRight className="ml-2 w-4 h-4" />}
@@ -101,8 +101,8 @@ const SignIn = () => {
           </form>
           
           <div className="mt-4 text-center text-sm">
-            <p className="text-muted-foreground">
-              Don't have an account? <Link to="/sign-up" className="text-[#3A86FF]">Sign up</Link>
+            <p className="text-text-secondary">
+              Don't have an account? <Link to="/sign-up" className="text-brand-primary">Sign up</Link>
             </p>
           </div>
         </div>

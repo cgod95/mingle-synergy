@@ -1,6 +1,10 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import theme colors */
+@import './styles/theme.css';
 
 /* Import fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -10,6 +14,8 @@
   :root {
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --font-heading: 'Georgia', 'Times New Roman', serif;
+    
+    /* Map CSS custom properties to Tailwind HSL format */
     --background: 249 249 249; /* #F9F9F9 */
     --foreground: 33 40 50; /* #212832 */
 
@@ -107,7 +113,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-bg-primary text-text-primary;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -117,6 +123,39 @@
   
   p, span, button, input, a, div {
     font-family: var(--font-primary);
+  }
+  
+  /* Override any Tailwind or other framework colors */
+  .text-gray-400, .text-gray-500 {
+    color: var(--text-secondary) !important;
+  }
+
+  .text-gray-600, .text-gray-700 {
+    color: var(--text-primary) !important;
+  }
+
+  .bg-gray-50, .bg-gray-100 {
+    background-color: var(--bg-primary) !important;
+  }
+
+  .bg-white {
+    background-color: var(--bg-secondary) !important;
+  }
+
+  /* Make sure primary buttons use the brand color */
+  .bg-blue-500, .bg-coral-500 {
+    background-color: var(--brand-primary) !important;
+  }
+
+  /* Ensure contrast for form elements */
+  input, select, textarea {
+    color: var(--text-primary);
+    border-color: #D1D5DB;
+  }
+
+  /* Add a transition for smooth color changes */
+  * {
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   
   /* Typography Classes - Updated */
@@ -131,12 +170,12 @@
   }
   
   .body-text {
-    @apply text-[15px] leading-[22px] tracking-[0] text-[#212832];
+    @apply text-[15px] leading-[22px] tracking-[0] text-text-primary;
     font-family: var(--font-primary);
   }
   
   .caption-text {
-    @apply text-[13px] leading-[18px] text-[#7B8794];
+    @apply text-[13px] leading-[18px] text-text-secondary;
     font-family: var(--font-primary);
   }
   
@@ -170,7 +209,7 @@
   
   /* Card redesign */
   .card-hinge {
-    @apply rounded-t-2xl rounded-b-none overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.05)] bg-white p-3 mb-4;
+    @apply rounded-t-2xl rounded-b-none overflow-hidden shadow-sm bg-bg-secondary p-3 mb-4;
   }
   
   .card-section-divider {
@@ -293,7 +332,7 @@
 
 /* Message bubble styling - refined */
 .message-sent {
-  background-color: #F3643E;
+  background-color: var(--brand-primary);
   color: white;
   border-radius: 18px 18px 4px 18px;
   padding: 10px 14px;
@@ -307,7 +346,7 @@
 
 .message-received {
   background-color: #F1F5F9;
-  color: #202020;
+  color: var(--text-primary);
   border-radius: 18px 18px 18px 4px;
   padding: 10px 14px;
   max-width: 80%;
@@ -321,23 +360,23 @@
 /* Cards and UI Elements */
 @layer components {
   .card-premium {
-    @apply rounded-t-2xl rounded-b-none bg-white border border-black/5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] p-3 mb-4 transition-all duration-300;
+    @apply rounded-t-2xl rounded-b-none bg-bg-secondary border border-black/5 shadow-sm p-3 mb-4 transition-all duration-300;
   }
   
   .card-premium-highlighted {
-    @apply rounded-t-2xl rounded-b-none bg-white border border-black/5 shadow-[0_2px_8px_rgba(0,0,0,0.1),0_0_0_2px_rgba(243,100,62,0.1)] p-3 mb-4 transition-all duration-300;
+    @apply rounded-t-2xl rounded-b-none bg-bg-secondary border border-black/5 shadow-[0_2px_8px_rgba(0,0,0,0.1),0_0_0_2px_rgba(243,100,62,0.1)] p-3 mb-4 transition-all duration-300;
   }
   
   .btn-primary {
-    @apply bg-[#F3643E] text-white h-12 rounded-full px-6 text-button flex items-center justify-center shadow-sm transition-all duration-300 hover:brightness-105 active:scale-[0.98] tracking-wide;
+    @apply bg-brand-primary text-white h-12 rounded-full px-6 text-button flex items-center justify-center shadow-sm transition-all duration-300 hover:brightness-105 active:scale-[0.98] tracking-wide;
   }
   
   .btn-secondary {
-    @apply bg-white text-[#212832] border border-[#212832] h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 hover:bg-[#F9F9F9] active:scale-[0.98] tracking-wide;
+    @apply bg-bg-secondary text-text-primary border border-text-primary h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 hover:bg-bg-primary active:scale-[0.98] tracking-wide;
   }
   
   .btn-tertiary {
-    @apply bg-transparent text-[#212832] hover:bg-[#F9F9F9] h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 active:scale-[0.98] tracking-wide;
+    @apply bg-transparent text-text-primary hover:bg-bg-primary h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 active:scale-[0.98] tracking-wide;
   }
   
   .btn-icon {
@@ -345,27 +384,27 @@
   }
   
   .floating-action-button {
-    @apply fixed bottom-20 right-4 w-14 h-14 rounded-full bg-[#3A86FF] text-white flex items-center justify-center shadow-[0px_4px_12px_rgba(58,134,255,0.3)] z-10 hover:brightness-105 active:scale-[0.98];
+    @apply fixed bottom-20 right-4 w-14 h-14 rounded-full bg-brand-accent text-white flex items-center justify-center shadow-md z-10 hover:brightness-105 active:scale-[0.98];
   }
   
   .venue-card {
-    @apply rounded-2xl bg-white border border-black/5 shadow-[0_2px_10px_rgba(0,0,0,0.08)] transition-all duration-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] overflow-hidden;
+    @apply rounded-2xl bg-bg-secondary border border-black/5 shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
   }
   
   .user-card {
-    @apply rounded-xl bg-white border-2 border-[#F1F5F9] shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
+    @apply rounded-xl bg-bg-secondary border-2 border-[#F1F5F9] shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
   }
   
   .message-input {
-    @apply w-full rounded-full border border-[#E5E7EB] px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.05)] focus:outline-none focus:ring-2 focus:ring-[#3A86FF]/30 text-[15px];
+    @apply w-full rounded-full border border-[#E5E7EB] px-4 py-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 text-[15px];
   }
   
   .avatar-premium {
-    @apply w-[60px] h-[60px] rounded-full border-2 border-white shadow-[0_2px_6px_rgba(0,0,0,0.1)] overflow-hidden;
+    @apply w-[60px] h-[60px] rounded-full border-2 border-bg-secondary shadow-sm overflow-hidden;
   }
   
   .nav-bottom {
-    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] h-16 flex items-center justify-around;
+    @apply fixed bottom-0 left-0 right-0 bg-bg-secondary border-t border-[#E5E7EB] h-16 flex items-center justify-around;
   }
   
   .nav-item {
@@ -374,14 +413,14 @@
   
   .nav-item-active::before {
     content: '';
-    @apply absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#3A86FF] rounded-full;
+    @apply absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-brand-primary rounded-full;
   }
   
   .header-premium {
     @apply h-14 flex items-center justify-between px-4 border-b border-black/5 text-heading;
   }
   
-  /* New styles for enhanced user grid */
+  /* User grid styles */
   .user-grid {
     @apply grid grid-cols-3 gap-3;
   }
@@ -400,11 +439,11 @@
   
   /* Match card styling */
   .match-card {
-    @apply rounded-t-2xl rounded-b-none overflow-hidden bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05)] mb-4;
+    @apply rounded-t-2xl rounded-b-none overflow-hidden bg-bg-secondary shadow-sm mb-4;
   }
   
   .match-user-avatar {
-    @apply w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm;
+    @apply w-12 h-12 rounded-full object-cover border-2 border-bg-secondary shadow-sm;
   }
   
   .match-user-info {
@@ -412,7 +451,7 @@
   }
   
   .match-notification {
-    @apply fixed inset-0 bg-blue-500/95 flex items-center justify-center z-50 animate-fade-in;
+    @apply fixed inset-0 bg-brand-accent/95 flex items-center justify-center z-50 animate-fade-in;
   }
   
   /* Photo overlay for captions */
@@ -422,20 +461,20 @@
   
   /* Comment UI on photos */
   .photo-comment {
-    @apply absolute bottom-4 right-4 bg-white rounded-full shadow-md p-2 text-sm text-[#212832];
+    @apply absolute bottom-4 right-4 bg-bg-secondary rounded-full shadow-md p-2 text-sm text-text-primary;
   }
   
   /* Loading placeholders */
   .placeholder-image {
-    @apply bg-[#BDD9DC]/30 animate-pulse rounded-t-2xl rounded-b-none h-48;
+    @apply bg-accent/30 animate-pulse rounded-t-2xl rounded-b-none h-48;
   }
   
   .placeholder-text {
-    @apply bg-[#BDD9DC]/30 animate-pulse h-4 rounded my-2;
+    @apply bg-accent/30 animate-pulse h-4 rounded my-2;
   }
   
   .placeholder-text-sm {
-    @apply bg-[#BDD9DC]/30 animate-pulse h-3 rounded my-1;
+    @apply bg-accent/30 animate-pulse h-3 rounded my-1;
   }
 }
 
