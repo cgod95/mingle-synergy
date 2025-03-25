@@ -1,4 +1,3 @@
-
 import { UserService, UserProfile } from '@/types/services';
 import { users } from '@/data/mockData';
 
@@ -93,6 +92,27 @@ class MockUserService implements UserService {
     });
     
     console.log(`[Mock] Created new user profile for ${userId}`);
+  }
+
+  async getUserById(userId: string): Promise<UserProfile | null> {
+    return this.getUserProfile(userId);
+  }
+
+  async updateUser(userId: string, data: Partial<UserProfile>): Promise<void> {
+    return this.updateUserProfile(userId, data);
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    const userIndex = users.findIndex(u => u.id === userId);
+    
+    if (userIndex === -1) {
+      throw new Error('User not found');
+    }
+    
+    // Remove the user from the array
+    users.splice(userIndex, 1);
+    
+    console.log(`[Mock] Deleted user ${userId}`);
   }
 }
 

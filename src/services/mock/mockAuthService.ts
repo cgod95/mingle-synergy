@@ -1,4 +1,3 @@
-
 import { AuthService, User, UserCredential } from '@/types/services';
 
 // Mock user data for testing
@@ -96,6 +95,14 @@ class MockAuthService implements AuthService {
     return () => {
       this.listeners = this.listeners.filter(listener => listener !== callback);
     };
+  }
+
+  async signInWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
+    return this.signIn(email, password);
+  }
+
+  async signUpWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
+    return this.signUp(email, password);
   }
 
   private notifyListeners(): void {

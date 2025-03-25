@@ -1,9 +1,20 @@
-
-import { getPerformance, trace, Trace } from 'firebase/performance';
+import { getPerformance, trace } from 'firebase/performance';
 import { firestore as db } from '@/firebase/config';
 import { logError } from './errorHandler';
 import { analytics } from '@/firebase/config';
 import { logEvent } from 'firebase/analytics';
+
+// Interface for the non-standard Performance.memory API
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+// Extend Performance with memory property
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory;
+}
 
 // Initialize Firebase Performance
 let perf: ReturnType<typeof getPerformance> | null = null;
@@ -23,7 +34,7 @@ export const initPerformanceMonitoring = () => {
 };
 
 // Custom trace for important user flows
-export const startTrace = (traceName: string): Trace | null => {
+export const startTrace = (traceName: string) => {
   if (!perf) return null;
   
   try {
@@ -111,7 +122,14 @@ export class MemoryMonitor {
   private readonly maxSamples = 20;
   
   start(intervalMs = 10000): void {
-    if (typeof window === 'undefined' || !performance.memory) return;
+    if (typeof window === 'undefined') return;
+    
+    // Check if memory API is available
+    const performanceWithMemory = performance as PerformanceWithMemory;
+    if (!performanceWithMemory.memory) {
+      console.warn('Performance.memory API is not available in this browser');
+      return;
+    }
     
     this.intervalId = window.setInterval(() => {
       this.takeSample();
@@ -127,8 +145,9 @@ export class MemoryMonitor {
   }
   
   private takeSample(): void {
-    if (performance.memory) {
-      const usedHeap = performance.memory.usedJSHeapSize;
+    const performanceWithMemory = performance as PerformanceWithMemory;
+    if (performanceWithMemory.memory) {
+      const usedHeap = performanceWithMemory.memory.usedJSHeapSize;
       this.samples.push(usedHeap);
       
       if (this.samples.length > this.maxSamples) {

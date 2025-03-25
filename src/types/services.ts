@@ -1,4 +1,3 @@
-
 import { Match as AppMatch, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
@@ -9,12 +8,17 @@ export interface AuthService {
   sendPasswordResetEmail: (email: string) => Promise<void>;
   getCurrentUser: () => Promise<User | null>;
   onAuthStateChanged: (callback: (user: User | null) => void) => () => void;
+  signInWithEmailAndPassword: (email: string, password: string) => Promise<UserCredential>;
+  signUpWithEmailAndPassword: (email: string, password: string) => Promise<UserCredential>;
 }
 
 export interface UserService {
   getUserProfile: (userId: string) => Promise<UserProfile | null>;
   updateUserProfile: (userId: string, data: Partial<UserProfile>) => Promise<void>;
   createUserProfile: (userId: string, data: UserProfile) => Promise<void>;
+  getUserById: (userId: string) => Promise<UserProfile | null>;
+  updateUser: (userId: string, data: Partial<UserProfile>) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
 }
 
 // Define the Venue type directly in services.ts
@@ -40,6 +44,7 @@ export interface VenueService {
   checkOutFromVenue: (userId: string) => Promise<void>;
   getNearbyVenues?: (latitude: number, longitude: number, radiusKm?: number) => Promise<Venue[]>;
   getVenuesByIds?: (venueIds: string[]) => Promise<Venue[]>;
+  getAllVenues: () => Promise<Venue[]>;
 }
 
 // Define the Match type

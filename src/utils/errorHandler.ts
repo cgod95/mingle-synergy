@@ -1,5 +1,5 @@
-
 import * as Sentry from '@sentry/react';
+import React from 'react';
 import { analytics } from '@/firebase/config';
 import { logEvent } from 'firebase/analytics';
 
@@ -182,15 +182,17 @@ export const initErrorTracking = (): void => {
 };
 
 // Create a reusable error boundary component
-export const withErrorBoundary = (Component: React.ComponentType, fallback: React.ReactNode) => {
+export const withErrorBoundary = (Component: React.ComponentType<any>, fallback: React.ReactNode) => {
   return function ErrorBoundaryWrapper(props: any) {
-    return Sentry.ErrorBoundary ? 
-      React.createElement(
-        Sentry.ErrorBoundary,
-        { fallback: fallback },
-        React.createElement(Component, props)
-      ) : 
-      React.createElement(Component, props);
+    const FallbackComponent = () => <>{fallback}</>;
+
+    return Sentry.ErrorBoundary ? (
+      <Sentry.ErrorBoundary fallback={<FallbackComponent />}>
+        <Component {...props} />
+      </Sentry.ErrorBoundary>
+    ) : (
+      <Component {...props} />
+    );
   };
 };
 
