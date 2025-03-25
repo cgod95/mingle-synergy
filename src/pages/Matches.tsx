@@ -11,6 +11,7 @@ import { Match, User } from '@/types';
 import contactService from '@/services/firebase/contactService';
 import matchService from '@/services/firebase/matchService';
 import { withAnalytics } from '@/components/withAnalytics';
+import { ContactInfo } from '@/types/contactInfo';
 
 const Matches: React.FC = () => {
   const { currentUser, isLoading: authLoading } = useAuth();
@@ -66,8 +67,8 @@ const Matches: React.FC = () => {
     loadMatches();
   }, [currentUser, toast]);
   
-  const handleShareContact = async (matchId: string, contactInfo: any) => {
-    if (!currentUser) return false;
+  const handleShareContact = async (matchId: string, contactInfo: ContactInfo): Promise<boolean> => {
+    if (!currentUser?.id) return false;
     
     try {
       await contactService.shareContactInfo(matchId, {
