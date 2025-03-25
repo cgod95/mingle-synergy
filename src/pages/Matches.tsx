@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -13,34 +12,35 @@ import matchService from '@/services/firebase/matchService';
 import { withAnalytics } from '@/components/withAnalytics';
 import { ContactInfo } from '@/types/contactInfo';
 
+interface UserWithId extends User {
+  id: string;
+}
+
 const Matches: React.FC = () => {
   const { currentUser, isLoading: authLoading } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
-  const [matchUsers, setMatchUsers] = useState<Record<string, User>>({});
+  const [matchUsers, setMatchUsers] = useState<Record<string, UserWithId>>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const loadMatches = async () => {
-      if (!currentUser?.id) return;
+      if (!currentUser) return;
+      
+      const typedCurrentUser = currentUser as UserWithId;
       
       setLoading(true);
       
       try {
-        // In a real app, we'd fetch from Firebase
-        // For now, we'll use fake data from localStorage or mock data
-        const userMatches = await matchService.getMatches(currentUser.id);
+        const userMatches = await matchService.getMatches(typedCurrentUser.id);
         setMatches(userMatches);
         
-        // Simulate fetching user details for each match
-        // In a real app, you would fetch these from your database
-        const users: Record<string, User> = {};
+        const users: Record<string, UserWithId> = {};
         userMatches.forEach(match => {
-          const matchedUserId = match.userId === currentUser.id 
+          const matchedUserId = match.userId === typedCurrentUser.id 
             ? match.matchedUserId 
             : match.userId;
           
-          // Create a fake user profile - in a real app, fetch from database
           users[matchedUserId] = {
             id: matchedUserId,
             name: `User ${matchedUserId.substring(0, 4)}`,
@@ -68,16 +68,17 @@ const Matches: React.FC = () => {
   }, [currentUser, toast]);
   
   const handleShareContact = async (matchId: string, contactInfo: ContactInfo): Promise<boolean> => {
-    if (!currentUser?.id) return false;
+    if (!currentUser) return false;
+    
+    const typedCurrentUser = currentUser as UserWithId;
     
     try {
       await contactService.shareContactInfo(matchId, {
         ...contactInfo,
-        sharedBy: currentUser.id,
+        sharedBy: typedCurrentUser.id,
         sharedAt: new Date().toISOString()
       });
       
-      // Update local state
       setMatches(prev => 
         prev.map(match => 
           match.id === matchId 
@@ -86,7 +87,7 @@ const Matches: React.FC = () => {
                 contactShared: true, 
                 contactInfo: {
                   ...contactInfo,
-                  sharedBy: currentUser.id,
+                  sharedBy: typedCurrentUser.id,
                   sharedAt: new Date().toISOString()
                 }
               } 
@@ -115,7 +116,6 @@ const Matches: React.FC = () => {
     return <LoadingScreen message="Loading matches..." />;
   }
   
-  // Separate active and expired matches
   const activeMatches = matches.filter(match => 
     match.isActive && match.expiresAt > Date.now()
   );
@@ -124,8 +124,10 @@ const Matches: React.FC = () => {
     !match.isActive || match.expiresAt <= Date.now()
   );
   
-  const getMatchedUser = (match: Match): User => {
-    const matchedUserId = match.userId === currentUser?.id 
+  const getMatchedUser = (match: Match): UserWithId => {
+    const typedCurrentUser = currentUser as UserWithId;
+    
+    const matchedUserId = match.userId === typedCurrentUser.id 
       ? match.matchedUserId 
       : match.userId;
     
