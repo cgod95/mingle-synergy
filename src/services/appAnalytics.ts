@@ -3,6 +3,12 @@ import { app } from '../firebase/init';
 
 // Simple wrapper for analytics events with error handling
 const logAnalyticsEvent = (eventName: string, eventParams: Record<string, any> = {}): void => {
+  // Skip analytics if we're using mock services
+  if (Object.keys(app).length === 0) {
+    console.log(`[MOCK ANALYTICS] ${eventName}`, eventParams);
+    return;
+  }
+  
   try {
     // Get analytics instance and logEvent function dynamically to avoid circular dependencies
     import('firebase/analytics').then((analyticsModule) => {

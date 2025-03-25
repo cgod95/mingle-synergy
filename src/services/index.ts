@@ -13,9 +13,11 @@ import firebaseMatchService from './firebase/matchService';
 import firebaseVerificationService from './firebase/verificationService';
 import mockVerificationService from './mock/mockVerificationService';
 
-// Determine which implementation to use
-// Setting to use Firebase services for production
-const USE_MOCK = false; // Production mode
+// Import from Firebase init to get the USE_MOCK setting
+import { app } from '@/firebase/init';
+
+// Use app as a simple check - if it's an empty object, we're using mocks
+const USE_MOCK = Object.keys(app).length === 0;
 
 // Export services
 const services = {

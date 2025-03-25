@@ -5,7 +5,7 @@ import { getAnalytics } from 'firebase/analytics';
 // Initialize analytics separately
 let analytics = null;
 try {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && !app.mock) {
     analytics = getAnalytics(app);
   }
 } catch (e) {
