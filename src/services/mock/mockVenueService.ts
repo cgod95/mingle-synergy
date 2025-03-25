@@ -1,3 +1,4 @@
+
 import { VenueService, Venue } from '@/types/services';
 import { venues } from '@/data/mockData';
 import { calculateDistance } from '@/utils/locationUtils';
@@ -42,7 +43,7 @@ class MockVenueService implements VenueService {
       .map(venue => this.transformVenue(venue));
   }
 
-  // Add new method used in e2eTests
+  // Implement the required method for e2eTests compatibility
   async getAllVenues(): Promise<Venue[]> {
     return this.getVenues();
   }

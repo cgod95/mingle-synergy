@@ -1,7 +1,6 @@
-
 import { firestore } from '../firebase';
 import { UserService, UserProfile } from '@/types/services';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 // Helper function to ensure consistent data structure
 const transformFirestoreUser = (firestoreData: any, userId: string): UserProfile => {
@@ -97,6 +96,26 @@ class FirebaseUserService implements UserService {
     } catch (error) {
       console.error('Error fetching users at venue:', error);
       return [];
+    }
+  }
+  
+  // Add the required methods for e2eTests compatibility
+  async getUserById(userId: string): Promise<UserProfile | null> {
+    return this.getUserProfile(userId);
+  }
+
+  async updateUser(userId: string, data: Partial<UserProfile>): Promise<void> {
+    return this.updateUserProfile(userId, data);
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      const userDocRef = doc(firestore, 'users', userId);
+      await deleteDoc(userDocRef);
+      console.log(`User ${userId} deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw new Error('Failed to delete user');
     }
   }
 }

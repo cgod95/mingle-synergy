@@ -1,7 +1,6 @@
-
 import { 
   createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
+  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword, 
   signOut as firebaseSignOut,
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   onAuthStateChanged as firebaseOnAuthStateChanged,
@@ -138,6 +137,14 @@ class FirebaseAuthService implements AuthService {
 
   onAuthStateChanged(callback: (user: User | null) => void): () => void {
     return firebaseOnAuthStateChanged(auth, callback);
+  }
+
+  async signInWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
+    return this.signIn(email, password);
+  }
+
+  async signUpWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
+    return this.signUp(email, password);
   }
 }
 

@@ -1,4 +1,3 @@
-
 import { firestore } from '../firebase';
 import { VenueService, Venue } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
@@ -177,6 +176,11 @@ class FirebaseVenueService implements VenueService {
       chunked.push(array.slice(i, i + size));
     }
     return chunked;
+  }
+  
+  // Add the required method for e2eTests compatibility
+  async getAllVenues(): Promise<Venue[]> {
+    return this.getVenues();
   }
 }
 
