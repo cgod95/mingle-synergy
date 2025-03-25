@@ -15,7 +15,7 @@ import mockVerificationService from './mock/mockVerificationService';
 
 // Determine which implementation to use
 // Setting to use Firebase services for production
-const USE_MOCK = false;
+const USE_MOCK = false; // Changed to false for production
 
 // Export services
 const services = {

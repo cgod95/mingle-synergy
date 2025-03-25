@@ -1,4 +1,3 @@
-
 // User types
 export interface User {
   id: string;
@@ -26,6 +25,8 @@ export interface User {
   pendingVerification?: boolean;
   lastVerificationAttempt?: number | null;
   verificationSelfie?: string;
+  // Add occupation field
+  occupation?: string;
 }
 
 // Venue types

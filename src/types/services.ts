@@ -108,6 +108,8 @@ export interface UserProfile {
   pendingVerification?: boolean;
   lastVerificationAttempt?: number | null;
   verificationSelfie?: string;
+  // Add occupation field
+  occupation?: string;
 }
 
 // Add a VerificationService interface

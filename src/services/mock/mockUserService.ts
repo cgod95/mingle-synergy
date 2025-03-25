@@ -24,7 +24,7 @@ class MockUserService implements UserService {
     // Convert app User to UserProfile
     const userProfile: UserProfile = {
       id: user.id,
-      name: user.name,
+      name: user.name || '',
       photos: user.photos,
       bio: user.bio || '',
       isCheckedIn: user.isCheckedIn,
@@ -34,11 +34,11 @@ class MockUserService implements UserService {
       interests: user.interests,
       gender: isValidGender(user.gender) ? user.gender : 'other',
       interestedIn: areValidGenders(user.interestedIn) ? user.interestedIn : ['other'],
-      age: user.age,
-      ageRangePreference: user.ageRangePreference,
-      matches: user.matches,
-      likedUsers: user.likedUsers,
-      blockedUsers: user.blockedUsers,
+      age: user.age || 25,
+      ageRangePreference: user.ageRangePreference || { min: 18, max: 40 },
+      matches: user.matches || [],
+      likedUsers: user.likedUsers || [],
+      blockedUsers: user.blockedUsers || [],
       occupation: user.occupation || '',
     };
     
@@ -60,7 +60,7 @@ class MockUserService implements UserService {
     
     // Handle interestedIn validation
     if (data.interestedIn && !areValidGenders(data.interestedIn)) {
-      safeData.interestedIn = ['other'];
+      safeData.interestedIn = ['other'] as ('male' | 'female' | 'non-binary' | 'other')[];
     }
     
     // Update the user with the provided data
@@ -82,7 +82,7 @@ class MockUserService implements UserService {
     const safeGender = isValidGender(data.gender) ? data.gender : 'other';
     
     // Ensure interestedIn is valid
-    const safeInterestedIn = areValidGenders(data.interestedIn) ? data.interestedIn : ['other'];
+    const safeInterestedIn = areValidGenders(data.interestedIn) ? data.interestedIn : ['other'] as ('male' | 'female' | 'non-binary' | 'other')[];
     
     // Add the new user to our mock data with validated data
     users.push({

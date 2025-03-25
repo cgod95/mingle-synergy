@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { auth, firestore } from '@/firebase/config';
+import { collection, addDoc } from 'firebase/firestore';
 import services from '@/services';
 
 type CheckStatus = 'pending' | 'success' | 'error' | 'warning';
@@ -80,8 +81,8 @@ const DeploymentVerification: React.FC = () => {
 
       // Check Firebase Rules (simple check if we can write to a test collection)
       try {
-        const testDoc = firestore.collection('_deployment_test');
-        await testDoc.add({ test: true });
+        const testDoc = collection(firestore, '_deployment_test');
+        await addDoc(testDoc, { test: true });
         updateCheck('Firebase Rules', 'success', 'Firebase security rules allow writing to test collection');
       } catch (error) {
         if (String(error).includes('permission-denied')) {
