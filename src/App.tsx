@@ -22,6 +22,7 @@ import SignIn from "./pages/SignIn";
 import Onboarding from "./pages/Onboarding";
 import Matches from "./pages/Matches";
 import TestBackend from "./components/TestBackend";
+import OnboardingCarousel from "./components/onboarding/OnboardingCarousel";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoadingScreen from "./components/ui/LoadingScreen";
@@ -40,10 +41,24 @@ const LazyProfile = lazy(() => import("./pages/Profile"));
 
 const AppLayout = () => {
   const location = useLocation();
+  const { user, loading } = useAuth();
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(() => {
+    return localStorage.getItem('onboardingComplete') === 'true';
+  });
+  
+  useEffect(() => {
+    // Check if onboarding is complete whenever user changes
+    const isComplete = localStorage.getItem('onboardingComplete') === 'true';
+    setOnboardingComplete(isComplete);
+  }, [user]);
   
   const isAuthPage = () => {
-    return ['/sign-up', '/sign-in', '/onboarding'].includes(location.pathname);
+    return ['/sign-up', '/sign-in', '/onboarding', '/onboarding-carousel'].includes(location.pathname);
   };
+
+  if (loading) {
+    return <LoadingScreen message="Loading your profile..." />;
+  }
 
   return (
     <ErrorBoundary
@@ -52,7 +67,7 @@ const AppLayout = () => {
         <p className="text-muted-foreground mb-4">The application encountered an unexpected error.</p>
         <button 
           onClick={() => window.location.href = '/venues'}
-          className="px-4 py-2 bg-[#3A86FF] text-white rounded-lg"
+          className="px-4 py-2 bg-[#F3643E] text-white rounded-lg"
         >
           Return to Home
         </button>
@@ -64,33 +79,38 @@ const AppLayout = () => {
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/onboarding-carousel" element={
+          <PrivateRoute>
+            {onboardingComplete ? <Navigate to="/venues" replace /> : <OnboardingCarousel />}
+          </PrivateRoute>
+        } />
         
         <Route path="/venues" element={
           <PrivateRoute>
-            <VenueList />
+            {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <VenueList />}
           </PrivateRoute>
         } />
         <Route path="/venue/:id" element={
           <PrivateRoute>
-            <ActiveVenue />
+            {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <ActiveVenue />}
           </PrivateRoute>
         } />
         <Route path="/simple-venue/:id" element={
           <PrivateRoute>
-            <SimpleVenueView />
+            {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <SimpleVenueView />}
           </PrivateRoute>
         } />
         <Route path="/profile" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Loading profile..." />}>
-              <LazyProfile />
+              {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <LazyProfile />}
             </Suspense>
           </PrivateRoute>
         } />
         <Route path="/matches" element={
           <PrivateRoute>
             <Suspense fallback={<LoadingScreen message="Loading matches..." />}>
-              <LazyMatches />
+              {!onboardingComplete && user ? <Navigate to="/onboarding-carousel" replace /> : <LazyMatches />}
             </Suspense>
           </PrivateRoute>
         } />
@@ -115,7 +135,7 @@ const App = () => {
           <p className="text-muted-foreground mb-4">We're having trouble loading the app.</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-[#3A86FF] text-white rounded-lg"
+            className="px-4 py-2 bg-[#F3643E] text-white rounded-lg"
           >
             Reload Application
           </button>
