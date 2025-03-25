@@ -10,6 +10,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Match, User } from '@/types';
 import contactService from '@/services/firebase/contactService';
 import matchService from '@/services/firebase/matchService';
+import { withAnalytics } from '@/components/withAnalytics';
 
 const Matches: React.FC = () => {
   const { currentUser, isLoading: authLoading } = useAuth();
@@ -109,56 +110,6 @@ const Matches: React.FC = () => {
     }
   };
   
-  const handleReconnectRequest = async (matchId: string) => {
-    if (!currentUser) return false;
-    
-    try {
-      const success = await matchService.requestReconnect(matchId, currentUser.id);
-      
-      if (success) {
-        toast({
-          title: "Reconnect Requested",
-          description: "Your request has been sent. If they also request to reconnect, you'll be matched again.",
-        });
-      }
-      
-      return success;
-    } catch (error) {
-      console.error('Error requesting reconnect:', error);
-      toast({
-        title: "Couldn't request reconnect",
-        description: "There was a problem sending your reconnect request.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-  
-  const handleWeMetClick = async (matchId: string) => {
-    if (!currentUser) return false;
-    
-    try {
-      const success = await matchService.markAsMet(matchId);
-      
-      if (success) {
-        toast({
-          title: "Meeting Recorded",
-          description: "Great! We've recorded that you met your match.",
-        });
-      }
-      
-      return success;
-    } catch (error) {
-      console.error('Error marking as met:', error);
-      toast({
-        title: "Couldn't record meeting",
-        description: "There was a problem recording your meeting.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-  
   if (authLoading || loading) {
     return <LoadingScreen message="Loading matches..." />;
   }
@@ -249,4 +200,4 @@ const Matches: React.FC = () => {
   );
 };
 
-export default Matches;
+export default withAnalytics(Matches, 'matches_screen');
