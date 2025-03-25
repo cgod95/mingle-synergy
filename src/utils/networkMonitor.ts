@@ -118,7 +118,7 @@ export const NetworkStatus: React.FC = () => {
   
   return (
     <div className="fixed bottom-0 inset-x-0 p-4 bg-red-500 text-white text-center z-50">
-      <p className="font-medium">You're offline. Some features may not work properly.</p>
+      <p className="font-medium">You&apos;re offline. Some features may not work properly.</p>
     </div>
   );
 };
