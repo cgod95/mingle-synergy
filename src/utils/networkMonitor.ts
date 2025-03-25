@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
 /**
@@ -96,7 +97,34 @@ export const useNetworkStatus = () => {
   return isOnline;
 };
 
+// Simple React component for network status
+export const NetworkStatus: React.FC = () => {
+  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+  
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
+  if (isOnline) return null;
+  
+  return (
+    <div className="fixed bottom-0 inset-x-0 p-4 bg-red-500 text-white text-center z-50">
+      <p className="font-medium">You're offline. Some features may not work properly.</p>
+    </div>
+  );
+};
+
 export default {
   setupNetworkMonitoring,
-  useNetworkStatus
+  useNetworkStatus,
+  NetworkStatus
 };
