@@ -1,6 +1,6 @@
 
-// Simple fetch wrapper for data fetching without React Query
-export const fetcher = async (url: string, options?: RequestInit) => {
+// Simple fetch wrapper for data fetching
+export const fetcher = async (url: string, options?: RequestInit): Promise<any> => {
   const response = await fetch(url, options);
   
   if (!response.ok) {
@@ -10,32 +10,37 @@ export const fetcher = async (url: string, options?: RequestInit) => {
   return response.json();
 };
 
-// Example hook for data fetching
-export const useFetch = <T,>(url: string): { data: T | null; loading: boolean; error: Error | null; refetch: () => Promise<void> } => {
-  const [data, setData] = React.useState<T | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<Error | null>(null);
-  
-  const fetchData = React.useCallback(async () => {
-    setLoading(true);
+// For Firebase-specific operations
+export const firebaseFetcher = {
+  // Get a document by reference
+  getDoc: async (docRef: any): Promise<any> => {
     try {
-      const result = await fetcher(url);
-      setData(result);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setLoading(false);
+      const doc = await docRef.get();
+      return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    } catch (error) {
+      console.error('Error fetching document:', error);
+      throw error;
     }
-  }, [url]);
+  },
   
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  // Get documents from a collection with query
+  getDocs: async (query: any): Promise<any[]> => {
+    try {
+      const snapshot = await query.get();
+      return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      throw error;
+    }
+  },
   
-  const refetch = React.useCallback(async () => {
-    await fetchData();
-  }, [fetchData]);
-  
-  return { data, loading, error, refetch };
+  // Update a document
+  updateDoc: async (docRef: any, data: any): Promise<void> => {
+    try {
+      await docRef.update(data);
+    } catch (error) {
+      console.error('Error updating document:', error);
+      throw error;
+    }
+  }
 };
