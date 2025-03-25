@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -41,6 +42,7 @@ const ActiveVenue = () => {
   const [expiryTime, setExpiryTime] = useState<Date>(new Date());
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   
+  // Add likesRemaining state
   const [likesRemaining, setLikesRemaining] = useState(() => {
     if (id) {
       const saved = localStorage.getItem(`likesRemaining-${id}`);
@@ -210,6 +212,7 @@ const ActiveVenue = () => {
     });
   };
   
+  // Format the expiry time for the VenueDetails component
   const formatExpiryTime = () => {
     return expiryTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -265,9 +268,14 @@ const ActiveVenue = () => {
                 {usersAtVenue.length > 0 ? (
                   <UserGrid
                     users={usersAtVenue}
-                    onLikeUser={handleExpressInterest}
+                    interests={interests}
+                    setInterests={setInterests}
+                    matches={matches}
+                    setMatches={setMatches}
+                    currentUser={currentUser}
                     likesRemaining={likesRemaining}
-                    likedUsers={likedUsers}
+                    setLikesRemaining={setLikesRemaining}
+                    venueId={id || 'unknown'}
                   />
                 ) : (
                   <div className="text-center py-8 bg-card rounded-2xl border border-border/30 shadow-bubble">

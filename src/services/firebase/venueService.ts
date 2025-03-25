@@ -1,3 +1,4 @@
+
 import { firestore } from '../firebase';
 import { VenueService, Venue } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
@@ -53,7 +54,7 @@ class FirebaseVenueService implements VenueService {
     }
   }
 
-  async checkInToVenue(userId: string, venueId: string): Promise<boolean> {
+  async checkInToVenue(userId: string, venueId: string): Promise<void> {
     try {
       const batch = writeBatch(firestore);
       
@@ -73,14 +74,13 @@ class FirebaseVenueService implements VenueService {
       
       await batch.commit();
       console.log(`User ${userId} checked in to venue ${venueId}`);
-      return true;
     } catch (error) {
       console.error('Error checking in to venue:', error);
-      return false;
+      throw new Error('Failed to check in to venue');
     }
   }
 
-  async checkOutFromVenue(userId: string): Promise<boolean> {
+  async checkOutFromVenue(userId: string): Promise<void> {
     try {
       // First get the user to find their current venue
       const userDocRef = doc(firestore, 'users', userId);
@@ -95,7 +95,7 @@ class FirebaseVenueService implements VenueService {
       
       if (!currentVenue) {
         // User isn't checked in, nothing to do
-        return true;
+        return;
       }
       
       const batch = writeBatch(firestore);
@@ -116,13 +116,13 @@ class FirebaseVenueService implements VenueService {
       
       await batch.commit();
       console.log(`User ${userId} checked out from venue ${currentVenue}`);
-      return true;
     } catch (error) {
       console.error('Error checking out from venue:', error);
-      return false;
+      throw new Error('Failed to check out from venue');
     }
   }
 
+  // Additional method to get nearby venues based on coordinates
   async getNearbyVenues(latitude: number, longitude: number, radiusKm: number = 5): Promise<Venue[]> {
     try {
       // In a production app, we'd use geofirestore or similar
@@ -143,6 +143,7 @@ class FirebaseVenueService implements VenueService {
     }
   }
 
+  // Helper method to get venues by array of IDs
   async getVenuesByIds(venueIds: string[]): Promise<Venue[]> {
     try {
       if (!venueIds.length) return [];
@@ -169,6 +170,7 @@ class FirebaseVenueService implements VenueService {
     }
   }
 
+  // Helper function to chunk arrays
   private chunk<T>(array: T[], size: number): T[][] {
     const chunked: T[][] = [];
     for (let i = 0; i < array.length; i += size) {

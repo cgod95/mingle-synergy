@@ -17,7 +17,6 @@ class MockUserService implements UserService {
       name: user.name,
       photos: user.photos,
       bio: user.bio || '',
-      occupation: user.occupation || '',
       isCheckedIn: user.isCheckedIn,
       currentVenue: user.currentVenue,
       currentZone: user.currentZone,
@@ -61,10 +60,7 @@ class MockUserService implements UserService {
     users.push({
       ...data,
       id: userId,
-      isCheckedIn: data.isCheckedIn || false,
-      isVisible: data.isVisible || true,
-      interests: data.interests || [],
-    } as any);
+    });
     
     console.log(`[Mock] Created new user profile for ${userId}`);
   }

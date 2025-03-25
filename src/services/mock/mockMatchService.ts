@@ -1,5 +1,6 @@
 
-import { MatchService, Match } from '@/types/services';
+import { MatchService } from '@/types/services';
+import { Match } from '@/types/services';
 import { matches } from '@/data/mockData';
 
 class MockMatchService implements MatchService {
@@ -7,7 +8,7 @@ class MockMatchService implements MatchService {
     // Find all matches where the user is involved
     return matches.filter(
       match => (match.userId === userId || match.matchedUserId === userId) && match.isActive
-    ) as Match[];
+    );
   }
 
   async createMatch(matchData: Omit<Match, 'id'>): Promise<Match> {
@@ -21,7 +22,7 @@ class MockMatchService implements MatchService {
     };
     
     // Add to our mock data
-    matches.push(newMatch as any);
+    matches.push(newMatch);
     
     console.log(`[Mock] Created new match between ${matchData.userId} and ${matchData.matchedUserId}`);
     
@@ -33,14 +34,6 @@ class MockMatchService implements MatchService {
     
     if (matchIndex === -1) {
       throw new Error('Match not found');
-    }
-    
-    // If the update includes contactInfo with a numeric sharedAt, convert it to string
-    if (data.contactInfo && typeof data.contactInfo.sharedAt === 'number') {
-      data.contactInfo = {
-        ...data.contactInfo,
-        sharedAt: data.contactInfo.sharedAt.toString()
-      };
     }
     
     // Update the match with the provided data

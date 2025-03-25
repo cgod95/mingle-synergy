@@ -1,3 +1,4 @@
+
 import { firestore } from '../firebase';
 import { MatchService, Match } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData } from 'firebase/firestore';
@@ -9,18 +10,14 @@ const transformFirestoreMatch = (firestoreData: DocumentData, matchId: string): 
     userId: firestoreData?.userId || '',
     matchedUserId: firestoreData?.matchedUserId || '',
     venueId: firestoreData?.venueId || '',
-    venueName: firestoreData?.venueName || '',
-    timestamp: firestoreData?.timestamp || Date.now(),
+    timestamp: firestoreData?.timestamp?.toMillis() || Date.now(),
     isActive: firestoreData?.isActive !== false,
     expiresAt: firestoreData?.expiresAt || (Date.now() + (3 * 60 * 60 * 1000)),
     contactShared: firestoreData?.contactShared || false,
     userRequestedReconnect: firestoreData?.userRequestedReconnect || false,
     matchedUserRequestedReconnect: firestoreData?.matchedUserRequestedReconnect || false,
-    reconnectRequestedAt: firestoreData?.reconnectRequestedAt || null,
-    reconnectedAt: firestoreData?.reconnectedAt || null,
-    met: firestoreData?.met || false,
-    metAt: firestoreData?.metAt || null,
-    contactInfo: firestoreData?.contactInfo || undefined,
+    reconnectRequestedAt: firestoreData?.reconnectRequestedAt?.toMillis() || null,
+    reconnectedAt: firestoreData?.reconnectedAt?.toMillis() || null,
   };
 };
 

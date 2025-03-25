@@ -1,66 +1,87 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import OptimizedImage from '../ui/OptimizedImage';
+import React, { memo } from 'react';
+import { User, Interest, Match } from '@/types';
+import { Heart } from 'lucide-react';
+import OptimizedImage from '../shared/OptimizedImage';
 
 interface UserGridProps {
-  users: Array<{
-    id: string;
-    name?: string; // Changed to optional to match User type
-    age?: number;
-    photos: string[];
-  }>;
-  onLikeUser: (userId: string) => void;
+  users: User[];
+  onLikeUser?: (userId: string) => void;
   likesRemaining: number;
-  likedUsers: string[];
+  likedUsers?: string[];
+  // ActiveVenue.tsx specific props
+  interests?: Interest[];
+  setInterests?: React.Dispatch<React.SetStateAction<Interest[]>>;
+  matches?: Match[];
+  setMatches?: React.Dispatch<React.SetStateAction<Match[]>>;
+  currentUser?: { id: string; name: string };
+  venueId?: string;
+  setLikesRemaining?: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const UserGrid: React.FC<UserGridProps> = ({ users, onLikeUser, likesRemaining, likedUsers }) => {
+const UserGrid: React.FC<UserGridProps> = ({ 
+  users, 
+  onLikeUser, 
+  likesRemaining, 
+  likedUsers = [],
+  interests = [],
+  setInterests,
+  matches = [],
+  setMatches,
+  currentUser,
+  venueId,
+  setLikesRemaining
+}) => {
+  // Determine which users are already liked
+  const effectiveLikedUsers = likedUsers.length > 0 
+    ? likedUsers 
+    : currentUser && interests.length > 0
+      ? interests
+          .filter(interest => interest.fromUserId === currentUser.id)
+          .map(interest => interest.toUserId)
+      : [];
+  
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-      {users.map(user => (
-        <div key={user.id} className="bg-white rounded-lg overflow-hidden shadow-sm">
-          <div className="aspect-square relative">
-            <OptimizedImage
-              src={user.photos[0]}
-              alt={user.name || 'User'}
-              placeholderName={user.name || 'User'}
-              className="w-full h-full object-cover"
+    <div className="grid grid-cols-3 gap-3">
+      {users.map(user => {
+        const isLiked = effectiveLikedUsers.includes(user.id);
+        
+        return (
+          <div key={user.id} className="relative rounded-xl overflow-hidden shadow-sm">
+            <OptimizedImage 
+              src={user.photos[0]} 
+              alt={user.name}
+              className="w-full aspect-square"
+              width={300}
+              height={300}
             />
-            
-            <button
-              onClick={() => onLikeUser(user.id)}
-              disabled={likesRemaining <= 0 || likedUsers.includes(user.id)}
-              className={`absolute bottom-2 right-2 w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
-                likedUsers.includes(user.id) 
-                ? 'bg-brand-primary text-white' 
-                : 'bg-white text-brand-primary'
-              } ${likesRemaining <= 0 && !likedUsers.includes(user.id) ? 'opacity-50' : ''}`}
+            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+              <div className="text-white">
+                <div className="font-medium">{user.name}</div>
+                {user.age && <div className="text-sm">{user.age}</div>}
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                if (!isLiked && likesRemaining > 0 && onLikeUser) {
+                  onLikeUser(user.id);
+                }
+              }}
+              disabled={isLiked || likesRemaining <= 0}
+              className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center ${
+                isLiked ? 'bg-pink-500 text-white' : 
+                likesRemaining > 0 ? 'bg-white/80 text-gray-600 hover:bg-gray-100' : 
+                'bg-gray-300/80 text-gray-400'
+              }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={likedUsers.includes(user.id) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
+              <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
             </button>
           </div>
-          
-          <div className="p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold">{user.name || 'Unknown'}</h3>
-                {user.age && <p className="text-sm text-gray-500">{user.age}</p>}
-              </div>
-              <Link 
-                to={`/profile/${user.id}`}
-                className="text-sm text-brand-primary font-medium"
-              >
-                View
-              </Link>
-            </div>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
 
-export default UserGrid;
+// Export with memo to prevent unnecessary re-renders
+export default memo(UserGrid);
