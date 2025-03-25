@@ -1,4 +1,3 @@
-
 import * as Sentry from '@sentry/react';
 import React from 'react';
 
@@ -47,7 +46,8 @@ export const logError = (
     // Use dynamic import to avoid circular dependencies
     import('../firebase/config').then(({ analytics }) => {
       if (analytics) {
-        import('firebase/analytics').then(({ logEvent }) => {
+        import('firebase/analytics').then((analyticsModule) => {
+          const { logEvent } = analyticsModule;
           logEvent(analytics, 'app_error', {
             error_message: error.message,
             error_code: appError.code || 'unknown',
@@ -93,15 +93,22 @@ export const logUserAction = (action: string, data: Record<string, any> = {}): v
   }
   
   // Log to analytics in both dev and prod for funnel analysis
-  if (analytics) {
-    try {
-      logEvent(analytics, 'user_action', {
-        action_name: action,
-        action_data: JSON.stringify(data).substring(0, 500) // Limit data length
-      });
-    } catch (error) {
-      console.warn('Failed to log user action to analytics:', error);
-    }
+  try {
+    import('../firebase/config').then(({ analytics }) => {
+      if (analytics) {
+        import('firebase/analytics').then((analyticsModule) => {
+          const { logEvent } = analyticsModule;
+          logEvent(analytics, 'user_action', {
+            action_name: action,
+            action_data: JSON.stringify(data).substring(0, 500) // Limit data length
+          });
+        });
+      }
+    }).catch(e => {
+      console.warn('Failed to import analytics for user action:', e);
+    });
+  } catch (error) {
+    console.warn('Failed to log user action to analytics:', error);
   }
   
   // Add breadcrumb in production for Sentry

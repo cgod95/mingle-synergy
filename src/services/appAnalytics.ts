@@ -1,14 +1,19 @@
+
 import { app } from '../firebase/init';
-import { getAnalytics, logEvent, Analytics } from 'firebase/analytics';
 
 // Simple wrapper for analytics events with error handling
 const logAnalyticsEvent = (eventName: string, eventParams: Record<string, any> = {}): void => {
   try {
-    // Get analytics instance on demand to avoid circular dependencies
-    const analytics = getAnalytics(app);
-    if (analytics) {
-      logEvent(analytics, eventName, eventParams);
-    }
+    // Get analytics instance and logEvent function dynamically to avoid circular dependencies
+    import('firebase/analytics').then((analyticsModule) => {
+      const { getAnalytics, logEvent } = analyticsModule;
+      const analytics = getAnalytics(app);
+      if (analytics) {
+        logEvent(analytics, eventName, eventParams);
+      }
+    }).catch(e => {
+      console.warn(`Failed to load analytics module: ${e.message}`);
+    });
   } catch (error) {
     console.warn(`Failed to log analytics event: ${eventName}`, error);
   }
