@@ -11,6 +11,12 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
+    function hasModeratorRole() {
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/roles/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.isModerator == true;
+    }
+    
     // User profiles - users can read other profiles but only edit their own
     match /users/{userId} {
       allow read: if isSignedIn();
@@ -18,9 +24,9 @@ service cloud.firestore {
       allow delete: if false; // Prevent user deletion
     }
     
-    // Venues - anyone can read venues, signed-in users can create
+    // Venues - only signed-in users can read venues
     match /venues/{venueId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow create, update: if isSignedIn();
       allow delete: if false;
     }
@@ -48,6 +54,17 @@ service cloud.firestore {
       allow create: if isSignedIn() && 
         request.resource.data.fromUserId == request.auth.uid;
       allow update, delete: if false;
+    }
+    
+    // Verification records - only visible to the user and moderators
+    match /userVerifications/{verificationId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || hasModeratorRole()
+      );
+      allow create: if isSignedIn() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && hasModeratorRole();
+      allow delete: if false;
     }
   }
 }
