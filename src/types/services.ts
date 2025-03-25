@@ -61,7 +61,7 @@ export interface Match {
     type: 'phone' | 'instagram' | 'snapchat' | 'custom';
     value: string;
     sharedBy: string;
-    sharedAt: number;
+    sharedAt: number | string; // Changed to accept both number and string
   };
 }
 

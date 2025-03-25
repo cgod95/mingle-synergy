@@ -1,3 +1,4 @@
+
 import { MatchService, Match } from '@/types/services';
 import { matches } from '@/data/mockData';
 
@@ -6,7 +7,7 @@ class MockMatchService implements MatchService {
     // Find all matches where the user is involved
     return matches.filter(
       match => (match.userId === userId || match.matchedUserId === userId) && match.isActive
-    );
+    ) as Match[];
   }
 
   async createMatch(matchData: Omit<Match, 'id'>): Promise<Match> {
@@ -20,7 +21,7 @@ class MockMatchService implements MatchService {
     };
     
     // Add to our mock data
-    matches.push(newMatch);
+    matches.push(newMatch as any);
     
     console.log(`[Mock] Created new match between ${matchData.userId} and ${matchData.matchedUserId}`);
     
