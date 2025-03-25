@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import ToggleButton from '../ToggleButton';
+import { getDocs, collection, query, where } from 'firebase/firestore';
+import { firestore } from '../../services/firebase';
 
 interface VenueDetailsProps {
   venue: {
@@ -9,6 +11,7 @@ interface VenueDetailsProps {
     address?: string;
     city?: string;
     userCount: number;
+    id: string;
   };
   expiryTime: string;
   onCheckOut: () => void;
@@ -23,6 +26,56 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
   isVisible = true,
   onToggleVisibility
 }) => {
+  const [userCount, setUserCount] = useState<number>(venue.userCount);
+  
+  useEffect(() => {
+    // Debug user fields to verify correct field names
+    const debugUserFields = async () => {
+      try {
+        // Get a sample user to check field names
+        const sampleUserSnapshot = await getDocs(collection(firestore, 'users'));
+        if (!sampleUserSnapshot.empty) {
+          console.log('Sample user fields:', Object.keys(sampleUserSnapshot.docs[0].data()));
+        }
+      } catch (error) {
+        console.error('Debug error:', error);
+      }
+    };
+    
+    // Load users at venue
+    const loadUsersAtVenue = async (venueId: string) => {
+      try {
+        // Correctly structured query to find all checked-in users
+        const usersQuery = query(
+          collection(firestore, 'users'),
+          where('currentVenue', '==', venueId),
+          where('isVisible', '==', true)
+        );
+        
+        console.log('Fetching users for venue:', venueId); // Debug log
+        
+        const usersSnapshot = await getDocs(usersQuery);
+        console.log('Users found:', usersSnapshot.size); // Debug log
+        
+        setUserCount(usersSnapshot.size);
+        
+        return usersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
+      }
+    };
+
+    // Execute debugging and loading
+    debugUserFields();
+    if (venue.id) {
+      loadUsersAtVenue(venue.id);
+    }
+  }, [venue.id]);
+
   return (
     <div className="mb-6">
       <div className="flex items-start justify-between mb-2">
@@ -33,7 +86,7 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
           </p>
           <div className="flex items-center text-sm text-gray-500 mt-1">
             <Users className="w-4 h-4 mr-1" />
-            {venue.userCount} people here now
+            {userCount} people here now
           </div>
         </div>
         <div className="text-right">
