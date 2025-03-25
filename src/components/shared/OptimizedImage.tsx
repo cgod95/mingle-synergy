@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 
 interface OptimizedImageProps {
   src: string;
@@ -7,6 +8,7 @@ interface OptimizedImageProps {
   className?: string;
   width?: number;
   height?: number;
+  priority?: boolean;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -14,10 +16,18 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   alt,
   className = '',
   width,
-  height
+  height,
+  priority = false
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState<string>('');
+
+  useEffect(() => {
+    // Generate optimized source URL
+    const optimizedSrc = getOptimizedImageUrl(src, width || 400);
+    setCurrentSrc(optimizedSrc);
+  }, [src, width]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -26,12 +36,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const handleError = () => {
     setIsLoading(false);
     setError(true);
+    console.warn(`Failed to load image: ${src}`);
   };
-
-  // Add query params for image optimization if src is from unsplash or similar
-  const optimizedSrc = src.includes('unsplash.com') || src.includes('images.unsplash.com') 
-    ? `${src}${src.includes('?') ? '&' : '?'}auto=format&fit=crop&w=${width || 400}&q=${width && width < 200 ? 70 : 80}` 
-    : src;
 
   return (
     <div className={`relative ${className}`}>
@@ -48,18 +54,33 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           <span className="text-gray-400 text-sm">Image not available</span>
         </div>
       ) : (
-        <img
-          src={optimizedSrc}
-          alt={alt}
-          width={width}
-          height={height}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 w-full h-full object-cover`}
-          loading="lazy"
-          decoding="async"
-          fetchPriority={width && width > 300 ? "high" : "auto"}
-        />
+        priority ? (
+          <img
+            src={currentSrc}
+            alt={alt}
+            width={width}
+            height={height}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 w-full h-full object-cover`}
+            data-original-src={src}
+            fetchPriority="high"
+          />
+        ) : (
+          <img
+            data-src={currentSrc}
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
+            alt={alt}
+            width={width}
+            height={height}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 w-full h-full object-cover`}
+            data-original-src={src}
+            loading="lazy"
+            decoding="async"
+          />
+        )
       )}
     </div>
   );

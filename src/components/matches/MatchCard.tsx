@@ -19,6 +19,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const [contactValue, setContactValue] = useState('');
   const [isSharing, setIsSharing] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [validationError, setValidationError] = useState('');
   
   const isExpired = match.expiresAt <= Date.now() || !match.isActive;
   
@@ -35,14 +36,19 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!contactValue.trim()) return;
+    // Add strict validation to prevent empty submissions
+    if (!contactValue || contactValue.trim() === '') {
+      setValidationError('Please enter your contact information');
+      return;
+    }
     
+    setValidationError(''); // Clear any previous errors
     setIsSharing(true);
     
     try {
       const contactInfo: ContactInfo = {
         type: contactType,
-        value: contactValue,
+        value: contactValue.trim(),
         sharedBy: match.userId,
         sharedAt: new Date().toISOString()
       };
@@ -52,9 +58,12 @@ const MatchCard: React.FC<MatchCardProps> = ({
       if (success) {
         trackContactShared(match.id);
         setShowForm(false);
+      } else {
+        setValidationError('Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error('Error sharing contact:', error);
+      setValidationError('Failed to share contact info. Please try again.');
     } finally {
       setIsSharing(false);
     }
@@ -181,16 +190,23 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   contactType === 'snapchat' ? 'Your Snapchat username' :
                   'Your contact info'
                 }
-                className="w-full"
+                className={`w-full ${validationError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 required
               />
+              
+              {validationError && (
+                <p className="text-red-500 text-sm mt-1">{validationError}</p>
+              )}
             </div>
             
             <div className="flex space-x-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setValidationError('');
+                }}
                 className="flex-1"
               >
                 <X size={16} className="mr-2" /> Cancel

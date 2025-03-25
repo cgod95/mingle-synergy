@@ -16,7 +16,7 @@
 ## Contact Sharing
 - [x] User can select contact type (phone, Instagram, Snapchat, custom)
 - [x] Contact form validation works correctly
-- [ ] Contact information is successfully shared
+- [x] Contact information is successfully shared
 - [x] Shared contact info is displayed to the other user
 - [x] Status updates to show contact has been shared
 
@@ -42,6 +42,6 @@
 - [x] User remains visible in match even when they uninstall app
 - [x] Match persists if user logs out and back in
 - [x] Contact info is preserved across sessions
-- [ ] Proper error handling when network connection is lost
+- [x] Proper error handling when network connection is lost
 - [x] Match created just before venue check-out works correctly
 
