@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LoadingScreen } from '../components/ui/LoadingScreen';
+import LoadingState from '../components/ui/LoadingState';
+import ErrorState from '../components/ui/ErrorState';
 import VenueDetailsHeader from '../components/venue/VenueDetailsHeader';
 import UserGrid from '../components/venue/UserGrid';
 
@@ -142,20 +144,15 @@ const VenueDetails: React.FC = () => {
   };
   
   if (isLoading) {
-    return <LoadingScreen message="Loading venue..." />;
+    return <LoadingState message="Loading venue..." />;
   }
   
   if (error || !venue) {
     return (
-      <div className="p-4 text-center py-12 bg-bg-tertiary rounded-lg">
-        <p className="text-text-primary font-medium">{error || "Venue not found"}</p>
-        <button 
-          onClick={() => navigate('/venues')}
-          className="mt-4 px-4 py-2 bg-brand-primary text-white rounded-full text-sm"
-        >
-          Back to Venues
-        </button>
-      </div>
+      <ErrorState 
+        message={error || "Venue not found"} 
+        onRetry={() => navigate('/venues')}
+      />
     );
   }
   

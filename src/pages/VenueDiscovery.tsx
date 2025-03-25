@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { locationService } from '../services/locationService';
-import VenueCard from '../components/venue/VenueCard';
-import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { NetworkStatus } from '../components/ui/NetworkStatus';
-import OptimizedImage from '../components/ui/OptimizedImage';
+import VenueCard from '../components/venues/VenueCard';
+import LoadingState from '../components/ui/LoadingState';
+import ErrorState from '../components/ui/ErrorState';
+import NetworkStatus from '../components/ui/NetworkStatus';
+import OptimizedImage from '../components/shared/OptimizedImage';
 
 const VenueDiscovery: React.FC = () => {
   const [venues, setVenues] = useState<any[]>([]);
@@ -123,7 +124,7 @@ const VenueDiscovery: React.FC = () => {
   ];
   
   if (isLoading) {
-    return <LoadingScreen message="Finding venues near you..." />;
+    return <LoadingState message="Finding venues near you..." />;
   }
   
   return (
