@@ -2,88 +2,66 @@
 import React, { useState } from 'react';
 import { Match, User } from '@/types';
 import { trackContactShared } from '@/services/appAnalytics';
+import { Phone, Instagram, Send, X } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import OptimizedImage from '@/components/shared/OptimizedImage';
-import { Button } from "@/components/ui/button";
-import { Heart, MessageSquare, Share2, Coffee } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDivider } from '@/components/ui/card';
 
 interface MatchCardProps {
   match: Match;
   user: User;
-  onReconnectRequest: (matchId: string) => Promise<boolean>;
-  onShareContact: (matchId: string) => Promise<boolean>;
-  onWeMetClick: (matchId: string) => Promise<boolean>;
+  onShareContact: (matchId: string, contactInfo: any) => Promise<boolean>;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ 
-  match, 
-  user, 
-  onReconnectRequest,
-  onShareContact,
-  onWeMetClick
-}) => {
-  const [isShareLoading, setIsShareLoading] = useState(false);
-  const [isReconnectLoading, setIsReconnectLoading] = useState(false);
-  const [isWeMetLoading, setIsWeMetLoading] = useState(false);
-  const [comment, setComment] = useState('');
-  const [showCommentInput, setShowCommentInput] = useState(false);
+const MatchCard: React.FC<MatchCardProps> = ({ match, user, onShareContact }) => {
+  const [contactType, setContactType] = useState<'phone' | 'instagram' | 'snapchat' | 'custom'>('phone');
+  const [contactValue, setContactValue] = useState('');
+  const [isSharing, setIsSharing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   
-  const isExpired = Date.now() > match.expiresAt;
-  const isWithinReconnectWindow = isExpired && (Date.now() - match.expiresAt) < (6 * 60 * 60 * 1000); // 6 hours
+  const isExpired = match.expiresAt <= Date.now() || !match.isActive;
   
   const getTimeRemaining = () => {
     if (isExpired) return 'Expired';
     
-    const remaining = match.expiresAt - Date.now();
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const diff = match.expiresAt - Date.now();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     return `${hours}h ${minutes}m`;
   };
   
-  const handleShareContact = async () => {
-    if (isShareLoading) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    setIsShareLoading(true);
+    if (!contactValue.trim()) return;
+    
+    setIsSharing(true);
+    
     try {
-      const success = await onShareContact(match.id);
+      const success = await onShareContact(match.id, {
+        type: contactType,
+        value: contactValue,
+        sharedBy: match.userId,
+        sharedAt: new Date().toISOString()
+      });
+      
       if (success) {
         trackContactShared(match.id);
+        setShowForm(false);
       }
     } catch (error) {
       console.error('Error sharing contact:', error);
     } finally {
-      setIsShareLoading(false);
-    }
-  };
-  
-  const handleReconnectRequest = async () => {
-    if (isReconnectLoading) return;
-    
-    setIsReconnectLoading(true);
-    try {
-      await onReconnectRequest(match.id);
-    } catch (error) {
-      console.error('Error requesting reconnect:', error);
-    } finally {
-      setIsReconnectLoading(false);
-    }
-  };
-  
-  const handleWeMetClick = async () => {
-    if (isWeMetLoading) return;
-    
-    setIsWeMetLoading(true);
-    try {
-      await onWeMetClick(match.id);
-    } catch (error) {
-      console.error('Error marking as met:', error);
-    } finally {
-      setIsWeMetLoading(false);
+      setIsSharing(false);
     }
   };
   
   const getVenueName = () => {
+    // Extract name from venue ID or use provided name
+    if (match.venueName) return match.venueName;
+    
     if (match.venueId?.includes('-')) {
       return match.venueId.split('-').map(word => 
         word.charAt(0).toUpperCase() + word.slice(1)
@@ -92,140 +70,148 @@ const MatchCard: React.FC<MatchCardProps> = ({
     return 'a venue';
   };
   
-  const handleAddComment = () => {
-    setShowCommentInput(!showCommentInput);
-  };
-  
-  const handleSubmitComment = () => {
-    // In a real app, this would send the comment to the backend
-    setComment('');
-    setShowCommentInput(false);
-  };
-  
-  // Mock prompt data (in a real app, these would come from the user profile)
-  const prompts = [
-    {
-      question: "The way to my heart is",
-      answer: "Good food and interesting conversation"
-    },
-    {
-      question: "A life goal of mine",
-      answer: "To visit every continent at least once"
-    }
-  ];
-  
-  // Randomly select one prompt to display
-  const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-  
   return (
-    <Card className="mb-4 animate-scale-in overflow-hidden">
-      <div className="relative">
-        <OptimizedImage
-          src={user.photos[0]}
-          alt={user.name}
-          className="w-full h-[350px] object-cover"
-        />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-          <h3 className="text-white text-2xl font-semibold">{user.name}</h3>
-          <p className="text-white/80 text-sm">
-            Matched at {getVenueName()}
-          </p>
-        </div>
-        
-        {!isExpired && !match.contactShared && (
-          <button 
-            onClick={handleAddComment}
-            className="absolute top-4 right-4 bg-white/90 rounded-full p-2 shadow-md hover:bg-white transition-colors"
-            aria-label="Add comment"
-          >
-            <MessageSquare size={20} className="text-[#F3643E]" />
-          </button>
-        )}
-      </div>
-      
-      {showCommentInput && (
-        <div className="p-3 bg-[#F9F9F9]">
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Say something about their photo..."
-            className="w-full p-3 rounded-lg border border-[#E5E7EB] text-sm focus:outline-none focus:ring-1 focus:ring-[#F3643E]"
-            rows={2}
+    <Card className="overflow-hidden animate-scale-in">
+      <CardHeader className="p-0">
+        <div className="relative">
+          <OptimizedImage
+            src={user.photos[0]}
+            alt={user.name || ''}
+            className="w-full h-32 object-cover"
           />
-          <div className="flex justify-end mt-2 space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCommentInput(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleSubmitComment}
-              disabled={!comment.trim()}
-            >
-              Send
-            </Button>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
+            <div className="absolute bottom-3 left-3 text-white">
+              <h3 className="text-xl font-semibold">{user.name}</h3>
+              <p className="text-sm text-white/80">
+                Matched at {getVenueName()}
+              </p>
+            </div>
           </div>
         </div>
-      )}
+      </CardHeader>
       
       <CardContent className="p-4">
-        <div className="border border-[#F3643E]/10 rounded-lg p-3 mb-4 bg-[#F3643E]/5">
-          <p className="text-sm text-[#7B8794] font-medium mb-1">{randomPrompt.question}</p>
-          <p className="text-[#212832]">{randomPrompt.answer}</p>
-        </div>
+        {!match.contactShared && !isExpired && (
+          <p className="text-brand-primary text-sm font-medium mb-3">
+            Expires in {getTimeRemaining()}
+          </p>
+        )}
         
         {match.contactShared ? (
-          <div className="bg-green-50 p-3 rounded-lg">
-            <p className="text-green-700 text-sm font-medium flex items-center">
-              <Coffee size={16} className="mr-2" />
-              Contact info shared! Meet them at the venue.
-            </p>
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="text-muted-foreground font-medium mb-2">Contact Information</p>
+            <div className="flex items-center">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-brand-primary/10 text-brand-primary">
+                {match.contactInfo?.type === 'phone' && '📱 Phone'}
+                {match.contactInfo?.type === 'instagram' && '📸 Instagram'}
+                {match.contactInfo?.type === 'snapchat' && '👻 Snapchat'}
+                {match.contactInfo?.type === 'custom' && '✨ Contact'}
+              </span>
+              <p className="ml-3 font-medium">{match.contactInfo?.value}</p>
+            </div>
           </div>
         ) : isExpired ? (
-          isWithinReconnectWindow ? (
-            <Button
-              onClick={handleReconnectRequest}
-              disabled={isReconnectLoading}
-              variant="outline"
-              className="w-full"
-            >
-              {isReconnectLoading ? 'Requesting...' : 'Request Reconnect'}
-            </Button>
-          ) : (
-            <p className="text-[#7B8794] text-sm text-center py-2">
-              This match has expired
-            </p>
-          )
+          <p className="text-muted-foreground text-sm italic">This match has expired</p>
+        ) : showForm ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Share your contact info
+              </label>
+              
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setContactType('phone')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                    contactType === 'phone' 
+                      ? 'bg-brand-primary text-white' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  <Phone size={16} className="inline mr-2" /> Phone
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setContactType('instagram')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                    contactType === 'instagram' 
+                      ? 'bg-brand-primary text-white' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  <Instagram size={16} className="inline mr-2" /> Instagram
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setContactType('snapchat')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                    contactType === 'snapchat' 
+                      ? 'bg-brand-primary text-white' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  👻 Snapchat
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setContactType('custom')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                    contactType === 'custom' 
+                      ? 'bg-brand-primary text-white' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  ✨ Other
+                </button>
+              </div>
+              
+              <Input
+                type={contactType === 'phone' ? 'tel' : 'text'}
+                value={contactValue}
+                onChange={(e) => setContactValue(e.target.value)}
+                placeholder={
+                  contactType === 'phone' ? 'Your phone number' :
+                  contactType === 'instagram' ? 'Your Instagram username' :
+                  contactType === 'snapchat' ? 'Your Snapchat username' :
+                  'Your contact info'
+                }
+                className="w-full"
+                required
+              />
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowForm(false)}
+                className="flex-1"
+              >
+                <X size={16} className="mr-2" /> Cancel
+              </Button>
+              
+              <Button
+                type="submit"
+                disabled={isSharing || !contactValue.trim()}
+                className="flex-1"
+              >
+                {isSharing ? 'Sharing...' : <><Send size={16} className="mr-2" /> Share</>}
+              </Button>
+            </div>
+          </form>
         ) : (
           <Button
-            onClick={handleShareContact}
-            disabled={isShareLoading}
+            onClick={() => setShowForm(true)}
             className="w-full"
           >
-            <Share2 size={18} className="mr-2" />
-            {isShareLoading ? 'Sharing...' : 'Share Contact'}
+            Share Contact Info
           </Button>
         )}
       </CardContent>
-      
-      <CardDivider />
-      
-      {!isExpired && (
-        <CardFooter className="justify-center">
-          <Button
-            onClick={handleWeMetClick}
-            disabled={isWeMetLoading}
-            variant="premium"
-            className="w-full"
-          >
-            <Heart size={18} className="mr-2" />
-            {isWeMetLoading ? 'Saving...' : 'We Met'}
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   );
 };

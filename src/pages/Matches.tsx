@@ -1,229 +1,255 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
-import { matches, users, venues } from '@/data/mockData';
-import { User, Match as MatchType } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
-import { Heart, Share2, Send } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import MatchCard from '@/components/matches/MatchCard';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import LoadingScreen from '@/components/ui/LoadingScreen';
+import { useToast } from '@/components/ui/use-toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Match, User } from '@/types';
+import contactService from '@/services/firebase/contactService';
+import matchService from '@/services/firebase/matchService';
 
-const Matches = () => {
-  const currentUserId = 'u1'; // In a real app, this would come from auth
+const Matches: React.FC = () => {
+  const { currentUser, isLoading: authLoading } = useAuth();
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [matchUsers, setMatchUsers] = useState<Record<string, User>>({});
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  
-  // Get matches for current user, limited to 10 most recent
-  const [userMatches, setUserMatches] = useState<MatchType[]>([]);
-  const [sentMessages, setSentMessages] = useState<Record<string, string>>({});
-  
+
   useEffect(() => {
-    // Load matches from localStorage or fall back to mock data
-    const storedMatches = localStorage.getItem('userMatches');
-    const storedMessages = localStorage.getItem('sentMessages');
-    
-    if (storedMatches) {
-      setUserMatches(JSON.parse(storedMatches));
-    } else {
-      const filteredMatches = matches
-        .filter(match => 
-          (match.userId === currentUserId || match.matchedUserId === currentUserId) && 
-          match.isActive && 
-          match.expiresAt > Date.now()
-        )
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 10);
+    const loadMatches = async () => {
+      if (!currentUser?.id) return;
+      
+      setLoading(true);
+      
+      try {
+        // In a real app, we'd fetch from Firebase
+        // For now, we'll use fake data from localStorage or mock data
+        const userMatches = await matchService.getMatches(currentUser.id);
+        setMatches(userMatches);
         
-      setUserMatches(filteredMatches);
-      localStorage.setItem('userMatches', JSON.stringify(filteredMatches));
-    }
+        // Simulate fetching user details for each match
+        // In a real app, you would fetch these from your database
+        const users: Record<string, User> = {};
+        userMatches.forEach(match => {
+          const matchedUserId = match.userId === currentUser.id 
+            ? match.matchedUserId 
+            : match.userId;
+          
+          // Create a fake user profile - in a real app, fetch from database
+          users[matchedUserId] = {
+            id: matchedUserId,
+            name: `User ${matchedUserId.substring(0, 4)}`,
+            photos: ['https://randomuser.me/api/portraits/men/32.jpg'],
+            isCheckedIn: false,
+            isVisible: true,
+            interests: ['coffee', 'music']
+          };
+        });
+        
+        setMatchUsers(users);
+      } catch (error) {
+        console.error('Error loading matches:', error);
+        toast({
+          title: "Couldn't load matches",
+          description: "There was a problem loading your matches.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (storedMessages) {
-      setSentMessages(JSON.parse(storedMessages));
-    }
-  }, []);
+    loadMatches();
+  }, [currentUser, toast]);
   
-  // Find matched users from the userMatches
-  const matchedUsers = userMatches.map(match => {
-    const matchedUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
-    const user = users.find(u => u.id === matchedUserId);
-    return { match, user };
-  }).filter(({ user }) => user !== undefined);
-  
-  const handleShareContact = (matchId: string) => {
-    toast({
-      title: "Contact Shared",
-      description: "If they also share their contact, you'll both receive each other's info.",
-    });
-  };
-  
-  const handleSendMessage = (matchId: string, message: string) => {
-    if (message.trim()) {
-      const newMessages = { ...sentMessages, [matchId]: message };
-      setSentMessages(newMessages);
-      localStorage.setItem('sentMessages', JSON.stringify(newMessages));
+  const handleShareContact = async (matchId: string, contactInfo: any) => {
+    if (!currentUser) return false;
+    
+    try {
+      await contactService.shareContactInfo(matchId, {
+        ...contactInfo,
+        sharedBy: currentUser.id,
+        sharedAt: new Date().toISOString()
+      });
+      
+      // Update local state
+      setMatches(prev => 
+        prev.map(match => 
+          match.id === matchId 
+            ? { 
+                ...match, 
+                contactShared: true, 
+                contactInfo: {
+                  ...contactInfo,
+                  sharedBy: currentUser.id,
+                  sharedAt: new Date().toISOString()
+                }
+              } 
+            : match
+        )
+      );
       
       toast({
-        title: "Message Sent",
-        description: "Your message has been delivered.",
+        title: "Contact Shared",
+        description: "Your contact information has been shared with your match.",
       });
+      
+      return true;
+    } catch (error) {
+      console.error('Error sharing contact:', error);
+      toast({
+        title: "Couldn't share contact",
+        description: "There was a problem sharing your contact information.",
+        variant: "destructive",
+      });
+      return false;
     }
+  };
+  
+  const handleReconnectRequest = async (matchId: string) => {
+    if (!currentUser) return false;
+    
+    try {
+      const success = await matchService.requestReconnect(matchId, currentUser.id);
+      
+      if (success) {
+        toast({
+          title: "Reconnect Requested",
+          description: "Your request has been sent. If they also request to reconnect, you'll be matched again.",
+        });
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error requesting reconnect:', error);
+      toast({
+        title: "Couldn't request reconnect",
+        description: "There was a problem sending your reconnect request.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+  
+  const handleWeMetClick = async (matchId: string) => {
+    if (!currentUser) return false;
+    
+    try {
+      const success = await matchService.markAsMet(matchId);
+      
+      if (success) {
+        toast({
+          title: "Meeting Recorded",
+          description: "Great! We've recorded that you met your match.",
+        });
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error marking as met:', error);
+      toast({
+        title: "Couldn't record meeting",
+        description: "There was a problem recording your meeting.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+  
+  if (authLoading || loading) {
+    return <LoadingScreen message="Loading matches..." />;
+  }
+  
+  // Separate active and expired matches
+  const activeMatches = matches.filter(match => 
+    match.isActive && match.expiresAt > Date.now()
+  );
+  
+  const expiredMatches = matches.filter(match => 
+    !match.isActive || match.expiresAt <= Date.now()
+  );
+  
+  const getMatchedUser = (match: Match): User => {
+    const matchedUserId = match.userId === currentUser?.id 
+      ? match.matchedUserId 
+      : match.userId;
+    
+    return matchUsers[matchedUserId] || {
+      id: matchedUserId,
+      name: 'Unknown User',
+      photos: ['https://via.placeholder.com/150'],
+      isCheckedIn: false,
+      isVisible: true,
+      interests: []
+    };
   };
   
   return (
     <ErrorBoundary
-      fallback={
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-          <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-          <p className="text-muted-foreground mb-4">We had trouble loading your matches.</p>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
-        </div>
-      }
+      fallback={<div className="p-4 text-center">Something went wrong loading your matches</div>}
     >
-      <div className="min-h-screen bg-background text-foreground pt-16 pb-24">
-        <Header title="Mingle" />
+      <div className="min-h-screen bg-background pb-24">
+        <Header title="Matches" />
         
-        <main className="container mx-auto px-4 mt-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2">Your Matches</h2>
-            <p className="text-muted-foreground">
-              Matches expire in 3 hours, connect with people before time runs out!
-            </p>
-          </div>
-          
-          {matchedUsers.length > 0 ? (
-            <div className="space-y-4">
-              {matchedUsers.map(({ match, user }) => (
-                <MatchCard 
-                  key={match.id} 
-                  match={match} 
-                  user={user as User} 
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mb-4">
-                <Heart className="w-10 h-10 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-medium mb-2">No matches yet</h3>
-              <p className="text-muted-foreground max-w-md">
-                Check in to venues to meet people and create connections!
+        <main className="container mx-auto p-4 mt-16">
+          {activeMatches.length === 0 && expiredMatches.length === 0 ? (
+            <div className="text-center py-12 bg-muted rounded-lg">
+              <p className="font-medium">No matches yet</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Check in to venues to meet people
               </p>
             </div>
+          ) : (
+            <>
+              {activeMatches.length > 0 && (
+                <>
+                  <h2 className="text-lg font-semibold mb-3">
+                    Active Matches ({activeMatches.length})
+                  </h2>
+                  
+                  <div className="space-y-4 mb-8">
+                    {activeMatches.map(match => (
+                      <MatchCard 
+                        key={match.id}
+                        match={match}
+                        user={getMatchedUser(match)}
+                        onShareContact={handleShareContact}
+                        onReconnectRequest={handleReconnectRequest}
+                        onWeMetClick={handleWeMetClick}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              {expiredMatches.length > 0 && (
+                <>
+                  <h2 className="text-lg font-semibold mb-3">
+                    Past Matches ({expiredMatches.length})
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    {expiredMatches.map(match => (
+                      <MatchCard 
+                        key={match.id}
+                        match={match}
+                        user={getMatchedUser(match)}
+                        onShareContact={handleShareContact}
+                        onReconnectRequest={handleReconnectRequest}
+                        onWeMetClick={handleWeMetClick}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
           )}
         </main>
       </div>
     </ErrorBoundary>
-  );
-};
-
-interface MatchCardProps { 
-  match: MatchType; 
-  user: User; 
-}
-
-const MatchCard: React.FC<MatchCardProps> = ({ match, user }) => {
-  const [hasSharedContact, setHasSharedContact] = useState(match.contactShared);
-  const [message, setMessage] = useState('');
-  const [showMessage, setShowMessage] = useState(false);
-  
-  const handleShareContact = () => {
-    // Update match in state and localStorage
-    const updatedMatch = { ...match, contactShared: true };
-    const storedMatches = localStorage.getItem('userMatches');
-    if (storedMatches) {
-      const matches = JSON.parse(storedMatches);
-      const updatedMatches = matches.map((m: MatchType) => 
-        m.id === match.id ? updatedMatch : m
-      );
-      localStorage.setItem('userMatches', JSON.stringify(updatedMatches));
-    }
-    setHasSharedContact(true);
-  };
-  
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-    setShowMessage(true);
-    // You would normally save this message to a messages array
-  };
-  
-  // Calculate time remaining
-  const timeRemaining = () => {
-    const now = Date.now();
-    const remaining = match.expiresAt - now;
-    if (remaining <= 0) return 'Expired';
-    
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
-  
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-4">
-      <div className="p-4">
-        <div className="flex items-center">
-          <img 
-            src={user.photos[0]} 
-            alt={user.name} 
-            className="w-14 h-14 rounded-full object-cover border-2 border-white shadow"
-          />
-          <div className="ml-3 flex-1">
-            <h3 className="font-semibold text-lg">{user.name}</h3>
-            <p className="text-sm text-gray-600">
-              Matched at {match.venueId.replace(/-/g, ' ')}
-            </p>
-            <p className="text-xs text-gray-500">
-              Expires in {timeRemaining()}
-            </p>
-          </div>
-          <button
-            onClick={handleShareContact}
-            disabled={hasSharedContact}
-            className={`px-4 py-2 rounded-full text-sm font-medium ${
-              hasSharedContact 
-                ? 'bg-gray-100 text-gray-500' 
-                : 'bg-blue-500 text-white hover:bg-blue-600'
-            }`}
-          >
-            {hasSharedContact ? 'Shared' : 'Share Contact'}
-          </button>
-        </div>
-        
-        {showMessage && (
-          <div className="mt-4">
-            <div className="bg-blue-500 text-white px-4 py-2 rounded-tl-lg rounded-tr-lg rounded-br-lg inline-block max-w-[85%] ml-auto">
-              {message}
-            </div>
-          </div>
-        )}
-        
-        {!showMessage && (
-          <div className="mt-4 flex">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Tell them where you are..."
-              className="flex-1 border border-gray-200 rounded-l-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              maxLength={100}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!message.trim()}
-              className={`px-4 py-2 rounded-r-full text-sm font-medium ${
-                !message.trim() 
-                  ? 'bg-gray-100 text-gray-500' 
-                  : 'bg-blue-500 text-white'
-              }`}
-            >
-              Send
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
   );
 };
 

@@ -57,6 +57,12 @@ export interface Match {
   isActive: boolean;
   expiresAt: number;
   contactShared: boolean;
+  contactInfo?: {
+    type: 'phone' | 'instagram' | 'snapchat' | 'custom';
+    value: string;
+    sharedBy: string;
+    sharedAt: string;
+  };
   // Add new properties for reconnection feature
   userRequestedReconnect?: boolean;
   matchedUserRequestedReconnect?: boolean;

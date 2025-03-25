@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Interest, Match } from '@/types';
 import { getInterests, getMatches } from '@/utils/localStorageUtils';
