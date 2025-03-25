@@ -4,7 +4,7 @@ import { Camera, RefreshCw, Upload, AlertTriangle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import services from '@/services';
-import { storage } from '@/services/firebase';
+import { storage } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface SelfieVerificationProps {

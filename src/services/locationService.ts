@@ -1,7 +1,6 @@
-
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { firestore } from '@/services/firebase';
-import { auth } from '@/services/firebase';
+import { firestore } from '@/firebase/config';
+import { auth } from '@/firebase/config';
 
 // Location services setup
 export const initializeLocationServices = () => {

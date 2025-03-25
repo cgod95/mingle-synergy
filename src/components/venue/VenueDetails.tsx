@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import ToggleButton from '../ToggleButton';
 import { getDocs, collection, query, where } from 'firebase/firestore';
-import { firestore } from '../../services/firebase';
+import { firestore } from '../../firebase/config';
 
 interface VenueDetailsProps {
   venue: {
