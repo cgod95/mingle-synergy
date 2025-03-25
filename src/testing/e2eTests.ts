@@ -80,9 +80,11 @@ export class E2ETester {
       try {
         // Clean up any existing test user first
         await services.auth.signInWithEmailAndPassword(this.testUser.email, this.testUser.password)
-          .then(async user => {
-            this.userId = user.uid;
-            await services.user.deleteUser(this.userId!);
+          .then(async cred => {
+            if (cred && cred.user) {
+              this.userId = cred.user.uid;
+              await services.user.deleteUser(this.userId!);
+            }
           })
           .catch(() => {
             // Ignore errors if user doesn't exist
@@ -97,7 +99,7 @@ export class E2ETester {
         this.testUser.password
       );
       
-      this.userId = newUser.uid;
+      this.userId = newUser.user.uid;
       this.logResult({
         name: 'User registration',
         status: 'passed',
@@ -117,11 +119,11 @@ export class E2ETester {
         this.testUser.password
       );
       
-      if (user.uid === this.userId) {
+      if (user.user.uid === this.userId) {
         this.logResult({
           name: 'User sign-in',
           status: 'passed',
-          details: `Signed in as: ${user.email}`
+          details: `Signed in as: ${user.user.email}`
         });
       } else {
         throw new Error('User ID mismatch after sign-in');

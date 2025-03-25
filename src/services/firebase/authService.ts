@@ -1,3 +1,4 @@
+
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword, 
@@ -36,7 +37,7 @@ class FirebaseAuthService implements AuthService {
         console.warn('Failed to check if user exists:', error);
       }
       
-      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const credential = await firebaseSignInWithEmailAndPassword(auth, email, password);
       
       // Check if user document exists in Firestore
       const userDoc = await getDoc(doc(firestore, 'users', credential.user.uid));

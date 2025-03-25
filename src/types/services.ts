@@ -1,3 +1,4 @@
+
 import { Match as AppMatch, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
@@ -77,6 +78,7 @@ export interface MatchService {
 // Firebase types for use in our services
 export interface UserCredential {
   user: User;
+  uid?: string; // Added for e2eTests compatibility
 }
 
 export interface User {
