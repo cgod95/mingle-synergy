@@ -1,5 +1,5 @@
 
-import { firestore } from '../firebase';
+import { firestore } from '@/firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ContactInfo } from '@/types/contactInfo';
 import { trackContactShared } from '@/services/appAnalytics';

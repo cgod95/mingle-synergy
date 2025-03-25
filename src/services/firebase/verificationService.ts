@@ -1,5 +1,5 @@
 
-import { firestore } from '../firebase';
+import { firestore } from '@/firebase/config';
 import { VerificationService, VerificationStatus } from '@/types/services';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 

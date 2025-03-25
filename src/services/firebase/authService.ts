@@ -1,4 +1,3 @@
-
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword, 
@@ -9,10 +8,9 @@ import {
   fetchSignInMethodsForEmail
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, firestore } from '../firebase';
+import { auth, firestore } from '@/firebase/config';
 import { AuthService, UserCredential } from '@/types/services';
 
-// Error messages map for better user feedback
 const errorMessages: Record<string, string> = {
   'auth/email-already-in-use': 'This email is already in use. Please try signing in instead.',
   'auth/invalid-email': 'Please enter a valid email address.',
@@ -26,24 +24,20 @@ const errorMessages: Record<string, string> = {
 class FirebaseAuthService implements AuthService {
   async signIn(email: string, password: string): Promise<UserCredential> {
     try {
-      // Check if user exists first to provide better error message
       try {
         const signInMethods = await fetchSignInMethodsForEmail(auth, email);
         if (signInMethods.length === 0) {
           throw new Error('No account found with this email. Would you like to sign up instead?');
         }
       } catch (error) {
-        // Continue with sign in attempt even if this check fails
         console.warn('Failed to check if user exists:', error);
       }
       
       const credential = await firebaseSignInWithEmailAndPassword(auth, email, password);
       
-      // Check if user document exists in Firestore
       const userDoc = await getDoc(doc(firestore, 'users', credential.user.uid));
       
       if (!userDoc.exists()) {
-        // Create user document if it doesn't exist
         await setDoc(doc(firestore, 'users', credential.user.uid), {
           email,
           id: credential.user.uid,
@@ -74,14 +68,12 @@ class FirebaseAuthService implements AuthService {
 
   async signUp(email: string, password: string): Promise<UserCredential> {
     try {
-      // Check if user already exists
       try {
         const signInMethods = await fetchSignInMethodsForEmail(auth, email);
         if (signInMethods.length > 0) {
           throw new Error(errorMessages['auth/email-already-in-use'] || 'This email is already registered.');
         }
       } catch (error: any) {
-        // Only rethrow if it's not the "already exists" error
         if (error.code && error.code !== 'auth/email-already-in-use') {
           throw error;
         }
@@ -89,7 +81,6 @@ class FirebaseAuthService implements AuthService {
       
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Create user document in Firestore
       await setDoc(doc(firestore, 'users', credential.user.uid), {
         email,
         id: credential.user.uid,

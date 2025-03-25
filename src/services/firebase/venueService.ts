@@ -1,4 +1,5 @@
-import { firestore } from '../firebase';
+
+import { firestore } from '@/firebase/config';
 import { VenueService, Venue } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { calculateDistance } from '@/utils/locationUtils';
