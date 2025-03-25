@@ -14,8 +14,8 @@ import firebaseVerificationService from './firebase/verificationService';
 import mockVerificationService from './mock/mockVerificationService';
 
 // Determine which implementation to use
-// Setting to use mock services for Lovable development environment
-const USE_MOCK = true;
+// Setting to use Firebase services for production
+const USE_MOCK = false;
 
 // Export services
 const services = {
