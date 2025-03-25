@@ -57,9 +57,21 @@ class MockUserService implements UserService {
       throw new Error('User already exists');
     }
     
-    // Cast gender and interestedIn to the correct types
-    const gender = data.gender as 'male' | 'female' | 'non-binary' | 'other' | undefined;
-    const interestedIn = data.interestedIn as ('male' | 'female' | 'non-binary' | 'other')[] | undefined;
+    // Define valid gender values and create a type from them
+    const validGenderValues = ['male', 'female', 'non-binary', 'other'] as const;
+    type ValidGender = typeof validGenderValues[number];
+
+    // Ensure gender is one of the valid values
+    const userGender = data.gender;
+    const safeGender: ValidGender = 
+      userGender && validGenderValues.includes(userGender as any) 
+        ? (userGender as ValidGender) 
+        : 'other';
+    
+    // Ensure interestedIn contains only valid gender values
+    const interestedIn = (data.interestedIn || [])
+      .filter(gender => validGenderValues.includes(gender as any))
+      .map(gender => gender as ValidGender);
     
     // Add the new user to our mock data
     users.push({
@@ -68,8 +80,8 @@ class MockUserService implements UserService {
       isCheckedIn: data.isCheckedIn || false,
       isVisible: data.isVisible || true,
       interests: data.interests || [],
-      gender,
-      interestedIn,
+      gender: safeGender,
+      interestedIn: interestedIn.length ? interestedIn : ['male', 'female'],
     } as any);
     
     console.log(`[Mock] Created new user profile for ${userId}`);
