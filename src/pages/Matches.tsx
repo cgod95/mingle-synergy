@@ -6,44 +6,12 @@ import MatchCard from '@/components/matches/MatchCard';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useToast } from '@/components/ui/use-toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Match, User } from '@/types';
-import { ContactInfo } from '@/types/contactInfo';
+import { Match, MatchUser, ContactInfo } from '@/types/match.types';
 import { withAnalytics } from '@/components/withAnalytics';
-
-// Define a proper interface that extends User with the required id property
-interface UserWithId {
-  id: string;
-  name: string;
-  photos: string[];
-  age?: number;
-  isCheckedIn: boolean;
-  isVisible: boolean;
-  interests: string[];
-}
-
-// Define a proper Match interface that uses our UserWithId
-interface MatchWithUser {
-  id: string;
-  userId: string;
-  matchedUserId: string;
-  venueId: string;
-  venueName?: string;
-  timestamp: number;
-  isActive: boolean;
-  expiresAt: number;
-  contactShared: boolean;
-  contactInfo?: {
-    type: 'phone' | 'instagram' | 'snapchat' | 'custom';
-    value: string;
-    sharedBy: string;
-    sharedAt: string | number;
-  };
-  matchedUser: UserWithId;
-}
 
 const Matches: React.FC = () => {
   const { currentUser, isLoading: authLoading } = useAuth();
-  const [matches, setMatches] = useState<MatchWithUser[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -51,18 +19,18 @@ const Matches: React.FC = () => {
     const loadMatches = async () => {
       if (!currentUser) return;
       
-      // Safely cast currentUser to include the id property we need
-      const typedUser = currentUser as unknown as UserWithId;
+      // Safely create a user ID from currentUser
+      const userId = (currentUser as any).id || '';
       
       setLoading(true);
       
       try {
         // In a real app, fetch matches from Firestore
         // For now, we'll use mock data
-        const mockMatches: MatchWithUser[] = [
+        const mockMatches: Match[] = [
           {
             id: 'match1',
-            userId: typedUser.id,
+            userId: userId,
             matchedUserId: 'user1',
             venueId: 'venue1',
             venueName: 'The Grand Cafe',
@@ -82,7 +50,7 @@ const Matches: React.FC = () => {
           },
           {
             id: 'match2',
-            userId: typedUser.id,
+            userId: userId,
             matchedUserId: 'user2',
             venueId: 'venue2',
             venueName: 'Skybar Lounge',
@@ -102,7 +70,7 @@ const Matches: React.FC = () => {
           },
           {
             id: 'match3',
-            userId: typedUser.id,
+            userId: userId,
             matchedUserId: 'user3',
             venueId: 'venue3',
             venueName: 'Beachside Brewery',
@@ -113,7 +81,7 @@ const Matches: React.FC = () => {
             contactInfo: {
               type: 'instagram',
               value: '@taylor_insta',
-              sharedBy: typedUser.id,
+              sharedBy: userId,
               sharedAt: Date.now() - 100000
             },
             matchedUser: {
@@ -148,8 +116,8 @@ const Matches: React.FC = () => {
   const handleShareContact = async (matchId: string, contactInfo: ContactInfo): Promise<boolean> => {
     if (!currentUser) return false;
 
-    // Safely cast currentUser to include the id property
-    const typedUser = currentUser as unknown as UserWithId;
+    // Safely create a user ID from currentUser
+    const userId = (currentUser as any).id || '';
     
     try {
       // Update local state
@@ -161,7 +129,7 @@ const Matches: React.FC = () => {
                 contactShared: true, 
                 contactInfo: {
                   ...contactInfo,
-                  sharedBy: typedUser.id,
+                  sharedBy: userId,
                   sharedAt: new Date().toISOString()
                 }
               } 
@@ -270,8 +238,8 @@ const Matches: React.FC = () => {
                     {activeMatches.map(match => (
                       <MatchCard 
                         key={match.id}
-                        match={match as any}
-                        user={match.matchedUser as any}
+                        match={match}
+                        user={match.matchedUser as MatchUser}
                         onShareContact={handleShareContact}
                         onReconnectRequest={handleReconnectRequest}
                         onWeMetClick={handleWeMetClick}
@@ -291,8 +259,8 @@ const Matches: React.FC = () => {
                     {expiredMatches.map(match => (
                       <MatchCard 
                         key={match.id}
-                        match={match as any}
-                        user={match.matchedUser as any}
+                        match={match}
+                        user={match.matchedUser as MatchUser}
                         onShareContact={handleShareContact}
                         onReconnectRequest={handleReconnectRequest}
                         onWeMetClick={handleWeMetClick}

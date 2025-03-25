@@ -1,20 +1,20 @@
 
 import React, { useState } from 'react';
-import { Match, User } from '@/types';
-import { trackContactShared } from '@/services/appAnalytics';
 import { Phone, Instagram, Send, X } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import OptimizedImage from '@/components/shared/OptimizedImage';
+import { MatchCardProps, ContactInfo } from '@/types/match.types';
+import { trackContactShared } from '@/services/appAnalytics';
 
-interface MatchCardProps {
-  match: Match;
-  user: User;
-  onShareContact: (matchId: string, contactInfo: any) => Promise<boolean>;
-}
-
-const MatchCard: React.FC<MatchCardProps> = ({ match, user, onShareContact }) => {
+const MatchCard: React.FC<MatchCardProps> = ({ 
+  match, 
+  user, 
+  onShareContact,
+  onReconnectRequest,
+  onWeMetClick
+}) => {
   const [contactType, setContactType] = useState<'phone' | 'instagram' | 'snapchat' | 'custom'>('phone');
   const [contactValue, setContactValue] = useState('');
   const [isSharing, setIsSharing] = useState(false);
@@ -40,12 +40,14 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, user, onShareContact }) =>
     setIsSharing(true);
     
     try {
-      const success = await onShareContact(match.id, {
+      const contactInfo: ContactInfo = {
         type: contactType,
         value: contactValue,
         sharedBy: match.userId,
         sharedAt: new Date().toISOString()
-      });
+      };
+      
+      const success = await onShareContact(match.id, contactInfo);
       
       if (success) {
         trackContactShared(match.id);
