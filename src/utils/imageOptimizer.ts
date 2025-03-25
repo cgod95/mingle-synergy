@@ -23,7 +23,7 @@ export const setupLazyLoading = () => {
         }
       });
     }, {
-      rootMargin: '50px 0px', // Start loading 50px before the image enters viewport
+      rootMargin: '100px 0px', // Start loading 100px before the image enters viewport (increased from 50px)
       threshold: 0.01
     });
     
@@ -52,10 +52,20 @@ export const setupLazyLoading = () => {
 
 // Optimize image URL based on network conditions
 export const getOptimizedImageUrl = (url: string, width: number = 400): string => {
+  // If URL is empty or invalid, return a placeholder
+  if (!url || url.trim() === '') {
+    return '/placeholder.svg';
+  }
+
   // For unsplash images
   if (url.includes('unsplash.com')) {
     const separator = url.includes('?') ? '&' : '?';
-    const connectionType = (navigator as any).connection?.effectiveType || '4g';
+    
+    // Get connection type or default to 4g
+    let connectionType = '4g';
+    if (typeof navigator !== 'undefined' && 'connection' in navigator) {
+      connectionType = (navigator as any).connection?.effectiveType || '4g';
+    }
     
     // Lower quality for slower connections
     const quality = connectionType === '3g' ? 60 : 
@@ -64,32 +74,20 @@ export const getOptimizedImageUrl = (url: string, width: number = 400): string =
     return `${url}${separator}w=${width}&q=${quality}&auto=format`;
   }
   
-  // For other sources, try to use native browser optimizations
+  // Handle other image hosts if needed
+  
+  // For other sources, return the original URL
   return url;
 };
 
-// New function for optimized image loading
-export const optimizeImageLoading = () => {
-  document.addEventListener('DOMContentLoaded', () => {
-    const images = document.querySelectorAll('img[data-src]');
-    
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Use proper type assertion for HTMLImageElement
-          const img = entry.target as HTMLImageElement;
-          // Now TypeScript knows this is an HTMLImageElement with src property
-          if (img.dataset.src) {
-            img.src = img.dataset.src;
-          }
-          img.onload = () => img.classList.add('loaded');
-          observer.unobserve(img);
-        }
-      });
-    });
-    
-    images.forEach(img => imageObserver.observe(img));
-  });
+// Reset image loading for new components
+export const resetImageLoading = () => {
+  const observer = setupLazyLoading();
+  return () => {
+    if (observer) {
+      observer.disconnect();
+    }
+  };
 };
 
 // Initialize image optimization
@@ -119,5 +117,5 @@ export default {
   setupLazyLoading,
   getOptimizedImageUrl,
   initImageOptimization,
-  optimizeImageLoading
+  resetImageLoading
 };

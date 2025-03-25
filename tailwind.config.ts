@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -21,19 +20,20 @@ export default {
     extend: {
       colors: {
         bg: {
-          primary: "#F8F5F2",
+          primary: "#F8F7F4",
           secondary: "#FFFFFF",
-          tertiary: "#F3F3F3",
+          tertiary: "#F0F2F5",
         },
         text: {
-          primary: "#2D3142",
-          secondary: "#4F4F4F",
-          tertiary: "#6E6E6E",
+          primary: "#2D3748",
+          secondary: "#4A5568",
+          tertiary: "#718096",
         },
         brand: {
-          primary: "#F3643E",
-          secondary: "#2B2D42",
-          accent: "#5DB7DE",
+          primary: "#F0957D",
+          secondary: "#6B7F94",
+          accent: "#A0CCDA",
+          muted: "#E1E7EC",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -70,13 +70,13 @@ export default {
         },
         // New Hinge-inspired color palette
         hinge: {
-          coral: "#F3643E",
-          navy: "#212832",
-          background: "#F9F9F9",
-          teal: "#BDD9DC",
+          coral: "#F0957D",
+          navy: "#6B7F94",
+          background: "#F8F7F4",
+          teal: "#A0CCDA",
           text: {
-            primary: "#212832",
-            secondary: "#7B8794",
+            primary: "#2D3748",
+            secondary: "#4A5568",
           },
         },
       },

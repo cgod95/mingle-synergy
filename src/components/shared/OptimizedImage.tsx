@@ -24,6 +24,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [currentSrc, setCurrentSrc] = useState<string>('');
 
   useEffect(() => {
+    // Reset states when src changes
+    setIsLoading(true);
+    setError(false);
+    
     // Generate optimized source URL
     const optimizedSrc = getOptimizedImageUrl(src, width || 400);
     setCurrentSrc(optimizedSrc);
@@ -42,16 +46,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   return (
     <div className={`relative ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-          <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+        <div className="absolute inset-0 bg-bg-tertiary flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
       
       {error ? (
-        <div className="bg-gray-100 flex items-center justify-center h-full w-full">
-          <span className="text-gray-400 text-sm">Image not available</span>
+        <div className="bg-bg-tertiary flex items-center justify-center h-full w-full">
+          <span className="text-text-secondary text-sm">Image not available</span>
         </div>
       ) : (
         priority ? (
@@ -68,8 +70,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           />
         ) : (
           <img
-            data-src={currentSrc}
-            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
+            src={currentSrc}
             alt={alt}
             width={width}
             height={height}

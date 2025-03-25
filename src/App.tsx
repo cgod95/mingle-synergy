@@ -8,7 +8,6 @@ import { ToastProvider } from "@/components/ui/toast/ToastContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import BottomNav from "./components/BottomNav";
 import NetworkStatus from "./components/ui/NetworkStatus";
-import UpdateNotification from "./components/ui/UpdateNotification";
 import Index from "./pages/Index";
 import VenueList from "./pages/VenueList";
 import ActiveVenue from "./pages/ActiveVenue";
@@ -32,17 +31,24 @@ const AppLayout = () => {
   const location = useLocation();
   const { currentUser, isLoading } = useAuth();
   const [onboardingSeen, setOnboardingSeen] = useState<boolean>(() => {
-    return localStorage.getItem('onboardingSeen') === 'true';
+    return localStorage.getItem('onboardingSeen') === 'true' || 
+           localStorage.getItem('onboardingComplete') === 'true';
   });
   
   useEffect(() => {
-    const isComplete = localStorage.getItem('onboardingSeen') === 'true';
+    const isComplete = localStorage.getItem('onboardingSeen') === 'true' || 
+                       localStorage.getItem('onboardingComplete') === 'true';
     setOnboardingSeen(isComplete);
   }, [currentUser]);
   
   const handleOnboardingComplete = () => {
     localStorage.setItem('onboardingSeen', 'true');
+    localStorage.setItem('onboardingComplete', 'true');
     setOnboardingSeen(true);
+  };
+  
+  const skipOnboarding = () => {
+    return !!currentUser && onboardingSeen;
   };
   
   const isAuthPage = () => {
@@ -81,10 +87,14 @@ const AppLayout = () => {
           onboardingSeen ? <SignIn /> : <Navigate to="/onboarding-carousel" replace />
         } />
         
-        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/onboarding" element={
+          skipOnboarding() ? <Navigate to="/venues" replace /> : <Onboarding />
+        } />
         
         <Route path="/onboarding-carousel" element={
-          <OnboardingCarousel onComplete={handleOnboardingComplete} />
+          skipOnboarding() ? 
+            <Navigate to="/venues" replace /> : 
+            <OnboardingCarousel onComplete={handleOnboardingComplete} />
         } />
         
         <Route path="/venues" element={
@@ -127,7 +137,6 @@ const AppLayout = () => {
       
       {!isAuthPage() && <BottomNav />}
       <NetworkStatus />
-      <UpdateNotification />
     </ErrorBoundary>
   );
 };
