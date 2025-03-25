@@ -39,7 +39,7 @@ class MockMatchService implements MatchService {
     if (data.contactInfo && typeof data.contactInfo.sharedAt === 'number') {
       data.contactInfo = {
         ...data.contactInfo,
-        sharedAt: String(data.contactInfo.sharedAt)
+        sharedAt: data.contactInfo.sharedAt.toString()
       };
     }
     

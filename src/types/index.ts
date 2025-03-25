@@ -5,7 +5,6 @@ export interface User {
   name?: string;
   photos: string[];
   bio?: string;
-  occupation?: string; // Added this property
   isCheckedIn: boolean;
   currentVenue?: string;
   currentZone?: string;
