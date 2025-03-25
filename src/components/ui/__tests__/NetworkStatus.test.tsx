@@ -1,6 +1,6 @@
 
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import NetworkStatus from '../NetworkStatus';
 
 describe('NetworkStatus', () => {
