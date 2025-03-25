@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import LoadingIndicator from '@/components/ui/LoadingIndicator';
 import PageTransition from '@/components/ui/PageTransition';
+import OptimizedImage from '@/components/ui/OptimizedImage';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -67,6 +68,14 @@ const SignUp = () => {
       <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <OptimizedImage
+                src="/logo.png"
+                alt="Proximity Logo"
+                className="w-20 h-20"
+                placeholderName="Proximity"
+              />
+            </div>
             <h1 className="text-3xl font-bold text-brand-primary mb-2">Proximity</h1>
             <p className="text-text-secondary font-medium">Connect with people in the real world</p>
           </div>
