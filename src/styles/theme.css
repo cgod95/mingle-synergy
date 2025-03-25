@@ -24,6 +24,22 @@
   --success: #34D399;
   --warning: #FBBF24;
   --error: #EF4444;
+  
+  /* Override all yellow with softer colors */
+  --yellow-50: #FDF5E9;
+  --yellow-100: #FCEBD3;
+  --yellow-200: #F9D6A7;
+  --yellow-300: #F6C27B;
+  --yellow-400: #F3AD50;
+  --yellow-500: #F09924;
+  --yellow-600: #D17E18;
+  --yellow-700: #A15F12;
+  --yellow-800: #71400C;
+  --yellow-900: #422506;
+  
+  /* Replace any instances of primary yellow */
+  --primary-yellow: #F0957D;  /* Use our coral color instead */
+  --primary-highlight: #F0957D;
 }
 
 /* Apply new background color to the body */
@@ -38,4 +54,25 @@ body {
   background-color: var(--bg-secondary);
   box-shadow: var(--shadow-sm);
   border-radius: 12px;
+}
+
+/* Direct overrides for specific yellow elements */
+.bg-yellow-500 {
+  background-color: var(--brand-primary) !important;
+}
+
+.text-yellow-500 {
+  color: var(--text-secondary) !important; /* Use a neutral color instead */
+}
+
+/* Check for any tailwind yellow classes that might be used */
+.bg-yellow-400, .bg-yellow-300, .bg-yellow-600 {
+  background-color: var(--brand-primary) !important;
+}
+
+/* Also override any inline styles that might use yellow */
+[style*="background-color: yellow"], 
+[style*="background-color: #FFFF00"],
+[style*="background-color: rgb(255, 255, 0)"] {
+  background-color: var(--brand-primary) !important;
 }

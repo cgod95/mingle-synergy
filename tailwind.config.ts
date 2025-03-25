@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -34,6 +35,19 @@ export default {
           secondary: "#6B7F94",
           accent: "#A0CCDA",
           muted: "#E1E7EC",
+        },
+        // Override all yellow colors with softer alternatives
+        yellow: {
+          50: "#FDF5E9",
+          100: "#FCEBD3",
+          200: "#F9D6A7",
+          300: "#F6C27B",
+          400: "#F3AD50",
+          500: "#F09924",
+          600: "#D17E18",
+          700: "#A15F12",
+          800: "#71400C",
+          900: "#422506",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
