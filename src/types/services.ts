@@ -23,8 +23,8 @@ export interface UserProfile {
   currentZone?: string;
   isVisible?: boolean;
   interests?: string[];
-  gender?: string;
-  interestedIn?: string[];
+  gender?: string; // Changed from strict literal types to string
+  interestedIn?: string[]; // Changed from strict literal types to string[]
   age?: number;
   ageRangePreference?: {
     min: number;
@@ -61,7 +61,7 @@ export interface Match {
     type: 'phone' | 'instagram' | 'snapchat' | 'custom';
     value: string;
     sharedBy: string;
-    sharedAt: number | string; // Changed to accept both number and string
+    sharedAt: string; // Changed to string only, not string | number
   };
 }
 

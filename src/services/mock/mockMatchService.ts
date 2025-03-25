@@ -35,6 +35,14 @@ class MockMatchService implements MatchService {
       throw new Error('Match not found');
     }
     
+    // If the update includes contactInfo with a numeric sharedAt, convert it to string
+    if (data.contactInfo && typeof data.contactInfo.sharedAt === 'number') {
+      data.contactInfo = {
+        ...data.contactInfo,
+        sharedAt: data.contactInfo.sharedAt.toString()
+      };
+    }
+    
     // Update the match with the provided data
     matches[matchIndex] = {
       ...matches[matchIndex],
