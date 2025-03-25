@@ -160,3 +160,84 @@ input {
   border-color: #E2E8F0 !important;
 }
 
+/* NEW GLOBAL OVERRIDES FOR UPDATED UI */
+
+/* Global overrides to kill all yellow */
+body, #root, main, div, section, header, footer, aside, nav {
+  background-color: var(--bg-primary);
+}
+
+/* Navigation bar specific styles */
+.bottom-navigation,
+.nav-bar,
+[class*="bottom-nav"],
+nav[class*="fixed"],
+[class*="tab-bar"] {
+  background-color: var(--bg-secondary) !important;
+  border-top: 1px solid var(--bg-tertiary) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.nav-item.active {
+  color: var(--brand-primary) !important;
+}
+
+/* Fix tab indicator */
+.tab-indicator,
+.active-tab-indicator {
+  background-color: var(--brand-primary) !important;
+}
+
+/* Header bar */
+.header-bar,
+header,
+[class*="app-header"] {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--bg-tertiary) !important;
+}
+
+/* Toggle switch specific fix */
+.toggle-switch,
+[class*="toggle-switch"],
+[class*="switch-track"] {
+  background-color: #D1D5DB !important;
+}
+
+.toggle-switch.active,
+.toggle-switch[aria-checked="true"],
+[class*="toggle-switch"].active,
+[class*="switch-track"].active {
+  background-color: var(--brand-primary) !important;
+}
+
+.toggle-switch .toggle-handle,
+[class*="toggle-handle"],
+[class*="switch-thumb"] {
+  background-color: white !important;
+}
+
+/* Cards */
+.card,
+[class*="card"],
+.venue-card,
+.match-card,
+.user-card {
+  background-color: var(--bg-secondary) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-sm) !important;
+  border: none !important;
+}
+
+/* Fix text colors */
+h1, h2, h3, h4, h5, h6,
+.heading {
+  color: var(--text-primary) !important;
+}
+
+/* Specifically target match/venue cards */
+.match-gradient,
+.venue-gradient,
+[class*="gradient-overlay"],
+[style*="background: linear-gradient"] {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.7) 100%) !important;
+}
