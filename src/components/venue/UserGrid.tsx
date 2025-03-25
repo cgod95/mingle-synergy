@@ -6,7 +6,7 @@ import OptimizedImage from '../ui/OptimizedImage';
 interface UserGridProps {
   users: Array<{
     id: string;
-    name: string;
+    name?: string; // Changed to optional to match User type
     age?: number;
     photos: string[];
   }>;
@@ -23,8 +23,8 @@ const UserGrid: React.FC<UserGridProps> = ({ users, onLikeUser, likesRemaining, 
           <div className="aspect-square relative">
             <OptimizedImage
               src={user.photos[0]}
-              alt={user.name}
-              placeholderName={user.name}
+              alt={user.name || 'User'}
+              placeholderName={user.name || 'User'}
               className="w-full h-full object-cover"
             />
             
@@ -46,7 +46,7 @@ const UserGrid: React.FC<UserGridProps> = ({ users, onLikeUser, likesRemaining, 
           <div className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold">{user.name}</h3>
+                <h3 className="font-semibold">{user.name || 'Unknown'}</h3>
                 {user.age && <p className="text-sm text-gray-500">{user.age}</p>}
               </div>
               <Link 
