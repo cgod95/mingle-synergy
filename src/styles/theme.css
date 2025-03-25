@@ -84,9 +84,21 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 textarea {
-  background-color: #FFFFFF !important; /* White background */
+  background-color: #F9FAFB !important; /* Light gray background */
   border: 1px solid #E2E8F0 !important; /* Light gray border */
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1rem !important;
   color: #2D3748 !important; /* Dark text */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Focus states for form elements */
+input:focus, 
+textarea:focus, 
+select:focus {
+  outline: none !important;
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 3px rgba(240, 149, 125, 0.2) !important;
 }
 
 /* Target yellow containers */
@@ -114,9 +126,28 @@ form,
   background-color: #FFFFFF !important;
 }
 
+/* Make buttons more modern */
+.btn, 
+button[type="submit"], 
+[class*="btn-primary"] {
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+  transition: transform 0.2s, background-color 0.2s !important;
+  background-color: var(--brand-primary) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn:hover, 
+button[type="submit"]:hover {
+  transform: translateY(-1px) !important;
+  background-color: #E8806B !important; /* Slightly darker coral */
+}
+
 /* Ensure the input fields are white */
 input {
-  background-color: #FFFFFF !important;
+  background-color: #F9FAFB !important;
 }
 
 /* Replace specific yellow input placeholders */
@@ -128,3 +159,4 @@ input {
 .border, .border-2, .border-4, .border-yellow-500 {
   border-color: #E2E8F0 !important;
 }
+
