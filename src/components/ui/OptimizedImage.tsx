@@ -58,7 +58,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       img.onload = null;
       img.onerror = null;
     };
-  }, [src, placeholderName, alt]);
+  }, [src, placeholderName, alt, onLoad]);
   
   return (
     <div className={`relative ${className}`} style={{ width, height }}>

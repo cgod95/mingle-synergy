@@ -26,7 +26,7 @@ const NetworkStatus: React.FC = () => {
   
   // Simple JSX
   return (
-    <div className="fixed bottom-0 inset-x-0 p-4 bg-red-500 text-white text-center z-50">
+    <div className="fixed bottom-0 inset-x-0 p-4 bg-brand-primary text-white text-center z-50">
       <p className="font-medium">You&apos;re offline. Some features may not work properly.</p>
     </div>
   );
