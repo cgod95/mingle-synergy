@@ -23,6 +23,8 @@ import OnboardingCarousel from "./components/onboarding/OnboardingCarousel";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoadingScreen from "./components/ui/LoadingScreen";
+import { initializeLocationServices } from "@/services/locationService";
+import { initNotifications } from "@/services/notificationService";
 
 const LazyMatches = lazy(() => import("./pages/Matches"));
 const LazyProfile = lazy(() => import("./pages/Profile"));
@@ -39,6 +41,13 @@ const AppLayout = () => {
     const isComplete = localStorage.getItem('onboardingSeen') === 'true' || 
                        localStorage.getItem('onboardingComplete') === 'true';
     setOnboardingSeen(isComplete);
+  }, [currentUser]);
+  
+  useEffect(() => {
+    if (currentUser) {
+      initializeLocationServices();
+      initNotifications();
+    }
   }, [currentUser]);
   
   const handleOnboardingComplete = () => {
