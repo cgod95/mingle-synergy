@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -104,7 +105,7 @@ export default {
       boxShadow: {
         sm: "0 1px 2px rgba(0, 0, 0, 0.05)",
         md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        'card': '0 2px 8px rgba(0, 0, 0, 0.05)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.05)', // Updated for more subtle shadows
         'card-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
         'button': '0 2px 8px rgba(243, 100, 62, 0.2)',
         'bubble': '0px 2px 8px rgba(0, 0, 0, 0.05)',
@@ -169,12 +170,6 @@ export default {
         "heart-beat": "heartBeat 1.3s ease-in-out",
         "float": "float 3s ease-in-out infinite",
       },
-      boxShadow: {
-        'card': '0 2px 8px rgba(0, 0, 0, 0.05)', // Updated for more subtle shadows
-        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
-        'button': '0 2px 8px rgba(243, 100, 62, 0.2)',
-        'bubble': '0px 2px 8px rgba(0, 0, 0, 0.05)',
-      },
       backdropBlur: {
         xs: "2px",
       },
@@ -207,12 +202,6 @@ export default {
             fontWeight: '400',
           },
         },
-      },
-      fontFamily: {
-        'inter': ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        'georgia': ['Georgia', 'Times New Roman', 'serif'],
-        'sans': ['Inter', 'Basis Grotesque', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        'serif': ['Georgia', 'Tiempos Headline', 'Times New Roman', 'serif'],
       },
     },
   },
