@@ -13,6 +13,7 @@ import firebaseMatchService from './firebase/matchService';
 import firebaseVerificationService from './firebase/verificationService';
 import mockVerificationService from './mock/mockVerificationService';
 import { matchService } from './MatchService';
+import { userService } from './UserService';
 
 // Determine which implementation to use
 // Setting to use mock services for Lovable development environment
@@ -26,7 +27,9 @@ const services = {
   match: USE_MOCK ? mockMatchService : firebaseMatchService,
   verification: USE_MOCK ? mockVerificationService : firebaseVerificationService,
   // Add the new direct match service
-  directMatch: matchService
+  directMatch: matchService,
+  // Add the new direct user service
+  directUser: userService
 };
 
 export default services;
