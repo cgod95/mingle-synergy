@@ -2,29 +2,29 @@
 # Matches Feature Test Cases
 
 ## Match Creation
-- [ ] Match is created when two users express interest in each other
-- [ ] Match notification is displayed to both users
-- [ ] Match appears in the Matches tab for both users
-- [ ] Match details (user photo, name, venue) are correct
+- [x] Match is created when two users express interest in each other
+- [x] Match notification is displayed to both users
+- [x] Match appears in the Matches tab for both users
+- [x] Match details (user photo, name, venue) are correct
 
 ## Active Matches View
-- [ ] Active matches are displayed in the "Active Matches" section
-- [ ] Matches are sorted chronologically (newest first)
-- [ ] Timer showing match expiry is accurate
-- [ ] User photo and details are displayed correctly
+- [x] Active matches are displayed in the "Active Matches" section
+- [x] Matches are sorted chronologically (newest first)
+- [x] Timer showing match expiry is accurate
+- [x] User photo and details are displayed correctly
 
 ## Contact Sharing
-- [ ] User can select contact type (phone, Instagram, Snapchat, custom)
-- [ ] Contact form validation works correctly
+- [x] User can select contact type (phone, Instagram, Snapchat, custom)
+- [x] Contact form validation works correctly
 - [ ] Contact information is successfully shared
-- [ ] Shared contact info is displayed to the other user
-- [ ] Status updates to show contact has been shared
+- [x] Shared contact info is displayed to the other user
+- [x] Status updates to show contact has been shared
 
 ## Match Expiry
-- [ ] Match expires after 3 hours if no contact is shared
-- [ ] Expiry warning is displayed when less than 1 hour remains
-- [ ] Expired match moves to "Past Matches" section
-- [ ] Expired match shows correct status
+- [x] Match expires after 3 hours if no contact is shared
+- [x] Expiry warning is displayed when less than 1 hour remains
+- [x] Expired match moves to "Past Matches" section
+- [x] Expired match shows correct status
 
 ## Reconnect Flow (if implemented)
 - [ ] User can request to reconnect with expired match
@@ -39,8 +39,9 @@
 - [ ] Match status updates accordingly
 
 ## Edge Cases
-- [ ] User remains visible in match even when they uninstall app
-- [ ] Match persists if user logs out and back in
-- [ ] Contact info is preserved across sessions
+- [x] User remains visible in match even when they uninstall app
+- [x] Match persists if user logs out and back in
+- [x] Contact info is preserved across sessions
 - [ ] Proper error handling when network connection is lost
-- [ ] Match created just before venue check-out works correctly
+- [x] Match created just before venue check-out works correctly
+
