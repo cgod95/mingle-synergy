@@ -20,6 +20,21 @@ export default {
     },
     extend: {
       colors: {
+        bg: {
+          primary: "#F8F5F2",
+          secondary: "#FFFFFF",
+          tertiary: "#F3F3F3",
+        },
+        text: {
+          primary: "#2D3142",
+          secondary: "#4F4F4F",
+          tertiary: "#6E6E6E",
+        },
+        brand: {
+          primary: "#F3643E",
+          secondary: "#2B2D42",
+          accent: "#5DB7DE",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -67,11 +82,25 @@ export default {
       },
       spacing: {
         xs: '8px',
-        sm: '12px', // Updated to use tighter spacing
+        sm: '12px',
         md: '16px',
         lg: '24px',
         xl: '32px',
         '2xl': '48px',
+      },
+      boxShadow: {
+        sm: "0 1px 2px rgba(0, 0, 0, 0.05)",
+        md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        'card': '0 2px 8px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
+        'button': '0 2px 8px rgba(243, 100, 62, 0.2)',
+        'bubble': '0px 2px 8px rgba(0, 0, 0, 0.05)',
+      },
+      fontFamily: {
+        'inter': ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'georgia': ['Georgia', 'Times New Roman', 'serif'],
+        'sans': ['Inter', 'Basis Grotesque', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'serif': ['Georgia', 'Tiempos Headline', 'Times New Roman', 'serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
