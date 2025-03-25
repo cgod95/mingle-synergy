@@ -181,19 +181,29 @@ export const initErrorTracking = (): void => {
   }
 };
 
-// Create a reusable error boundary component
-export const withErrorBoundary = (Component: React.ComponentType<any>, fallback: React.ReactNode) => {
-  return function ErrorBoundaryWrapper(props: any) {
-    const FallbackComponent = () => <>{fallback}</>;
-
-    return Sentry.ErrorBoundary ? (
-      <Sentry.ErrorBoundary fallback={<FallbackComponent />}>
-        <Component {...props} />
-      </Sentry.ErrorBoundary>
-    ) : (
-      <Component {...props} />
+// Create a reusable error boundary component - fixed implementation without JSX
+export const withErrorBoundary = (
+  Component: React.ComponentType<any>, 
+  fallback: React.ReactNode
+): React.FC<any> => {
+  const ErrorBoundaryWrapper: React.FC<any> = (props) => {
+    // Create a fallback component
+    const FallbackComponent = () => {
+      return React.createElement('div', null, fallback);
+    };
+    
+    // Use createElement instead of JSX
+    return React.createElement(
+      Sentry.ErrorBoundary, 
+      { fallback: React.createElement(FallbackComponent) },
+      React.createElement(Component, props)
     );
   };
+  
+  const displayName = Component.displayName || Component.name || 'Component';
+  ErrorBoundaryWrapper.displayName = `withErrorBoundary(${displayName})`;
+  
+  return ErrorBoundaryWrapper;
 };
 
 export default {
