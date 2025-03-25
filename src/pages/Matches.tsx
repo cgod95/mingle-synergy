@@ -270,8 +270,8 @@ const Matches: React.FC = () => {
                     {activeMatches.map(match => (
                       <MatchCard 
                         key={match.id}
-                        match={match}
-                        user={match.matchedUser}
+                        match={match as any}
+                        user={match.matchedUser as any}
                         onShareContact={handleShareContact}
                         onReconnectRequest={handleReconnectRequest}
                         onWeMetClick={handleWeMetClick}
@@ -291,8 +291,8 @@ const Matches: React.FC = () => {
                     {expiredMatches.map(match => (
                       <MatchCard 
                         key={match.id}
-                        match={match}
-                        user={match.matchedUser}
+                        match={match as any}
+                        user={match.matchedUser as any}
                         onShareContact={handleShareContact}
                         onReconnectRequest={handleReconnectRequest}
                         onWeMetClick={handleWeMetClick}
