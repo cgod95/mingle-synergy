@@ -183,11 +183,15 @@ export const initErrorTracking = (): void => {
 
 // Create a reusable error boundary component
 export const withErrorBoundary = (Component: React.ComponentType, fallback: React.ReactNode) => {
-  return (props: any) => (
-    <Sentry.ErrorBoundary fallback={fallback}>
-      <Component {...props} />
-    </Sentry.ErrorBoundary>
-  );
+  return function ErrorBoundaryWrapper(props: any) {
+    return Sentry.ErrorBoundary ? 
+      React.createElement(
+        Sentry.ErrorBoundary,
+        { fallback: fallback },
+        React.createElement(Component, props)
+      ) : 
+      React.createElement(Component, props);
+  };
 };
 
 export default {
