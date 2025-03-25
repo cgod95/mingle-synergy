@@ -1,130 +1,58 @@
 
-import React from 'react';
-import { useToast } from '@/components/ui/use-toast';
-
 /**
- * Network monitoring utilities to handle offline/online states
- * and improve user experience during network issues
+ * Simple network status monitoring utility
+ * No React, no JSX, just plain TypeScript
  */
 
-// Initialize network monitoring
-export const setupNetworkMonitoring = () => {
-  // Handle offline/online status
-  const updateNetworkStatus = () => {
+// Function to set up network monitoring
+export function setupNetworkMonitoring(): void {
+  // Reference to any banner we create
+  let offlineBanner: HTMLDivElement | null = null;
+  
+  // Handler for when connection status changes
+  function handleNetworkChange(): void {
     const isOnline = navigator.onLine;
     
     if (!isOnline) {
-      // Show offline banner
-      const existingBanner = document.getElementById('offline-banner');
-      if (!existingBanner) {
-        const offlineBanner = document.createElement('div');
-        offlineBanner.id = 'offline-banner';
-        offlineBanner.className = 'fixed bottom-0 left-0 right-0 bg-red-500 text-white p-3 text-center z-50';
+      // We're offline - show banner if not already shown
+      if (!offlineBanner) {
+        offlineBanner = document.createElement('div');
+        offlineBanner.style.position = 'fixed';
+        offlineBanner.style.bottom = '0';
+        offlineBanner.style.left = '0';
+        offlineBanner.style.right = '0';
+        offlineBanner.style.backgroundColor = '#EF4444'; // red-500
+        offlineBanner.style.color = 'white';
+        offlineBanner.style.padding = '1rem';
+        offlineBanner.style.textAlign = 'center';
+        offlineBanner.style.zIndex = '50';
         offlineBanner.textContent = 'You are offline. Some features may not work properly.';
         document.body.appendChild(offlineBanner);
       }
       
-      // Store unsaved changes in localStorage
+      // Notify application about connection change
       document.dispatchEvent(new CustomEvent('app:offline'));
     } else {
-      // Remove offline banner if it exists
-      const banner = document.getElementById('offline-banner');
-      if (banner) {
-        banner.remove();
+      // We're online - remove banner if it exists
+      if (offlineBanner && offlineBanner.parentNode) {
+        offlineBanner.parentNode.removeChild(offlineBanner);
+        offlineBanner = null;
       }
       
-      // Try to sync any pending data
+      // Notify application about connection change
       document.dispatchEvent(new CustomEvent('app:online'));
     }
-  };
+  }
   
-  // Set up event listeners
-  window.addEventListener('online', updateNetworkStatus);
-  window.addEventListener('offline', updateNetworkStatus);
+  // Add event listeners
+  window.addEventListener('online', handleNetworkChange);
+  window.addEventListener('offline', handleNetworkChange);
   
   // Initial check
-  updateNetworkStatus();
-  
-  // Set up fetch interceptor for network errors
-  const originalFetch = window.fetch;
-  window.fetch = async (...args) => {
-    try {
-      const response = await originalFetch(...args);
-      return response;
-    } catch (error) {
-      // Handle network errors
-      console.error('Network error during fetch:', error);
-      document.dispatchEvent(new CustomEvent('app:networkError', { 
-        detail: { url: args[0], error } 
-      }));
-      throw error;
-    }
-  };
-};
+  handleNetworkChange();
+}
 
-// React hook for network status
-export const useNetworkStatus = () => {
-  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
-  const { toast } = useToast();
-  
-  React.useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      toast({
-        title: "You're back online",
-        description: "Your connection has been restored.",
-      });
-    };
-    
-    const handleOffline = () => {
-      setIsOnline(false);
-      toast({
-        title: "You're offline",
-        description: "Check your connection. Some features may not work properly.",
-        variant: "destructive",
-      });
-    };
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [toast]);
-  
-  return isOnline;
-};
-
-// Simple React component for network status
-export const NetworkStatus: React.FC = () => {
-  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
-  
-  React.useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-  
-  if (isOnline) return null;
-  
-  return (
-    <div className="fixed bottom-0 inset-x-0 p-4 bg-red-500 text-white text-center z-50">
-      <p className="font-medium">You&apos;re offline. Some features may not work properly.</p>
-    </div>
-  );
-};
-
-export default {
-  setupNetworkMonitoring,
-  useNetworkStatus,
-  NetworkStatus
-};
+// Export a function to manually check network status
+export function isOnline(): boolean {
+  return navigator.onLine;
+}
