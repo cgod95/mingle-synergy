@@ -23,8 +23,8 @@ class MockUserService implements UserService {
       currentZone: user.currentZone,
       isVisible: user.isVisible,
       interests: user.interests,
-      gender: user.gender,
-      interestedIn: user.interestedIn,
+      gender: user.gender as string, // Type assertion to handle string type
+      interestedIn: user.interestedIn as string[], // Type assertion for array of strings
       age: user.age,
       ageRangePreference: user.ageRangePreference,
       matches: user.matches,
@@ -57,6 +57,10 @@ class MockUserService implements UserService {
       throw new Error('User already exists');
     }
     
+    // Cast gender and interestedIn to the correct types
+    const gender = data.gender as 'male' | 'female' | 'non-binary' | 'other' | undefined;
+    const interestedIn = data.interestedIn as ('male' | 'female' | 'non-binary' | 'other')[] | undefined;
+    
     // Add the new user to our mock data
     users.push({
       ...data,
@@ -64,6 +68,8 @@ class MockUserService implements UserService {
       isCheckedIn: data.isCheckedIn || false,
       isVisible: data.isVisible || true,
       interests: data.interests || [],
+      gender,
+      interestedIn,
     } as any);
     
     console.log(`[Mock] Created new user profile for ${userId}`);
