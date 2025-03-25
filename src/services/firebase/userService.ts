@@ -10,6 +10,7 @@ const transformFirestoreUser = (firestoreData: any, userId: string): UserProfile
     name: firestoreData?.name || '',
     photos: firestoreData?.photos || [],
     bio: firestoreData?.bio || '',
+    occupation: firestoreData?.occupation || '',
     isCheckedIn: firestoreData?.isCheckedIn || false,
     currentVenue: firestoreData?.currentVenue || undefined,
     currentZone: firestoreData?.currentZone || undefined,

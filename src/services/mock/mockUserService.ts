@@ -17,6 +17,7 @@ class MockUserService implements UserService {
       name: user.name,
       photos: user.photos,
       bio: user.bio || '',
+      occupation: user.occupation || '',
       isCheckedIn: user.isCheckedIn,
       currentVenue: user.currentVenue,
       currentZone: user.currentZone,
