@@ -1,6 +1,10 @@
-
 import { UserService, UserProfile } from '@/types/services';
 import { users } from '@/data/mockData';
+
+// Add type guard function to validate gender values
+function isValidGender(gender: string): gender is 'male' | 'female' | 'non-binary' | 'other' {
+  return ['male', 'female', 'non-binary', 'other'].includes(gender);
+}
 
 class MockUserService implements UserService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
@@ -57,21 +61,14 @@ class MockUserService implements UserService {
       throw new Error('User already exists');
     }
     
-    // Define valid gender values and create a type from them
-    const validGenderValues = ['male', 'female', 'non-binary', 'other'] as const;
-    type ValidGender = typeof validGenderValues[number];
-
-    // Ensure gender is one of the valid values
-    const userGender = data.gender;
-    const safeGender: ValidGender = 
-      userGender && validGenderValues.includes(userGender as any) 
-        ? (userGender as ValidGender) 
-        : 'other';
+    // Handle gender validation
+    const rawGender = data.gender || 'other';
+    const gender = isValidGender(rawGender) ? rawGender : 'other';
     
-    // Ensure interestedIn contains only valid gender values
-    const interestedIn = (data.interestedIn || [])
-      .filter(gender => validGenderValues.includes(gender as any))
-      .map(gender => gender as ValidGender);
+    // Handle interestedIn validation
+    const validInterestedIn = (data.interestedIn || [])
+      .filter(g => isValidGender(g))
+      .map(g => g as 'male' | 'female' | 'non-binary' | 'other');
     
     // Add the new user to our mock data
     users.push({
@@ -80,8 +77,8 @@ class MockUserService implements UserService {
       isCheckedIn: data.isCheckedIn || false,
       isVisible: data.isVisible || true,
       interests: data.interests || [],
-      gender: safeGender,
-      interestedIn: interestedIn.length ? interestedIn : ['male', 'female'],
+      gender: gender,
+      interestedIn: validInterestedIn.length ? validInterestedIn : ['male', 'female'],
     } as any);
     
     console.log(`[Mock] Created new user profile for ${userId}`);
