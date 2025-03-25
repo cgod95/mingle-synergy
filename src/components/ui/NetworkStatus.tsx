@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const NetworkStatusBanner: React.FC = () => {
+const NetworkStatus: React.FC = () => {
   // Keep track of online status with a simple boolean
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   
@@ -32,4 +32,4 @@ const NetworkStatusBanner: React.FC = () => {
   );
 };
 
-export default NetworkStatusBanner;
+export default NetworkStatus;
