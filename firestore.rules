@@ -11,14 +11,14 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    // User profiles
+    // User profiles - users can read other profiles but only edit their own
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create, update: if isOwner(userId);
       allow delete: if false; // Prevent user deletion
     }
     
-    // Venues - Anyone can read venues
+    // Venues - anyone can read venues, signed-in users can create
     match /venues/{venueId} {
       allow read: if true;
       allow create, update: if isSignedIn();
