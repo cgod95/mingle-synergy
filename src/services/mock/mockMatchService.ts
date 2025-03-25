@@ -1,6 +1,4 @@
-
-import { MatchService } from '@/types/services';
-import { Match } from '@/types/services';
+import { MatchService, Match } from '@/types/services';
 import { matches } from '@/data/mockData';
 
 class MockMatchService implements MatchService {

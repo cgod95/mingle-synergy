@@ -1,4 +1,3 @@
-
 import { VenueService, Venue } from '@/types/services';
 import { venues } from '@/data/mockData';
 import { calculateDistance } from '@/utils/locationUtils';
@@ -15,14 +14,14 @@ class MockVenueService implements VenueService {
     return this.transformVenue(venue);
   }
 
-  async checkInToVenue(userId: string, venueId: string): Promise<void> {
+  async checkInToVenue(userId: string, venueId: string): Promise<boolean> {
     console.log(`Mock: User ${userId} checked in to venue ${venueId}`);
-    return Promise.resolve();
+    return true;
   }
 
-  async checkOutFromVenue(userId: string): Promise<void> {
+  async checkOutFromVenue(userId: string): Promise<boolean> {
     console.log(`Mock: User ${userId} checked out`);
-    return Promise.resolve();
+    return true;
   }
 
   async getNearbyVenues(latitude: number, longitude: number, radiusKm: number = 5): Promise<Venue[]> {

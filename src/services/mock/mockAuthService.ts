@@ -1,4 +1,3 @@
-
 import { AuthService, User, UserCredential } from '@/types/services';
 
 // Mock user data for testing
