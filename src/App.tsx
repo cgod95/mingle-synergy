@@ -1,8 +1,6 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppStateProvider } from "@/context/AppStateContext";
@@ -27,15 +25,6 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoadingScreen from "./components/ui/LoadingScreen";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 const LazyMatches = lazy(() => import("./pages/Matches"));
 const LazyProfile = lazy(() => import("./pages/Profile"));
 
@@ -47,7 +36,6 @@ const AppLayout = () => {
   });
   
   useEffect(() => {
-    // Check if onboarding is complete whenever user changes
     const isComplete = localStorage.getItem('onboardingSeen') === 'true';
     setOnboardingSeen(isComplete);
   }, [currentUser]);
@@ -146,34 +134,32 @@ const AppLayout = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ErrorBoundary
-        fallback={<div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-          <h2 className="text-xl font-semibold mb-2">Application Error</h2>
-          <p className="text-muted-foreground mb-4">We're having trouble loading the app.</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-brand-primary text-white rounded-lg"
-          >
-            Reload Application
-          </button>
-        </div>}
-      >
-        <AuthProvider>
-          <AppStateProvider>
-            <TooltipProvider>
-              <ToastProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <AppLayout />
-                </BrowserRouter>
-              </ToastProvider>
-            </TooltipProvider>
-          </AppStateProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </QueryClientProvider>
+    <ErrorBoundary
+      fallback={<div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        <h2 className="text-xl font-semibold mb-2">Application Error</h2>
+        <p className="text-muted-foreground mb-4">We're having trouble loading the app.</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-brand-primary text-white rounded-lg"
+        >
+          Reload Application
+        </button>
+      </div>}
+    >
+      <AuthProvider>
+        <AppStateProvider>
+          <TooltipProvider>
+            <ToastProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppLayout />
+              </BrowserRouter>
+            </ToastProvider>
+          </TooltipProvider>
+        </AppStateProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 
