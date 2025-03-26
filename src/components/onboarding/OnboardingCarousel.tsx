@@ -40,24 +40,26 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Last slide, complete onboarding and go to sign up
-      if (onComplete) {
-        onComplete();
-      } else {
-        localStorage.setItem('onboardingSeen', 'true');
-      }
-      navigate('/sign-up');
+      // Last slide, complete onboarding and go to profile edit
+      handleComplete();
     }
   };
   
   const handleSkip = () => {
-    // Skip onboarding, mark as seen and go to sign up
+    // Skip onboarding, mark as seen and go to profile edit
+    handleComplete();
+  };
+  
+  const handleComplete = () => {
+    // Mark onboarding as complete and navigate to profile edit
+    localStorage.setItem('onboardingSeen', 'true');
+    localStorage.setItem('onboardingComplete', 'true');
+    
     if (onComplete) {
       onComplete();
     } else {
-      localStorage.setItem('onboardingSeen', 'true');
+      navigate('/profile/edit');
     }
-    navigate('/sign-up');
   };
   
   return (
@@ -97,7 +99,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
             onClick={handleNext}
             className="w-full py-6 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full font-medium text-base"
           >
-            {currentSlide < slides.length - 1 ? 'Next' : 'Get Started'}
+            {currentSlide < slides.length - 1 ? 'Next' : 'Complete Onboarding'}
           </Button>
           
           {currentSlide < slides.length - 1 && (

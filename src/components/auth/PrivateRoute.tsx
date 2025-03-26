@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useAppState } from '@/context/AppStateContext';
 
 interface PrivateRouteProps {
-  children: React.ReactNode;
+  children: React.ReactNode | (() => React.ReactNode);
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
@@ -20,13 +20,13 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   }
   
   // For development, bypass auth checks
-  return <>{children}</>;
+  return <>{typeof children === 'function' ? children() : children}</>;
   
   // Uncomment for production:
   // if (!isAuthenticated) {
   //   return <Navigate to="/sign-in" replace />;
   // }
-  // return <>{children}</>;
+  // return <>{typeof children === 'function' ? children() : children}</>;
 };
 
 export default PrivateRoute;

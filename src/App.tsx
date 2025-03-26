@@ -9,6 +9,7 @@ import PrivateRoute from "./components/auth/PrivateRoute";
 import BottomNav from "./components/BottomNav";
 import NetworkStatus from "./components/ui/NetworkStatus";
 import UpdateNotification from "./components/ui/UpdateNotification";
+import { requireOnboarding } from "./utils/routeGuards";
 import Index from "./pages/Index";
 import VenueList from "./pages/VenueList";
 import ActiveVenue from "./pages/ActiveVenue";
@@ -26,6 +27,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoadingScreen from "./components/ui/LoadingScreen";
 import { initializeLocationServices, locationService } from "@/services/locationService";
 import { notificationService } from "@/services/notificationService";
+import ProfileEdit from "./pages/ProfileEdit";
 
 const LazyMatches = lazy(() => import("./pages/Matches"));
 const LazyProfile = lazy(() => import("./pages/Profile"));
@@ -157,9 +159,20 @@ const AppLayout = () => {
             <OnboardingCarousel onComplete={handleOnboardingComplete} />
         } />
         
+        <Route path="/profile/edit" element={
+          <PrivateRoute>
+            <ProfileEdit />
+          </PrivateRoute>
+        } />
+        
         <Route path="/venues" element={
           <PrivateRoute>
-            <VenueList />
+            {() => {
+              const redirectPath = requireOnboarding('/venues');
+              return redirectPath !== '/venues' ? 
+                <Navigate to={redirectPath} replace /> : 
+                <VenueList />;
+            }}
           </PrivateRoute>
         } />
         
