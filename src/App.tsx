@@ -48,16 +48,13 @@ const AppLayout = () => {
   
   useEffect(() => {
     if (currentUser) {
-      // Initialize location services
       initializeLocationServices();
       
-      // Start location tracking
       locationService.startTracking(currentUser.uid)
         .catch(error => {
           console.error('Location tracking error:', error);
         });
       
-      // Initialize notifications with enhanced error handling
       const initNotifications = async () => {
         try {
           const permissionGranted = await notificationService.requestPermission();
@@ -68,13 +65,10 @@ const AppLayout = () => {
               notificationService.updateUserNotificationSettings(currentUser.uid, true);
             }
             
-            // Setup notification handler
             const unsubscribe = notificationService.setupForegroundHandler((payload) => {
-              // Show in-app notification using toast system
               console.log('Received foreground message', payload);
             });
             
-            // Show a welcome notification
             notificationService.showNotification(
               'Proximity Notifications Enabled',
               { body: 'You\'ll now receive notifications about matches and messages.' }
@@ -97,7 +91,6 @@ const AppLayout = () => {
       initNotifications();
       
       return () => {
-        // Stop location tracking when component unmounts or user changes
         locationService.stopTracking();
       };
     }
