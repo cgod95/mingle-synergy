@@ -1,3 +1,4 @@
+
 import { AuthService, UserService, VenueService, MatchService } from '@/types/services';
 
 // Import services
@@ -6,6 +7,7 @@ import mockAuthService from './mock/mockAuthService';
 import mockUserService from './mock/mockUserService';
 import mockVenueService from './mock/mockVenueService';
 import mockMatchService from './mock/mockMatchService';
+import mockInterestService from './mock/mockInterestService';
 import firebaseUserService from './firebase/userService';
 import firebaseVenueService from './firebase/venueService';
 import firebaseMatchService from './firebase/matchService';
@@ -22,6 +24,7 @@ const services = {
   venue: isMock ? mockVenueService : firebaseVenueService,
   match: isMock ? mockMatchService : firebaseMatchService,
   verification: isMock ? mockVerificationService : firebaseVerificationService,
+  interest: mockInterestService, // Add interest service
 };
 
 export default services;

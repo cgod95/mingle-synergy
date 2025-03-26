@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User as UserType, Interest, Match } from '@/types';
 import { Heart } from 'lucide-react';
@@ -43,6 +44,7 @@ const UserCard: React.FC<UserCardProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   
   useEffect(() => {
+    // Force refresh likes remaining when component mounts
     const updateLikes = async () => {
       if (currentUser.id && venueId) {
         try {

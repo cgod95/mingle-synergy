@@ -134,6 +134,7 @@ const SimpleVenueView = () => {
   
   // Initialize and update likes remaining
   useEffect(() => {
+    // Force refresh likes remaining when component mounts
     const updateLikesRemaining = async () => {
       if (!id || !currentUser.id) return;
       
