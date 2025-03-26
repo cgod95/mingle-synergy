@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import ToggleButton from '../ToggleButton';
@@ -11,6 +12,10 @@ interface VenueDetailsProps {
     city?: string;
     userCount: number;
     id: string;
+    specials?: Array<{
+      title: string;
+      description: string;
+    }>;
   };
   expiryTime: string;
   onCheckOut: () => void;
@@ -97,6 +102,23 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
             Check Out
           </button>
         </div>
+      </div>
+      
+      {/* Specials & Offers Section */}
+      <div className="mb-4 mt-4">
+        <h3 className="text-lg font-semibold mb-2">Specials & Offers</h3>
+        {venue.specials && venue.specials.length > 0 ? (
+          <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
+            {venue.specials.map((special, index) => (
+              <div key={index} className="mb-2 last:mb-0">
+                <p className="font-medium text-orange-700">{special.title}</p>
+                <p className="text-sm text-gray-600">{special.description}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 italic">No current specials</p>
+        )}
       </div>
       
       {onToggleVisibility && (

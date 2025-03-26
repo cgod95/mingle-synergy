@@ -9,7 +9,17 @@ export const mockVenues: Venue[] = [
     address: '7A Huntley St, Alexandria NSW 2015',
     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24',
     checkInCount: 15,
-    expiryTime: 120 // 2 hours in minutes
+    expiryTime: 120, // 2 hours in minutes
+    specials: [
+      {
+        title: "Happy Hour: 2-4PM",
+        description: "50% off all coffee and pastries"
+      },
+      {
+        title: "Weekend Brunch Special",
+        description: "Bottomless mimosas with any breakfast purchase"
+      }
+    ]
   },
   {
     id: 'v2',
@@ -18,7 +28,13 @@ export const mockVenues: Venue[] = [
     address: 'Lower Concourse, Sydney Opera House',
     image: 'https://images.unsplash.com/photo-1503097581674-a2bfb450dbda',
     checkInCount: 27,
-    expiryTime: 180 // 3 hours in minutes
+    expiryTime: 180, // 3 hours in minutes
+    specials: [
+      {
+        title: "Cocktail Hour",
+        description: "Buy one get one free on signature cocktails from 5-7PM"
+      }
+    ]
   },
   {
     id: 'v3',
@@ -36,7 +52,17 @@ export const mockVenues: Venue[] = [
     address: '285A Crown St, Surry Hills',
     image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4',
     checkInCount: 21,
-    expiryTime: 180 // 3 hours in minutes
+    expiryTime: 180, // 3 hours in minutes
+    specials: [
+      {
+        title: "Wine Wednesday",
+        description: "Half price bottles of selected wines"
+      },
+      {
+        title: "Chef's Special",
+        description: "Three-course tasting menu for $65 per person"
+      }
+    ]
   },
   {
     id: 'v5',

@@ -62,7 +62,8 @@ class MockVenueService implements VenueService {
       expiryTime: venue.expiryTime || 120,
       zones: venue.zones || [],
       image: venue.image || '',
-      checkedInUsers: venue.checkedInUsers || []
+      checkedInUsers: venue.checkedInUsers || [],
+      specials: venue.specials || []
     };
   }
 }

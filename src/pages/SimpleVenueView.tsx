@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Venue } from '@/types';
@@ -245,18 +246,20 @@ const SimpleVenueView = () => {
                   isLoading={isTogglingVisibility}
                 />
                 
-                <div className="bg-gray-50 px-4 py-3 rounded-lg mb-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-sm text-gray-500">Peak hours</span>
-                      <p className="font-medium">7:00 PM - 10:00 PM</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-500">Current mood</span>
-                      <p className="font-medium">Buzzing</p>
+                {/* Specials section */}
+                {venue.specials && venue.specials.length > 0 && (
+                  <div className="mb-6 mt-4">
+                    <h3 className="text-lg font-semibold mb-2">Specials & Offers</h3>
+                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
+                      {venue.specials.map((special, index) => (
+                        <div key={index} className="mb-2 last:mb-0">
+                          <p className="font-medium text-orange-700">{special.title}</p>
+                          <p className="text-sm text-gray-600">{special.description}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
+                )}
                 
                 <ZoneSelector 
                   zones={availableZones}

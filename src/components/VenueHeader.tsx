@@ -102,22 +102,6 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
           <span>Expires {formatExpiryTime()}</span>
         </div>
       </div>
-      
-      {/* Meta information about the venue */}
-      <div className="mt-3 bg-gray-50 px-3 py-2 rounded-lg">
-        <div className="flex justify-between items-center text-xs">
-          <div>
-            <span className="text-gray-500 block">Peak times</span>
-            <p className="font-medium">7:00 PM - 10:00 PM</p>
-          </div>
-          <div>
-            <span className="text-gray-500 block">Current mood</span>
-            <p className="font-medium">
-              {venue.checkInCount > 10 ? 'Buzzing' : venue.checkInCount > 5 ? 'Active' : 'Quiet'}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
