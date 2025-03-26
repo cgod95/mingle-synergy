@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/services';
 import authService from '@/services';
 import { useToast } from '@/components/ui/use-toast';
@@ -27,15 +28,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  // Remove direct router hook usage
   const navigateRef = useRef<any>(null);
   
-  // Function to set the navigate function from components that have router context
   const setNavigate = useCallback((navigateFunction: any) => {
     navigateRef.current = navigateFunction;
   }, []);
   
-  // Safe navigation function that doesn't depend on router hooks
   const safeNavigate = useCallback((path: string) => {
     if (navigateRef.current) {
       navigateRef.current(path);
@@ -44,7 +42,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Load user from localStorage on initial mount
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem('currentUser');
@@ -58,12 +55,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Subscribe to auth state changes
   useEffect(() => {
     const unsubscribe = authService.auth.onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);
-        // Save user to localStorage for persistence
         localStorage.setItem('currentUser', JSON.stringify(user));
       }
     });
@@ -76,7 +71,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       const result = await authService.auth.signIn(email, password);
       setCurrentUser(result.user);
-      // Save user to localStorage for persistence
       localStorage.setItem('currentUser', JSON.stringify(result.user));
       toast({
         title: 'Signed in successfully',
@@ -110,7 +104,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       const result = await authService.auth.signUp(email, password);
       setCurrentUser(result.user);
-      // Save user to localStorage for persistence
       localStorage.setItem('currentUser', JSON.stringify(result.user));
       toast({
         title: 'Account created successfully',
@@ -142,7 +135,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signOut = async (): Promise<void> => {
     try {
       await authService.auth.signOut();
-      // Remove user from localStorage
       localStorage.removeItem('currentUser');
       setCurrentUser(null);
       toast({
@@ -192,7 +184,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-// Export the setNavigate function to be used in components with router context
 export const AuthNavigationContext = createContext<((navigate: any) => void) | undefined>(undefined);
 
 export const useAuthNavigation = () => {
@@ -203,7 +194,6 @@ export const useAuthNavigation = () => {
   return context;
 };
 
-// Create a higher-order component to provide the navigate function to AuthContext
 export const WithAuthNavigation: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const setNavigate = useContext(AuthNavigationContext);
