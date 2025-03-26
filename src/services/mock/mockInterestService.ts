@@ -5,16 +5,40 @@ import { getFromStorage, saveToStorage } from '@/utils/localStorageUtils';
 class MockInterestService {
   // Get remaining likes for a user at a specific venue
   public async getLikesRemaining(userId: string, venueId: string): Promise<number> {
-    const key = `likesRemaining-${venueId}`;
-    const storedLikes = getFromStorage<number>(key, 3);
-    
-    // If no likes are stored yet, initialize with 3
-    if (storedLikes === null) {
-      saveToStorage(key, 3);
-      return 3;
+    try {
+      // Check if we have a record for this venue in localStorage
+      const key = `likes_${userId}_${venueId}`;
+      const storedLikes = localStorage.getItem(key);
+      
+      if (storedLikes) {
+        return parseInt(storedLikes, 10);
+      } else {
+        // Initialize with 3 likes if no record exists
+        localStorage.setItem(key, '3');
+        return 3;
+      }
+    } catch (error) {
+      console.error('Error getting remaining likes:', error);
+      return 0;
     }
-    
-    return storedLikes;
+  }
+  
+  // Decrement likes for a user at a specific venue
+  public async decrementLikes(userId: string, venueId: string): Promise<boolean> {
+    try {
+      const key = `likes_${userId}_${venueId}`;
+      const storedLikes = localStorage.getItem(key);
+      const current = storedLikes ? parseInt(storedLikes, 10) : 0;
+      
+      if (current > 0) {
+        localStorage.setItem(key, (current - 1).toString());
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error decrementing likes:', error);
+      return false;
+    }
   }
   
   // Record a like and decrement the remaining count
@@ -24,11 +48,11 @@ class MockInterestService {
     venueId: string
   ): Promise<boolean> {
     try {
-      // Get current likes remaining
-      const likesRemaining = await this.getLikesRemaining(fromUserId, venueId);
+      // Try to decrement likes first
+      const decrementSuccess = await this.decrementLikes(fromUserId, venueId);
       
       // Return false if no likes remaining
-      if (likesRemaining <= 0) {
+      if (!decrementSuccess) {
         return false;
       }
       
@@ -49,10 +73,6 @@ class MockInterestService {
       // Add new interest
       existingInterests.push(newInterest);
       saveToStorage('interests', existingInterests);
-      
-      // Update remaining likes
-      const newLikesRemaining = likesRemaining - 1;
-      saveToStorage(`likesRemaining-${venueId}`, newLikesRemaining);
       
       return true;
     } catch (error) {
@@ -75,7 +95,8 @@ class MockInterestService {
   
   // Reset likes for testing purposes
   public async resetLikesForVenue(userId: string, venueId: string): Promise<void> {
-    saveToStorage(`likesRemaining-${venueId}`, 3);
+    const key = `likes_${userId}_${venueId}`;
+    localStorage.setItem(key, '3');
   }
 }
 

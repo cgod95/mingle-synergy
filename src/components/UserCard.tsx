@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User as UserType, Interest, Match } from '@/types';
 import { Heart } from 'lucide-react';
 import OptimizedImage from './shared/OptimizedImage';
+import mockInterestService from '@/services/mock/mockInterestService';
 
 interface UserCardProps {
   user: UserType;
@@ -41,7 +42,22 @@ const UserCard: React.FC<UserCardProps> = ({
   const [isLiked, setIsLiked] = useState(isAlreadyLiked);
   const [isAnimating, setIsAnimating] = useState(false);
   
-  const handleHeartClick = (e: React.MouseEvent) => {
+  useEffect(() => {
+    const updateLikes = async () => {
+      if (currentUser.id && venueId) {
+        try {
+          const remaining = await mockInterestService.getLikesRemaining(currentUser.id, venueId);
+          setLikesRemaining(remaining);
+        } catch (error) {
+          console.error('Error loading likes:', error);
+        }
+      }
+    };
+    
+    updateLikes();
+  }, [currentUser.id, venueId, setLikesRemaining]);
+  
+  const handleHeartClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     
@@ -60,56 +76,55 @@ const UserCard: React.FC<UserCardProps> = ({
     console.log("Heart clicked for user:", user.id);
     setIsLiked(true);
     
-    setLikesRemaining(prev => prev - 1);
+    const success = await mockInterestService.recordInterest(currentUser.id, user.id, venueId);
     
-    localStorage.setItem(`likesRemaining-${venueId}`, String(likesRemaining - 1));
-    
-    const newInterest = {
-      id: `int_${Date.now()}`,
-      fromUserId: currentUser.id,
-      toUserId: user.id,
-      venueId: user.currentVenue || venueId,
-      timestamp: Date.now(),
-      isActive: true,
-      expiresAt: Date.now() + (3 * 60 * 60 * 1000)
-    };
-    
-    setInterests(prev => [...prev, newInterest]);
-    
-    const savedInterests = JSON.parse(localStorage.getItem('interests') || '[]');
-    savedInterests.push(newInterest);
-    localStorage.setItem('interests', JSON.stringify(savedInterests));
-    
-    if (window.showToast) {
-      window.showToast('Interest sent!');
-    }
-    
-    const mutualInterest = interests.find(interest => 
-      interest.fromUserId === user.id && 
-      interest.toUserId === currentUser.id &&
-      interest.isActive
-    );
-    
-    if (mutualInterest) {
-      const newMatch = {
-        id: `match_${Date.now()}`,
-        userId: currentUser.id,
-        matchedUserId: user.id,
+    if (success) {
+      const remaining = await mockInterestService.getLikesRemaining(currentUser.id, venueId);
+      setLikesRemaining(remaining);
+      
+      const newInterest = {
+        id: `int_${Date.now()}`,
+        fromUserId: currentUser.id,
+        toUserId: user.id,
         venueId: user.currentVenue || venueId,
         timestamp: Date.now(),
         isActive: true,
-        expiresAt: Date.now() + (3 * 60 * 60 * 1000),
-        contactShared: false
+        expiresAt: Date.now() + (3 * 60 * 60 * 1000)
       };
       
-      setMatches(prev => [...prev, newMatch]);
+      setInterests(prev => [...prev, newInterest]);
       
-      const savedMatches = JSON.parse(localStorage.getItem('matches') || '[]');
-      savedMatches.push(newMatch);
-      localStorage.setItem('matches', JSON.stringify(savedMatches));
+      if (window.showToast) {
+        window.showToast('Interest sent!');
+      }
       
-      if (window.showMatchModal) {
-        window.showMatchModal(user);
+      const mutualInterest = interests.find(interest => 
+        interest.fromUserId === user.id && 
+        interest.toUserId === currentUser.id &&
+        interest.isActive
+      );
+      
+      if (mutualInterest) {
+        const newMatch = {
+          id: `match_${Date.now()}`,
+          userId: currentUser.id,
+          matchedUserId: user.id,
+          venueId: user.currentVenue || venueId,
+          timestamp: Date.now(),
+          isActive: true,
+          expiresAt: Date.now() + (3 * 60 * 60 * 1000),
+          contactShared: false
+        };
+        
+        setMatches(prev => [...prev, newMatch]);
+        
+        const savedMatches = JSON.parse(localStorage.getItem('matches') || '[]');
+        savedMatches.push(newMatch);
+        localStorage.setItem('matches', JSON.stringify(savedMatches));
+        
+        if (window.showMatchModal) {
+          window.showMatchModal(user);
+        }
       }
     }
   };

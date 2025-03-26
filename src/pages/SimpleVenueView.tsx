@@ -135,7 +135,7 @@ const SimpleVenueView = () => {
   // Initialize and update likes remaining
   useEffect(() => {
     const updateLikesRemaining = async () => {
-      if (!id) return;
+      if (!id || !currentUser.id) return;
       
       try {
         const remaining = await mockInterestService.getLikesRemaining(currentUser.id, id);
