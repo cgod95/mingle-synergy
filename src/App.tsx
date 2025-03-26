@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate, useNavigate } from
 import { AuthProvider, AuthNavigationContext, WithAuthNavigation, useAuth } from "@/context/AuthContext";
 import { AppStateProvider } from "@/context/AppStateContext";
 import { ToastProvider } from "@/components/ui/toast/ToastContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import BottomNav from "./components/BottomNav";
 import NetworkStatus from "./components/ui/NetworkStatus";
@@ -248,13 +249,15 @@ const App = () => {
           <AppStateProvider>
             <TooltipProvider>
               <ToastProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <WithAuthNavigation>
-                    <AppLayout />
-                  </WithAuthNavigation>
-                </BrowserRouter>
+                <NotificationProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <WithAuthNavigation>
+                      <AppLayout />
+                    </WithAuthNavigation>
+                  </BrowserRouter>
+                </NotificationProvider>
               </ToastProvider>
             </TooltipProvider>
           </AppStateProvider>

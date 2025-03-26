@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { useNotification } from "@/context/NotificationContext";
 import PageTransition from '@/components/ui/PageTransition';
 
 const ProfileEdit = () => {
@@ -12,6 +13,7 @@ const ProfileEdit = () => {
   const [bio, setBio] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { showNotification } = useNotification();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +32,9 @@ const ProfileEdit = () => {
         variant: "default"
       });
       
+      // Show notification
+      showNotification('success', 'Profile saved successfully!');
+      
       navigate('/venues');
     } catch (error) {
       console.error('Profile save error:', error);
@@ -38,6 +43,9 @@ const ProfileEdit = () => {
         description: "Please try again.",
         variant: "destructive"
       });
+      
+      // Show error notification
+      showNotification('error', 'Failed to save profile. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -77,6 +85,15 @@ const ProfileEdit = () => {
               disabled={isLoading}
             >
               {isLoading ? 'Saving...' : 'Save Profile'}
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-2"
+              onClick={() => showNotification('info', 'This is a test notification', 8000)}
+            >
+              Test Notification
             </Button>
           </form>
         </div>
