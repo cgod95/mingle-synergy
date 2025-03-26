@@ -13,19 +13,16 @@ import firebaseMatchService from './firebase/matchService';
 import firebaseVerificationService from './firebase/verificationService';
 import mockVerificationService from './mock/mockVerificationService';
 
-// Import from Firebase init to get the USE_MOCK setting
-import { app } from '@/firebase/init';
+// Import mock status from Firebase config
+import { isMock } from '@/firebase/config';
 
-// Use app as a simple check - if it's an empty object, we're using mocks
-const USE_MOCK = Object.keys(app).length === 0;
-
-// Export services
+// Export services based on mock status
 const services = {
-  auth: USE_MOCK ? mockAuthService : firebaseAuthService,
-  user: USE_MOCK ? mockUserService : firebaseUserService,
-  venue: USE_MOCK ? mockVenueService : firebaseVenueService,
-  match: USE_MOCK ? mockMatchService : firebaseMatchService,
-  verification: USE_MOCK ? mockVerificationService : firebaseVerificationService,
+  auth: isMock ? mockAuthService : firebaseAuthService,
+  user: isMock ? mockUserService : firebaseUserService,
+  venue: isMock ? mockVenueService : firebaseVenueService,
+  match: isMock ? mockMatchService : firebaseMatchService,
+  verification: isMock ? mockVerificationService : firebaseVerificationService,
 };
 
 export default services;

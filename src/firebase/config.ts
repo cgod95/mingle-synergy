@@ -5,7 +5,7 @@ import { getAnalytics } from 'firebase/analytics';
 // Initialize analytics separately
 let analytics = null;
 try {
-  if (typeof window !== 'undefined' && !app.mock) {
+  if (typeof window !== 'undefined' && Object.keys(app).length > 0) {
     analytics = getAnalytics(app);
   }
 } catch (e) {
@@ -15,4 +15,7 @@ try {
 // For backward compatibility
 const firestore = db;
 
-export { app, auth, db, storage, analytics, firestore };
+// Export mock status for service determination
+const isMock = Object.keys(app).length === 0;
+
+export { app, auth, db, storage, analytics, firestore, isMock };
