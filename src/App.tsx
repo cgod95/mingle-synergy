@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import { ToastProvider } from "@/components/ui/toast/ToastContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
 import BottomNav from "./components/BottomNav";
 import NetworkStatus from "./components/ui/NetworkStatus";
+import UpdateNotification from "./components/ui/UpdateNotification";
 import Index from "./pages/Index";
 import VenueList from "./pages/VenueList";
 import ActiveVenue from "./pages/ActiveVenue";
@@ -45,8 +47,37 @@ const AppLayout = () => {
   
   useEffect(() => {
     if (currentUser) {
+      // Initialize location services
       initializeLocationServices();
-      notificationService.initNotifications();
+      
+      // Initialize notifications with enhanced error handling
+      const initNotifications = async () => {
+        try {
+          const permissionGranted = await notificationService.requestPermission();
+          
+          if (permissionGranted) {
+            console.log('Notification permission granted');
+            if (currentUser.uid) {
+              notificationService.updateUserNotificationSettings(currentUser.uid, true);
+            }
+            
+            // Show a welcome notification
+            notificationService.showNotification(
+              'Proximity Notifications Enabled',
+              { body: 'You\'ll now receive notifications about matches and messages.' }
+            );
+          } else {
+            console.log('Notification permission denied');
+            if (currentUser.uid) {
+              notificationService.updateUserNotificationSettings(currentUser.uid, false);
+            }
+          }
+        } catch (error) {
+          console.error('Error initializing notifications:', error);
+        }
+      };
+      
+      initNotifications();
     }
   }, [currentUser]);
   
@@ -146,6 +177,7 @@ const AppLayout = () => {
       
       {!isAuthPage() && <BottomNav />}
       <NetworkStatus />
+      <UpdateNotification />
     </ErrorBoundary>
   );
 };
