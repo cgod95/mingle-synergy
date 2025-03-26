@@ -13,6 +13,7 @@ import UserGrid from '@/components/venue/UserGrid';
 import VisibilityToggle from '@/components/venue/VisibilityToggle';
 import { useToast } from '@/components/ui/toast/ToastContext';
 import { getFromStorage, saveToStorage } from '@/utils/localStorageUtils';
+import mockInterestService from '@/services/mock/mockInterestService';
 
 const EmptyState = ({ message }: { message: string }) => (
   <div className="py-12 text-center bg-gray-50 rounded-lg">
@@ -65,12 +66,7 @@ const SimpleVenueView = () => {
   });
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   
-  const [likesRemaining, setLikesRemaining] = useState(() => {
-    if (id) {
-      return getFromStorage<number>(`likesRemaining-${id}`, 3);
-    }
-    return 3;
-  });
+  const [likesRemaining, setLikesRemaining] = useState(3);
 
   const [likedUsers, setLikedUsers] = useState<string[]>(() => {
     if (id) {
@@ -136,34 +132,53 @@ const SimpleVenueView = () => {
     
   }, [id]);
   
+  // Initialize and update likes remaining
+  useEffect(() => {
+    const updateLikesRemaining = async () => {
+      if (!id) return;
+      
+      try {
+        const remaining = await mockInterestService.getLikesRemaining(currentUser.id, id);
+        setLikesRemaining(remaining);
+      } catch (error) {
+        console.error('Error fetching likes remaining:', error);
+      }
+    };
+    
+    updateLikesRemaining();
+  }, [id, currentUser.id]);
+  
   const handleCheckOut = () => {
     navigate('/venues');
   };
   
-  const handleLikeUser = (userId: string) => {
-    if (likesRemaining <= 0 || likedUsers.includes(userId)) return;
+  const handleLikeUser = async (userId: string) => {
+    if (!id || likesRemaining <= 0 || likedUsers.includes(userId)) return;
     
+    // Get user that was liked
     const user = usersAtVenue.find(u => u.id === userId);
     if (user) {
       setLastLikedUser(user);
     }
     
-    const newLikesRemaining = likesRemaining - 1;
-    setLikesRemaining(newLikesRemaining);
-    if (id) {
-      saveToStorage(`likesRemaining-${id}`, newLikesRemaining);
-    }
+    // Record interest using service
+    const success = await mockInterestService.recordInterest(currentUser.id, userId, id);
     
-    const newLikedUsers = [...likedUsers, userId];
-    setLikedUsers(newLikedUsers);
-    if (id) {
+    if (success) {
+      // Update likes remaining
+      const newLikesRemaining = await mockInterestService.getLikesRemaining(currentUser.id, id);
+      setLikesRemaining(newLikesRemaining);
+      
+      // Update liked users
+      const newLikedUsers = [...likedUsers, userId];
+      setLikedUsers(newLikedUsers);
       saveToStorage(`likedUsers-${id}`, newLikedUsers);
+      
+      // Show toast and modal
+      showToast('Interest sent!', 'success');
+      setShowInterestSent(true);
+      setTimeout(() => setShowInterestSent(false), 3000);
     }
-    
-    showToast('Interest sent!', 'success');
-    
-    setShowInterestSent(true);
-    setTimeout(() => setShowInterestSent(false), 3000);
   };
   
   const handleZoneSelect = (zoneName: string) => {
