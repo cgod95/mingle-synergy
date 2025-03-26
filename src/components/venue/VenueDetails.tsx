@@ -104,20 +104,34 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
         </div>
       </div>
       
+      {/* Prominent Check-out Box */}
+      <div className="bg-white shadow-md rounded-lg p-4 mb-4 flex justify-between items-center border-l-4 border-coral-500">
+        <div>
+          <span className="text-coral-700 font-medium">You are checked in</span>
+          <p className="text-xs text-gray-600">Other users can see you here</p>
+        </div>
+        <button 
+          onClick={onCheckOut}
+          className="px-4 py-2 bg-coral-500 text-white rounded-lg shadow-sm hover:bg-coral-600 transition-colors"
+        >
+          Check Out
+        </button>
+      </div>
+      
       {/* Specials & Offers Section */}
-      <div className="mb-4 mt-4">
-        <h3 className="text-lg font-semibold mb-2">Specials & Offers</h3>
+      <div className="mt-2 mb-3">
+        <h3 className="text-sm font-medium text-gray-700 mb-1">Specials & Offers</h3>
         {venue.specials && venue.specials.length > 0 ? (
-          <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
+          <div className="bg-coral-50 p-2 rounded border border-coral-100 text-sm">
             {venue.specials.map((special, index) => (
-              <div key={index} className="mb-2 last:mb-0">
-                <p className="font-medium text-orange-700">{special.title}</p>
-                <p className="text-sm text-gray-600">{special.description}</p>
+              <div key={index} className={index > 0 ? "mt-1 pt-1 border-t border-coral-100" : ""}>
+                <p className="font-medium text-coral-700">{special.title}</p>
+                <p className="text-xs text-gray-600">{special.description}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 italic">No current specials</p>
+          <p className="text-xs text-gray-500 italic">No current specials</p>
         )}
       </div>
       
