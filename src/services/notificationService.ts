@@ -14,8 +14,13 @@ export class NotificationService {
     }
     
     if (Notification.permission !== "denied") {
-      const permission = await Notification.requestPermission();
-      return permission === "granted";
+      try {
+        const permission = await Notification.requestPermission();
+        return permission === "granted";
+      } catch (error) {
+        console.error("Error requesting notification permission:", error);
+        return false;
+      }
     }
     
     return false;
@@ -24,10 +29,14 @@ export class NotificationService {
   // Show a notification to the user
   showNotification(title: string, options: NotificationOptions = {}): void {
     if (Notification.permission === "granted") {
-      new Notification(title, {
-        icon: '/logo.png',
-        ...options
-      });
+      try {
+        new Notification(title, {
+          icon: '/logo.png',
+          ...options
+        });
+      } catch (error) {
+        console.error("Error showing notification:", error);
+      }
     }
   }
   
@@ -99,4 +108,7 @@ export const sendLocalNotification = (title: string, options: NotificationOption
   notificationService.showNotification(title, options);
 };
 
-export { urlBase64ToUint8Array } from './notificationService';
+// Export the helper function directly instead of importing it from itself
+export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  return notificationService.urlBase64ToUint8Array(base64String);
+}
