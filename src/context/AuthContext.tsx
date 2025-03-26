@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 import { User } from '@/types/services';
 import authService from '@/services';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Load user from localStorage on initial mount
   useEffect(() => {
@@ -66,6 +68,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         title: 'Signed in successfully',
         description: 'Welcome back!',
       });
+      
+      const onboardingComplete = localStorage.getItem('onboardingComplete') === 'true';
+      const profileComplete = localStorage.getItem('profileComplete') === 'true';
+      
+      if (!onboardingComplete) {
+        navigate('/onboarding');
+      } else if (!profileComplete) {
+        navigate('/profile/edit');
+      } else {
+        navigate('/venues');
+      }
     } catch (error) {
       toast({
         title: 'Sign in failed',
@@ -89,6 +102,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         title: 'Account created successfully',
         description: 'Welcome to Proximity!',
       });
+      
+      const onboardingComplete = localStorage.getItem('onboardingComplete') === 'true';
+      const profileComplete = localStorage.getItem('profileComplete') === 'true';
+      
+      if (!onboardingComplete) {
+        navigate('/onboarding');
+      } else if (!profileComplete) {
+        navigate('/profile/edit');
+      } else {
+        navigate('/venues');
+      }
     } catch (error) {
       toast({
         title: 'Sign up failed',
