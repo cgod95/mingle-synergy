@@ -1,3 +1,4 @@
+
 // User types
 export interface User {
   id: string;
@@ -39,6 +40,13 @@ export interface Venue {
   checkInCount: number;
   expiryTime: number; // in minutes
   zones?: VenueZone[];
+  specials?: Special[]; // Add specials property
+}
+
+// Add Special interface for venue specials
+export interface Special {
+  title: string;
+  description: string;
 }
 
 export interface VenueZone {

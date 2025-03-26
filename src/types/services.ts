@@ -36,6 +36,7 @@ export type Venue = {
   zones: string[];
   image: string;
   checkedInUsers: string[];
+  specials?: Array<{ title: string; description: string }>; // Add specials property
 };
 
 export interface VenueService {
