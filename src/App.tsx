@@ -1,7 +1,8 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, AuthNavigationContext, WithAuthNavigation, useAuth } from "@/context/AuthContext";
 import { AppStateProvider } from "@/context/AppStateContext";
 import { ToastProvider } from "@/components/ui/toast/ToastContext";
@@ -34,6 +35,7 @@ const LazyProfile = lazy(() => import("./pages/Profile"));
 
 const AppLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { currentUser, isLoading } = useAuth();
   const [onboardingSeen, setOnboardingSeen] = useState<boolean>(() => {
     return localStorage.getItem('onboardingSeen') === 'true' || 
@@ -111,7 +113,7 @@ const AppLayout = () => {
         }
       }
     }
-  }, [currentUser, location.pathname]);
+  }, [currentUser, location.pathname, navigate]);
   
   const handleOnboardingComplete = () => {
     localStorage.setItem('onboardingSeen', 'true');
