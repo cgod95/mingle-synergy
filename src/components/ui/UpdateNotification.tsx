@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { notificationService } from '@/services/notificationService';
 
 const UpdateNotification = () => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -14,6 +15,11 @@ const UpdateNotification = () => {
   }, []);
   
   const handleUpdate = () => {
+    // Show notification before refreshing
+    notificationService.showNotification(
+      'App Updated',
+      { body: 'Your app has been updated to the latest version.' }
+    );
     window.location.reload();
   };
   
