@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ const ProfileEdit = () => {
         variant: "default"
       });
       
+      // Navigate to venues or keep this logic from previous discussions
       navigate('/venues');
     } catch (error) {
       console.error('Profile save error:', error);
