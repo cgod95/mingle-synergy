@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import './styles/responsive.css'
+import './styles/global.css' // Adding the global CSS import
 import * as serviceWorker from './serviceWorker'
 import { errorHandler } from './services/errorHandler'
 import { initErrorTracking } from './utils/errorHandler'
