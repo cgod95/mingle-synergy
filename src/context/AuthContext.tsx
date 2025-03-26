@@ -29,16 +29,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  // Replace direct useNavigate with ref approach
-  const location = useLocation();
-  const navigateRef = useRef<ReturnType<typeof useNavigate>>();
+  // Remove direct router hook usage
+  const navigateRef = useRef<any>(null);
   
-  // Initialize navigate ref
-  useEffect(() => {
-    navigateRef.current = useNavigate();
+  // Function to set the navigate function from components that have router context
+  const setNavigate = useCallback((navigateFunction: any) => {
+    navigateRef.current = navigateFunction;
   }, []);
   
-  // Create a safe navigation function
+  // Safe navigation function that doesn't depend on router hooks
   const safeNavigate = useCallback((path: string) => {
     if (navigateRef.current) {
       navigateRef.current(path);
@@ -193,4 +192,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Export the setNavigate function to be used in components with router context
+export const AuthNavigationContext = createContext<((navigate: any) => void) | undefined>(undefined);
+
+export const useAuthNavigation = () => {
+  const context = useContext(AuthNavigationContext);
+  if (!context) {
+    throw new Error('useAuthNavigation must be used within an AuthProvider');
+  }
+  return context;
+};
+
+// Create a higher-order component to provide the navigate function to AuthContext
+export const WithAuthNavigation: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const navigate = useNavigate();
+  const setNavigate = useContext(AuthNavigationContext);
+  
+  useEffect(() => {
+    if (setNavigate) {
+      setNavigate(navigate);
+    }
+  }, [navigate, setNavigate]);
+  
+  return <>{children}</>;
 };

@@ -1,8 +1,9 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { AuthProvider, AuthNavigationContext, WithAuthNavigation } from "@/context/AuthContext";
 import { AppStateProvider } from "@/context/AppStateContext";
 import { ToastProvider } from "@/components/ui/toast/ToastContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
@@ -22,7 +23,7 @@ import Onboarding from "./pages/Onboarding";
 import Matches from "./pages/Matches";
 import TestBackend from "./components/TestBackend";
 import OnboardingCarousel from "./components/onboarding/OnboardingCarousel";
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, useCallback } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoadingScreen from "./components/ui/LoadingScreen";
 import { initializeLocationServices, locationService } from "@/services/locationService";
@@ -209,6 +210,8 @@ const AppLayout = () => {
 };
 
 const App = () => {
+  const [setNavigateFunction, setSetNavigateFunction] = useState<((navigate: any) => void) | undefined>(undefined);
+
   return (
     <ErrorBoundary
       fallback={<div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
@@ -222,19 +225,23 @@ const App = () => {
         </button>
       </div>}
     >
-      <AuthProvider>
-        <AppStateProvider>
-          <TooltipProvider>
-            <ToastProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppLayout />
-              </BrowserRouter>
-            </ToastProvider>
-          </TooltipProvider>
-        </AppStateProvider>
-      </AuthProvider>
+      <AuthNavigationContext.Provider value={setNavigateFunction}>
+        <AuthProvider>
+          <AppStateProvider>
+            <TooltipProvider>
+              <ToastProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <WithAuthNavigation>
+                    <AppLayout />
+                  </WithAuthNavigation>
+                </BrowserRouter>
+              </ToastProvider>
+            </TooltipProvider>
+          </AppStateProvider>
+        </AuthProvider>
+      </AuthNavigationContext.Provider>
     </ErrorBoundary>
   );
 };

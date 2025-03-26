@@ -11,6 +11,11 @@ import { initImageOptimization } from './utils/imageOptimizer'
 import { initPerformanceMonitoring } from './utils/performanceMonitor'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { logUserAction } from './utils/errorHandler'
+import { initializeApp } from 'firebase/app'
+import { firebaseConfig } from './firebase/config'
+
+// Initialize Firebase
+initializeApp(firebaseConfig);
 
 // Mark app start time for performance measurement
 performance.mark('app_init_start');
