@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -96,6 +95,23 @@ const AppLayout = () => {
       };
     }
   }, [currentUser]);
+  
+  useEffect(() => {
+    if (currentUser) {
+      const onboardingComplete = localStorage.getItem('onboardingComplete') === 'true';
+      const profileComplete = localStorage.getItem('profileComplete') === 'true';
+      
+      if (location.pathname === '/' || location.pathname === '/sign-in' || location.pathname === '/sign-up') {
+        if (!onboardingComplete) {
+          navigate('/onboarding');
+        } else if (!profileComplete) {
+          navigate('/profile/edit');
+        } else {
+          navigate('/venues');
+        }
+      }
+    }
+  }, [currentUser, location.pathname]);
   
   const handleOnboardingComplete = () => {
     localStorage.setItem('onboardingSeen', 'true');

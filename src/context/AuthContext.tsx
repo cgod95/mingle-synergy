@@ -1,9 +1,7 @@
-
 import React, { createContext, useState, useEffect, useContext, ReactNode, useRef, useCallback } from 'react';
 import { User } from '@/types/services';
 import authService from '@/services';
 import { useToast } from '@/components/ui/use-toast';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   currentUser: User | null;

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { notificationService } from '../services/notificationService';
 
 const Onboarding = () => {
   const [step, setStep] = useState(0);
@@ -16,26 +17,26 @@ const Onboarding = () => {
       title: "Enable Location",
       description: "Mingle needs your location to find venues and people near you.",
       action: () => {
-        navigator.geolocation.getCurrentPosition(() => {
-          localStorage.setItem('locationEnabled', 'true');
-          setStep(2);
-        }, () => {
-          alert('Location access is required for Mingle to work properly');
-        });
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            localStorage.setItem('locationEnabled', 'true');
+            setStep(2);
+          }, 
+          () => {
+            alert('Location access is required for Mingle to work properly');
+          }
+        );
       }
     },
     {
       title: "Enable Notifications",
       description: "Get notified when you match with someone or receive a message.",
-      action: () => {
+      action: async () => {
         if ('Notification' in window) {
-          Notification.requestPermission().then(() => {
-            localStorage.setItem('notificationsEnabled', 'true');
-            setStep(3);
-          });
-        } else {
-          setStep(3);
+          const permission = await notificationService.requestPermission();
+          localStorage.setItem('notificationsEnabled', permission ? 'true' : 'false');
         }
+        setStep(3);
       }
     },
     {
