@@ -1,9 +1,9 @@
 
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode, useRef, useCallback } from 'react';
 import { User } from '@/types/services';
 import authService from '@/services';
 import { useToast } from '@/components/ui/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -28,7 +28,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  
+  // Replace direct useNavigate with ref approach
+  const location = useLocation();
+  const navigateRef = useRef<ReturnType<typeof useNavigate>>();
+  
+  // Initialize navigate ref
+  useEffect(() => {
+    navigateRef.current = useNavigate();
+  }, []);
+  
+  // Create a safe navigation function
+  const safeNavigate = useCallback((path: string) => {
+    if (navigateRef.current) {
+      navigateRef.current(path);
+    } else {
+      console.warn('Navigation not available yet');
+    }
+  }, []);
 
   // Load user from localStorage on initial mount
   useEffect(() => {
@@ -73,11 +90,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const profileComplete = localStorage.getItem('profileComplete') === 'true';
       
       if (!onboardingComplete) {
-        navigate('/onboarding');
+        safeNavigate('/onboarding');
       } else if (!profileComplete) {
-        navigate('/profile/edit');
+        safeNavigate('/profile/edit');
       } else {
-        navigate('/venues');
+        safeNavigate('/venues');
       }
     } catch (error) {
       toast({
@@ -107,11 +124,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const profileComplete = localStorage.getItem('profileComplete') === 'true';
       
       if (!onboardingComplete) {
-        navigate('/onboarding');
+        safeNavigate('/onboarding');
       } else if (!profileComplete) {
-        navigate('/profile/edit');
+        safeNavigate('/profile/edit');
       } else {
-        navigate('/venues');
+        safeNavigate('/venues');
       }
     } catch (error) {
       toast({
