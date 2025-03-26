@@ -21,6 +21,12 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const [showForm, setShowForm] = useState(false);
   const [validationError, setValidationError] = useState('');
   
+  // Adding the requested state variables for messaging
+  const [message, setMessage] = useState('');
+  const [sentMessage, setSentMessage] = useState(localStorage.getItem(`sent_message_${match.id}`) || '');
+  const [receivedMessage, setReceivedMessage] = useState(localStorage.getItem(`received_message_${match.id}`) || '');
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  
   const isExpired = match.expiresAt <= Date.now() || !match.isActive;
   
   const getTimeRemaining = () => {
@@ -31,6 +37,17 @@ const MatchCard: React.FC<MatchCardProps> = ({
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     return `${hours}h ${minutes}m`;
+  };
+  
+  // Adding the requested message sending function
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
+    
+    // In a real app, this would send to Firebase
+    localStorage.setItem(`sent_message_${match.id}`, message);
+    setSentMessage(message);
+    setMessage('');
+    setShowMessageForm(false);
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,11 +102,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
     <Card className="overflow-hidden animate-scale-in">
       <CardHeader className="p-0">
         <div className="relative">
-          <OptimizedImage
-            src={user.photos[0]}
-            alt={user.name || ''}
-            className="w-full h-32 object-cover"
-          />
+          {/* Replaced image with the requested code to fix squashed photos */}
+          <div className="aspect-square w-full h-full overflow-hidden">
+            <img 
+              src={user.photos[0]} 
+              alt={user.name} 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
             <div className="absolute bottom-3 left-3 text-white">
               <h3 className="text-xl font-semibold">{user.name}</h3>
@@ -107,6 +127,59 @@ const MatchCard: React.FC<MatchCardProps> = ({
             Expires in {getTimeRemaining()}
           </p>
         )}
+        
+        {/* Added the requested messaging UI */}
+        <div className="mt-3 mb-4">
+          {!sentMessage ? (
+            <>
+              {!showMessageForm ? (
+                <button
+                  onClick={() => setShowMessageForm(true)}
+                  className="w-full py-2 bg-coral-500 text-white rounded-lg font-medium"
+                >
+                  Send Message
+                </button>
+              ) : (
+                <div className="mt-2">
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    className="w-full p-2 border border-gray-300 rounded-lg mb-2"
+                    rows={2}
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setShowMessageForm(false)}
+                      className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={!message.trim()}
+                      className="flex-1 py-2 bg-coral-500 text-white rounded-lg font-medium disabled:opacity-50"
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm font-medium mb-1">Your message:</p>
+              <p className="text-sm">{sentMessage}</p>
+            </div>
+          )}
+          
+          {receivedMessage && (
+            <div className="bg-coral-50 p-3 rounded-lg mt-3">
+              <p className="text-sm font-medium mb-1">Their message:</p>
+              <p className="text-sm">{receivedMessage}</p>
+            </div>
+          )}
+        </div>
         
         {match.contactShared ? (
           <div className="bg-muted p-4 rounded-lg">

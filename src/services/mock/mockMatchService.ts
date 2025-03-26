@@ -4,6 +4,12 @@ import { Match } from '@/types/services';
 import { matches } from '@/data/mockData';
 
 class MockMatchService implements MatchService {
+  constructor() {
+    // Simulate some received messages for testing
+    this.receiveMessage('match1', 'Hey! I noticed you at the café earlier. Would you like to meet up again sometime?');
+    // Add more test messages as needed
+  }
+
   async getMatches(userId: string): Promise<Match[]> {
     // Find all matches where the user is involved
     return matches.filter(
@@ -123,6 +129,11 @@ class MockMatchService implements MatchService {
       console.error('[Mock] Error marking match as met:', error);
       return false;
     }
+  }
+
+  // Add this function to simulate receiving messages
+  receiveMessage(matchId: string, message: string): void {
+    localStorage.setItem(`received_message_${matchId}`, message);
   }
 }
 
