@@ -46,6 +46,23 @@ export class NotificationService {
     localStorage.setItem(`user_${userId}_notifications`, enabled ? 'enabled' : 'disabled');
   }
 
+  // Setup handler for foreground notifications
+  setupForegroundHandler(callback: (payload: any) => void): () => void {
+    // This is where we would set up a listener for foreground messages
+    // For example, with Firebase Messaging:
+    // const unsubscribe = onMessage(messaging, (payload) => {
+    //   callback(payload);
+    // });
+    
+    // For now, we'll just setup a mock listener that doesn't do anything
+    console.log('Setting up foreground notification handler');
+    
+    // Return a function to unsubscribe
+    return () => {
+      console.log('Cleaning up foreground notification handler');
+    };
+  }
+
   // Initialize notifications after user has logged in
   async initNotifications(publicVapidKey?: string): Promise<void> {
     const hasPermission = await this.requestPermission();

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,7 +24,7 @@ import OnboardingCarousel from "./components/onboarding/OnboardingCarousel";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoadingScreen from "./components/ui/LoadingScreen";
-import { initializeLocationServices } from "@/services/locationService";
+import { initializeLocationServices, locationService } from "@/services/locationService";
 import { notificationService } from "@/services/notificationService";
 
 const LazyMatches = lazy(() => import("./pages/Matches"));
@@ -50,6 +49,12 @@ const AppLayout = () => {
       // Initialize location services
       initializeLocationServices();
       
+      // Start location tracking
+      locationService.startTracking(currentUser.uid)
+        .catch(error => {
+          console.error('Location tracking error:', error);
+        });
+      
       // Initialize notifications with enhanced error handling
       const initNotifications = async () => {
         try {
@@ -61,11 +66,21 @@ const AppLayout = () => {
               notificationService.updateUserNotificationSettings(currentUser.uid, true);
             }
             
+            // Setup notification handler
+            const unsubscribe = notificationService.setupForegroundHandler((payload) => {
+              // Show in-app notification using toast system
+              console.log('Received foreground message', payload);
+            });
+            
             // Show a welcome notification
             notificationService.showNotification(
               'Proximity Notifications Enabled',
               { body: 'You\'ll now receive notifications about matches and messages.' }
             );
+            
+            return () => {
+              if (unsubscribe) unsubscribe();
+            };
           } else {
             console.log('Notification permission denied');
             if (currentUser.uid) {
@@ -78,6 +93,11 @@ const AppLayout = () => {
       };
       
       initNotifications();
+      
+      return () => {
+        // Stop location tracking when component unmounts or user changes
+        locationService.stopTracking();
+      };
     }
   }, [currentUser]);
   
