@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { AuthProvider, AuthNavigationContext, WithAuthNavigation } from "@/context/AuthContext";
+import { AuthProvider, AuthNavigationContext, WithAuthNavigation, useAuth } from "@/context/AuthContext";
 import { AppStateProvider } from "@/context/AppStateContext";
 import { ToastProvider } from "@/components/ui/toast/ToastContext";
 import PrivateRoute from "./components/auth/PrivateRoute";
@@ -225,7 +225,7 @@ const App = () => {
         </button>
       </div>}
     >
-      <AuthNavigationContext.Provider value={setNavigateFunction}>
+      <AuthNavigationContext.Provider value={setSetNavigateFunction}>
         <AuthProvider>
           <AppStateProvider>
             <TooltipProvider>
