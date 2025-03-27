@@ -13,6 +13,9 @@ class MockInterestService {
     try {
       // For mock implementation
       if (USE_MOCK) {
+        // Use a consistent default value of 3 likes per venue
+        const DEFAULT_LIKES = 3;
+        
         // Check if we have a record for this venue in localStorage
         const key = `likes_${userId}_${venueId}`;
         const storedLikes = localStorage.getItem(key);
@@ -20,9 +23,9 @@ class MockInterestService {
         if (storedLikes) {
           return parseInt(storedLikes, 10);
         } else {
-          // Initialize with 3 likes if no record exists
-          localStorage.setItem(key, '3');
-          return 3;
+          // Initialize with DEFAULT_LIKES if no record exists
+          localStorage.setItem(key, DEFAULT_LIKES.toString());
+          return DEFAULT_LIKES;
         }
       }
       

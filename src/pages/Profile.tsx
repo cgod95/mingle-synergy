@@ -6,6 +6,9 @@ import { withAnalytics } from '@/components/withAnalytics';
 import { withErrorBoundary } from '@/components/ErrorBoundary';
 import { logUserAction } from '@/utils/errorHandler';
 import usePerformance from '@/hooks/usePerformance';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Profile = () => {
   usePerformance('ProfilePage');
@@ -39,31 +42,34 @@ const Profile = () => {
     <div className="bg-gray-50 min-h-screen pb-24">
       <Header />
       <div className="p-4 space-y-4">
-        {/* Visibility Toggle */}
+        {/* Visibility Toggle - Improved with better styling and explanatory text */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-medium text-gray-900">Visibility</h3>
-              <p className="text-sm text-gray-500 mt-1">When toggled off, other users won't see you at venues</p>
+            <div className="flex items-center">
+              {isVisible ? 
+                <Eye className="w-5 h-5 text-coral-500 mr-3 flex-shrink-0" /> : 
+                <EyeOff className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+              }
+              <div>
+                <h3 className="font-medium text-gray-900">Visibility</h3>
+                <p className="text-sm text-gray-500 mt-1">When toggled off, other users won't see you at venues</p>
+              </div>
             </div>
             <div className="ml-4">
-              <button 
-                onClick={toggleVisibility}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full ${isVisible ? 'bg-coral-500' : 'bg-gray-300'}`}
-              >
-                <span 
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${isVisible ? 'translate-x-6' : 'translate-x-1'}`} 
-                />
-              </button>
+              <Switch
+                checked={isVisible}
+                onCheckedChange={toggleVisibility}
+                className="data-[state=checked]:bg-coral-500"
+              />
             </div>
           </div>
         </div>
         
-        {/* Preferences Section */}
+        {/* Preferences Section - Moved to the top with improved styling */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <h3 className="text-lg font-semibold mb-3">Preferences</h3>
           
-          {/* Gender preferences */}
+          {/* Gender preferences with better styling */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">I'm interested in</label>
             <div className="flex flex-wrap gap-2">
@@ -82,29 +88,19 @@ const Profile = () => {
             </div>
           </div>
           
-          {/* Age range - Fixed slider */}
+          {/* Improved age range slider using shadcn Slider */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Age range: {profile?.preferences?.ageRange?.min || 18} - {profile?.preferences?.ageRange?.max || 50}
             </label>
-            <div className="relative pt-5 pb-2">
-              <div className="h-1 bg-gray-200 rounded-full">
-                <div 
-                  className="absolute h-1 bg-coral-500 rounded-full" 
-                  style={{ 
-                    left: `${((profile?.preferences?.ageRange?.min || 18) - 18) * 100 / 82}%`, 
-                    right: `${100 - ((profile?.preferences?.ageRange?.max || 50) - 18) * 100 / 82}%` 
-                  }}
-                ></div>
-              </div>
-              <div 
-                className="absolute w-5 h-5 bg-white border-2 border-coral-500 rounded-full -mt-2 transform -translate-x-1/2" 
-                style={{ left: `${((profile?.preferences?.ageRange?.min || 18) - 18) * 100 / 82}%` }}
-              ></div>
-              <div 
-                className="absolute w-5 h-5 bg-white border-2 border-coral-500 rounded-full -mt-2 transform -translate-x-1/2" 
-                style={{ left: `${((profile?.preferences?.ageRange?.max || 50) - 18) * 100 / 82}%` }}
-              ></div>
+            <div className="py-4">
+              <Slider 
+                defaultValue={[profile?.preferences?.ageRange?.min || 18, profile?.preferences?.ageRange?.max || 50]} 
+                min={18} 
+                max={100}
+                step={1}
+                className="mt-6"
+              />
             </div>
           </div>
         </div>

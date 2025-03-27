@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Phone, Instagram, Send, X } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -96,11 +97,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
     <Card className="overflow-hidden animate-scale-in">
       <CardHeader className="p-0">
         <div className="relative">
-          <div className="aspect-square w-full h-full overflow-hidden">
+          <div className="aspect-square w-full overflow-hidden">
             <img 
               src={user.photos[0]} 
               alt={user.name} 
-              className="w-full h-full object-cover rounded-full"
+              className="w-full h-full object-cover"
             />
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
@@ -121,6 +122,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           </p>
         )}
         
+        {/* Messaging section - now featured prominently at the top */}
         <div className="mt-3 mb-4">
           {!sentMessage ? (
             <>
@@ -173,6 +175,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           )}
         </div>
         
+        {/* Contact sharing section - moved below messaging */}
         {match.contactShared ? (
           <div className="bg-muted p-4 rounded-lg">
             <p className="text-muted-foreground font-medium mb-2">Contact Information</p>
