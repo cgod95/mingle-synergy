@@ -19,9 +19,14 @@ import mockVerificationService from './mock/mockVerificationService';
 import { isFirebaseAvailable } from '@/firebase/safeFirebase';
 
 // Environment flags to control which services to use
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || 
-                process.env.NODE_ENV === 'development' || 
-                !isFirebaseAvailable();
+const isAIEditor = typeof window !== 'undefined' && window.location.hostname.includes('lovableproject.com');
+const USE_MOCK = isAIEditor || 
+  import.meta.env.VITE_USE_MOCK === 'true' || 
+  (process.env.NODE_ENV === 'development' && import.meta.env.VITE_USE_MOCK !== 'false') || 
+  !isFirebaseAvailable();
+
+console.log('Environment check: Using mock services =', USE_MOCK, 
+  isAIEditor ? '(Running in AI editor)' : '');
 
 // Service factory
 const services = {
