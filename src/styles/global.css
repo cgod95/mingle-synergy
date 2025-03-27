@@ -16,3 +16,40 @@ body, html {
   flex: 1;
   padding-bottom: 80px; /* Adjust based on your bottom nav height */
 }
+
+/* Add subtle animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-in-out;
+}
+
+.slide-left {
+  animation: slideLeft 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Add transitions for elements */
+.card-transition {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-transition:active {
+  transform: scale(0.98);
+}
