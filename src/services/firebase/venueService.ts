@@ -1,8 +1,16 @@
 
 import { firestore } from '@/firebase/config';
 import { VenueService, Venue } from '@/types/services';
-import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot, increment } from 'firebase/firestore';
 import { calculateDistance } from '@/utils/locationUtils';
+import { saveToStorage, getFromStorage } from '@/utils/localStorageUtils';
+import { isOnline } from '@/utils/networkMonitor';
+
+// Cache key constants
+const CACHE_KEYS = {
+  VENUES: 'cached_venues',
+  VENUE_PREFIX: 'venue_'
+};
 
 // Helper function to transform Firestore data
 const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): Venue => {
@@ -19,26 +27,57 @@ const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): 
     latitude: firestoreData?.latitude || 0,
     longitude: firestoreData?.longitude || 0,
     checkedInUsers: firestoreData?.checkedInUsers || [],
+    specials: firestoreData?.specials || [],
   };
 };
 
 class FirebaseVenueService implements VenueService {
   async getVenues(): Promise<Venue[]> {
     try {
+      // Check network status first
+      if (!isOnline()) {
+        console.log('Offline: returning cached venues');
+        const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+        if (cachedVenues.length > 0) {
+          return cachedVenues;
+        }
+      }
+
       const venuesCollectionRef = collection(firestore, 'venues');
       const querySnapshot = await getDocs(venuesCollectionRef);
       
-      return querySnapshot.docs.map(doc => 
+      const venues = querySnapshot.docs.map(doc => 
         transformFirestoreVenue(doc.data(), doc.id)
       );
+      
+      // Cache venues for offline access
+      saveToStorage(CACHE_KEYS.VENUES, venues);
+      
+      return venues;
     } catch (error) {
       console.error('Error fetching venues:', error);
+      
+      // Fallback to cached data if available
+      const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+      if (cachedVenues.length > 0) {
+        return cachedVenues;
+      }
+      
       return [];
     }
   }
 
   async getVenueById(id: string): Promise<Venue | null> {
     try {
+      // Check network status first
+      if (!isOnline()) {
+        console.log('Offline: checking for cached venue');
+        const cachedVenue = getFromStorage<Venue | null>(`${CACHE_KEYS.VENUE_PREFIX}${id}`, null);
+        if (cachedVenue) {
+          return cachedVenue;
+        }
+      }
+      
       const venueDocRef = doc(firestore, 'venues', id);
       const venueDoc = await getDoc(venueDocRef);
       
@@ -47,10 +86,18 @@ class FirebaseVenueService implements VenueService {
         return null;
       }
       
-      return transformFirestoreVenue(venueDoc.data(), id);
+      const venue = transformFirestoreVenue(venueDoc.data(), id);
+      
+      // Cache venue for offline access
+      saveToStorage(`${CACHE_KEYS.VENUE_PREFIX}${id}`, venue);
+      
+      return venue;
     } catch (error) {
       console.error('Error fetching venue by ID:', error);
-      return null;
+      
+      // Fallback to cached data
+      const cachedVenue = getFromStorage<Venue | null>(`${CACHE_KEYS.VENUE_PREFIX}${id}`, null);
+      return cachedVenue;
     }
   }
 
@@ -66,10 +113,11 @@ class FirebaseVenueService implements VenueService {
         checkInTime: serverTimestamp()
       });
       
-      // Increment venue's check-in count
+      // Increment venue's check-in count and add user to checkedInUsers array
       const venueDocRef = doc(firestore, 'venues', venueId);
       batch.update(venueDocRef, {
-        checkInCount: arrayUnion(userId)
+        checkInCount: increment(1),
+        checkedInUsers: arrayUnion(userId)
       });
       
       await batch.commit();
@@ -108,10 +156,11 @@ class FirebaseVenueService implements VenueService {
         checkOutTime: serverTimestamp()
       });
       
-      // Decrement venue's check-in count
+      // Decrement venue's check-in count and remove user from checkedInUsers array
       const venueDocRef = doc(firestore, 'venues', currentVenue);
       batch.update(venueDocRef, {
-        checkInCount: arrayRemove(userId)
+        checkInCount: increment(-1),
+        checkedInUsers: arrayRemove(userId)
       });
       
       await batch.commit();
@@ -125,6 +174,21 @@ class FirebaseVenueService implements VenueService {
   // Additional method to get nearby venues based on coordinates
   async getNearbyVenues(latitude: number, longitude: number, radiusKm: number = 5): Promise<Venue[]> {
     try {
+      // Check network status first
+      if (!isOnline()) {
+        const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+        if (cachedVenues.length > 0) {
+          // Filter cached venues by distance
+          return cachedVenues.filter(venue => {
+            const distance = calculateDistance(
+              { latitude, longitude },
+              { latitude: venue.latitude, longitude: venue.longitude }
+            );
+            return distance <= radiusKm;
+          });
+        }
+      }
+      
       // In a production app, we'd use geofirestore or similar
       // For this implementation, we'll fetch all venues and filter client-side
       const venues = await this.getVenues();
@@ -147,6 +211,14 @@ class FirebaseVenueService implements VenueService {
   async getVenuesByIds(venueIds: string[]): Promise<Venue[]> {
     try {
       if (!venueIds.length) return [];
+      
+      // Check network status first
+      if (!isOnline()) {
+        const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+        if (cachedVenues.length > 0) {
+          return cachedVenues.filter(venue => venueIds.includes(venue.id));
+        }
+      }
       
       // Firestore limits "in" queries to 10 items, so we need to chunk
       const chunkedResults = await Promise.all(
