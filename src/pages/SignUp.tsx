@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ const SignUp = () => {
         description: "You're now signed up.",
         variant: "default"
       });
+      // Navigation handled by AuthContext
     } catch (error) {
       console.error('Sign up error:', error);
       setErrorMessage('Failed to create account. Please try again.');

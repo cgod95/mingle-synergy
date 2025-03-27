@@ -39,7 +39,7 @@ const Profile = () => {
     <div className="bg-gray-50 min-h-screen pb-24">
       <Header />
       <div className="p-4 space-y-4">
-        {/* 1. VISIBILITY SECTION - Move to top with better styling */}
+        {/* Visibility Toggle */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex justify-between items-start">
             <div>
@@ -59,7 +59,7 @@ const Profile = () => {
           </div>
         </div>
         
-        {/* 2. PREFERENCES SECTION */}
+        {/* Preferences Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <h3 className="text-lg font-semibold mb-3">Preferences</h3>
           
@@ -109,7 +109,7 @@ const Profile = () => {
           </div>
         </div>
         
-        {/* 3. PROFILE INFO - Wrapped in card */}
+        {/* About Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <h3 className="text-lg font-semibold mb-3">About You</h3>
           

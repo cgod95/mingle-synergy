@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Phone, Instagram, Send, X } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -21,7 +20,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const [showForm, setShowForm] = useState(false);
   const [validationError, setValidationError] = useState('');
   
-  // Adding the requested state variables for messaging
   const [message, setMessage] = useState('');
   const [sentMessage, setSentMessage] = useState(localStorage.getItem(`sent_message_${match.id}`) || '');
   const [receivedMessage, setReceivedMessage] = useState(localStorage.getItem(`received_message_${match.id}`) || '');
@@ -39,11 +37,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
     return `${hours}h ${minutes}m`;
   };
   
-  // Adding the requested message sending function
   const handleSendMessage = () => {
     if (!message.trim()) return;
     
-    // In a real app, this would send to Firebase
     localStorage.setItem(`sent_message_${match.id}`, message);
     setSentMessage(message);
     setMessage('');
@@ -53,13 +49,12 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Add strict validation to prevent empty submissions
     if (!contactValue || contactValue.trim() === '') {
       setValidationError('Please enter your contact information');
       return;
     }
     
-    setValidationError(''); // Clear any previous errors
+    setValidationError('');
     setIsSharing(true);
     
     try {
@@ -87,7 +82,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
   };
   
   const getVenueName = () => {
-    // Extract name from venue ID or use provided name
     if (match.venueName) return match.venueName;
     
     if (match.venueId?.includes('-')) {
@@ -102,7 +96,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
     <Card className="overflow-hidden animate-scale-in">
       <CardHeader className="p-0">
         <div className="relative">
-          {/* Replaced image with the requested code to fix squashed photos */}
           <div className="aspect-square w-full h-full overflow-hidden">
             <img 
               src={user.photos[0]} 
@@ -128,7 +121,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
           </p>
         )}
         
-        {/* Added the requested messaging UI */}
         <div className="mt-3 mb-4">
           {!sentMessage ? (
             <>
