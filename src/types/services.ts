@@ -20,6 +20,7 @@ export interface UserService {
   getUserById: (userId: string) => Promise<UserProfile | null>;
   updateUser: (userId: string, data: Partial<UserProfile>) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
+  getUsersAtVenue: (venueId: string) => Promise<UserProfile[]>; // Add the missing method
 }
 
 // Define the Venue type directly in services.ts

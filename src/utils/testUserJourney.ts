@@ -88,6 +88,7 @@ export const testCompleteUserJourney = async () => {
       // Step 6: Find and express interest in users at venue
       try {
         console.log('Testing expressing interest...');
+        // Use optional chaining and fallback for getUsersAtVenue
         const usersAtVenue = await services.user.getUsersAtVenue?.(testVenue.id) || [];
         
         if (usersAtVenue.length > 0) {

@@ -1,3 +1,4 @@
+
 import { UserService, UserProfile } from '@/types/services';
 import { users } from '@/data/mockData';
 
@@ -113,6 +114,30 @@ class MockUserService implements UserService {
     users.splice(userIndex, 1);
     
     console.log(`[Mock] Deleted user ${userId}`);
+  }
+
+  async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
+    // Filter out users checked in at the specified venue
+    return users
+      .filter(user => user.isCheckedIn && user.currentVenue === venueId && user.isVisible)
+      .map(user => ({
+        id: user.id,
+        name: user.name || '',
+        photos: user.photos,
+        bio: user.bio || '',
+        isCheckedIn: user.isCheckedIn,
+        currentVenue: user.currentVenue,
+        currentZone: user.currentZone,
+        isVisible: user.isVisible,
+        interests: user.interests,
+        gender: isValidGender(user.gender) ? user.gender : 'other',
+        interestedIn: areValidGenders(user.interestedIn) ? user.interestedIn : ['other'],
+        age: user.age || 25,
+        ageRangePreference: user.ageRangePreference || { min: 18, max: 40 },
+        matches: user.matches || [],
+        likedUsers: user.likedUsers || [],
+        blockedUsers: user.blockedUsers || [],
+      }));
   }
 }
 
