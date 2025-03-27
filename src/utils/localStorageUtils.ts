@@ -61,45 +61,30 @@ export const clearAppStorage = (): void => {
   }
 };
 
-// Typed helpers for specific data types
-export const saveInterests = (interests: any[]): void => {
-  saveToStorage(STORAGE_KEYS.INTERESTS, interests);
-};
-
-export const getInterests = (): any[] => {
-  return getFromStorage(STORAGE_KEYS.INTERESTS, []);
-};
-
-export const saveMatches = (matches: any[]): void => {
-  saveToStorage(STORAGE_KEYS.MATCHES, matches);
-};
-
-export const getMatches = (): any[] => {
-  return getFromStorage(STORAGE_KEYS.MATCHES, []);
-};
-
-export const saveLikedUsers = (likedUsers: string[]): void => {
-  saveToStorage(STORAGE_KEYS.LIKED_USERS, likedUsers);
-};
-
-export const getLikedUsers = (): string[] => {
-  return getFromStorage(STORAGE_KEYS.LIKED_USERS, []);
-};
-
-export const saveUserMessages = (messages: Record<string, string>): void => {
-  saveToStorage(STORAGE_KEYS.USER_MESSAGES, messages);
-};
-
-export const getUserMessages = (): Record<string, string> => {
-  return getFromStorage(STORAGE_KEYS.USER_MESSAGES, {});
-};
-
-export const saveCheckedInVenue = (venueId: string | null): void => {
-  saveToStorage(STORAGE_KEYS.CHECKED_IN_VENUE, venueId);
-};
-
-export const getCheckedInVenue = (): string | null => {
-  return getFromStorage(STORAGE_KEYS.CHECKED_IN_VENUE, null);
+// Simple wrapper for older code
+export const localStorageUtils = {
+  setItem: (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.error(`Error saving to localStorage (${key}):`, error);
+    }
+  },
+  getItem: (key: string) => {
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      console.error(`Error reading from localStorage (${key}):`, error);
+      return null;
+    }
+  },
+  removeItem: (key: string) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error(`Error removing from localStorage (${key}):`, error);
+    }
+  }
 };
 
 export default {
@@ -108,14 +93,5 @@ export default {
   getFromStorage,
   removeFromStorage,
   clearAppStorage,
-  saveInterests,
-  getInterests,
-  saveMatches,
-  getMatches,
-  saveLikedUsers,
-  getLikedUsers,
-  saveUserMessages,
-  getUserMessages,
-  saveCheckedInVenue,
-  getCheckedInVenue,
+  localStorageUtils
 };

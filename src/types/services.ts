@@ -1,4 +1,3 @@
-
 import { Match as AppMatch, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
@@ -20,7 +19,7 @@ export interface UserService {
   getUserById: (userId: string) => Promise<UserProfile | null>;
   updateUser: (userId: string, data: Partial<UserProfile>) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
-  getUsersAtVenue: (venueId: string) => Promise<UserProfile[]>; // Add the missing method
+  getUsersAtVenue: (venueId: string) => Promise<UserProfile[]>;
 }
 
 // Define the Venue type directly in services.ts
@@ -37,7 +36,7 @@ export type Venue = {
   zones: string[];
   image: string;
   checkedInUsers: string[];
-  specials?: Array<{ title: string; description: string }>; // Add specials property
+  specials?: Array<{ title: string; description: string }>;
 };
 
 export interface VenueService {
@@ -69,18 +68,25 @@ export type Match = {
   metAt?: number | null;
 };
 
+// Add the InterestService interface
+export interface InterestService {
+  expressInterest: (userId: string, targetUserId: string, venueId: string) => Promise<boolean>;
+  getLikesRemaining: (userId: string, venueId: string) => Promise<number>;
+  resetLikes: (userId: string, venueId: string) => Promise<boolean>;
+}
+
+// Update the MatchService interface to match our implementation
 export interface MatchService {
   getMatches: (userId: string) => Promise<Match[]>;
-  createMatch: (matchData: Omit<Match, 'id'>) => Promise<Match>;
-  updateMatch: (matchId: string, data: Partial<Match>) => Promise<void>;
-  requestReconnect: (matchId: string, userId: string) => Promise<boolean>;
-  markAsMet: (matchId: string) => Promise<boolean>;
+  createMatch: (user1Id: string, user2Id: string, venueId: string, venueName: string) => Promise<string>;
+  sendMessage: (matchId: string, userId: string, message: string) => Promise<boolean>;
+  calculateTimeRemaining: (expiresAt: Date) => string;
 }
 
 // Firebase types for use in our services
 export interface UserCredential {
   user: User;
-  uid?: string; // Added for e2eTests compatibility
+  uid?: string;
 }
 
 export interface User {
@@ -109,15 +115,13 @@ export interface UserProfile {
     min: number;
     max: number;
   };
-  matches: string[]; // IDs of matched users
-  likedUsers: string[]; // IDs of users this user has liked
-  blockedUsers: string[]; // IDs of users this user has blocked
-  // Add verification fields
+  matches: string[];
+  likedUsers: string[];
+  blockedUsers: string[];
   isVerified?: boolean;
   pendingVerification?: boolean;
   lastVerificationAttempt?: number | null;
   verificationSelfie?: string;
-  // Add occupation field
   occupation?: string;
 }
 
