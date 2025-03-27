@@ -1,3 +1,4 @@
+
 import { Match as AppMatch, User as AppUser } from '@/types';
 
 // Service layer interfaces for abstraction and testing
@@ -73,6 +74,7 @@ export interface InterestService {
   expressInterest: (userId: string, targetUserId: string, venueId: string) => Promise<boolean>;
   getLikesRemaining: (userId: string, venueId: string) => Promise<number>;
   resetLikes: (userId: string, venueId: string) => Promise<boolean>;
+  recordInterest?: (userId: string, targetUserId: string, venueId: string) => Promise<boolean>;
 }
 
 // Update the MatchService interface to match our implementation
@@ -81,6 +83,7 @@ export interface MatchService {
   createMatch: (user1Id: string, user2Id: string, venueId: string, venueName: string) => Promise<string>;
   sendMessage: (matchId: string, userId: string, message: string) => Promise<boolean>;
   calculateTimeRemaining: (expiresAt: Date) => string;
+  requestReconnect?: (matchId: string, userId: string) => Promise<boolean>;
 }
 
 // Firebase types for use in our services

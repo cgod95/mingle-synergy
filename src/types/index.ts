@@ -60,6 +60,7 @@ export interface Match {
   id: string;
   userId: string;
   matchedUserId: string;
+  matchedUser?: User; // Make matchedUser optional
   venueId: string;
   venueName?: string;
   timestamp: number;
@@ -80,6 +81,9 @@ export interface Match {
   // Add property for tracking if users met
   met?: boolean;
   metAt?: number | null;
+  // Add message properties
+  message?: string | null;
+  receivedMessage?: string | null;
 }
 
 // Interest expression

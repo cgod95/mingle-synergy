@@ -1,7 +1,9 @@
+
 import { MatchService } from '@/types/services';
 import { Match } from '@/types/services';
 import { matches } from '@/data/mockData';
 import { notificationService } from '../notificationService';
+import { saveMatches } from '@/utils/localStorageUtils';
 
 // Calculate time remaining until match expires
 export const calculateTimeRemaining = (expiresAt: number): string => {
@@ -59,22 +61,34 @@ class MockMatchService implements MatchService {
     );
   }
 
-  async createMatch(matchData: Omit<Match, 'id'>): Promise<Match> {
+  async createMatch(
+    user1Id: string, 
+    user2Id: string, 
+    venueId: string, 
+    venueName: string
+  ): Promise<string> {
     // Generate a match ID
     const matchId = `m${matches.length + 1}`;
     
     // Create the new match
     const newMatch: Match = {
       id: matchId,
-      ...matchData,
+      userId: user1Id,
+      matchedUserId: user2Id,
+      venueId,
+      venueName,
+      timestamp: Date.now(),
+      isActive: true,
+      expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3 hours
+      contactShared: false
     };
     
     // Add to our mock data
     matches.push(newMatch);
     
-    console.log(`[Mock] Created new match between ${matchData.userId} and ${matchData.matchedUserId}`);
+    console.log(`[Mock] Created new match between ${user1Id} and ${user2Id}`);
     
-    return newMatch;
+    return matchId;
   }
 
   async updateMatch(matchId: string, data: Partial<Match>): Promise<void> {
@@ -186,6 +200,35 @@ class MockMatchService implements MatchService {
   // Add a method to get time remaining for a match
   getTimeRemaining(expiresAt: number): string {
     return calculateTimeRemaining(expiresAt);
+  }
+
+  // Calculate time remaining for a match (to match interface)
+  calculateTimeRemaining(expiresAt: Date): string {
+    const timeLeft = expiresAt.getTime() - Date.now();
+    
+    if (timeLeft <= 0) return 'Expired';
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours}h ${minutes}m remaining`;
+  }
+
+  async sendMessage(matchId: string, userId: string, message: string): Promise<boolean> {
+    try {
+      const matchIndex = matches.findIndex(m => m.id === matchId);
+      
+      if (matchIndex === -1) {
+        console.error(`[Mock] Match ${matchId} not found`);
+        return false;
+      }
+      
+      console.log(`[Mock] Message sent in match ${matchId} by user ${userId}: ${message}`);
+      return true;
+    } catch (error) {
+      console.error('[Mock] Error sending message:', error);
+      return false;
+    }
   }
 }
 

@@ -87,11 +87,47 @@ export const localStorageUtils = {
   }
 };
 
+// Functions for working with matches
+export const getMatches = (userId: string): any[] => {
+  const matches = localStorage.getItem(`matches_${userId}`);
+  return matches ? JSON.parse(matches) : [];
+};
+
+export const saveMatches = (userId: string, matches: any[]): void => {
+  localStorage.setItem(`matches_${userId}`, JSON.stringify(matches));
+};
+
+// Functions for working with interests
+export const getInterests = (userId: string): any[] => {
+  const interests = localStorage.getItem(`interests_${userId}`);
+  return interests ? JSON.parse(interests) : [];
+};
+
+export const saveInterests = (userId: string, interests: any[]): void => {
+  localStorage.setItem(`interests_${userId}`, JSON.stringify(interests));
+};
+
+// Functions for working with liked users
+export const getLikedUsers = (userId: string): any[] => {
+  const likedUsers = localStorage.getItem(`likedUsers_${userId}`);
+  return likedUsers ? JSON.parse(likedUsers) : [];
+};
+
+export const saveLikedUsers = (userId: string, likedUsers: any[]): void => {
+  localStorage.setItem(`likedUsers_${userId}`, JSON.stringify(likedUsers));
+};
+
 export default {
   STORAGE_KEYS,
   saveToStorage,
   getFromStorage,
   removeFromStorage,
   clearAppStorage,
-  localStorageUtils
+  localStorageUtils,
+  getMatches,
+  saveMatches,
+  getInterests,
+  saveInterests,
+  getLikedUsers,
+  saveLikedUsers
 };

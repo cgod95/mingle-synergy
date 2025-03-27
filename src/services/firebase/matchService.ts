@@ -80,15 +80,15 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
             id: docRef.id,
             userId: matchData.user1Id,
             matchedUserId: matchData.user2Id,
-            matchedUser: otherUser,
             venueId: matchData.venueId,
             venueName: matchData.venueName,
             timestamp: matchData.createdAt.toDate().getTime(),
             isActive: true,
             expiresAt: matchData.expiresAt.toDate().getTime(),
             contactShared: false,
-            message: matchData.user1Message || null,
-            receivedMessage: matchData.user2Message || null
+            userRequestedReconnect: matchData.userRequestedReconnect || false,
+            matchedUserRequestedReconnect: matchData.matchedUserRequestedReconnect || false,
+            reconnectRequestedAt: matchData.reconnectRequestedAt?.toDate().getTime() || null
           });
         }
       }
@@ -103,15 +103,15 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
             id: docRef.id,
             userId: matchData.user2Id,
             matchedUserId: matchData.user1Id,
-            matchedUser: otherUser,
             venueId: matchData.venueId,
             venueName: matchData.venueName,
             timestamp: matchData.createdAt.toDate().getTime(),
             isActive: true,
             expiresAt: matchData.expiresAt.toDate().getTime(),
             contactShared: false,
-            message: matchData.user2Message || null,
-            receivedMessage: matchData.user1Message || null
+            userRequestedReconnect: matchData.matchedUserRequestedReconnect || false,
+            matchedUserRequestedReconnect: matchData.userRequestedReconnect || false,
+            reconnectRequestedAt: matchData.reconnectRequestedAt?.toDate().getTime() || null
           });
         }
       }
@@ -177,6 +177,52 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       return matchRef.id;
     } catch (error) {
       console.error('Error creating match:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Request reconnection with a match
+   */
+  public async requestReconnect(matchId: string, userId: string): Promise<boolean> {
+    try {
+      if (!this.isFirebaseAvailable()) {
+        throw new Error('Cannot request reconnect while offline');
+      }
+      
+      const matchesCollection = this.getMatchesCollection();
+      if (!matchesCollection) {
+        throw new Error('Matches collection not available');
+      }
+      
+      // Get match details
+      const matchRef = doc(matchesCollection, matchId);
+      const matchSnap = await getDoc(matchRef);
+      
+      if (!matchSnap.exists()) {
+        throw new Error('Match not found');
+      }
+      
+      const matchData = matchSnap.data();
+      
+      // Determine which user is requesting reconnection
+      if (matchData.user1Id === userId) {
+        await updateDoc(matchRef, {
+          userRequestedReconnect: true,
+          reconnectRequestedAt: Timestamp.now()
+        });
+      } else if (matchData.user2Id === userId) {
+        await updateDoc(matchRef, {
+          matchedUserRequestedReconnect: true,
+          reconnectRequestedAt: Timestamp.now()
+        });
+      } else {
+        throw new Error('User is not part of this match');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error requesting reconnect:', error);
       throw error;
     }
   }

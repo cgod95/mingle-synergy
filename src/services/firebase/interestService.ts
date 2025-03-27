@@ -98,6 +98,17 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
   }
   
   /**
+   * Alias for expressInterest to match the interface
+   */
+  public async recordInterest(
+    userId: string,
+    targetUserId: string,
+    venueId: string
+  ): Promise<boolean> {
+    return this.expressInterest(userId, targetUserId, venueId);
+  }
+  
+  /**
    * Get likes remaining for a user at a venue
    */
   public async getLikesRemaining(userId: string, venueId: string): Promise<number> {
