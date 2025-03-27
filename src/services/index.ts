@@ -17,15 +17,22 @@ import mockVerificationService from './mock/mockVerificationService';
 // Import mock status from Firebase config
 import { isMock } from '@/firebase/config';
 
-// Export services based on mock status
+// Environment flags to control which services to use
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || 
+                process.env.NODE_ENV === 'development' || 
+                isMock;
+
+// Service factory
 const services = {
-  auth: mockAuthService, // Always use mock auth for now
-  user: isMock ? mockUserService : firebaseUserService,
-  venue: isMock ? mockVenueService : firebaseVenueService,
-  match: isMock ? mockMatchService : firebaseMatchService,
-  verification: isMock ? mockVerificationService : firebaseVerificationService,
+  auth: USE_MOCK ? mockAuthService : firebaseAuthService,
+  user: USE_MOCK ? mockUserService : firebaseUserService,
+  venue: USE_MOCK ? mockVenueService : firebaseVenueService,
+  match: USE_MOCK ? mockMatchService : firebaseMatchService,
+  verification: USE_MOCK ? mockVerificationService : firebaseVerificationService,
   interest: mockInterestService, // Always use mock interest service for now
 };
+
+console.log(`Using ${USE_MOCK ? 'mock' : 'Firebase'} services`);
 
 export default services;
 export const interestService = mockInterestService; // Explicitly export interest service
