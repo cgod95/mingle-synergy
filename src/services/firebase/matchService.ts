@@ -1,4 +1,3 @@
-
 import { firestore } from '@/firebase/config';
 import { MatchService, Match, UserProfile } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData, Timestamp, deleteDoc, writeBatch } from 'firebase/firestore';
@@ -230,7 +229,7 @@ class FirebaseMatchService implements MatchService {
   async createMatch(matchData: Omit<Match, 'id'>): Promise<Match> {
     try {
       const now = Date.now();
-      const expiresAt = matchData.expiresAt || (now + MATCH_EXPIRY_TIME);
+      const expiryTime = matchData.expiresAt || (now + MATCH_EXPIRY_TIME);
       
       // Support both formats for backward compatibility
       const newMatchData: any = {
@@ -239,16 +238,15 @@ class FirebaseMatchService implements MatchService {
         matchedUserId: matchData.matchedUserId,
         venueId: matchData.venueId,
         venueName: matchData.venueName,
-        timestamp: now,
+        timestamp: serverTimestamp(),
         isActive: true,
-        expiresAt: expiresAt,
+        expiresAt: Timestamp.fromDate(new Date(expiryTime)),
         contactShared: false,
         
-        // Format 2 fields
-        user1Id: matchData.userId,
-        user2Id: matchData.matchedUserId,
-        createdAt: Timestamp.now(),
-        expiresAt: Timestamp.fromDate(new Date(expiresAt)),
+        // No duplicate fields, use conditional assignment for format 2
+        ...(matchData.userId && { user1Id: matchData.userId }),
+        ...(matchData.matchedUserId && { user2Id: matchData.matchedUserId }),
+        createdAt: serverTimestamp()
       };
       
       const docRef = await addDoc(this.matchesCollection, newMatchData);
@@ -258,7 +256,7 @@ class FirebaseMatchService implements MatchService {
         ...matchData,
         timestamp: now,
         isActive: true,
-        expiresAt: expiresAt,
+        expiresAt: expiryTime,
         contactShared: false
       };
     } catch (error) {
