@@ -1,8 +1,10 @@
 import { firestore } from '@/firebase/config';
 import { MatchService, Match, UserProfile } from '@/types/services';
-import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData, Timestamp, deleteDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData, Timestamp, deleteDoc, writeBatch, orderBy } from 'firebase/firestore';
 import { notificationService } from '../notificationService';
 import userService from './userService';
+import { FirebaseServiceBase } from './FirebaseServiceBase';
+import { getFromStorage, saveToStorage } from '@/utils/localStorageUtils';
 
 // MATCH_EXPIRY_TIME in milliseconds (3 hours)
 const MATCH_EXPIRY_TIME = 3 * 60 * 60 * 1000;
@@ -149,11 +151,18 @@ const reconnectMatch = async (matchId: string): Promise<void> => {
   }
 };
 
-class FirebaseMatchService implements MatchService {
+class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
   private matchesCollection = collection(firestore, 'matches');
   
   async getMatches(userId: string): Promise<Match[]> {
     try {
+      // Check if we're offline or Firebase is not available
+      if (!this.isFirebaseAvailable()) {
+        console.log('Offline or Firebase unavailable: returning cached matches');
+        const cachedMatches = getFromStorage<Match[]>(`matches_${userId}`, []);
+        return cachedMatches;
+      }
+      
       // We'll query for both formats to support the different data structures
       // Format 1: userId and matchedUserId
       const userMatches = query(
@@ -172,13 +181,15 @@ class FirebaseMatchService implements MatchService {
       const user1Matches = query(
         this.matchesCollection,
         where('user1Id', '==', userId),
-        where('expiresAt', '>', Timestamp.now())
+        where('expiresAt', '>', Timestamp.now()),
+        orderBy('expiresAt')
       );
       
       const user2Matches = query(
         this.matchesCollection,
         where('user2Id', '==', userId),
-        where('expiresAt', '>', Timestamp.now())
+        where('expiresAt', '>', Timestamp.now()),
+        orderBy('expiresAt')
       );
       
       const [userMatchesSnapshot, matchedMatchesSnapshot, user1MatchesSnapshot, user2MatchesSnapshot] = 
@@ -219,15 +230,27 @@ class FirebaseMatchService implements MatchService {
       }
       
       // Sort by newest first
-      return matches.sort((a, b) => b.timestamp - a.timestamp);
+      const sortedMatches = matches.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // Cache matches for offline access
+      saveToStorage(`matches_${userId}`, sortedMatches);
+      
+      return sortedMatches;
     } catch (error) {
       console.error('Error fetching matches:', error);
-      return [];
+      
+      // Try to get cached matches if available
+      const cachedMatches = getFromStorage<Match[]>(`matches_${userId}`, []);
+      return cachedMatches;
     }
   }
 
   async createMatch(matchData: Omit<Match, 'id'>): Promise<Match> {
     try {
+      if (!this.isFirebaseAvailable()) {
+        throw new Error('Cannot create match while offline');
+      }
+      
       const now = Date.now();
       const expiryTime = matchData.expiresAt || (now + MATCH_EXPIRY_TIME);
       
@@ -267,6 +290,10 @@ class FirebaseMatchService implements MatchService {
 
   async updateMatch(matchId: string, data: Partial<Match>): Promise<void> {
     try {
+      if (!this.isFirebaseAvailable()) {
+        throw new Error('Cannot update match while offline');
+      }
+      
       const matchDocRef = doc(firestore, 'matches', matchId);
       
       // Create a clean data object with only allowed fields
@@ -275,8 +302,6 @@ class FirebaseMatchService implements MatchService {
       if (data.isActive !== undefined) cleanData.isActive = data.isActive;
       if (data.contactShared !== undefined) cleanData.contactShared = data.contactShared;
       if (data.expiresAt !== undefined) {
-        cleanData.expiresAt = data.expiresAt;
-        // Also update the Timestamp version
         cleanData.expiresAt = Timestamp.fromDate(new Date(data.expiresAt));
       }
       
@@ -297,6 +322,10 @@ class FirebaseMatchService implements MatchService {
 
   async requestReconnect(matchId: string, userId: string): Promise<boolean> {
     try {
+      if (!this.isFirebaseAvailable()) {
+        throw new Error('Cannot request reconnect while offline');
+      }
+      
       const matchDocRef = doc(firestore, 'matches', matchId);
       const matchDoc = await getDoc(matchDocRef);
       
@@ -351,6 +380,10 @@ class FirebaseMatchService implements MatchService {
 
   async markAsMet(matchId: string): Promise<boolean> {
     try {
+      if (!this.isFirebaseAvailable()) {
+        throw new Error('Cannot mark match as met while offline');
+      }
+      
       const matchDocRef = doc(firestore, 'matches', matchId);
       await updateDoc(matchDocRef, {
         met: true,
@@ -366,6 +399,10 @@ class FirebaseMatchService implements MatchService {
   // Additional method for cleaning up expired matches
   async cleanupExpiredMatches(): Promise<number> {
     try {
+      if (!this.isFirebaseAvailable()) {
+        return 0; // Can't clean up while offline
+      }
+      
       // Create a query for expired matches
       const expiredMatchesQuery = query(
         this.matchesCollection,
@@ -394,6 +431,10 @@ class FirebaseMatchService implements MatchService {
   // Method to send a message (from the provided FirebaseMatchService)
   async sendMessage(matchId: string, userId: string, message: string): Promise<boolean> {
     try {
+      if (!this.isFirebaseAvailable()) {
+        throw new Error('Cannot send message while offline');
+      }
+      
       // Get match details
       const matchRef = doc(this.matchesCollection, matchId);
       const matchSnap = await getDoc(matchRef);

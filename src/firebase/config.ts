@@ -22,6 +22,7 @@ let auth;
 let db;
 let storage;
 let analytics = null;
+let firestore;
 
 // Only initialize if we have an API key
 if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'your-api-key') {
@@ -32,6 +33,7 @@ if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'your-api-key') {
     // Initialize services
     auth = getAuth(app);
     db = getFirestore(app);
+    firestore = db; // For backward compatibility
     storage = getStorage(app);
     
     // Initialize analytics only in browser environment
@@ -47,6 +49,7 @@ if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'your-api-key') {
     app = {};
     auth = {};
     db = {};
+    firestore = {};
     storage = {};
   }
 } else {
@@ -56,11 +59,9 @@ if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'your-api-key') {
   app = {};
   auth = {};
   db = {};
+  firestore = {};
   storage = {};
 }
-
-// For backward compatibility
-const firestore = db;
 
 // Export mock status for service determination
 const isMock = Object.keys(app).length === 0;
