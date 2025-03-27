@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -42,7 +41,6 @@ const ActiveVenue = () => {
   const [expiryTime, setExpiryTime] = useState<Date>(new Date());
   const [usersAtVenue, setUsersAtVenue] = useState<User[]>([]);
   
-  // Add likesRemaining state
   const [likesRemaining, setLikesRemaining] = useState(() => {
     if (id) {
       const saved = localStorage.getItem(`likesRemaining-${id}`);
@@ -54,9 +52,9 @@ const ActiveVenue = () => {
   const currentUser = { id: 'u6', name: 'Demo User' };
   
   useEffect(() => {
-    setInterests(getInterests());
-    setMatches(getMatches());
-    setLikedUsers(getLikedUsers());
+    setInterests(getInterests(currentUser.id));
+    setMatches(getMatches(currentUser.id));
+    setLikedUsers(getLikedUsers(currentUser.id));
     
     const timer = setTimeout(() => {
       setLoading(false);
@@ -135,19 +133,17 @@ const ActiveVenue = () => {
     
     const updatedInterests = [...interests, newInterest];
     setInterests(updatedInterests);
-    saveInterests(updatedInterests);
+    saveInterests(currentUser.id, updatedInterests);
     
     const updatedLikedUsers = [...likedUsers, userId];
     setLikedUsers(updatedLikedUsers);
-    saveLikedUsers(updatedLikedUsers);
+    saveLikedUsers(currentUser.id, updatedLikedUsers);
     
-    // Show confirmation toast
     toast({
       title: "Interest Sent!",
       description: `Interest sent to ${getUserName(userId)}`,
     });
     
-    // Check for mutual interest (match)
     checkForMatch(userId);
   };
   
@@ -171,7 +167,7 @@ const ActiveVenue = () => {
       
       const updatedMatches = [...matches, newMatch];
       setMatches(updatedMatches);
-      saveMatches(updatedMatches);
+      saveMatches(currentUser.id, updatedMatches);
       
       setCurrentMatch(newMatch);
       setShowMatchNotification(true);
@@ -212,7 +208,6 @@ const ActiveVenue = () => {
     });
   };
   
-  // Format the expiry time for the VenueDetails component
   const formatExpiryTime = () => {
     return expiryTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -296,7 +291,6 @@ const ActiveVenue = () => {
                 )}
               </div>
               
-              {/* Floating Action Button */}
               <div className="floating-action-button animate-scale-in">
                 <Plus size={24} />
               </div>

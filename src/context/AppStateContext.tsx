@@ -55,11 +55,11 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   });
   
   const [interests, setInterests] = useState<Interest[]>(() => {
-    return getInterests();
+    return getInterests(currentUser?.id || 'default');
   });
   
   const [matches, setMatches] = useState<Match[]>(() => {
-    return getMatches();
+    return getMatches(currentUser?.id || 'default');
   });
   
   const [likedUsers, setLikedUsers] = useState<string[]>(() => {

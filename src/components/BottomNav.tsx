@@ -10,7 +10,7 @@ const BottomNav: React.FC = () => {
   const location = useLocation();
   
   // Get unread matches for badge
-  const matches = getMatches();
+  const matches = getMatches('default'); // Use 'default' as fallback userId
   const unreadMatches = matches.filter(match => !match.contactShared).length;
   
   return (
