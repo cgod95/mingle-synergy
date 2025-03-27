@@ -34,6 +34,18 @@
       line-height: 1.6;
       color: #666;
     }
+    .icon {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 24px;
+    }
     button {
       background-color: #3A86FF;
       color: white;
@@ -42,16 +54,79 @@
       border-radius: 50px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 20px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #2876F9;
+    }
+    .secondary-button {
+      background-color: transparent;
+      color: #3A86FF;
+      border: 1px solid #3A86FF;
+    }
+    .secondary-button:hover {
+      background-color: rgba(58, 134, 255, 0.1);
+    }
+    .tips {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      text-align: left;
+    }
+    .tips h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .tips ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+    .tips li {
+      margin-bottom: 8px;
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#3A86FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.58 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"></path>
+    </svg>
     <h1>You're Offline</h1>
     <p>Mingle needs an internet connection to help you connect with people nearby.</p>
-    <p>Please check your connection and try again.</p>
-    <button onclick="window.location.reload()">Retry</button>
+    <p>We've saved some of your data locally so you can still view some content.</p>
+    
+    <div class="actions">
+      <button onclick="window.location.reload()">Try Again</button>
+      <button class="secondary-button" onclick="window.history.back()">Go Back</button>
+    </div>
+    
+    <div class="tips">
+      <h3>Troubleshooting tips:</h3>
+      <ul>
+        <li>Check your Wi-Fi or mobile data connection</li>
+        <li>Put your device in airplane mode, wait 5 seconds, then turn it off</li>
+        <li>Restart your device</li>
+        <li>If you're using Wi-Fi, try moving closer to your router</li>
+      </ul>
+    </div>
   </div>
+
+  <script>
+    // Check network status periodically to automatically reload when back online
+    function checkConnection() {
+      if (navigator.onLine) {
+        window.location.reload();
+      }
+    }
+    
+    // Check every 5 seconds
+    setInterval(checkConnection, 5000);
+    
+    // Also listen for online event
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
 </body>
 </html>
