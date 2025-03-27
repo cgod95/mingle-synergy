@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Mail, Lock } from 'lucide-react';
@@ -13,7 +12,6 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { signIn } = useAuth();
-  const navigate = useNavigate();
   
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +37,7 @@ const SignIn = () => {
     try {
       setIsLoading(true);
       await signIn(email, password);
-      navigate('/');
+      // Navigation handled by AuthContext
     } catch (error) {
       console.error('Sign in error:', error);
       // Error handling is done in the useAuth hook

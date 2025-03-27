@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Mail, Lock } from 'lucide-react';
@@ -19,7 +18,6 @@ const SignUp = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { toast } = useToast();
   const { signUp } = useAuth();
-  const navigate = useNavigate();
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,11 +51,9 @@ const SignUp = () => {
         description: "You're now signed up.",
         variant: "default"
       });
-      navigate('/onboarding');
     } catch (error) {
       console.error('Sign up error:', error);
       setErrorMessage('Failed to create account. Please try again.');
-      // Error handling is done in the useAuth hook
     } finally {
       setIsLoading(false);
     }

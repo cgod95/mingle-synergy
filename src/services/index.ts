@@ -17,14 +17,15 @@ import mockVerificationService from './mock/mockVerificationService';
 // Import mock status from Firebase config
 import { isMock } from '@/firebase/config';
 
-// Export services based on mock status - force mock for development
+// Export services based on mock status
 const services = {
   auth: mockAuthService, // Always use mock auth for now
   user: isMock ? mockUserService : firebaseUserService,
   venue: isMock ? mockVenueService : firebaseVenueService,
   match: isMock ? mockMatchService : firebaseMatchService,
   verification: isMock ? mockVerificationService : firebaseVerificationService,
-  interest: mockInterestService, // Add interest service
+  interest: mockInterestService, // Always use mock interest service for now
 };
 
 export default services;
+export const interestService = mockInterestService; // Explicitly export interest service

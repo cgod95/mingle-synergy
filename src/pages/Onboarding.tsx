@@ -44,6 +44,7 @@ const Onboarding = () => {
       description: "Now let's create your profile to start meeting people.",
       action: () => {
         localStorage.setItem('onboardingComplete', 'true');
+        localStorage.setItem('onboardingSeen', 'true');
         navigate('/profile/edit');
       }
     }
