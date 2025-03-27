@@ -29,6 +29,62 @@ const Onboarding = () => {
     };
   }, [step, locationRequesting]);
   
+  const requestLocationWithTimeout = () => {
+    setLocationRequesting(true);
+    setLocationError(false);
+    setLocationDenied(false);
+    
+    // Check if the browser supports geolocation
+    if (!navigator.geolocation) {
+      // If geolocation is not supported, allow moving forward anyway in development
+      if (process.env.NODE_ENV === 'development') {
+        localStorage.setItem('locationEnabled', 'mock');
+        setLocationRequesting(false);
+        setStep(2);
+      } else {
+        setLocationRequesting(false);
+        setLocationError(true);
+      }
+      return;
+    }
+    
+    // Actual permission request
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // Store location
+        localStorage.setItem('locationEnabled', 'true');
+        localStorage.setItem('latitude', position.coords.latitude.toString());
+        localStorage.setItem('longitude', position.coords.longitude.toString());
+        
+        // Update state and move forward
+        setLocationRequesting(false);
+        setStep(2); // Move to next step
+      },
+      (error) => {
+        setLocationRequesting(false);
+        
+        console.log('Geolocation error:', error.code, error.message);
+        
+        if (error.code === 1) { // PERMISSION_DENIED
+          setLocationDenied(true);
+        } else {
+          setLocationError(true);
+        }
+        
+        // Allow proceeding in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Using mock location in development mode');
+          localStorage.setItem('locationEnabled', 'mock');
+        }
+      },
+      { 
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000 
+      }
+    );
+  };
+  
   const steps = [
     {
       title: "Welcome to Mingle",
@@ -40,53 +96,7 @@ const Onboarding = () => {
       title: "Enable Location",
       description: "Mingle needs your location to find venues and people near you.",
       icon: <MapPin className="w-12 h-12 text-coral-500" />,
-      action: () => {
-        setLocationRequesting(true);
-        setLocationError(false);
-        setLocationDenied(false);
-        
-        // Check if the browser supports geolocation
-        if (!navigator.geolocation) {
-          // If geolocation is not supported, allow moving forward anyway in development
-          if (process.env.NODE_ENV === 'development') {
-            localStorage.setItem('locationEnabled', 'mock');
-            setLocationRequesting(false);
-            setStep(2);
-          } else {
-            setLocationRequesting(false);
-            setLocationError(true);
-          }
-          return;
-        }
-        
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            // Success
-            localStorage.setItem('locationEnabled', 'true');
-            localStorage.setItem('latitude', position.coords.latitude.toString());
-            localStorage.setItem('longitude', position.coords.longitude.toString());
-            setLocationRequesting(false);
-            setStep(2); // Move to next step
-          },
-          (error) => {
-            // Error/Denied
-            console.error('Location error:', error);
-            setLocationRequesting(false);
-            
-            if (error.code === 1) { // PERMISSION_DENIED
-              setLocationDenied(true);
-            } else {
-              setLocationError(true);
-            }
-            
-            // In development mode, allow proceeding anyway
-            if (process.env.NODE_ENV === 'development') {
-              localStorage.setItem('locationEnabled', 'mock');
-            }
-          },
-          { timeout: 10000, maximumAge: 60000 }
-        );
-      }
+      action: requestLocationWithTimeout
     },
     {
       title: "Enable Notifications",
@@ -172,7 +182,7 @@ const Onboarding = () => {
                     setLocationError(false);
                     setLocationDenied(false);
                     // Wait a moment before trying again
-                    setTimeout(() => currentStep.action(), 500);
+                    setTimeout(() => requestLocationWithTimeout(), 500);
                   }}
                   className="px-4 py-2 text-sm bg-gray-200 rounded-lg"
                 >
