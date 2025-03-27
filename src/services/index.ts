@@ -1,21 +1,52 @@
 
 import { 
-  MockAuthService, 
-  MockUserService, 
-  MockVenueService, 
-  MockMatchService,
-  MockInterestService
-} from './mock';
+  default as mockAuthService, 
+  default as MockAuthService
+} from './mock/mockAuthService';
+import { 
+  default as mockUserService,
+  default as MockUserService
+} from './mock/mockUserService';
+import { 
+  default as mockVenueService,
+  default as MockVenueService
+} from './mock/mockVenueService';
+import { 
+  default as mockMatchService,
+  default as MockMatchService
+} from './mock/mockMatchService';
+import { 
+  default as mockInterestService,
+  default as MockInterestService
+} from './mock/mockInterestService';
+import { 
+  default as mockVerificationService,
+  default as MockVerificationService
+} from './mock/mockVerificationService';
 
 // Always use mock services in the Lovable environment
 console.log('Using mock services for development');
 
 // Export mock services directly
-export const authService = new MockAuthService();
-export const userService = new MockUserService();
-export const venueService = new MockVenueService();
-export const matchService = new MockMatchService();
-export const interestService = new MockInterestService();
+export const authService = mockAuthService;
+export const userService = mockUserService;
+export const venueService = mockVenueService;
+export const matchService = mockMatchService;
+export const interestService = mockInterestService;
+export const verification = mockVerificationService;
+
+// For backward compatibility with existing imports
+const services = {
+  auth: authService,
+  user: userService,
+  venue: venueService,
+  match: matchService,
+  interest: interestService,
+  verification
+};
+
+// Export as default for files that use import services from '@/services'
+export default services;
 
 /* 
 FIREBASE TRANSITION GUIDE:

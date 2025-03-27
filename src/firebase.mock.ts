@@ -28,11 +28,45 @@ export const updateDoc = async () => true;
 export const deleteDoc = async () => true;
 export const Timestamp = {
   now: () => ({ toDate: () => new Date() }),
-  fromDate: (date) => ({ toDate: () => date })
+  fromDate: (date: Date) => ({ toDate: () => date })
 };
-export const runTransaction = async (db, callback) => {
+export const runTransaction = async (db: any, callback: Function) => {
   await callback({ get: async () => ({ exists: () => true, data: () => ({ remaining: 3 }) }) });
   return true;
 };
-export const increment = (num) => num;
+export const increment = (num: number) => num;
 export const setDoc = async () => true;
+export const serverTimestamp = () => ({ toDate: () => new Date() });
+export const arrayUnion = (...items: any[]) => items;
+export const arrayRemove = (...items: any[]) => [];
+export const limit = (n: number) => n;
+export const startAfter = (doc: any) => doc;
+export const endBefore = (doc: any) => doc;
+export const writeBatch = () => ({
+  set: () => {},
+  update: () => {},
+  delete: () => {},
+  commit: async () => {}
+});
+
+// Additional Firebase Auth mock functions
+export const createUserWithEmailAndPassword = async () => ({ 
+  user: { uid: `mock-${Date.now()}`, email: 'mock@example.com' } 
+});
+export const signInWithEmailAndPassword = async () => ({ 
+  user: { uid: `mock-${Date.now()}`, email: 'mock@example.com' } 
+});
+export const signInAnonymously = async () => ({ 
+  user: { uid: `mock-${Date.now()}`, isAnonymous: true } 
+});
+export const signOut = async () => {};
+export const sendPasswordResetEmail = async () => {};
+export const onAuthStateChanged = () => () => {};
+export const fetchSignInMethodsForEmail = async () => [];
+
+// Firebase Storage mock functions
+export const ref = () => ({});
+export const uploadBytes = async () => {};
+export const getDownloadURL = async () => "https://example.com/mock-image.jpg";
+export const uploadString = async () => {};
+export const deleteObject = async () => {};
