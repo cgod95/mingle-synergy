@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { calculateTimeRemaining } from '../../services/firebase/matchService';
 
 interface MatchTimerProps {
   expiresAt: number;
@@ -17,33 +18,16 @@ const MatchTimer: React.FC<MatchTimerProps> = ({ expiresAt, onExpire }) => {
       return;
     }
     
-    // Calculate initial time remaining to sync with server
-    const serverNow = Date.now(); // Ideally would be from server
-    const initialDiff = expiresAt - serverNow;
-    
-    if (initialDiff <= 0) {
-      setTimeRemaining('Expired');
-      setIsExpired(true);
-      onExpire?.();
-      return;
-    }
-    
-    // Update timer every 30 seconds
+    // Calculate initial time remaining using our utility function
     const updateTimer = () => {
-      const now = Date.now();
-      const diff = expiresAt - now;
+      const remaining = calculateTimeRemaining(expiresAt);
+      setTimeRemaining(remaining);
       
-      if (diff <= 0) {
-        setTimeRemaining('Expired');
+      if (remaining === 'Expired') {
         setIsExpired(true);
         onExpire?.();
         return;
       }
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      setTimeRemaining(`${hours}h ${minutes}m`);
     };
     
     // Initial update

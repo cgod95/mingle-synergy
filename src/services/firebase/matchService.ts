@@ -1,7 +1,7 @@
-
 import { firestore } from '@/firebase/config';
 import { MatchService, Match } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData } from 'firebase/firestore';
+import { notificationService } from '../notificationService';
 
 // Helper function to transform Firestore data
 const transformFirestoreMatch = (firestoreData: DocumentData, matchId: string): Match => {
@@ -19,6 +19,71 @@ const transformFirestoreMatch = (firestoreData: DocumentData, matchId: string): 
     reconnectRequestedAt: firestoreData?.reconnectRequestedAt?.toMillis() || null,
     reconnectedAt: firestoreData?.reconnectedAt?.toMillis() || null,
   };
+};
+
+// Calculate time remaining until match expires
+export const calculateTimeRemaining = (expiresAt: number): string => {
+  const now = Date.now();
+  const timeLeft = expiresAt - now;
+  
+  if (timeLeft <= 0) return 'Expired';
+  
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return `${hours}h ${minutes}m remaining`;
+};
+
+// Function to check for expiring matches and notify users
+export const checkExpiringMatches = async (userId: string): Promise<void> => {
+  try {
+    const matchesCollectionRef = collection(firestore, 'matches');
+    const userMatches = query(
+      matchesCollectionRef,
+      where('userId', '==', userId),
+      where('isActive', '==', true)
+    );
+    
+    const matchedMatches = query(
+      matchesCollectionRef,
+      where('matchedUserId', '==', userId),
+      where('isActive', '==', true)
+    );
+    
+    const [userMatchesSnapshot, matchedMatchesSnapshot] = await Promise.all([
+      getDocs(userMatches),
+      getDocs(matchedMatches)
+    ]);
+    
+    const matches: Match[] = [];
+    
+    // Process all matches
+    userMatchesSnapshot.forEach(doc => {
+      matches.push(transformFirestoreMatch(doc.data(), doc.id));
+    });
+    
+    matchedMatchesSnapshot.forEach(doc => {
+      matches.push(transformFirestoreMatch(doc.data(), doc.id));
+    });
+    
+    const soon = 30 * 60 * 1000; // 30 minutes
+    
+    matches.forEach(match => {
+      const timeLeft = match.expiresAt - Date.now();
+      
+      // If match will expire within 30 minutes, notify user
+      if (timeLeft > 0 && timeLeft <= soon && !match.contactShared) {
+        notificationService.showNotification(
+          'Match Expiring Soon',
+          {
+            body: `Your match will expire in ${Math.floor(timeLeft / (1000 * 60))} minutes. Share contact info to keep the connection!`
+          }
+        );
+      }
+    });
+  } catch (error) {
+    console.error('Error checking expiring matches:', error);
+  }
 };
 
 // Helper function for reconnecting a match
@@ -179,6 +244,14 @@ class FirebaseMatchService implements MatchService {
       console.error('Error marking match as met:', error);
       return false;
     }
+  }
+
+  async checkExpiringMatches(userId: string): Promise<void> {
+    return checkExpiringMatches(userId);
+  }
+
+  getTimeRemaining(expiresAt: number): string {
+    return calculateTimeRemaining(expiresAt);
   }
 }
 

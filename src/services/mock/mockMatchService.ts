@@ -1,7 +1,49 @@
-
 import { MatchService } from '@/types/services';
 import { Match } from '@/types/services';
 import { matches } from '@/data/mockData';
+import { notificationService } from '../notificationService';
+
+// Calculate time remaining until match expires
+export const calculateTimeRemaining = (expiresAt: number): string => {
+  const now = Date.now();
+  const timeLeft = expiresAt - now;
+  
+  if (timeLeft <= 0) return 'Expired';
+  
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return `${hours}h ${minutes}m remaining`;
+};
+
+// Function to check for expiring matches and notify users
+export const checkExpiringMatches = async (userId: string): Promise<void> => {
+  try {
+    const userMatches = matches.filter(
+      match => (match.userId === userId || match.matchedUserId === userId) && match.isActive
+    );
+    
+    const soon = 30 * 60 * 1000; // 30 minutes
+    
+    userMatches.forEach(match => {
+      const timeLeft = match.expiresAt - Date.now();
+      
+      // If match will expire within 30 minutes, notify user
+      if (timeLeft > 0 && timeLeft <= soon && !match.contactShared) {
+        notificationService.showNotification(
+          'Match Expiring Soon',
+          {
+            body: `Your match will expire in ${Math.floor(timeLeft / (1000 * 60))} minutes. Share contact info to keep the connection!`
+          }
+        );
+      }
+    });
+    
+    console.log(`[Mock] Checked ${userMatches.length} matches for expiry notifications`);
+  } catch (error) {
+    console.error('[Mock] Error checking expiring matches:', error);
+  }
+};
 
 class MockMatchService implements MatchService {
   constructor() {
@@ -134,6 +176,16 @@ class MockMatchService implements MatchService {
   // Add this function to simulate receiving messages
   receiveMessage(matchId: string, message: string): void {
     localStorage.setItem(`received_message_${matchId}`, message);
+  }
+
+  // Add a new method to check expiring matches
+  async checkExpiringMatches(userId: string): Promise<void> {
+    return checkExpiringMatches(userId);
+  }
+
+  // Add a method to get time remaining for a match
+  getTimeRemaining(expiresAt: number): string {
+    return calculateTimeRemaining(expiresAt);
   }
 }
 
