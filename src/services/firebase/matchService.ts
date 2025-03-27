@@ -1,23 +1,31 @@
+
 import { firestore } from '@/firebase/config';
-import { MatchService, Match } from '@/types/services';
-import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData } from 'firebase/firestore';
+import { MatchService, Match, UserProfile } from '@/types/services';
+import { doc, getDoc, getDocs, collection, query, where, updateDoc, addDoc, serverTimestamp, DocumentData, Timestamp, deleteDoc, writeBatch } from 'firebase/firestore';
 import { notificationService } from '../notificationService';
+import userService from './userService';
+
+// MATCH_EXPIRY_TIME in milliseconds (3 hours)
+const MATCH_EXPIRY_TIME = 3 * 60 * 60 * 1000;
 
 // Helper function to transform Firestore data
 const transformFirestoreMatch = (firestoreData: DocumentData, matchId: string): Match => {
   return {
     id: matchId,
-    userId: firestoreData?.userId || '',
-    matchedUserId: firestoreData?.matchedUserId || '',
+    userId: firestoreData?.userId || firestoreData?.user1Id || '',
+    matchedUserId: firestoreData?.matchedUserId || firestoreData?.user2Id || '',
     venueId: firestoreData?.venueId || '',
-    timestamp: firestoreData?.timestamp?.toMillis() || Date.now(),
+    venueName: firestoreData?.venueName || undefined,
+    timestamp: firestoreData?.timestamp?.toMillis() || firestoreData?.createdAt?.toMillis() || Date.now(),
     isActive: firestoreData?.isActive !== false,
-    expiresAt: firestoreData?.expiresAt || (Date.now() + (3 * 60 * 60 * 1000)),
+    expiresAt: firestoreData?.expiresAt?.toMillis() || (Date.now() + MATCH_EXPIRY_TIME),
     contactShared: firestoreData?.contactShared || false,
     userRequestedReconnect: firestoreData?.userRequestedReconnect || false,
     matchedUserRequestedReconnect: firestoreData?.matchedUserRequestedReconnect || false,
     reconnectRequestedAt: firestoreData?.reconnectRequestedAt?.toMillis() || null,
     reconnectedAt: firestoreData?.reconnectedAt?.toMillis() || null,
+    met: firestoreData?.met || false,
+    metAt: firestoreData?.metAt?.toMillis() || null,
   };
 };
 
@@ -38,6 +46,8 @@ export const calculateTimeRemaining = (expiresAt: number): string => {
 export const checkExpiringMatches = async (userId: string): Promise<void> => {
   try {
     const matchesCollectionRef = collection(firestore, 'matches');
+    
+    // Query for matches where the user is either userId or matchedUserId
     const userMatches = query(
       matchesCollectionRef,
       where('userId', '==', userId),
@@ -50,19 +60,43 @@ export const checkExpiringMatches = async (userId: string): Promise<void> => {
       where('isActive', '==', true)
     );
     
-    const [userMatchesSnapshot, matchedMatchesSnapshot] = await Promise.all([
-      getDocs(userMatches),
-      getDocs(matchedMatches)
-    ]);
+    // Also try the format from FirebaseMatchService
+    const user1Matches = query(
+      matchesCollectionRef,
+      where('user1Id', '==', userId),
+      where('expiresAt', '>', Timestamp.now())
+    );
+    
+    const user2Matches = query(
+      matchesCollectionRef,
+      where('user2Id', '==', userId),
+      where('expiresAt', '>', Timestamp.now())
+    );
+    
+    const [userMatchesSnapshot, matchedMatchesSnapshot, user1MatchesSnapshot, user2MatchesSnapshot] = 
+      await Promise.all([
+        getDocs(userMatches),
+        getDocs(matchedMatches),
+        getDocs(user1Matches),
+        getDocs(user2Matches)
+      ]);
     
     const matches: Match[] = [];
     
-    // Process all matches
+    // Process all matches from all formats
     userMatchesSnapshot.forEach(doc => {
       matches.push(transformFirestoreMatch(doc.data(), doc.id));
     });
     
     matchedMatchesSnapshot.forEach(doc => {
+      matches.push(transformFirestoreMatch(doc.data(), doc.id));
+    });
+    
+    user1MatchesSnapshot.forEach(doc => {
+      matches.push(transformFirestoreMatch(doc.data(), doc.id));
+    });
+    
+    user2MatchesSnapshot.forEach(doc => {
       matches.push(transformFirestoreMatch(doc.data(), doc.id));
     });
     
@@ -97,7 +131,7 @@ const reconnectMatch = async (matchId: string): Promise<void> => {
     }
     
     // Create a new expiry time (3 hours from now)
-    const newExpiryTime = Date.now() + (3 * 60 * 60 * 1000);
+    const newExpiryTime = Date.now() + MATCH_EXPIRY_TIME;
     
     // Update the match
     await updateDoc(matchDocRef, {
@@ -117,38 +151,73 @@ const reconnectMatch = async (matchId: string): Promise<void> => {
 };
 
 class FirebaseMatchService implements MatchService {
+  private matchesCollection = collection(firestore, 'matches');
+  
   async getMatches(userId: string): Promise<Match[]> {
     try {
-      // Get matches where user is either the requester or the recipient
-      const matchesCollectionRef = collection(firestore, 'matches');
+      // We'll query for both formats to support the different data structures
+      // Format 1: userId and matchedUserId
       const userMatches = query(
-        matchesCollectionRef,
+        this.matchesCollection,
         where('userId', '==', userId),
         where('isActive', '==', true)
       );
       
       const matchedMatches = query(
-        matchesCollectionRef,
+        this.matchesCollection,
         where('matchedUserId', '==', userId),
         where('isActive', '==', true)
       );
       
-      const [userMatchesSnapshot, matchedMatchesSnapshot] = await Promise.all([
-        getDocs(userMatches),
-        getDocs(matchedMatches)
-      ]);
+      // Format 2: user1Id and user2Id with expiresAt timestamp
+      const user1Matches = query(
+        this.matchesCollection,
+        where('user1Id', '==', userId),
+        where('expiresAt', '>', Timestamp.now())
+      );
+      
+      const user2Matches = query(
+        this.matchesCollection,
+        where('user2Id', '==', userId),
+        where('expiresAt', '>', Timestamp.now())
+      );
+      
+      const [userMatchesSnapshot, matchedMatchesSnapshot, user1MatchesSnapshot, user2MatchesSnapshot] = 
+        await Promise.all([
+          getDocs(userMatches),
+          getDocs(matchedMatches),
+          getDocs(user1Matches),
+          getDocs(user2Matches)
+        ]);
       
       const matches: Match[] = [];
       
-      // Process matches where user is the requester
+      // Process all matches from all formats
       userMatchesSnapshot.forEach(doc => {
         matches.push(transformFirestoreMatch(doc.data(), doc.id));
       });
       
-      // Process matches where user is the recipient
       matchedMatchesSnapshot.forEach(doc => {
         matches.push(transformFirestoreMatch(doc.data(), doc.id));
       });
+      
+      // Process matches where user is user1 (from the new format)
+      for (const doc of user1MatchesSnapshot.docs) {
+        const matchData = doc.data();
+        // Only add if not already in the list
+        if (!matches.some(m => m.id === doc.id)) {
+          matches.push(transformFirestoreMatch(matchData, doc.id));
+        }
+      }
+      
+      // Process matches where user is user2 (from the new format)
+      for (const doc of user2MatchesSnapshot.docs) {
+        const matchData = doc.data();
+        // Only add if not already in the list
+        if (!matches.some(m => m.id === doc.id)) {
+          matches.push(transformFirestoreMatch(matchData, doc.id));
+        }
+      }
       
       // Sort by newest first
       return matches.sort((a, b) => b.timestamp - a.timestamp);
@@ -160,21 +229,37 @@ class FirebaseMatchService implements MatchService {
 
   async createMatch(matchData: Omit<Match, 'id'>): Promise<Match> {
     try {
-      const matchesCollectionRef = collection(firestore, 'matches');
+      const now = Date.now();
+      const expiresAt = matchData.expiresAt || (now + MATCH_EXPIRY_TIME);
       
-      // Add timestamp and ensure expiresAt is set
-      const newMatchData = {
-        ...matchData,
-        timestamp: Date.now(),
+      // Support both formats for backward compatibility
+      const newMatchData: any = {
+        // Format 1 fields
+        userId: matchData.userId,
+        matchedUserId: matchData.matchedUserId,
+        venueId: matchData.venueId,
+        venueName: matchData.venueName,
+        timestamp: now,
         isActive: true,
-        expiresAt: matchData.expiresAt || (Date.now() + (3 * 60 * 60 * 1000))
+        expiresAt: expiresAt,
+        contactShared: false,
+        
+        // Format 2 fields
+        user1Id: matchData.userId,
+        user2Id: matchData.matchedUserId,
+        createdAt: Timestamp.now(),
+        expiresAt: Timestamp.fromDate(new Date(expiresAt)),
       };
       
-      const docRef = await addDoc(matchesCollectionRef, newMatchData);
+      const docRef = await addDoc(this.matchesCollection, newMatchData);
       
       return {
         id: docRef.id,
-        ...newMatchData
+        ...matchData,
+        timestamp: now,
+        isActive: true,
+        expiresAt: expiresAt,
+        contactShared: false
       };
     } catch (error) {
       console.error('Error creating match:', error);
@@ -185,7 +270,27 @@ class FirebaseMatchService implements MatchService {
   async updateMatch(matchId: string, data: Partial<Match>): Promise<void> {
     try {
       const matchDocRef = doc(firestore, 'matches', matchId);
-      await updateDoc(matchDocRef, data);
+      
+      // Create a clean data object with only allowed fields
+      const cleanData: any = {};
+      
+      if (data.isActive !== undefined) cleanData.isActive = data.isActive;
+      if (data.contactShared !== undefined) cleanData.contactShared = data.contactShared;
+      if (data.expiresAt !== undefined) {
+        cleanData.expiresAt = data.expiresAt;
+        // Also update the Timestamp version
+        cleanData.expiresAt = Timestamp.fromDate(new Date(data.expiresAt));
+      }
+      
+      // Additional fields for reconnect and met functionality
+      if (data.userRequestedReconnect !== undefined) cleanData.userRequestedReconnect = data.userRequestedReconnect;
+      if (data.matchedUserRequestedReconnect !== undefined) cleanData.matchedUserRequestedReconnect = data.matchedUserRequestedReconnect;
+      if (data.reconnectRequestedAt !== undefined) cleanData.reconnectRequestedAt = serverTimestamp();
+      if (data.reconnectedAt !== undefined) cleanData.reconnectedAt = serverTimestamp();
+      if (data.met !== undefined) cleanData.met = data.met;
+      if (data.metAt !== undefined) cleanData.metAt = serverTimestamp();
+      
+      await updateDoc(matchDocRef, cleanData);
     } catch (error) {
       console.error('Error updating match:', error);
       throw new Error('Failed to update match');
@@ -203,25 +308,39 @@ class FirebaseMatchService implements MatchService {
       
       const matchData = matchDoc.data();
       
-      // Verify the user is part of this match
-      if (matchData.userId !== userId && matchData.matchedUserId !== userId) {
-        throw new Error('Unauthorized');
+      // Determine if user is the original user or the matched user
+      let isOriginalUser: boolean;
+      
+      // Check both formats
+      if (matchData.userId && matchData.matchedUserId) {
+        // Format 1
+        if (matchData.userId !== userId && matchData.matchedUserId !== userId) {
+          throw new Error('Unauthorized: User is not part of this match');
+        }
+        isOriginalUser = matchData.userId === userId;
+      } else if (matchData.user1Id && matchData.user2Id) {
+        // Format 2
+        if (matchData.user1Id !== userId && matchData.user2Id !== userId) {
+          throw new Error('Unauthorized: User is not part of this match');
+        }
+        isOriginalUser = matchData.user1Id === userId;
+      } else {
+        throw new Error('Invalid match data format');
       }
       
-      // Determine who is requesting reconnection
-      const isRequestor = matchData.userId === userId;
-      const requestField = isRequestor ? 'userRequestedReconnect' : 'matchedUserRequestedReconnect';
+      // Update the appropriate reconnect field
+      const updateData: any = isOriginalUser
+        ? { userRequestedReconnect: true, reconnectRequestedAt: serverTimestamp() }
+        : { matchedUserRequestedReconnect: true, reconnectRequestedAt: serverTimestamp() };
       
-      // Update the match with the reconnection request
-      await updateDoc(matchDocRef, {
-        [requestField]: true,
-        reconnectRequestedAt: serverTimestamp()
-      });
+      await updateDoc(matchDocRef, updateData);
       
-      // Check if both users have requested reconnection
-      if (isRequestor && matchData.matchedUserRequestedReconnect) {
-        await reconnectMatch(matchId);
-      } else if (!isRequestor && matchData.userRequestedReconnect) {
+      // Check if both users have requested reconnect
+      const updatedDoc = await getDoc(matchDocRef);
+      const updatedData = updatedDoc.data();
+      
+      if (updatedData.userRequestedReconnect && updatedData.matchedUserRequestedReconnect) {
+        // Both users want to reconnect, so reconnect the match
         await reconnectMatch(matchId);
       }
       
@@ -246,10 +365,68 @@ class FirebaseMatchService implements MatchService {
     }
   }
 
-  async checkExpiringMatches(userId: string): Promise<void> {
-    return checkExpiringMatches(userId);
+  // Additional method for cleaning up expired matches
+  async cleanupExpiredMatches(): Promise<number> {
+    try {
+      // Create a query for expired matches
+      const expiredMatchesQuery = query(
+        this.matchesCollection,
+        where('expiresAt', '<', Timestamp.now())
+      );
+      
+      const expiredMatches = await getDocs(expiredMatchesQuery);
+      
+      // Create a batch for efficient updates
+      const batch = writeBatch(firestore);
+      
+      expiredMatches.forEach(doc => {
+        // Mark as inactive rather than deleting
+        batch.update(doc.ref, { isActive: false });
+      });
+      
+      await batch.commit();
+      
+      return expiredMatches.size;
+    } catch (error) {
+      console.error('Error cleaning up expired matches:', error);
+      return 0;
+    }
   }
 
+  // Method to send a message (from the provided FirebaseMatchService)
+  async sendMessage(matchId: string, userId: string, message: string): Promise<boolean> {
+    try {
+      // Get match details
+      const matchRef = doc(this.matchesCollection, matchId);
+      const matchSnap = await getDoc(matchRef);
+      
+      if (!matchSnap.exists()) {
+        throw new Error('Match not found');
+      }
+      
+      const matchData = matchSnap.data();
+      
+      // Determine which user is sending the message
+      if (matchData.user1Id === userId || matchData.userId === userId) {
+        await updateDoc(matchRef, {
+          user1Message: message
+        });
+      } else if (matchData.user2Id === userId || matchData.matchedUserId === userId) {
+        await updateDoc(matchRef, {
+          user2Message: message
+        });
+      } else {
+        throw new Error('User is not part of this match');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to get the time remaining string
   getTimeRemaining(expiresAt: number): string {
     return calculateTimeRemaining(expiresAt);
   }
