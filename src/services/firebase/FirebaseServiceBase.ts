@@ -1,19 +1,21 @@
 
-import { CollectionReference } from 'firebase/firestore';
-import { firebase, isFirebaseAvailable } from '@/firebase/config';
+import { CollectionReference, collection } from 'firebase/firestore';
+import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
 import { isOnline } from '@/utils/networkMonitor';
 
 export class FirebaseServiceBase {
-  protected getCollection(collectionName: string): CollectionReference {
+  protected getCollection(collectionName: string): CollectionReference | null {
     try {
-      const collection = firebase.getCollection(collectionName);
-      if (!collection) {
-        throw new Error(`Firestore collection ${collectionName} not available`);
+      const db = getDB();
+      if (!db) {
+        console.warn(`Firestore not available for collection ${collectionName}`);
+        return null;
       }
-      return collection;
+      
+      return collection(db, collectionName);
     } catch (error) {
       console.error(`Error getting ${collectionName} collection:`, error);
-      throw error;
+      return null;
     }
   }
   
