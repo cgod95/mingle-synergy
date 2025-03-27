@@ -1,7 +1,7 @@
 
 import { auth, firestore, storage } from '@/firebase/config';
-import { collection, getDocs, limit, query } from 'firebase/firestore';
-import { ref, getDownloadURL } from 'firebase/storage';
+import { collection, getDocs, limit, query, addDoc, deleteDoc } from 'firebase/firestore';
+import { ref, getDownloadURL, uploadString, deleteObject } from 'firebase/storage';
 import { signInAnonymously } from 'firebase/auth';
 
 interface VerificationResult {
@@ -15,10 +15,10 @@ export async function verifyFirebaseConnection(): Promise<VerificationResult> {
     // Verify Firebase project ID is correctly configured
     const projectId = auth.app.options.projectId;
     
-    if (!projectId) {
+    if (!projectId || projectId === 'mingle-dev' || projectId === 'your-project-id') {
       return {
         success: false,
-        message: 'Firebase project ID is not configured',
+        message: 'Firebase project ID is not properly configured',
       };
     }
     
@@ -42,12 +42,23 @@ export async function verifyFirestoreAccess(): Promise<VerificationResult> {
     const venuesQuery = query(venuesRef, limit(1));
     const snapshot = await getDocs(venuesQuery);
     
+    // Try to write to a test collection
+    const testCollectionRef = collection(firestore, '_deployment_test');
+    const testDoc = await addDoc(testCollectionRef, {
+      testId: `test-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Clean up
+    await deleteDoc(testDoc);
+    
     return {
       success: true,
-      message: 'Firestore access verified',
+      message: 'Firestore read and write access verified',
       details: {
         documentCount: snapshot.size,
-        isEmptyResult: snapshot.empty
+        isEmptyResult: snapshot.empty,
+        writeTest: 'passed'
       }
     };
   } catch (error) {
@@ -60,25 +71,28 @@ export async function verifyFirestoreAccess(): Promise<VerificationResult> {
 
 export async function verifyStorageAccess(): Promise<VerificationResult> {
   try {
-    // Try to check if a public file exists
-    const placeholderRef = ref(storage, 'placeholder.jpg');
-    try {
-      // Just check if the URL can be generated, don't actually download the file
-      await getDownloadURL(placeholderRef);
-      return {
-        success: true,
-        message: 'Storage access verified'
-      };
-    } catch (storageError: any) {
-      // Object not found is expected for our test
-      if (storageError.code === 'storage/object-not-found') {
-        return {
-          success: true,
-          message: 'Storage access verified (placeholder not found but access works)'
-        };
+    // Create a random test file name
+    const testFileName = `_test_${Date.now()}.txt`;
+    const testContent = 'This is a test file for storage access verification';
+    
+    // Try to upload a test file
+    const testFileRef = ref(storage, testFileName);
+    await uploadString(testFileRef, testContent);
+    
+    // Try to get the download URL
+    const downloadUrl = await getDownloadURL(testFileRef);
+    
+    // Clean up
+    await deleteObject(testFileRef);
+    
+    return {
+      success: true,
+      message: 'Storage read and write access verified',
+      details: {
+        fileUploaded: true,
+        downloadUrlGenerated: !!downloadUrl
       }
-      throw storageError;
-    }
+    };
   } catch (error) {
     return {
       success: false,
@@ -116,48 +130,70 @@ export async function verifyAnonymousAuth(): Promise<VerificationResult> {
   }
 }
 
-export async function verifyAppPerformance(): Promise<VerificationResult> {
-  const metrics: Record<string, number> = {};
-  const startTime = performance.now();
+export async function verifyMockStatus(): Promise<VerificationResult> {
+  const useMock = import.meta.env.VITE_USE_MOCK === 'true';
+  const isProduction = import.meta.env.MODE === 'production';
   
-  try {
-    // Check page load time
-    if (window.performance && window.performance.timing) {
-      const timing = window.performance.timing;
-      metrics.pageLoadTime = timing.loadEventEnd - timing.navigationStart;
-      metrics.domContentLoaded = timing.domContentLoadedEventEnd - timing.navigationStart;
-      metrics.timeToFirstByte = timing.responseStart - timing.navigationStart;
-    }
-    
-    // Check runtime performance
-    // Simulate some UI operations
-    for (let i = 0; i < 1000; i++) {
-      // Do some work to measure JavaScript performance
-      const div = document.createElement('div');
-      div.className = `test-${i}`;
-      div.textContent = `Test ${i}`;
-      // Just create but don't append to avoid DOM modification
-    }
-    metrics.jsOperationTime = performance.now() - startTime;
-    
-    // Check memory usage if available
-    if (window.performance && (performance as any).memory) {
-      metrics.usedJSHeapSize = (performance as any).memory.usedJSHeapSize;
-      metrics.totalJSHeapSize = (performance as any).memory.totalJSHeapSize;
-    }
-    
-    return {
-      success: true,
-      message: 'Performance metrics collected',
-      details: metrics
-    };
-  } catch (error) {
+  // In production, mock should be disabled
+  if (isProduction && useMock) {
     return {
       success: false,
-      message: `Performance measurement error: ${error instanceof Error ? error.message : String(error)}`,
-      details: metrics
+      message: 'Mock services are enabled in production. Set VITE_USE_MOCK=false for production.',
     };
   }
+  
+  return {
+    success: true,
+    message: isProduction 
+      ? 'Mock services are correctly disabled in production'
+      : 'Using mock services in development environment',
+    details: { useMock, environment: import.meta.env.MODE }
+  };
+}
+
+export async function verifyRequiredEnvVars(): Promise<VerificationResult> {
+  const requiredVars = [
+    'VITE_FIREBASE_API_KEY',
+    'VITE_FIREBASE_AUTH_DOMAIN',
+    'VITE_FIREBASE_PROJECT_ID',
+    'VITE_FIREBASE_STORAGE_BUCKET',
+    'VITE_FIREBASE_MESSAGING_SENDER_ID',
+    'VITE_FIREBASE_APP_ID'
+  ];
+  
+  const missingVars = requiredVars.filter(
+    varName => !import.meta.env[varName] || 
+               import.meta.env[varName] === 'your-api-key' ||
+               import.meta.env[varName] === 'undefined'
+  );
+  
+  const placeholderVars = requiredVars.filter(
+    varName => import.meta.env[varName] && 
+               (import.meta.env[varName].includes('your-') || 
+                import.meta.env[varName].includes('example'))
+  );
+  
+  if (missingVars.length > 0) {
+    return {
+      success: false,
+      message: `Missing required environment variables: ${missingVars.join(', ')}`,
+      details: { missingVars }
+    };
+  }
+  
+  if (placeholderVars.length > 0) {
+    return {
+      success: false,
+      message: `Found placeholder values in: ${placeholderVars.join(', ')}`,
+      details: { placeholderVars }
+    };
+  }
+  
+  return {
+    success: true,
+    message: 'All required environment variables are properly set',
+    details: { checkedVars: requiredVars }
+  };
 }
 
 export async function runAllVerifications(): Promise<Record<string, VerificationResult>> {
@@ -168,7 +204,8 @@ export async function runAllVerifications(): Promise<Record<string, Verification
     firestoreAccess: await verifyFirestoreAccess(), 
     storageAccess: await verifyStorageAccess(),
     anonymousAuth: await verifyAnonymousAuth(),
-    appPerformance: await verifyAppPerformance(),
+    mockStatus: await verifyMockStatus(),
+    envVariables: await verifyRequiredEnvVars()
   };
   
   // Print summary
@@ -194,6 +231,7 @@ export default {
   verifyFirestoreAccess,
   verifyStorageAccess,
   verifyAnonymousAuth,
-  verifyAppPerformance,
+  verifyMockStatus,
+  verifyRequiredEnvVars,
   runAllVerifications
 };

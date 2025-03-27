@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Progress } from '../ui/progress';
-import { Skeleton, TextSkeleton } from '../ui/skeleton';
 import { 
   runAllVerifications,
   verifyFirebaseConnection,
   verifyFirestoreAccess,
   verifyStorageAccess,
-  verifyAnonymousAuth
+  verifyAnonymousAuth,
+  verifyMockStatus,
+  verifyRequiredEnvVars
 } from '@/utils/deploymentVerifier';
 
 type CheckResult = {
@@ -29,38 +30,6 @@ const DeploymentChecklist: React.FC = () => {
   ]);
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
-
-  const checkMockStatus = () => {
-    const useMock = import.meta.env.VITE_USE_MOCK === 'true';
-    return {
-      success: !useMock,
-      message: useMock 
-        ? 'Mock services are enabled. Disable for production.' 
-        : 'Mock services are disabled.'
-    };
-  };
-
-  const checkEnvVariables = () => {
-    const requiredVars = [
-      'VITE_FIREBASE_API_KEY',
-      'VITE_FIREBASE_AUTH_DOMAIN',
-      'VITE_FIREBASE_PROJECT_ID',
-      'VITE_FIREBASE_STORAGE_BUCKET',
-      'VITE_FIREBASE_MESSAGING_SENDER_ID',
-      'VITE_FIREBASE_APP_ID'
-    ];
-    
-    const missingVars = requiredVars.filter(
-      varName => !import.meta.env[varName] || import.meta.env[varName] === 'your-api-key'
-    );
-    
-    return {
-      success: missingVars.length === 0,
-      message: missingVars.length > 0
-        ? `Missing variables: ${missingVars.join(', ')}`
-        : 'All required environment variables are set.'
-    };
-  };
 
   const runChecks = async () => {
     setIsRunning(true);
@@ -112,7 +81,7 @@ const DeploymentChecklist: React.FC = () => {
 
       // Mock Services
       setProgress(70);
-      const mockResult = checkMockStatus();
+      const mockResult = await verifyMockStatus();
       setChecks(prev => prev.map(check => 
         check.name === 'Mock Services' 
           ? { ...check, status: mockResult.success ? 'success' : 'error', message: mockResult.message }
@@ -121,7 +90,7 @@ const DeploymentChecklist: React.FC = () => {
 
       // Environment Variables
       setProgress(85);
-      const envResult = checkEnvVariables();
+      const envResult = await verifyRequiredEnvVars();
       setChecks(prev => prev.map(check => 
         check.name === 'Environment Variables' 
           ? { ...check, status: envResult.success ? 'success' : 'error', message: envResult.message }
