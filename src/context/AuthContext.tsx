@@ -80,10 +80,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const onboardingComplete = localStorage.getItem('onboardingComplete') === 'true';
       const profileComplete = localStorage.getItem('profileComplete') === 'true';
       
-      if (!onboardingComplete) {
+      if (!profileComplete) {
+        safeNavigate('/create-profile');
+      } else if (!onboardingComplete) {
         safeNavigate('/onboarding');
-      } else if (!profileComplete) {
-        safeNavigate('/profile/edit');
       } else {
         safeNavigate('/venues');
       }
@@ -105,21 +105,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const result = await authService.auth.signUp(email, password);
       setCurrentUser(result.user);
       localStorage.setItem('currentUser', JSON.stringify(result.user));
+      
+      localStorage.setItem('pendingUserEmail', email);
+      
       toast({
         title: 'Account created successfully',
         description: 'Welcome to Proximity!',
       });
       
-      const onboardingComplete = localStorage.getItem('onboardingComplete') === 'true';
-      const profileComplete = localStorage.getItem('profileComplete') === 'true';
-      
-      if (!onboardingComplete) {
-        safeNavigate('/onboarding');
-      } else if (!profileComplete) {
-        safeNavigate('/profile/edit');
-      } else {
-        safeNavigate('/venues');
-      }
+      safeNavigate('/create-profile');
     } catch (error) {
       toast({
         title: 'Sign up failed',

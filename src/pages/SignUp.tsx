@@ -49,10 +49,10 @@ const SignUp = () => {
       await signUp(email, password);
       toast({
         title: "Account created successfully!",
-        description: "You're now signed up.",
+        description: "Let's set up your profile next.",
         variant: "default"
       });
-      // Navigation handled by AuthContext
+      // Navigation handled by AuthContext, will go to create-profile
     } catch (error) {
       console.error('Sign up error:', error);
       setErrorMessage('Failed to create account. Please try again.');

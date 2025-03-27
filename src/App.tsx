@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
+import CreateProfile from "./pages/CreateProfile";
 import Onboarding from "./pages/Onboarding";
 import Matches from "./pages/Matches";
 import TestBackend from "./components/TestBackend";
@@ -160,6 +161,13 @@ const AppLayout = () => {
         
         <Route path="/sign-in" element={
           onboardingSeen ? <SignIn /> : <Navigate to="/onboarding-carousel" replace />
+        } />
+        
+        {/* Add the new CreateProfile route */}
+        <Route path="/create-profile" element={
+          <PrivateRoute>
+            <CreateProfile />
+          </PrivateRoute>
         } />
         
         <Route path="/onboarding" element={
