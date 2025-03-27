@@ -1,81 +1,68 @@
 
-import { AuthService, UserService, VenueService, MatchService, InterestService } from '@/types/services';
+import { 
+  MockAuthService, 
+  MockUserService, 
+  MockVenueService, 
+  MockMatchService,
+  MockInterestService
+} from './mock';
 
-// Import mock services
-import mockAuthService from './mock/mockAuthService';
-import mockUserService from './mock/mockUserService';
-import mockVenueService from './mock/mockVenueService';
-import mockMatchService from './mock/mockMatchService';
-import mockInterestService from './mock/mockInterestService';
-import mockVerificationService from './mock/mockVerificationService';
+// Always use mock services in the Lovable environment
+console.log('Using mock services for development');
 
-// Import Firebase services (these will only be used if not in AI editor)
-import firebaseAuthService from './firebase/authService';
-import firebaseUserService from './firebase/userService';
-import firebaseVenueService from './firebase/venueService';
-import firebaseMatchService from './firebase/matchService';
-import firebaseInterestService from './firebase/interestService';
-import firebaseVerificationService from './firebase/verificationService';
+// Export mock services directly
+export const authService = new MockAuthService();
+export const userService = new MockUserService();
+export const venueService = new MockVenueService();
+export const matchService = new MockMatchService();
+export const interestService = new MockInterestService();
 
-// Check if we're in the AI editor environment
-const isAIEditor = typeof window !== 'undefined' && window.location.hostname.includes('lovableproject.com');
-const USE_MOCK = isAIEditor || 
-  import.meta.env.VITE_USE_MOCK === 'true' || 
-  (process.env.NODE_ENV === 'development' && import.meta.env.VITE_USE_MOCK !== 'false');
+/* 
+FIREBASE TRANSITION GUIDE:
 
-console.log('Environment check: Using mock services =', USE_MOCK, 
-  isAIEditor ? '(Running in AI editor)' : '');
+When moving to your real development environment:
 
-// Initialize services
+1. Uncomment and modify the code below to dynamically choose services:
+
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
 let services;
 
-// ALWAYS use mock services in the AI editor
-if (isAIEditor) {
-  console.log('Running in AI editor environment - using mock services only');
-  
+if (USE_MOCK) {
   services = {
-    auth: mockAuthService,
-    user: mockUserService,
-    venue: mockVenueService,
-    match: mockMatchService,
-    interest: mockInterestService,
-    verification: mockVerificationService
+    authService: new MockAuthService(),
+    userService: new MockUserService(),
+    venueService: new MockVenueService(),
+    matchService: new MockMatchService(),
+    interestService: new MockInterestService()
   };
 } else {
-  try {
-    if (USE_MOCK) {
-      console.log('Using mock services based on environment configuration');
-      services = {
-        auth: mockAuthService,
-        user: mockUserService,
-        venue: mockVenueService,
-        match: mockMatchService,
-        interest: mockInterestService,
-        verification: mockVerificationService
-      };
-    } else {
-      console.log('Using Firebase services');
-      services = {
-        auth: firebaseAuthService,
-        user: firebaseUserService,
-        venue: firebaseVenueService,
-        match: firebaseMatchService,
-        interest: firebaseInterestService,
-        verification: firebaseVerificationService
-      };
-    }
-  } catch (error) {
-    console.error('Error initializing services, using mock fallback:', error);
-    services = {
-      auth: mockAuthService,
-      user: mockUserService,
-      venue: mockVenueService,
-      match: mockMatchService,
-      interest: mockInterestService,
-      verification: mockVerificationService
-    };
-  }
+  // Uncomment and implement Firebase services
+  // import { 
+  //   FirebaseAuthService, 
+  //   FirebaseUserService, 
+  //   FirebaseVenueService, 
+  //   FirebaseMatchService,
+  //   FirebaseInterestService
+  // } from './firebase';
+  
+  services = {
+    // authService: new FirebaseAuthService(),
+    // userService: new FirebaseUserService(),
+    // venueService: new FirebaseVenueService(),
+    // matchService: new FirebaseMatchService(),
+    // interestService: new FirebaseInterestService()
+  };
 }
 
-export default services;
-export const { auth, user, venue, match, verification, interest } = services;
+export const { 
+  authService, 
+  userService, 
+  venueService, 
+  matchService, 
+  interestService 
+} = services;
+
+2. Ensure your Firebase config is properly set up in your environment variables
+3. Implement the Firebase service classes to match the interfaces used by the mock services
+*/
