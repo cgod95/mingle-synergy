@@ -1,69 +1,126 @@
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getFirestore, collection, Firestore, CollectionReference } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getAnalytics, Analytics } from 'firebase/analytics';
 
-// Firebase configuration
-export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-};
-
-// Initialize Firebase only if we have valid config
-let app;
-let auth;
-let db;
-let storage;
-let analytics = null;
-let firestore;
-
-// Only initialize if we have an API key
-if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'your-api-key') {
-  try {
-    // Initialize Firebase (only once)
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    
-    // Initialize services
-    auth = getAuth(app);
-    db = getFirestore(app);
-    firestore = db; // For backward compatibility
-    storage = getStorage(app);
-    
-    // Initialize analytics only in browser environment
-    if (typeof window !== 'undefined') {
-      analytics = getAnalytics(app);
-    }
-    
-    console.log('Firebase initialized successfully');
-  } catch (e) {
-    console.error('Firebase initialization error:', e);
-    
-    // Create empty objects for mock mode
-    app = {};
-    auth = {};
-    db = {};
-    firestore = {};
-    storage = {};
-  }
-} else {
-  console.warn('Firebase configuration not found or incomplete, using mock services');
+// Safe Firebase wrapper
+class SafeFirebase {
+  private _app: FirebaseApp | null = null;
+  private _db: Firestore | null = null;
+  private _auth: Auth | null = null;
+  private _storage: FirebaseStorage | null = null;
+  private _analytics: Analytics | null = null;
+  private _initialized = false;
   
-  // Create empty objects for mock mode
-  app = {};
-  auth = {};
-  db = {};
-  firestore = {};
-  storage = {};
+  constructor() {
+    try {
+      // Config from environment
+      const firebaseConfig = {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+        measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+      };
+
+      // Only initialize if we have a valid config
+      if (this.isValidConfig(firebaseConfig)) {
+        // Initialize Firebase (only once)
+        this._app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        
+        // Initialize services
+        this._db = getFirestore(this._app);
+        this._auth = getAuth(this._app);
+        this._storage = getStorage(this._app);
+        
+        // Initialize analytics only in browser environment
+        if (typeof window !== 'undefined') {
+          try {
+            this._analytics = getAnalytics(this._app);
+          } catch (e) {
+            console.warn('Analytics initialization failed:', e);
+          }
+        }
+        
+        this._initialized = true;
+        console.log("Firebase initialized successfully");
+      } else {
+        console.warn("Invalid Firebase config, using mock services");
+      }
+    } catch (error) {
+      console.error("Error initializing Firebase:", error);
+    }
+  }
+
+  // Check if config has valid values
+  private isValidConfig(config: any): boolean {
+    return !!(
+      config.apiKey && 
+      config.projectId && 
+      config.authDomain && 
+      config.storageBucket
+    );
+  }
+
+  // Safe getters that never throw errors
+  get app(): FirebaseApp | null {
+    return this._app;
+  }
+  
+  get db(): Firestore | null {
+    return this._db;
+  }
+  
+  get auth(): Auth | null {
+    return this._auth;
+  }
+  
+  get storage(): FirebaseStorage | null {
+    return this._storage;
+  }
+  
+  get analytics(): Analytics | null {
+    return this._analytics;
+  }
+  
+  get initialized(): boolean {
+    return this._initialized;
+  }
+  
+  // Safe collection access
+  getCollection(collectionName: string): CollectionReference | null {
+    try {
+      if (!this._initialized || !this._db) {
+        return null;
+      }
+      return collection(this._db, collectionName);
+    } catch (error) {
+      console.error(`Error getting collection ${collectionName}:`, error);
+      return null;
+    }
+  }
 }
 
-// Export mock status for service determination
-const isMock = Object.keys(app).length === 0;
+// Create a singleton instance
+export const firebase = new SafeFirebase();
 
-export { app, auth, db, storage, analytics, firestore, isMock };
+// Export references to services
+export const app = firebase.app;
+export const db = firebase.db;
+export const auth = firebase.auth;
+export const storage = firebase.storage;
+export const analytics = firebase.analytics;
+
+// For backward compatibility
+export const firestore = firebase.db;
+
+// Export helper function for service initialization
+export const isFirebaseAvailable = () => firebase.initialized;
+export const getFirestoreCollection = (name: string) => firebase.getCollection(name);
+
+// Export mock status for service determination
+export const isMock = !firebase.initialized;

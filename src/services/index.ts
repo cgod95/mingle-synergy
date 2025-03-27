@@ -14,7 +14,7 @@ import firebaseMatchService from './firebase/matchService';
 import firebaseVerificationService from './firebase/verificationService';
 import mockVerificationService from './mock/mockVerificationService';
 
-// Import mock status from Firebase config
+// Import Firebase availability status
 import { isMock } from '@/firebase/config';
 
 // Environment flags to control which services to use

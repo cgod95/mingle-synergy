@@ -1,15 +1,16 @@
 
-import { collection, CollectionReference } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { CollectionReference } from 'firebase/firestore';
+import { firebase, isFirebaseAvailable } from '@/firebase/config';
 import { isOnline } from '@/utils/networkMonitor';
 
 export class FirebaseServiceBase {
   protected getCollection(collectionName: string): CollectionReference {
     try {
-      if (!firestore) {
-        throw new Error('Firestore not initialized');
+      const collection = firebase.getCollection(collectionName);
+      if (!collection) {
+        throw new Error(`Firestore collection ${collectionName} not available`);
       }
-      return collection(firestore, collectionName);
+      return collection;
     } catch (error) {
       console.error(`Error getting ${collectionName} collection:`, error);
       throw error;
@@ -17,7 +18,7 @@ export class FirebaseServiceBase {
   }
   
   protected isFirebaseAvailable(): boolean {
-    return !!firestore && isOnline();
+    return isFirebaseAvailable() && isOnline();
   }
   
   protected handleError(error: any, operation: string): never {
