@@ -1,3 +1,4 @@
+
 import { getPerformance, trace } from 'firebase/performance';
 import { firestore as db } from '@/firebase/config';
 import { logError } from './errorHandler';
@@ -23,9 +24,16 @@ let perf: ReturnType<typeof getPerformance> | null = null;
 export const initPerformanceMonitoring = () => {
   if (typeof window !== 'undefined') {
     try {
+      // Use dynamic import to prevent module initialization errors
       import('firebase/performance').then(({ getPerformance }) => {
-        perf = getPerformance();
-        console.log('Firebase Performance initialized');
+        try {
+          perf = getPerformance();
+          console.log('Firebase Performance initialized');
+        } catch (error) {
+          console.warn('Firebase Performance initialization failed, continuing without performance monitoring');
+        }
+      }).catch(error => {
+        console.warn('Failed to load Firebase Performance module:', error);
       });
     } catch (error) {
       logError(error as Error, { source: 'Performance initialization' });

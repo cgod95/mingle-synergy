@@ -1,10 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { NETWORK_STATUS_EVENT, NetworkStatusEvent, NetworkStatus as StatusType } from '@/utils/networkMonitor';
 import { AlertTriangle, WifiOff } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import usePerformance from '@/hooks/usePerformance';
 
 const NetworkStatus: React.FC = () => {
+  // Track component performance
+  usePerformance('NetworkStatus');
+  
   // Keep track of online status with a simple boolean
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [showBanner, setShowBanner] = useState<boolean>(false);
