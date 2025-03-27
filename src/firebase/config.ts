@@ -16,15 +16,16 @@ class SafeFirebase {
   
   constructor() {
     try {
-      // Config from environment
+      // Your web app's Firebase configuration
       const firebaseConfig = {
-        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID,
-        measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+        apiKey: "AIzaSyAmxiZyipxFLSNu9p4LwiKBRvF87WyGEXU",
+        authDomain: "mingle-95c7f.firebaseapp.com",
+        databaseURL: "https://mingle-95c7f-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "mingle-95c7f",
+        storageBucket: "mingle-95c7f.firebasestorage.app",
+        messagingSenderId: "465247994931",
+        appId: "1:465247994931:web:35d6531af07f4a0ea00f46",
+        measurementId: "G-Z2V26PDRPV"
       };
 
       // Only initialize if we have a valid config
