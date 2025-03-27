@@ -1,6 +1,6 @@
 
 import { firestore } from '@/firebase/config';
-import { VenueService, Venue } from '@/types/services';
+import { VenueService, Venue, UserProfile } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot, increment } from 'firebase/firestore';
 import { calculateDistance } from '@/utils/locationUtils';
 import { saveToStorage, getFromStorage } from '@/utils/localStorageUtils';
@@ -32,6 +32,8 @@ const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): 
 };
 
 class FirebaseVenueService implements VenueService {
+  private venuesCollection = collection(firestore, 'venues');
+  
   async getVenues(): Promise<Venue[]> {
     try {
       // Check network status first
@@ -103,6 +105,9 @@ class FirebaseVenueService implements VenueService {
 
   async checkInToVenue(userId: string, venueId: string): Promise<void> {
     try {
+      // First check out from any existing venue
+      await this.checkOutFromVenue(userId);
+      
       const batch = writeBatch(firestore);
       
       // Update user's check-in status
