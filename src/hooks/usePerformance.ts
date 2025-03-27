@@ -28,9 +28,20 @@ export const usePerformance = (componentName: string): void => {
           }
         });
         
-        observer.observe({ entryTypes: ['longtask'] });
+        // Try to observe, but don't crash if it fails
+        try {
+          observer.observe({ entryTypes: ['longtask'] });
+        } catch (err) {
+          console.warn('Failed to observe longtask entries:', err);
+        }
         
-        return () => observer.disconnect();
+        return () => {
+          try {
+            observer.disconnect();
+          } catch (err) {
+            console.warn('Failed to disconnect observer:', err);
+          }
+        };
       } catch (error) {
         console.warn('PerformanceObserver error:', error);
       }
