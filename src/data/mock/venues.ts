@@ -1,5 +1,5 @@
 
-import { Venue } from '@/types/Venue';
+import { Venue } from '@/types';
 
 export const mockVenues: Venue[] = [
   {

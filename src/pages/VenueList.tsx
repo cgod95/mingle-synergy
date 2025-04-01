@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -136,7 +135,7 @@ const VenueList = () => {
                     {venueUsers.map(user => (
                       <UserCard 
                         key={user.id} 
-                        user={{ ...user, name: user.name || 'Unknown' }}
+                        user={user}
                         interests={interests}
                         setInterests={setInterests}
                         matches={matches}

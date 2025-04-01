@@ -1,53 +1,70 @@
+// src/pages/CreateProfile.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUserProfile } from '@/services/userService';
-import { useUser } from '@/contexts/UserContext';
-import Button from '@/components/ui/button';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/firebase';
+import { Button } from '@/components/ui/button';
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
-  const { user, setUser } = useUser();
-  const [name, setName] = useState(user?.name || '');
-  const [bio, setBio] = useState(user?.bio || '');
-  const [error, setError] = useState('');
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [bio, setBio] = useState('');
+  const [creating, setCreating] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const handleCreate = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    setCreating(true);
+
     try {
-      const updatedUser = await createUserProfile({ ...user, name, bio });
-      setUser(updatedUser);
+      await setDoc(doc(db, 'users', user.uid), {
+        id: user.uid,
+        name,
+        age: parseInt(age),
+        bio,
+        photos: [],
+        createdAt: new Date().toISOString(),
+      });
       navigate('/upload-photos');
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected error occurred.');
-      }
+    } catch (err) {
+      console.error('Error creating profile:', err);
+    } finally {
+      setCreating(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">Create Profile</h1>
-      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Your Name"
-          required
-          className="w-full px-4 py-2 border rounded"
-        />
-        <textarea
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          placeholder="Short Bio"
-          className="w-full px-4 py-2 border rounded resize-none"
-        />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <Button type="submit">Next</Button>
-      </form>
+    <div className="max-w-md mx-auto p-4">
+      <h1 className="text-xl font-semibold mb-4">Create Your Profile</h1>
+
+      <input
+        type="text"
+        placeholder="Your Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="w-full p-2 border rounded mb-4"
+      />
+
+      <input
+        type="number"
+        placeholder="Your Age"
+        value={age}
+        onChange={(e) => setAge(e.target.value)}
+        className="w-full p-2 border rounded mb-4"
+      />
+
+      <textarea
+        placeholder="Short Bio"
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        className="w-full p-2 border rounded mb-4"
+      />
+
+      <Button onClick={handleCreate} disabled={creating} className="w-full">
+        {creating ? 'Creating...' : 'Continue'}
+      </Button>
     </div>
   );
 };

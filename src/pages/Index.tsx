@@ -1,49 +1,13 @@
-
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Server } from 'lucide-react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from '../App';
+import './index.css'; // or wherever your global styles are
 
-const Index = () => {
-  const navigate = useNavigate();
-  
-  return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md text-center">
-        <h1 className="text-4xl font-bold text-[#3A86FF] mb-4">Proximity</h1>
-        <p className="text-xl mb-8">Connect with people in real world venues</p>
-        
-        <div className="space-y-4">
-          <Button 
-            onClick={() => navigate('/sign-up')}
-            className="w-full bg-[#3A86FF] hover:bg-[#3A86FF]/90 py-6 text-lg"
-          >
-            Create Account <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-          
-          <Button 
-            onClick={() => navigate('/sign-in')}
-            variant="outline"
-            className="w-full py-6 text-lg"
-          >
-            Sign In
-          </Button>
-          
-          <Button 
-            onClick={() => navigate('/test-backend')}
-            variant="outline"
-            className="w-full py-3 mt-4 text-sm bg-amber-50 hover:bg-amber-100 border-amber-200"
-          >
-            <Server className="w-4 h-4 mr-2" /> Test Firebase Backend
-          </Button>
-        </div>
-        
-        <p className="text-sm text-muted-foreground mt-8">
-          By continuing, you agree to our Terms of Service and Privacy Policy
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default Index;
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);

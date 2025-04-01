@@ -1,14 +1,13 @@
+import { FieldValue } from 'firebase/firestore';
+
 export interface UserProfile {
   id: string;
   name: string;
-  photos: string[];
+  age: number;
+  gender: string;
   bio?: string;
-  isCheckedIn: boolean;
-  currentVenue?: string;
-  currentZone?: string;
-  zone?: string;
-  isVisible?: boolean;
-  interests?: string[];
-  gender?: 'male' | 'female' | 'non-binary' | 'other';
-  age?: number;
+  photos?: string[];
+  likedUsers: string[] | FieldValue; // for Firestore arrayUnion updates
+  matches: string[] | FieldValue;    // same here
+  contactShared?: string[] | FieldValue;
 }
