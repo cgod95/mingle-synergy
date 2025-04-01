@@ -60,7 +60,7 @@ export class DeviceService {
     downlinkSpeed: number;
     isSlowConnection: boolean;
   } {
-    // @ts-ignore - TypeScript doesn't have navigator.connection defined
+    // @ts-expect-error - TypeScript doesn't have navigator.connection defined
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     
     if (!connection) {

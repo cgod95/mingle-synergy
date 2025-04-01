@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Venue } from '@/types';
+import { Venue } from '@/types/Venue';
 import { Clock } from 'lucide-react';
 
 interface VenueHeaderProps {

@@ -1,45 +1,40 @@
+// utils/fetcher.ts
+import { DocumentData, DocumentReference, Query, getDoc, getDocs } from 'firebase/firestore';
 
-// Simple fetch wrapper for data fetching
-export const fetcher = async (url: string, options?: RequestInit): Promise<any> => {
+// Generic fetch wrapper
+export const fetcher = async <T = unknown>(
+  url: string,
+  options?: RequestInit
+): Promise<T> => {
   const response = await fetch(url, options);
-  
+
   if (!response.ok) {
     throw new Error(`Error: ${response.status}`);
   }
-  
+
   return response.json();
 };
 
-// For Firebase-specific operations
+// Firebase-specific fetcher
 export const firebaseFetcher = {
-  // Get a document by reference
-  getDoc: async (docRef: any): Promise<any> => {
+  // Get a single document by reference
+  getDoc: async (docRef: DocumentReference<DocumentData>): Promise<{ id: string; data: DocumentData } | null> => {
     try {
-      const doc = await docRef.get();
-      return doc.exists ? { id: doc.id, ...doc.data() } : null;
-    } catch (error) {
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists() ? { id: docSnap.id, data: docSnap.data() } : null;
+    } catch (error: unknown) {
       console.error('Error fetching document:', error);
       throw error;
     }
   },
-  
-  // Get documents from a collection with query
-  getDocs: async (query: any): Promise<any[]> => {
+
+  // Get multiple documents from a query
+  getDocs: async (queryRef: Query<DocumentData>): Promise<DocumentData[]> => {
     try {
-      const snapshot = await query.get();
-      return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
+      const snapshot = await getDocs(queryRef);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error: unknown) {
       console.error('Error fetching documents:', error);
-      throw error;
-    }
-  },
-  
-  // Update a document
-  updateDoc: async (docRef: any, data: any): Promise<void> => {
-    try {
-      await docRef.update(data);
-    } catch (error) {
-      console.error('Error updating document:', error);
       throw error;
     }
   }

@@ -1,4 +1,4 @@
-
+import { useNavigate } from 'react-router-dom';  // Import this if you are using React Router
 import React, { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import ToggleButton from '../ToggleButton';
@@ -31,7 +31,16 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
   onToggleVisibility
 }) => {
   const [userCount, setUserCount] = useState<number>(venue.userCount);
-  
+
+  // Check if profile exists, if not, redirect to profile creation page
+  const profileExists = localStorage.getItem('profile');  // or your profile checking logic
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!profileExists) {
+      navigate('/create-profile');
+    }
+  }, [profileExists, navigate]);
+
   useEffect(() => {
     // Debug user fields to verify correct field names
     const debugUserFields = async () => {
@@ -49,20 +58,15 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
     // Load users at venue
     const loadUsersAtVenue = async (venueId: string) => {
       try {
-        // Correctly structured query to find all checked-in users
         const usersQuery = query(
           collection(firestore, 'users'),
           where('currentVenue', '==', venueId),
           where('isVisible', '==', true)
         );
-        
-        console.log('Fetching users for venue:', venueId); // Debug log
-        
+
         const usersSnapshot = await getDocs(usersQuery);
-        console.log('Users found:', usersSnapshot.size); // Debug log
-        
         setUserCount(usersSnapshot.size);
-        
+
         return usersSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -73,7 +77,6 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
       }
     };
 
-    // Execute debugging and loading
     debugUserFields();
     if (venue.id) {
       loadUsersAtVenue(venue.id);
@@ -82,6 +85,7 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
 
   return (
     <div className="mb-6">
+      {/* Existing JSX logic here */}
       <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="text-xl font-bold">{venue.name}</h1>

@@ -8,7 +8,7 @@ import { saveToStorage } from './localStorageUtils';
  */
 export const testCompleteUserJourney = async () => {
   console.log('Starting complete user journey test...');
-  const results: Record<string, { success: boolean; message?: string; error?: any }> = {};
+  const results: Record<string, { success: boolean; message?: string; error?: Error | string | null }> = {};
 
   try {
     // Create test credentials
@@ -189,8 +189,8 @@ export const testCompleteUserJourney = async () => {
 // Create a helper to run individual steps
 export const testIndividualStep = async (
   stepName: string, 
-  stepFn: () => Promise<any>
-): Promise<{ success: boolean; result?: any; error?: any }> => {
+  stepFn: () => Promise<unknown>
+): Promise<{ success: boolean; result?: unknown; error?: string | null }> => {
   console.log(`Testing step: ${stepName}...`);
   try {
     const result = await stepFn();

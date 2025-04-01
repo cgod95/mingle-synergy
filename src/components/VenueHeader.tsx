@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Venue } from '@/types';
+import { Venue } from '@/types/Venue';
 import { ArrowLeft, Users, Clock, Coffee, Wine, Utensils, Dumbbell, MapPin } from 'lucide-react';
 
 interface VenueHeaderProps {
