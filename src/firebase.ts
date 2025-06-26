@@ -1,22 +1,30 @@
 // src/firebase.ts
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import {
+  connectFirestoreEmulator,
+  getFirestore,
+} from 'firebase/firestore';
+import {
+  connectAuthEmulator,
+  getAuth,
+} from 'firebase/auth';
 
 // ✅ Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: 'your-api-key',
-  authDomain: 'your-auth-domain',
-  projectId: 'your-project-id',
-  storageBucket: 'your-storage-bucket',
-  messagingSenderId: 'your-sender-id',
-  appId: 'your-app-id',
+  projectId: 'demo-mingle',
+  appId: 'demo-app-id',
+  apiKey: 'fake-api-key',
+  authDomain: 'localhost',
 };
 
 const app = initializeApp(firebaseConfig);
-
-// 🔥 Firestore and Auth setup
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-export { db, auth };
+// 👇 Emulator connections
+if (typeof window !== 'undefined' && location.hostname === 'localhost') {
+  connectAuthEmulator(auth, 'http://localhost:9091');
+  connectFirestoreEmulator(db, 'localhost', 8081);
+}
+
+export { auth, db };
