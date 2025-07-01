@@ -1,12 +1,53 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Phone, Instagram, Send, X } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import OptimizedImage from '@/components/shared/OptimizedImage';
-import { MatchCardProps, ContactInfo } from '@/types/match.types';
 import { trackContactShared } from '@/services/appAnalytics';
+import matchService, { removeLikeBetweenUsers } from '@/services/firebase/matchService';
+import { useToast } from '@/components/ui/toast/ToastContext';
+import { useUser } from '@/context/UserContext';
+import { FirestoreMatch } from '@/types/match';
+import { useNavigate } from 'react-router-dom';
+
+// Define ContactInfo type
+export type ContactInfo = {
+  type: 'phone' | 'instagram' | 'snapchat' | 'custom';
+  value: string;
+  sharedBy?: string;
+  sharedAt?: string;
+};
+
+// Extended match type with additional properties
+export type ExtendedMatch = FirestoreMatch & {
+  expiresAt?: number;
+  isActive?: boolean;
+  contactShared?: boolean;
+  contactInfo?: ContactInfo;
+  venueName?: string;
+};
+
+// Define MatchCardProps type
+export type MatchCardProps = {
+  match: ExtendedMatch;
+  user: {
+    id: string;
+    name: string;
+    photos: string[];
+  };
+  onShareContact: (matchId: string, contactInfo: ContactInfo) => Promise<boolean>;
+  onReconnectRequest?: () => void;
+  onWeMetClick?: () => void;
+};
+
+// Helper function to calculate time remaining
+const getTimeRemaining = (timestamp: number) => {
+  const now = Date.now();
+  const expiresAt = timestamp + 3 * 60 * 60 * 1000;
+  const diff = expiresAt - now;
+  return diff > 0 ? diff : 0;
+};
 
 const MatchCard: React.FC<MatchCardProps> = ({ 
   match, 
@@ -15,6 +56,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
   onReconnectRequest,
   onWeMetClick
 }) => {
+  const { showToast } = useToast();
+  const { currentUser } = useUser();
+  const navigate = useNavigate();
   const [contactType, setContactType] = useState<'phone' | 'instagram' | 'snapchat' | 'custom'>('phone');
   const [contactValue, setContactValue] = useState('');
   const [isSharing, setIsSharing] = useState(false);
@@ -26,16 +70,58 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const [receivedMessage, setReceivedMessage] = useState(localStorage.getItem(`received_message_${match.id}`) || '');
   const [showMessageForm, setShowMessageForm] = useState(false);
   
-  const isExpired = match.expiresAt <= Date.now() || !match.isActive;
+  // Initialize remaining time state
+  const [remaining, setRemaining] = useState(() =>
+    getTimeRemaining(match.timestamp)
+  );
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!remaining) return;
+    const interval = setInterval(() => {
+      const timeLeft = getTimeRemaining(match.timestamp);
+      setRemaining(timeLeft);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [match.timestamp, remaining]);
   
-  const getTimeRemaining = () => {
-    if (isExpired) return 'Expired';
+  // Calculate if match is expired
+  const isExpired = remaining === 0;
+  
+  // Get the other user's ID
+  const otherUserId = match.userId1 === currentUser?.id ? match.userId2 : match.userId1;
+
+  // Function to remove likes between users (optional: fully reset like state)
+  const handleRemoveLikeBetweenUsers = async (userId1: string, userId2: string) => {
+    try {
+      // Call the actual function from the match service
+      await removeLikeBetweenUsers(userId1, userId2);
+      return true;
+    } catch (error) {
+      console.error('Error removing like between users:', error);
+      return false;
+    }
+  };
+
+  const handleReconnect = async () => {
+    if (!match?.id || !currentUser?.id) return;
     
-    const diff = match.expiresAt - Date.now();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m`;
+    try {
+      // Delete the expired match
+      await matchService.deleteMatch(match.id);
+      
+      // Reset like state between users
+      await handleRemoveLikeBetweenUsers(currentUser.id, otherUserId);
+      
+      // Show success message and navigate to /matches
+      showToast("Match expired. You can now like each other again.", "success");
+      navigate('/matches');
+      onReconnectRequest?.();
+    } catch (error) {
+      console.error('Error reconnecting:', error);
+      showToast("Failed to reconnect. Please try again.", "error");
+      navigate('/venues');
+    }
   };
   
   const handleSendMessage = () => {
@@ -62,7 +148,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       const contactInfo: ContactInfo = {
         type: contactType,
         value: contactValue.trim(),
-        sharedBy: match.userId,
+        sharedBy: match.userId1, // Use userId1 as the default
         sharedAt: new Date().toISOString()
       };
       
@@ -116,10 +202,20 @@ const MatchCard: React.FC<MatchCardProps> = ({
       </CardHeader>
       
       <CardContent className="p-4">
-        {!match.contactShared && !isExpired && (
-          <p className="text-brand-primary text-sm font-medium mb-3">
-            Expires in {getTimeRemaining()}
-          </p>
+        {/* Countdown or Reconnect button */}
+        {!match.contactShared && (
+          remaining > 0 ? (
+            <p className="text-xs text-gray-500 mb-3">
+              Match expires in {Math.floor(remaining / 60000)} min
+            </p>
+          ) : (
+            <button
+              className="text-sm text-blue-600 underline mb-3"
+              onClick={handleReconnect}
+            >
+              Reconnect
+            </button>
+          )
         )}
         
         {/* Messaging section - now featured prominently at the top */}
@@ -190,7 +286,15 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </div>
           </div>
         ) : isExpired ? (
-          <p className="text-muted-foreground text-sm italic">This match has expired</p>
+          <div className="space-y-3">
+            <p className="text-muted-foreground text-sm italic">This match has expired</p>
+            <button
+              className="text-sm text-blue-600 underline"
+              onClick={handleReconnect}
+            >
+              Reconnect
+            </button>
+          </div>
         ) : showForm ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

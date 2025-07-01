@@ -15,4 +15,18 @@ export interface UserProfile {
     matches: string[];
     likedUsers: string[];
     blockedUsers: string[];
-  }
+}
+
+export interface User {
+  id: string;
+  name: string;
+  age?: number;
+  bio?: string;
+  photoURL?: string;
+  gender?: string;
+  preferences?: {
+    ageRange?: [number, number];
+    gender?: string;
+  };
+  checkedInVenues?: string[];
+}

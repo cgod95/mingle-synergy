@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Interest, Match } from '@/types';
-import { getInterests, getMatches } from '@/utils/localStorageUtils';
-import services from '@/services';
+import { Interest, Match, User } from '../types';
+import { getInterests, getMatches } from '../utils/localStorageUtils';
+import services from '../services';
+import { AppStateContext } from './AppStateContext';
 
 // Explicitly define what a UserType looks like for TypeScript
 type UserType = {
@@ -45,33 +46,57 @@ interface AppStateContextType {
   shareContact: (matchId: string) => Promise<boolean>;
 }
 
-const AppStateContext = createContext<AppStateContextType | null>(null);
-
-export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize from localStorage or default values
-  const [currentUser, setCurrentUser] = useState<{ id: string; name?: string } | null>(() => {
-    const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : { id: 'u1', name: 'Demo User' }; // Default user for demo
-  });
-  
-  const [interests, setInterests] = useState<Interest[]>(() => {
-    return getInterests(currentUser?.id || 'default');
-  });
-  
-  const [matches, setMatches] = useState<Match[]>(() => {
-    return getMatches(currentUser?.id || 'default');
-  });
-  
-  const [likedUsers, setLikedUsers] = useState<string[]>(() => {
-    const saved = localStorage.getItem('likedUsers');
-    return saved ? JSON.parse(saved) : [];
-  });
-  
+export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<{ id: string; name?: string } | null>(null);
+  const [interests, setInterests] = useState<Interest[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [likedUsers, setLikedUsers] = useState<string[]>([]);
   const [matchedUser, setMatchedUser] = useState<User | null>(null);
   const [showMatchModal, setShowMatchModal] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // For demo purposes
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Placeholder functions
+  const login = async (email, password) => null;
+  const logout = async () => {};
+  const expressInterest = async (userId, venueId) => true;
+  const shareContact = async (matchId) => true;
+
+  // Initialize from localStorage or default values
+  useEffect(() => {
+    const saved = localStorage.getItem('currentUser');
+    if (saved) {
+      setCurrentUser(JSON.parse(saved));
+    } else {
+      setCurrentUser({ id: 'u1', name: 'Demo User' }); // Default user for demo
+    }
+  }, []);
   
+  useEffect(() => {
+    const savedInterests = localStorage.getItem('interests');
+    if (savedInterests) {
+      setInterests(JSON.parse(savedInterests));
+    } else {
+      setInterests(getInterests(currentUser?.id || 'default'));
+    }
+  }, [currentUser]);
+  
+  useEffect(() => {
+    const savedMatches = localStorage.getItem('matches');
+    if (savedMatches) {
+      setMatches(JSON.parse(savedMatches));
+    } else {
+      setMatches(getMatches(currentUser?.id || 'default'));
+    }
+  }, [currentUser]);
+  
+  useEffect(() => {
+    const savedLikedUsers = localStorage.getItem('likedUsers');
+    if (savedLikedUsers) {
+      setLikedUsers(JSON.parse(savedLikedUsers));
+    }
+  }, []);
+
   // Persist to localStorage on change
   useEffect(() => {
     if (currentUser) localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -89,112 +114,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem('likedUsers', JSON.stringify(likedUsers));
   }, [likedUsers]);
 
-  // Authentication actions
-  const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      const { user } = await services.auth.signIn(email, password);
-      
-      if (user) {
-        const userInfo = {
-          id: user.uid,
-          name: user.displayName || email.split('@')[0]
-        };
-        setCurrentUser(userInfo);
-        setIsAuthenticated(true);
-        return userInfo;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Login error:', error);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const logout = async () => {
-    try {
-      setIsLoading(true);
-      await services.auth.signOut();
-      // For demo purposes, we don't actually clear the user
-      // setCurrentUser(null);
-      // setIsAuthenticated(false);
-      console.log('User logged out (but kept in state for demo)');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Interest and match actions
-  const expressInterest = async (userId: string, venueId: string): Promise<boolean> => {
-    if (!currentUser) return false;
-    
-    try {
-      // Create new interest
-      const newInterest: Omit<Interest, 'id'> = {
-        fromUserId: currentUser.id,
-        toUserId: userId,
-        venueId: venueId,
-        timestamp: Date.now(),
-        isActive: true,
-        expiresAt: Date.now() + 1000 * 60 * 60 * 24 // 24 hours
-      };
-      
-      // Update interests state
-      const interestId = `int-${Date.now()}`;
-      const interestWithId = { ...newInterest, id: interestId };
-      setInterests(prev => [...prev, interestWithId]);
-      
-      // Check for mutual interest
-      const mutualInterest = interests.find(
-        i => i.fromUserId === userId && i.toUserId === currentUser.id && i.isActive
-      );
-      
-      if (mutualInterest) {
-        // Create a match
-        const newMatch: Omit<Match, 'id'> = {
-          userId: currentUser.id,
-          matchedUserId: userId,
-          venueId: venueId,
-          timestamp: Date.now(),
-          isActive: true,
-          expiresAt: Date.now() + 1000 * 60 * 60 * 3, // 3 hours
-          contactShared: false
-        };
-        
-        const matchId = `match-${Date.now()}`;
-        const matchWithId = { ...newMatch, id: matchId };
-        setMatches(prev => [...prev, matchWithId]);
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Express interest error:', error);
-      return false;
-    }
-  };
-  
-  const shareContact = async (matchId: string): Promise<boolean> => {
-    try {
-      // Update match in state
-      setMatches(prev => prev.map(match => {
-        if (match.id === matchId) {
-          return { ...match, contactShared: true };
-        }
-        return match;
-      }));
-      
-      return true;
-    } catch (error) {
-      console.error('Share contact error:', error);
-      return false;
-    }
-  };
-  
   // Expose state and updaters
   const value: AppStateContextType = {
     currentUser,
@@ -214,7 +133,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     login,
     logout,
     expressInterest,
-    shareContact
+    shareContact,
   };
   
   return (
@@ -222,10 +141,4 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
       {children}
     </AppStateContext.Provider>
   );
-};
-
-export const useAppState = () => {
-  const context = useContext(AppStateContext);
-  if (!context) throw new Error('useAppState must be used within AppStateProvider');
-  return context;
 };

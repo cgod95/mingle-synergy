@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { runUserJourneyTest } from '../utils/testUserJourney';
 import { Button } from './ui/button';
@@ -6,9 +5,12 @@ import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 import { CheckCircle, XCircle } from 'lucide-react';
 import usePerformance from '@/hooks/usePerformance';
 
+type TestResultItem = { step: string; message: string; success: boolean };
+type TestResults = { success: boolean; summary: TestResultItem[] };
+
 const TestUserJourney: React.FC = () => {
   usePerformance('TestUserJourney');
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<TestResults | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,9 +60,8 @@ const TestUserJourney: React.FC = () => {
               }
             </h3>
           </div>
-          
           <div className="space-y-3 mt-4">
-            {results.summary?.map((item: any) => (
+            {results.summary.map((item) => (
               <div key={item.step} className="flex items-start">
                 {item.success ? (
                   <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />

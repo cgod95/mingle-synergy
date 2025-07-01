@@ -1,9 +1,8 @@
-
 import { getPerformance, trace } from 'firebase/performance';
 import { firestore as db } from '@/firebase/config';
 import { logError } from './errorHandler';
-import { analytics } from '@/firebase/config';
-import { logEvent } from 'firebase/analytics';
+// import { analytics } from '@/firebase/config';
+// import { logEvent } from 'firebase/analytics';
 
 // Interface for the non-standard Performance.memory API
 interface PerformanceMemory {
@@ -76,10 +75,10 @@ export const monitorFirestoreReads = async <T>(
     
     // Log slow queries (>500ms)
     if (duration > 500) {
-      logEvent(analytics, 'slow_query', {
-        collection: collectionName,
-        duration_ms: duration
-      });
+      // logEvent(analytics, 'slow_query', {
+      //   collection: collectionName,
+      //   duration_ms: duration
+      // });
     }
     
     return result;
@@ -181,11 +180,11 @@ export class MemoryMonitor {
         increase_pct: ((secondAvg - firstAvg) / firstAvg) * 100
       });
       
-      logEvent(analytics, 'possible_memory_leak', {
-        initial_avg_heap: firstAvg,
-        current_avg_heap: secondAvg,
-        increase_pct: ((secondAvg - firstAvg) / firstAvg) * 100
-      });
+      // logEvent(analytics, 'possible_memory_leak', {
+      //   initial_avg_heap: firstAvg,
+      //   current_avg_heap: secondAvg,
+      //   increase_pct: ((secondAvg - firstAvg) / firstAvg) * 100
+      // });
     }
   }
 }

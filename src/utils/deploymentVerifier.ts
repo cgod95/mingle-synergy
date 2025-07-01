@@ -1,4 +1,3 @@
-
 import { auth, firestore, storage } from '@/firebase/config';
 import { collection, getDocs, limit, query, addDoc, deleteDoc } from 'firebase/firestore';
 import { ref, getDownloadURL, uploadString, deleteObject } from 'firebase/storage';
@@ -7,7 +6,7 @@ import { signInAnonymously } from 'firebase/auth';
 interface VerificationResult {
   success: boolean;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export async function verifyFirebaseConnection(): Promise<VerificationResult> {

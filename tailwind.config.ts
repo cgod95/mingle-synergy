@@ -1,5 +1,5 @@
-
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -97,7 +97,34 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			coral: {
+  				50: '#FFF5F2',
+  				100: '#FFE8E0',
+  				200: '#FFD1C0',
+  				300: '#FFB399',
+  				400: '#FF8F73',
+  				500: '#FF6B47',
+  				600: '#E55A3A',
+  				700: '#CC4A2E',
+  				800: '#B23A22',
+  				900: '#992A16',
+  				950: '#801A0A'
+  			},
+  			pink: {
+  				50: '#FDF2F8',
+  				100: '#FCE7F3',
+  				200: '#FBCFE8',
+  				300: '#F9A8D4',
+  				400: '#F472B6',
+  				500: '#EC4899',
+  				600: '#DB2777',
+  				700: '#BE185D',
+  				800: '#9D174D',
+  				900: '#831843',
+  				950: '#500724'
+  			},
+  			teal: '#A0CCDA',
   		},
   		spacing: {
   			xs: '8px',
@@ -282,5 +309,5 @@ export default {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;

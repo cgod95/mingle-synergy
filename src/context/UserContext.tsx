@@ -1,34 +1,36 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import config from '../config';
+import { User } from '../types';
+import { UserContext } from './UserContext';
 
-type User = {
-  id: string;
-  name: string;
-  age: number;
-  bio: string;
-  photos: string[];
-};
-
-type UserContextType = {
+interface UserContextType {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
-};
-
-const UserContext = createContext<UserContextType | undefined>(undefined);
+}
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(
+    config.DEMO_MODE
+      ? {
+          id: 'demo-uid',
+          name: 'Demo User',
+          age: 30,
+          bio: 'This is a demo user.',
+          photos: [],
+          isCheckedIn: false,
+          isVisible: true,
+          interests: [],
+          gender: 'other',
+          interestedIn: ['female', 'male', 'non-binary', 'other'],
+          ageRangePreference: { min: 18, max: 99 },
+          matches: [],
+          likedUsers: [],
+          blockedUsers: [],
+        }
+      : null
+  );
 
   return (
-    <UserContext.Provider value={{ currentUser, setCurrentUser }}>
-      {children}
-    </UserContext.Provider>
+    <UserContext.Provider value={{ currentUser, setCurrentUser }}>{children}</UserContext.Provider>
   );
-};
-
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
 };

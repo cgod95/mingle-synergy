@@ -5,7 +5,8 @@ import {
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   onAuthStateChanged as firebaseOnAuthStateChanged,
   User,
-  fetchSignInMethodsForEmail
+  fetchSignInMethodsForEmail,
+  AuthError
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase/config';
@@ -22,6 +23,10 @@ const errorMessages: Record<string, string> = {
   'auth/network-request-failed': 'Network error. Please check your connection.'
 };
 
+interface FirebaseErrorWithCode extends Error {
+  code?: string;
+}
+
 class FirebaseAuthService implements AuthService {
   async signIn(email: string, password: string): Promise<UserCredential> {
     try {
@@ -33,9 +38,10 @@ class FirebaseAuthService implements AuthService {
         if (signInMethods.length === 0) {
           throw new Error('No account found with this email. Would you like to sign up instead?');
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.warn('Failed to check if user exists:', error);
-        if (error.code && error.code !== 'auth/user-not-found') {
+        const firebaseError = error as FirebaseErrorWithCode;
+        if (firebaseError.code && firebaseError.code !== 'auth/user-not-found') {
           throw error;
         }
       }
@@ -67,11 +73,12 @@ class FirebaseAuthService implements AuthService {
           emailVerified: credential.user.emailVerified
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign in error:', error);
-      logError(error, { source: 'auth', action: 'signIn' });
+      logError(error as Error, { source: 'auth', action: 'signIn' });
       
-      const errorMessage = errorMessages[error.code] || 'Failed to sign in. Please check your credentials and try again.';
+      const firebaseError = error as FirebaseErrorWithCode;
+      const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to sign in. Please check your credentials and try again.';
       throw new Error(errorMessage);
     }
   }
@@ -83,8 +90,9 @@ class FirebaseAuthService implements AuthService {
         if (signInMethods.length > 0) {
           throw new Error(errorMessages['auth/email-already-in-use'] || 'This email is already registered.');
         }
-      } catch (error: any) {
-        if (error.code && error.code !== 'auth/email-already-in-use') {
+      } catch (error: unknown) {
+        const firebaseError = error as FirebaseErrorWithCode;
+        if (firebaseError.code && firebaseError.code !== 'auth/email-already-in-use') {
           throw error;
         }
       }
@@ -110,10 +118,11 @@ class FirebaseAuthService implements AuthService {
           emailVerified: credential.user.emailVerified
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign up error:', error);
       
-      const errorMessage = errorMessages[error.code] || 'Failed to sign up. Please try again.';
+      const firebaseError = error as FirebaseErrorWithCode;
+      const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to sign up. Please try again.';
       throw new Error(errorMessage);
     }
   }
@@ -125,10 +134,11 @@ class FirebaseAuthService implements AuthService {
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
       await firebaseSendPasswordResetEmail(auth, email);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password reset error:', error);
       
-      const errorMessage = errorMessages[error.code] || 'Failed to send password reset email. Please try again.';
+      const firebaseError = error as FirebaseErrorWithCode;
+      const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to send password reset email. Please try again.';
       throw new Error(errorMessage);
     }
   }

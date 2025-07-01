@@ -1,17 +1,23 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
-import './index.css';
+// 🧠 Purpose: Entry point for the React app. Ensures Tailwind CSS loads and renders the app properly.
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { AuthProvider } from './context/AuthContext.tsx';
+import { OnboardingProvider } from './context/OnboardingContext.tsx';
+import { AppStateProvider } from './context/AppStateContext.tsx';
+import App from "./App";
+import "./index.css"; // ✅ Tailwind must be imported here
+import { Toaster } from '@/components/ui/toaster';
 
-root.render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <AuthProvider>
+      <OnboardingProvider>
+        <AppStateProvider>
+          <Toaster />
+          <App />
+        </AppStateProvider>
+      </OnboardingProvider>
+    </AuthProvider>
   </React.StrictMode>
 );

@@ -1,11 +1,10 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 interface UseFetchOptions<T> {
   onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   enabled?: boolean;
-  dependencies?: any[];
+  dependencies?: unknown[];
 }
 
 export function useFetch<T>(
@@ -18,7 +17,7 @@ export function useFetch<T>(
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -33,13 +32,16 @@ export function useFetch<T>(
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchFn, onSuccess, onError]);
+  
+  // Create a stable dependency array
+  const stableDependencies = useMemo(() => dependencies, [dependencies]);
   
   useEffect(() => {
     if (enabled) {
       fetchData();
     }
-  }, [enabled, ...dependencies]);
+  }, [enabled, fetchData, stableDependencies]);
   
   return {
     data,

@@ -1,69 +1,101 @@
-import { useEffect, useState } from 'react';
-import MatchCard from '@/components/MatchCard';
-import { withAnalytics } from '@/components/withAnalytics';
-import { fetchMatches } from '@/services/firebase/userService';
-import { fetchUserProfile } from '@/services/firebase/userService';
-import { Match } from '@/types/match.types';
-import { useUser } from '../hooks/useUser';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { UserProfile } from '@/types/UserProfile';
+// 🧠 Purpose: Implement Matches page UI to display matched users from mock data.
 
-type EnrichedMatch = Match & { matchedUserProfile?: UserProfile };
+import React, { useState } from "react";
+import MatchCard from "@/components/MatchCard";
+import { DisplayMatch } from "@/types/match";
+import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import BottomNav from '../components/BottomNav';
+import ErrorBoundary from '../components/ErrorBoundary';
+import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
+import { getUserMatches, mockUsers } from "@/data/mock";
+import { useToast } from "@/hooks/use-toast";
 
-const MatchesPage: React.FC = () => {
-  const { currentUser } = useUser();
-  const [matches, setMatches] = useState<EnrichedMatch[]>([]);
-  const [loading, setLoading] = useState(true);
+const Matches: React.FC = () => {
+  const { currentUser } = useAuth();
+  const [matches, setMatches] = useState<DisplayMatch[]>([]);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const loadMatches = async () => {
+    const fetchMatches = async () => {
       if (!currentUser) return;
       try {
-        const rawMatches = await fetchMatches(currentUser.id);
+        // Use mock data instead of Firebase
+        const currentUserId = currentUser.uid || 'u1'; // Default to u1 for demo
+        const userMatches = getUserMatches(currentUserId);
+        
+        const displayMatches: DisplayMatch[] = userMatches.map((match) => {
+          const matchedUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
+          const matchedUser = mockUsers.find(user => user.id === matchedUserId);
+          
+          return {
+            id: match.id,
+            name: matchedUser?.name || "Unknown",
+            age: matchedUser?.age || 0,
+            bio: matchedUser?.bio || "",
+            photoUrl: matchedUser?.photos?.[0] || "",
+          };
+        });
 
-        const enrichedMatches: EnrichedMatch[] = await Promise.all(
-          rawMatches.map(async (match) => {
-            const matchedUserProfile = await fetchUserProfile(match.matchedUserId);
-            return { ...match, matchedUserProfile };
-          })
-        );
-
-        setMatches(enrichedMatches);
-      } catch (err) {
-        console.error('Error loading matches:', err);
-      } finally {
-        setLoading(false);
+        setMatches(displayMatches);
+      } catch (error) {
+        console.error('Error fetching matches:', error);
       }
     };
-    loadMatches();
+
+    fetchMatches();
   }, [currentUser]);
+
+  const handleWeMetClick = (matchId: string) => {
+    setSelectedMatchId(matchId);
+    setShowConfirmation(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!currentUser || !selectedMatchId) return;
+    
+    // Show success toast
+    toast({
+      title: "We Met! 🎉",
+      description: "Thanks for confirming! Your match has been updated.",
+      duration: 3000,
+    });
+    
+    setShowConfirmation(false);
+    setSelectedMatchId(null);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmation(false);
+    setSelectedMatchId(null);
+  };
 
   return (
     <ErrorBoundary>
-      <main className="p-4">
-        {loading ? (
-          <p className="text-center text-gray-600">Loading...</p>
-        ) : matches.length === 0 ? (
-          <p className="text-center text-gray-600">No matches yet. Start liking!</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {matches.map((match) =>
-              match.matchedUserProfile ? (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  user={match.matchedUserProfile}
-                  onReconnectRequest={() => console.log('Reconnect requested for', match.id)}
-                  onShareContact={() => console.log('Share contact for', match.id)}
-                  onWeMetClick={() => console.log('We met clicked for', match.id)}
-                />
-              ) : null
-            )}
-          </div>
-        )}
-      </main>
+      <div className="pb-16 p-4">
+        <h1 className="text-xl font-semibold mb-4">Your Matches</h1>
+        <div className="space-y-4">
+          {matches.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No matches yet. Check into a venue to meet people!</p>
+          ) : (
+            matches.map((match) => (
+              <MatchCard key={match.id} match={match} onWeMetClick={handleWeMetClick} />
+            ))
+          )}
+        </div>
+      </div>
+      <BottomNav />
+
+      {/* Confirmation Modal */}
+      <WeMetConfirmationModal
+        open={showConfirmation}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </ErrorBoundary>
   );
 };
 
-export default withAnalytics(MatchesPage, 'matches_screen');
+export default Matches;

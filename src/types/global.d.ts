@@ -1,8 +1,8 @@
 interface Firebase {
-  firestore: () => any;
-  auth: () => any;
-  storage: () => any;
-  app: any;
+  firestore: () => unknown;
+  auth: () => unknown;
+  storage: () => unknown;
+  app: unknown;
 }
 
 declare global {

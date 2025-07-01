@@ -1,11 +1,10 @@
-
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import NetworkStatus from '../NetworkStatus';
 
 describe('NetworkStatus', () => {
   const originalOnLine = window.navigator.onLine;
-  let onLineSpy: any;
+  let onLineSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // Mock navigator.onLine

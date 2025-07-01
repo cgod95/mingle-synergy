@@ -1,5 +1,5 @@
-
 import { Match as AppMatch, User as AppUser } from '@/types';
+import { FirestoreMatch } from '@/types/match';
 
 // Service layer interfaces for abstraction and testing
 export interface AuthService {
@@ -21,6 +21,9 @@ export interface UserService {
   updateUser: (userId: string, data: Partial<UserProfile>) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
   getUsersAtVenue: (venueId: string) => Promise<UserProfile[]>;
+  getReconnectRequests: (userId: string) => Promise<string[]>;
+  acceptReconnectRequest: (userId: string, requesterId: string) => Promise<void>;
+  sendReconnectRequest: (fromUserId: string, toUserId: string) => Promise<void>;
 }
 
 // Define the Venue type directly in services.ts
@@ -48,6 +51,7 @@ export interface VenueService {
   getNearbyVenues?: (latitude: number, longitude: number, radiusKm?: number) => Promise<Venue[]>;
   getVenuesByIds?: (venueIds: string[]) => Promise<Venue[]>;
   getAllVenues: () => Promise<Venue[]>;
+  getUsersAtVenue: (venueId: string) => Promise<UserProfile[]>;
 }
 
 // Define the Match type
@@ -79,7 +83,7 @@ export interface InterestService {
 
 // Update the MatchService interface to match our implementation
 export interface MatchService {
-  getMatches: (userId: string) => Promise<Match[]>;
+  getMatches: (userId: string) => Promise<FirestoreMatch[]>;
   createMatch: (user1Id: string, user2Id: string, venueId: string, venueName: string) => Promise<string>;
   sendMessage: (matchId: string, userId: string, message: string) => Promise<boolean>;
   calculateTimeRemaining: (expiresAt: Date) => string;
@@ -103,7 +107,9 @@ export interface User {
 // App-specific types that will be stored in Firestore
 export interface UserProfile {
   id: string;
+  uid?: string; // Firebase Auth UID
   name: string;
+  displayName?: string; // Firebase Auth displayName
   photos: string[];
   bio?: string;
   isCheckedIn: boolean;
@@ -126,6 +132,7 @@ export interface UserProfile {
   lastVerificationAttempt?: number | null;
   verificationSelfie?: string;
   occupation?: string;
+  reconnectRequests?: string[];
 }
 
 // Add a VerificationService interface

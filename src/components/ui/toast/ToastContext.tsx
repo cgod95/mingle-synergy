@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -16,10 +15,24 @@ interface ToastContextType {
   hideToast: (id: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+// Export context separately for Fast Refresh
+export const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+// Export hook separately for Fast Refresh
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within a ToastProvider');
+  }
+  return context;
+};
 
 export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const hideToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
 
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = Date.now().toString();
@@ -29,11 +42,7 @@ export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children 
     setTimeout(() => {
       hideToast(id);
     }, 3000);
-  }, []);
-
-  const hideToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  }, [hideToast]);
 
   // Add toast to window for global access
   React.useEffect(() => {
@@ -73,12 +82,4 @@ export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children 
       </div>
     </ToastContext.Provider>
   );
-};
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
 };

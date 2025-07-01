@@ -10,4 +10,5 @@ export interface UserProfile {
   likedUsers: string[] | FieldValue; // for Firestore arrayUnion updates
   matches: string[] | FieldValue;    // same here
   contactShared?: string[] | FieldValue;
+  reconnectRequests?: string[] | FieldValue; // for storing reconnect requests
 }

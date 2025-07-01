@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Heart } from 'lucide-react';
 
@@ -11,7 +10,7 @@ const LikesCounter: React.FC<LikesCounterProps> = ({ count }) => (
     <div className="w-6 h-6 rounded-full bg-brand-primary text-white flex items-center justify-center text-xs mr-2">
       {count}
     </div>
-    <span className="text-sm font-medium text-text-primary">likes remaining</span>
+    <span className="text-sm font-medium text-foreground">likes remaining</span>
   </div>
 );
 

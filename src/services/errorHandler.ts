@@ -1,4 +1,3 @@
-
 import { trackError } from './appAnalytics';
 import { logError } from '@/utils/errorHandler';
 
@@ -44,7 +43,7 @@ class ErrorHandler {
   }
   
   // Track application errors
-  trackApplicationError(error: Error, source = 'application', additionalData?: Record<string, any>) {
+  trackApplicationError(error: Error, source = 'application', additionalData?: Record<string, unknown>) {
     const errorWithCode = error as ErrorWithCode;
     
     // Track with Firebase Analytics

@@ -1,10 +1,9 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logError } from './errorHandler';
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
 interface ErrorBoundaryState {
@@ -53,10 +52,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
 // Higher Order Component for wrapping components with error boundary
 export const withErrorBoundary = (
-  Component: React.ComponentType<any>,
-  fallback?: ReactNode
+  Component: React.ComponentType<unknown>,
+  fallback?: React.ReactNode
 ) => {
-  const WithErrorBoundary = (props: any) => (
+  const WithErrorBoundary = (props: Record<string, unknown>) => (
     <ErrorBoundary fallback={fallback}>
       <Component {...props} />
     </ErrorBoundary>

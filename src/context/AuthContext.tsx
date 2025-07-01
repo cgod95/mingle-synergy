@@ -1,36 +1,45 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User } from '@/types/services';
-import authService from '@/services';
-import { useToast } from '@/components/ui/use-toast';
+// 🧠 Purpose: Provides user auth state and loading flag with added logging for stuck state debugging
 
-interface AuthContextType {
-  currentUser: User | null;
-  isLoading: boolean;
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { auth } from '../firebase';
+import { useToast } from '../components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { ReactNode, useRef, useCallback } from 'react';
+import authService from '../services';
+import { AuthContext } from './AuthContext';
+
+type AuthContextType = {
+  user: FirebaseUser | null;
+  currentUser: FirebaseUser | null; // Alias for user for backward compatibility
+  loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
-}
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Export context separately for Fast Refresh
+export const AuthNavigationContext = createContext<((navigate: (path: string) => void) => void) | undefined>(undefined);
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
+// Export hook separately for Fast Refresh
+export const useAuthNavigation = () => {
+  const context = useContext(AuthNavigationContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuthNavigation must be used within an AuthProvider');
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
-  const navigateRef = useRef<any>(null);
+  const navigateRef = useRef<((path: string) => void) | null>(null);
   
-  const setNavigate = useCallback((navigateFunction: any) => {
+  const setNavigate = useCallback((navigateFunction: (path: string) => void) => {
     navigateRef.current = navigateFunction;
   }, []);
   
@@ -43,34 +52,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('currentUser');
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
-      }
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error loading user from localStorage:', error);
-      setIsLoading(false);
-    }
+    console.log("[AuthContext] Mounting...");
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log("[AuthContext] Auth state changed:", firebaseUser);
+      setUser(firebaseUser);
+      setCurrentUser(firebaseUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    const unsubscribe = authService.auth.onAuthStateChanged((user) => {
-      if (user) {
-        setCurrentUser(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
+    const localUser = localStorage.getItem('currentUser');
+    if (!user && localUser) {
+      try {
+        setUser(JSON.parse(localUser));
+        setCurrentUser(JSON.parse(localUser));
+      } catch (e) {
+        console.warn('Failed to parse stored user', e);
       }
-    });
-
-    return unsubscribe;
-  }, []);
+    }
+  }, [user]);
 
   const signIn = async (email: string, password: string): Promise<void> => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const result = await authService.auth.signIn(email, password);
-      setCurrentUser(result.user);
       localStorage.setItem('currentUser', JSON.stringify(result.user));
       toast({
         title: 'Signed in successfully',
@@ -95,15 +102,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       throw error;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string): Promise<void> => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const result = await authService.auth.signUp(email, password);
-      setCurrentUser(result.user);
       localStorage.setItem('currentUser', JSON.stringify(result.user));
       
       localStorage.setItem('pendingUserEmail', email);
@@ -122,7 +128,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       throw error;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -130,6 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await authService.auth.signOut();
       localStorage.removeItem('currentUser');
+      setUser(null);
       setCurrentUser(null);
       toast({
         title: 'Signed out',
@@ -162,9 +169,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
+    user,
     currentUser,
-    isLoading,
+    loading,
     signIn,
     signUp,
     signOut,
@@ -176,16 +184,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const AuthNavigationContext = createContext<((navigate: any) => void) | undefined>(undefined);
-
-export const useAuthNavigation = () => {
-  const context = useContext(AuthNavigationContext);
-  if (!context) {
-    throw new Error('useAuthNavigation must be used within an AuthProvider');
-  }
-  return context;
 };
 
 export const WithAuthNavigation: React.FC<{ children: ReactNode }> = ({ children }) => {

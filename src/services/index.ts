@@ -1,51 +1,38 @@
+// DEMO_MODE flag: set to true for demo/mock mode, false for Firebase backend
+export const DEMO_MODE = true;
 
-import { 
-  default as mockAuthService, 
-  default as MockAuthService
-} from './mock/mockAuthService';
-import { 
-  default as mockUserService,
-  default as MockUserService
-} from './mock/mockUserService';
-import { 
-  default as mockVenueService,
-  default as MockVenueService
-} from './mock/mockVenueService';
-import { 
-  default as mockMatchService,
-  default as MockMatchService
-} from './mock/mockMatchService';
-import { 
-  default as mockInterestService,
-  default as MockInterestService
-} from './mock/mockInterestService';
-import { 
-  default as mockVerificationService,
-  default as MockVerificationService
-} from './mock/mockVerificationService';
+import FirebaseAuthService from './firebase/authService';
+import FirebaseUserService from './firebase/userService';
+import FirebaseVenueService from './firebase/venueService';
+import FirebaseMatchService from './firebase/matchService';
+import FirebaseInterestService from './firebase/interestService';
 
-// Always use mock services in the Lovable environment
-console.log('Using mock services for development');
+import MockUserService from './mock/mockUserService';
+import MockVenueService from './mock/mockVenueService';
+import MockMatchService from './mock/mockMatchService';
+import MockInterestService from './mock/mockInterestService';
+// If you have a mockReconnectService, import it here
 
-// Export mock services directly
-export const authService = mockAuthService;
-export const userService = mockUserService;
-export const venueService = mockVenueService;
-export const matchService = mockMatchService;
-export const interestService = mockInterestService;
-export const verification = mockVerificationService;
+// AuthService always uses Firebase
+export const authService = FirebaseAuthService;
 
-// For backward compatibility with existing imports
+// All other services switch based on DEMO_MODE
+export const userService = DEMO_MODE ? MockUserService : FirebaseUserService;
+export const venueService = DEMO_MODE ? MockVenueService : FirebaseVenueService;
+export const matchService = DEMO_MODE ? MockMatchService : FirebaseMatchService;
+export const interestService = DEMO_MODE ? MockInterestService : FirebaseInterestService;
+// For now, set reconnectService to undefined in both modes
+export const reconnectService = undefined; // TODO: Add mockReconnectService if needed
+
+// Default export for convenience
 const services = {
   auth: authService,
   user: userService,
   venue: venueService,
   match: matchService,
   interest: interestService,
-  verification
+  reconnect: reconnectService,
 };
-
-// Export as default for files that use import services from '@/services'
 export default services;
 
 /* 

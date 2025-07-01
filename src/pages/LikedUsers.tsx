@@ -1,39 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { fetchUserProfile, UserProfile } from '@/services/firebase/userService';
-import UserCard from '@/components/UserCard';
+import React from 'react';
+import BottomNav from '../components/BottomNav';
+import ErrorBoundary from '../components/ErrorBoundary';
 
-const LikedUsersPage: React.FC = () => {
-  const { currentUser } = useAuth();
-  const [likedUsers, setLikedUsers] = useState<UserProfile[]>([]);
-
-  useEffect(() => {
-    const loadLikedUsers = async () => {
-      if (!currentUser?.uid) return;
-
-      const profile = await fetchUserProfile(currentUser.uid);
-      if (!profile || !profile.likedUsers) return;
-
-      const promises = profile.likedUsers.map(uid => fetchUserProfile(uid));
-      const users = await Promise.all(promises);
-
-      const validUsers = users.filter((user): user is UserProfile => user !== null);
-      setLikedUsers(validUsers);
-    };
-
-    loadLikedUsers();
-  }, [currentUser]);
-
+const LikedUsers: React.FC = () => {
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">People You Liked</h2>
-      <div className="space-y-4">
-        {likedUsers.map((user) => (
-          <UserCard key={user.id} user={user} />
-        ))}
+    <ErrorBoundary>
+      <div className="pb-16 p-4">
+        <h1 className="text-xl font-bold mb-4">Users You've Liked</h1>
+        {/* Placeholder for liked users list */}
+        <p className="text-gray-500">Liked user cards will appear here.</p>
       </div>
-    </div>
+      <BottomNav />
+    </ErrorBoundary>
   );
 };
 
-export default LikedUsersPage;
+export default LikedUsers;

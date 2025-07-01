@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Plus, MapPin, MessageSquare } from 'lucide-react';
@@ -18,8 +17,8 @@ const PhilosophyIntro = () => {
               <ArrowRight className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h3 className="font-medium mb-1 text-text-primary">This isn't a dating app</h3>
-              <p className="text-text-secondary">It's a tool to help you meet people in the real world.</p>
+              <h3 className="font-medium mb-1 text-foreground">This isn't a dating app</h3>
+              <p className="text-muted-foreground">It's a tool to help you meet people in the real world.</p>
             </div>
           </div>
           
@@ -28,8 +27,8 @@ const PhilosophyIntro = () => {
               <Plus className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h3 className="font-medium mb-1 text-text-primary">Say hi now, not later</h3>
-              <p className="text-text-secondary">Matches expire in 3 hours to encourage you to meet in person right away.</p>
+              <h3 className="font-medium mb-1 text-foreground">Say hi now, not later</h3>
+              <p className="text-muted-foreground">Matches expire in 3 hours to encourage you to meet in person right away.</p>
             </div>
           </div>
           
@@ -38,8 +37,8 @@ const PhilosophyIntro = () => {
               <MapPin className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h3 className="font-medium mb-1 text-text-primary">Find people right where you are</h3>
-              <p className="text-text-secondary">No endless browsing. Connect with people at the same venues you visit.</p>
+              <h3 className="font-medium mb-1 text-foreground">Find people right where you are</h3>
+              <p className="text-muted-foreground">No endless browsing. Connect with people at the same venues you visit.</p>
             </div>
           </div>
           
@@ -48,8 +47,8 @@ const PhilosophyIntro = () => {
               <MessageSquare className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h3 className="font-medium mb-1 text-text-primary">Real connections over endless chats</h3>
-              <p className="text-text-secondary">Skip the weeks of texting. Find the courage to talk face-to-face.</p>
+              <h3 className="font-medium mb-1 text-foreground">Real connections over endless chats</h3>
+              <p className="text-muted-foreground">Skip the weeks of texting. Find the courage to talk face-to-face.</p>
             </div>
           </div>
         </div>

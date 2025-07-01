@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAppState } from '@/context/AppStateContext';
@@ -24,7 +23,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   
   // Uncomment for production:
   // if (!isAuthenticated) {
-  //   return <Navigate to="/sign-in" replace />;
+  //   return <Navigate to="/signin" replace />;
   // }
   // return <>{typeof children === 'function' ? children() : children}</>;
 };

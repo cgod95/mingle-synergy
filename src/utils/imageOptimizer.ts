@@ -1,4 +1,3 @@
-
 /**
  * Image optimization utilities for improving loading performance
  * especially on weak network connections
@@ -64,7 +63,7 @@ export const getOptimizedImageUrl = (url: string, width: number = 400): string =
     // Get connection type or default to 4g
     let connectionType = '4g';
     if (typeof navigator !== 'undefined' && 'connection' in navigator) {
-      connectionType = (navigator as any).connection?.effectiveType || '4g';
+      connectionType = (navigator as unknown as { connection?: { effectiveType?: string } }).connection?.effectiveType || '4g';
     }
     
     // Lower quality for slower connections
@@ -101,7 +100,7 @@ export const initImageOptimization = () => {
   
   // Re-check images when network changes
   if ('connection' in navigator) {
-    (navigator as any).connection.addEventListener('change', () => {
+    (navigator as unknown as { connection?: { addEventListener?: (type: string, listener: () => void) => void } }).connection?.addEventListener?.('change', () => {
       // Reload visible images with optimized quality
       document.querySelectorAll('img.loaded').forEach(img => {
         const originalSrc = (img as HTMLImageElement).getAttribute('data-original-src');

@@ -1,14 +1,13 @@
-
 import { UserService, UserProfile } from '@/types/services';
 import { users } from '@/data/mockData';
 
 // Type guard for gender validation
-function isValidGender(gender: any): gender is 'male' | 'female' | 'non-binary' | 'other' {
+function isValidGender(gender: string): gender is 'male' | 'female' | 'non-binary' | 'other' {
   return ['male', 'female', 'non-binary', 'other'].includes(gender);
 }
 
 // Type guard for interestedIn validation
-function areValidGenders(genders: any[]): genders is ('male' | 'female' | 'non-binary' | 'other')[] {
+function areValidGenders(genders: string[]): genders is ('male' | 'female' | 'non-binary' | 'other')[] {
   return Array.isArray(genders) && genders.every(g => isValidGender(g));
 }
 
@@ -53,7 +52,7 @@ class MockUserService implements UserService {
     }
     
     // Handle gender validation
-    let safeData = { ...data };
+    const safeData = { ...data };
     if (data.gender && !isValidGender(data.gender)) {
       safeData.gender = 'other';
     }
@@ -139,6 +138,11 @@ class MockUserService implements UserService {
         blockedUsers: user.blockedUsers || [],
       }));
   }
+
+  // Add stubs for missing UserService methods
+  getReconnectRequests() { return Promise.resolve([]); }
+  acceptReconnectRequest() { return Promise.resolve(); }
+  sendReconnectRequest() { return Promise.resolve(); }
 }
 
 export default new MockUserService();

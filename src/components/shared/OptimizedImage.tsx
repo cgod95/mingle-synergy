@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 
@@ -81,7 +80,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       
       {error ? (
         <div className="bg-bg-tertiary flex items-center justify-center h-full w-full">
-          <span className="text-text-secondary text-sm">Image not available</span>
+          <span className="text-muted-foreground text-sm">Image not available</span>
         </div>
       ) : (
         priority ? (

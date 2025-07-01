@@ -1,4 +1,3 @@
-
 /**
  * Network monitoring utility
  * Handles network status events without UI manipulation

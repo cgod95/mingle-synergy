@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NETWORK_STATUS_EVENT, NetworkStatusEvent, NetworkStatus as StatusType } from '@/utils/networkMonitor';
+import { NETWORK_STATUS_EVENT, NetworkStatusEvent, NetworkStatus as StatusType } from '@/utils/networkMonitor.ts';
 import { AlertTriangle, WifiOff } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import usePerformance from '@/hooks/usePerformance';

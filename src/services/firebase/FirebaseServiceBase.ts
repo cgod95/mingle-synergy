@@ -1,4 +1,3 @@
-
 import { CollectionReference, collection } from 'firebase/firestore';
 import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
 import { isOnline } from '@/utils/networkMonitor';
@@ -23,7 +22,7 @@ export class FirebaseServiceBase {
     return isFirebaseAvailable() && isOnline();
   }
   
-  protected handleError(error: any, operation: string): never {
+  protected handleError(error: unknown, operation: string): never {
     console.error(`Error in ${operation}:`, error);
     throw error;
   }

@@ -6,130 +6,178 @@ import {
   query,
   where,
   getDocs,
+  updateDoc,
+  arrayRemove,
   arrayUnion,
+  deleteDoc,
 } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { UserProfile } from '@/types/UserProfile';
-import { Match } from '@/types/match.types';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { firestore, storage } from '../../firebase';
+import { UserProfile, UserService } from '@/types/services';
 
 type PartialUserProfile = Partial<UserProfile>;
 
-// ✅ Fetch user profile
-export const fetchUserProfile = async (
-  userId: string
-): Promise<UserProfile | null> => {
-  try {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      return { id: userSnap.id, ...(userSnap.data() as UserProfile) };
-    } else {
+class FirebaseUserService implements UserService {
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return { 
+          id: userSnap.id, 
+          uid: userSnap.id, // Set uid to the document ID
+          displayName: userData.displayName || userData.name, // Use displayName if available, fallback to name
+          ...(userData as UserProfile) 
+        };
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
       return null;
     }
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    return null;
   }
-};
 
-// ✅ Update user profile
-export const updateUserProfile = async (
-  userId: string,
-  updates: PartialUserProfile
-): Promise<void> => {
-  const userRef = doc(db, 'users', userId);
-  await setDoc(userRef, updates, { merge: true });
-};
-
-// ✅ Like user
-export const likeUser = async (
-  currentUser: UserProfile,
-  targetUserId: string
-): Promise<void> => {
-  const updatedLikes = Array.isArray(currentUser.likedUsers)
-    ? [...currentUser.likedUsers, targetUserId]
-    : [targetUserId];
-
-  await updateUserProfile(currentUser.id, { likedUsers: updatedLikes });
-};
-
-// ✅ Check for match and create
-export const checkForMatchAndCreate = async (
-  userA: UserProfile,
-  userBId: string
-): Promise<void> => {
-  try {
-    const userB = await fetchUserProfile(userBId);
-    if (!userB || !Array.isArray(userB.likedUsers)) return;
-
-    const userBHasLikedUserA = userB.likedUsers.includes(userA.id);
-    if (!userBHasLikedUserA) return;
-
-    await updateUserProfile(userA.id, {
-      matches: arrayUnion(userBId),
-    });
-    await updateUserProfile(userBId, {
-      matches: arrayUnion(userA.id),
-    });
-
-    console.log('✅ Match created between', userA.id, 'and', userBId);
-  } catch (error) {
-    console.error('Error creating match:', error);
+  async updateUserProfile(userId: string, updates: PartialUserProfile): Promise<void> {
+    const userRef = doc(firestore, 'users', userId);
+    await updateDoc(userRef, updates);
   }
-};
 
-// ✅ Fetch Matches
-export const fetchMatches = async (userId: string): Promise<Match[]> => {
-  const matchesRef = collection(db, 'matches');
-  const q = query(matchesRef, where('userId', '==', userId));
-  try {
-    const querySnapshot = await getDocs(q);
-    const matches: Match[] = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as Omit<Match, 'id'>),
-    }));
-    return matches;
-  } catch (error) {
-    console.error('Error fetching matches:', error);
-    return [];
+  async createUserProfile(userId: string, data: UserProfile): Promise<void> {
+    const userRef = doc(firestore, 'users', userId);
+    await setDoc(userRef, data);
   }
-};
 
-// ✅ Request Reconnect
-export const requestReconnect = async (matchId: string): Promise<boolean> => {
-  try {
-    const matchRef = doc(db, 'matches', matchId);
-    await setDoc(matchRef, { reconnectRequested: true }, { merge: true });
-    return true;
-  } catch (error) {
-    console.error('Error requesting reconnect:', error);
-    return false;
+  async getUserById(userId: string): Promise<UserProfile | null> {
+    return this.getUserProfile(userId);
   }
-};
 
-// ✅ Confirm Meeting
-export const confirmMeeting = async (matchId: string): Promise<boolean> => {
-  try {
-    const matchRef = doc(db, 'matches', matchId);
-    await setDoc(matchRef, { met: true }, { merge: true });
-    return true;
-  } catch (error) {
-    console.error('Error confirming meeting:', error);
-    return false;
+  async updateUser(userId: string, data: PartialUserProfile): Promise<void> {
+    return this.updateUserProfile(userId, data);
   }
-};
 
-// ✅ Share Contact
-export const shareContact = async (
-  matchId: string,
-  contactInfo: string[]
-): Promise<boolean> => {
-  try {
-    const matchRef = doc(db, 'matches', matchId);
-    await setDoc(matchRef, { sharedContact: contactInfo }, { merge: true });
-    return true;
-  } catch (error) {
-    console.error('Error sharing contact info:', error);
-    return false;
+  async deleteUser(userId: string): Promise<void> {
+    // Note: In production, you might want to use a Cloud Function to handle user deletion
+    // as it requires special permissions and cleanup of related data
+    console.warn('User deletion not implemented - use Cloud Functions for production');
   }
-};
+
+  async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
+    try {
+      const usersRef = collection(firestore, 'users');
+      const q = query(usersRef, where('currentVenue', '==', venueId));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as UserProfile));
+    } catch (error) {
+      console.error('Error fetching users at venue:', error);
+      return [];
+    }
+  }
+
+  async getReconnectRequests(userId: string): Promise<string[]> {
+    try {
+      // Approach 1: Get from user document array (simpler for small scale)
+      const userRef = doc(firestore, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return userData.reconnectRequests || [];
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error fetching reconnect requests:', error);
+      return [];
+    }
+  }
+
+  async acceptReconnectRequest(userId: string, requesterId: string): Promise<void> {
+    try {
+      // Remove the request from the user's reconnectRequests array
+      const userRef = doc(firestore, 'users', userId);
+      await updateDoc(userRef, {
+        reconnectRequests: arrayRemove(requesterId)
+      });
+
+      // Create a new match between the users
+      const matchService = (await import('./matchService')).default;
+      // For reconnection, we'll use a default venue since we don't have venue context
+      // In a real app, you might want to store venue info with the reconnect request
+      await matchService.createMatch(userId, requesterId, 'reconnect-venue', 'Reconnection');
+
+      // Remove likes between users to allow fresh matching
+      await this.removeLikesBetweenUsers(userId, requesterId);
+    } catch (error) {
+      console.error('Error accepting reconnect request:', error);
+      throw error;
+    }
+  }
+
+  private async removeLikesBetweenUsers(userId1: string, userId2: string): Promise<void> {
+    try {
+      // Remove likes from both users
+      const user1Ref = doc(firestore, 'users', userId1);
+      const user2Ref = doc(firestore, 'users', userId2);
+
+      await updateDoc(user1Ref, {
+        likes: arrayRemove(userId2)
+      });
+
+      await updateDoc(user2Ref, {
+        likes: arrayRemove(userId1)
+      });
+    } catch (error) {
+      console.error('Error removing likes between users:', error);
+    }
+  }
+
+  async sendReconnectRequest(fromUserId: string, toUserId: string): Promise<void> {
+    try {
+      // Add the requesting user to the target user's reconnectRequests array
+      const targetUserRef = doc(firestore, 'users', toUserId);
+      await updateDoc(targetUserRef, {
+        reconnectRequests: arrayUnion(fromUserId)
+      });
+    } catch (error) {
+      console.error('Error sending reconnect request:', error);
+      throw error;
+    }
+  }
+
+  async uploadProfilePhoto(userId: string, file: File): Promise<string> {
+    try {
+      // Create a unique filename
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `profile-photos/${userId}/${Date.now()}.${fileExtension}`;
+      
+      // Upload to Firebase Storage
+      const storageRef = ref(storage, fileName);
+      const snapshot = await uploadBytes(storageRef, file);
+      
+      // Get the download URL
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      // Get current user profile to update photos array
+      const currentProfile = await this.getUserProfile(userId);
+      const currentPhotos = currentProfile?.photos || [];
+      
+      // Update user profile with the new photo URL
+      await this.updateUserProfile(userId, {
+        photos: [...currentPhotos, downloadURL]
+      });
+      
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading profile photo:', error);
+      throw error;
+    }
+  }
+}
+
+export default new FirebaseUserService();

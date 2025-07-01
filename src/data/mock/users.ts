@@ -1,4 +1,3 @@
-
 import { User } from '@/types';
 
 export const mockUsers: User[] = [
@@ -23,7 +22,7 @@ export const mockUsers: User[] = [
       min: 25,
       max: 35
     },
-    matches: ['u2'],
+    matches: ['u2', 'u3'],
     likedUsers: ['u2'],
     blockedUsers: []
   },
@@ -48,7 +47,7 @@ export const mockUsers: User[] = [
       min: 25,
       max: 35
     },
-    matches: ['u1'],
+    matches: ['u1', 'u4'],
     likedUsers: ['u1'],
     blockedUsers: []
   },
@@ -71,7 +70,7 @@ export const mockUsers: User[] = [
       min: 25,
       max: 40
     },
-    matches: [],
+    matches: ['u1', 'u5'],
     likedUsers: ['u4'],
     blockedUsers: []
   },
@@ -94,7 +93,7 @@ export const mockUsers: User[] = [
       min: 28,
       max: 38
     },
-    matches: [],
+    matches: ['u2', 'u6'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -117,7 +116,7 @@ export const mockUsers: User[] = [
       min: 28,
       max: 40
     },
-    matches: [],
+    matches: ['u1', 'u7'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -140,7 +139,7 @@ export const mockUsers: User[] = [
       min: 25,
       max: 35
     },
-    matches: [],
+    matches: ['u2', 'u8'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -165,7 +164,7 @@ export const mockUsers: User[] = [
       min: 25,
       max: 38
     },
-    matches: [],
+    matches: ['u3', 'u9'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -190,7 +189,7 @@ export const mockUsers: User[] = [
       min: 27,
       max: 36
     },
-    matches: [],
+    matches: ['u4', 'u10'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -215,7 +214,7 @@ export const mockUsers: User[] = [
       min: 25,
       max: 40
     },
-    matches: [],
+    matches: ['u5', 'u11'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -240,7 +239,7 @@ export const mockUsers: User[] = [
       min: 28,
       max: 38
     },
-    matches: [],
+    matches: ['u6', 'u12'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -265,7 +264,7 @@ export const mockUsers: User[] = [
       min: 27,
       max: 40
     },
-    matches: [],
+    matches: ['u7', 'u13'],
     likedUsers: [],
     blockedUsers: []
   },
@@ -290,7 +289,107 @@ export const mockUsers: User[] = [
       min: 25,
       max: 35
     },
-    matches: [],
+    matches: ['u8', 'u14'],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u13',
+    name: 'Harper',
+    photos: [
+      'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',
+      'https://images.unsplash.com/photo-1465101046530-73398c7f28ca'
+    ],
+    bio: 'Tech entrepreneur and marathon runner',
+    isCheckedIn: true,
+    currentVenue: 'v1',
+    currentZone: 'Lounge',
+    zone: 'Lounge',
+    isVisible: true,
+    interests: ['technology', 'running', 'startups'],
+    gender: 'non-binary',
+    interestedIn: ['female', 'male', 'non-binary'],
+    age: 34,
+    ageRangePreference: {
+      min: 28,
+      max: 40
+    },
+    matches: ['u9', 'u15'],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u14',
+    name: 'Avery',
+    photos: [
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9'
+    ],
+    bio: 'Dog lover, foodie, and aspiring chef',
+    isCheckedIn: true,
+    currentVenue: 'v1',
+    currentZone: 'Patio',
+    zone: 'Patio',
+    isVisible: true,
+    interests: ['dogs', 'cooking', 'travel'],
+    gender: 'female',
+    interestedIn: ['male', 'female'],
+    age: 25,
+    ageRangePreference: {
+      min: 23,
+      max: 32
+    },
+    matches: ['u10', 'u16'],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u15',
+    name: 'Dylan',
+    photos: [
+      'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91',
+      'https://images.unsplash.com/photo-1511367461989-f85a21fda167'
+    ],
+    bio: 'Cyclist, gamer, and craft beer fan',
+    isCheckedIn: true,
+    currentVenue: 'v1',
+    currentZone: 'Game Room',
+    zone: 'Game Room',
+    isVisible: true,
+    interests: ['cycling', 'gaming', 'craft beer'],
+    gender: 'male',
+    interestedIn: ['female', 'non-binary'],
+    age: 29,
+    ageRangePreference: {
+      min: 25,
+      max: 35
+    },
+    matches: ['u11', 'u16'],
+    likedUsers: [],
+    blockedUsers: []
+  },
+  {
+    id: 'u16',
+    name: 'Quinn',
+    photos: [
+      'https://images.unsplash.com/photo-1465101178521-c1a9136a3b99',
+      'https://images.unsplash.com/photo-1519340333755-c1aa5571fd46'
+    ],
+    bio: 'Poet, jazz lover, and vintage collector',
+    isCheckedIn: true,
+    currentVenue: 'v1',
+    currentZone: 'Balcony',
+    zone: 'Balcony',
+    isVisible: true,
+    interests: ['poetry', 'jazz', 'vintage'],
+    gender: 'male',
+    interestedIn: ['female', 'male'],
+    age: 36,
+    ageRangePreference: {
+      min: 30,
+      max: 40
+    },
+    matches: ['u12', 'u15'],
     likedUsers: [],
     blockedUsers: []
   }

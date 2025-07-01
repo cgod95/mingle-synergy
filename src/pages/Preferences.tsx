@@ -1,105 +1,132 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { fetchUserProfile, updateUserProfile } from '@/services/firebase/userService';
-import { Button } from '@/components/ui/button';
+import userService from '@/services/firebase/userService';
+import { useOnboarding } from '@/context/OnboardingContext';
 
-const Preferences: React.FC = () => {
+const ageOptions = Array.from({ length: 83 }, (_, i) => i + 18); // ages 18–100
+const genderOptions = ['Women', 'Men', 'Everyone'];
+
+export default function Preferences() {
   const { currentUser } = useAuth();
+  const { setOnboardingStepComplete } = useOnboarding();
   const navigate = useNavigate();
-
-  const [minAge, setMinAge] = useState(18);
-  const [maxAge, setMaxAge] = useState(40);
-  const [interestedIn, setInterestedIn] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [minAge, setMinAge] = useState(25);
+  const [maxAge, setMaxAge] = useState(35);
+  const [genderPref, setGenderPref] = useState('Everyone');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchPreferences = async () => {
       if (!currentUser?.uid) return;
 
-      const profile = await fetchUserProfile(currentUser.uid);
+      const profile = await userService.getUserProfile(currentUser.uid);
       if (profile?.ageRangePreference) {
         setMinAge(profile.ageRangePreference.min);
         setMaxAge(profile.ageRangePreference.max);
       }
+      // Map existing interestedIn to new genderPref format
       if (profile?.interestedIn) {
-        setInterestedIn(profile.interestedIn);
+        if (profile.interestedIn.includes('female') && profile.interestedIn.includes('male')) {
+          setGenderPref('Everyone');
+        } else if (profile.interestedIn.includes('female')) {
+          setGenderPref('Women');
+        } else if (profile.interestedIn.includes('male')) {
+          setGenderPref('Men');
+        }
       }
     };
 
     fetchPreferences();
   }, [currentUser]);
 
-  const handleToggleInterest = (gender: string) => {
-    setInterestedIn((prev) =>
-      prev.includes(gender) ? prev.filter((g) => g !== gender) : [...prev, gender]
-    );
-  };
+  const handleSubmit = async () => {
+    if (!currentUser) return;
+    setSaving(true);
+    
+    // Convert genderPref back to interestedIn format for compatibility
+    let interestedIn: ('male' | 'female' | 'non-binary' | 'other')[] = [];
+    if (genderPref === 'Everyone') {
+      interestedIn = ['male', 'female'];
+    } else if (genderPref === 'Women') {
+      interestedIn = ['female'];
+    } else if (genderPref === 'Men') {
+      interestedIn = ['male'];
+    }
 
-  const handleSave = async () => {
-    if (!currentUser?.uid) return;
-    setLoading(true);
-    await updateUserProfile(currentUser.uid, {
+    await userService.updateUserProfile(currentUser.uid, {
       ageRangePreference: { min: minAge, max: maxAge },
       interestedIn,
     });
-    setLoading(false);
+    
+    setOnboardingStepComplete('preferences');
     navigate('/venues');
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-white">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Set Your Preferences</h1>
+    <div className="min-h-screen flex flex-col justify-between bg-white">
+      <div className="p-6 space-y-6">
+        <h1 className="text-2xl font-semibold text-center text-gray-900">Set your preferences</h1>
+        <p className="text-center text-gray-600">You can update these anytime.</p>
 
-        <label className="block mb-2 font-medium">Preferred Age Range</label>
-        <div className="flex items-center gap-4 mb-6">
-          <input
-            type="number"
-            min={18}
-            max={maxAge}
-            value={minAge}
-            onChange={(e) => setMinAge(parseInt(e.target.value))}
-            className="w-full border rounded px-3 py-2"
-          />
-          <span>-</span>
-          <input
-            type="number"
-            min={minAge}
-            max={100}
-            value={maxAge}
-            onChange={(e) => setMaxAge(parseInt(e.target.value))}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-
-        <label className="block mb-2 font-medium">Interested In</label>
-        <div className="flex gap-3 mb-6">
-          {['male', 'female', 'non-binary'].map((gender) => (
-            <button
-              key={gender}
-              onClick={() => handleToggleInterest(gender)}
-              className={`px-4 py-2 rounded-full border ${
-                interestedIn.includes(gender)
-                  ? 'bg-coral-500 text-white border-coral-500'
-                  : 'bg-white text-gray-700 border-gray-300'
-              }`}
+        <div className="space-y-4">
+          <label className="block">
+            <span className="text-gray-700 font-medium">Gender preference</span>
+            <select
+              className="w-full mt-1 border rounded-md px-3 py-2"
+              value={genderPref}
+              onChange={(e) => setGenderPref(e.target.value)}
             >
-              {gender.charAt(0).toUpperCase() + gender.slice(1)}
-            </button>
-          ))}
-        </div>
+              {genderOptions.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <Button
-          onClick={handleSave}
-          disabled={loading}
-          className="w-full bg-coral-500 text-white py-3 rounded-lg font-medium"
+          <div className="flex space-x-4">
+            <label className="flex-1">
+              <span className="text-gray-700 font-medium">Min Age</span>
+              <select
+                className="w-full mt-1 border rounded-md px-3 py-2"
+                value={minAge}
+                onChange={(e) => setMinAge(Number(e.target.value))}
+              >
+                {ageOptions.map((age) => (
+                  <option key={age} value={age}>
+                    {age}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex-1">
+              <span className="text-gray-700 font-medium">Max Age</span>
+              <select
+                className="w-full mt-1 border rounded-md px-3 py-2"
+                value={maxAge}
+                onChange={(e) => setMaxAge(Number(e.target.value))}
+              >
+                {ageOptions.map((age) => (
+                  <option key={age} value={age}>
+                    {age}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6">
+        <button
+          onClick={handleSubmit}
+          disabled={saving}
+          className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700"
         >
-          {loading ? 'Saving...' : 'Save Preferences'}
-        </Button>
+          {saving ? 'Saving...' : 'Finish Onboarding'}
+        </button>
       </div>
     </div>
   );
-};
-
-export default Preferences;
+}

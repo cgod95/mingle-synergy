@@ -1,3 +1,5 @@
+import { doc, updateDoc, increment, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
+import { firestore } from '@/firebase/config';
 
 // Notification service implementation
 
@@ -47,7 +49,7 @@ export class NotificationService {
   }
 
   // Setup handler for foreground notifications
-  setupForegroundHandler(callback: (payload: any) => void): () => void {
+  setupForegroundHandler(callback: (payload: Record<string, unknown>) => void): () => void {
     // This is where we would set up a listener for foreground messages
     // For example, with Firebase Messaging:
     // const unsubscribe = onMessage(messaging, (payload) => {
@@ -129,3 +131,78 @@ export const sendLocalNotification = (title: string, options: NotificationOption
 export function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return notificationService.urlBase64ToUint8Array(base64String);
 }
+
+interface NotificationData {
+  userId: string;
+  unreadMessages: Record<string, number>;
+  lastUpdated: Date;
+}
+
+/**
+ * Update notification count for a specific match when a new message arrives
+ */
+export const updateMessageNotification = async (
+  userId: string, 
+  matchId: string, 
+  incrementCount: boolean = true
+) => {
+  try {
+    const notificationRef = doc(firestore, 'notifications', userId);
+    const notificationDoc = await getDoc(notificationRef);
+    
+    if (notificationDoc.exists()) {
+      // Update existing notification document
+      const data = notificationDoc.data() as NotificationData;
+      const unreadMessages = data.unreadMessages || {};
+      
+      if (incrementCount) {
+        unreadMessages[matchId] = (unreadMessages[matchId] || 0) + 1;
+      } else {
+        unreadMessages[matchId] = 0; // Mark as read
+      }
+      
+      await updateDoc(notificationRef, {
+        unreadMessages,
+        lastUpdated: new Date()
+      });
+    } else {
+      // Create new notification document
+      const unreadMessages = incrementCount ? { [matchId]: 1 } : { [matchId]: 0 };
+      
+      await setDoc(notificationRef, {
+        userId,
+        unreadMessages,
+        lastUpdated: new Date()
+      });
+    }
+  } catch (error) {
+    console.error('Error updating message notification:', error);
+  }
+};
+
+/**
+ * Mark all messages in a match as read for a user
+ */
+export const markMatchAsRead = async (userId: string, matchId: string) => {
+  await updateMessageNotification(userId, matchId, false);
+};
+
+/**
+ * Get notification count for a specific match
+ */
+export const getNotificationCount = async (userId: string, matchId: string): Promise<number> => {
+  try {
+    const notificationRef = doc(firestore, 'notifications', userId);
+    const notificationDoc = await getDoc(notificationRef);
+    
+    if (notificationDoc.exists()) {
+      const data = notificationDoc.data() as NotificationData;
+      return data.unreadMessages?.[matchId] || 0;
+    }
+    
+    return 0;
+  } catch (error) {
+    console.error('Error getting notification count:', error);
+    return 0;
+  }
+};

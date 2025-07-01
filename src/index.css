@@ -127,7 +127,7 @@
   }
 
   body {
-    @apply bg-bg-primary text-text-primary;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -184,12 +184,12 @@
   }
   
   .body-text {
-    @apply text-[15px] leading-[22px] tracking-[0] text-text-primary;
+    @apply text-[15px] leading-[22px] tracking-[0] text-foreground;
     font-family: var(--font-primary);
   }
   
   .caption-text {
-    @apply text-[13px] leading-[18px] text-text-secondary;
+    @apply text-[13px] leading-[18px] text-muted-foreground;
     font-family: var(--font-primary);
   }
   
@@ -223,7 +223,7 @@
   
   /* Card redesign */
   .card-hinge {
-    @apply rounded-t-2xl rounded-b-none overflow-hidden shadow-sm bg-bg-secondary p-3 mb-4;
+    @apply rounded-t-2xl rounded-b-none overflow-hidden shadow-sm bg-secondary p-3 mb-4;
   }
   
   .card-section-divider {
@@ -374,11 +374,11 @@
 /* Cards and UI Elements */
 @layer components {
   .card-premium {
-    @apply rounded-t-2xl rounded-b-none bg-bg-secondary border border-black/5 shadow-sm p-3 mb-4 transition-all duration-300;
+    @apply rounded-t-2xl rounded-b-none bg-secondary border border-black/5 shadow-sm p-3 mb-4 transition-all duration-300;
   }
   
   .card-premium-highlighted {
-    @apply rounded-t-2xl rounded-b-none bg-bg-secondary border border-black/5 shadow-[0_2px_8px_rgba(0,0,0,0.1),0_0_0_2px_rgba(243,100,62,0.1)] p-3 mb-4 transition-all duration-300;
+    @apply rounded-t-2xl rounded-b-none bg-secondary border border-black/5 shadow-[0_2px_8px_rgba(0,0,0,0.1),0_0_0_2px_rgba(243,100,62,0.1)] p-3 mb-4 transition-all duration-300;
   }
   
   .btn-primary {
@@ -386,11 +386,11 @@
   }
   
   .btn-secondary {
-    @apply bg-bg-secondary text-text-primary border border-text-primary h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 hover:bg-bg-primary active:scale-[0.98] tracking-wide;
+    @apply bg-secondary text-foreground border border-foreground h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 hover:bg-background active:scale-[0.98] tracking-wide;
   }
   
   .btn-tertiary {
-    @apply bg-transparent text-text-primary hover:bg-bg-primary h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 active:scale-[0.98] tracking-wide;
+    @apply bg-transparent text-foreground hover:bg-background h-10 rounded-full px-6 text-button flex items-center justify-center transition-all duration-300 active:scale-[0.98] tracking-wide;
   }
   
   .btn-icon {
@@ -402,11 +402,11 @@
   }
   
   .venue-card {
-    @apply rounded-2xl bg-bg-secondary border border-black/5 shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
+    @apply rounded-2xl bg-secondary border border-black/5 shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
   }
   
   .user-card {
-    @apply rounded-xl bg-bg-secondary border-2 border-[#F1F5F9] shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
+    @apply rounded-xl bg-secondary border-2 border-[#F1F5F9] shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
   }
   
   .message-input {
@@ -418,7 +418,7 @@
   }
   
   .nav-bottom {
-    @apply fixed bottom-0 left-0 right-0 bg-bg-secondary border-t border-[#E5E7EB] h-16 flex items-center justify-around;
+    @apply fixed bottom-0 left-0 right-0 bg-secondary border-t border-[#E5E7EB] h-16 flex items-center justify-around;
   }
   
   .nav-item {
@@ -453,7 +453,7 @@
   
   /* Match card styling */
   .match-card {
-    @apply rounded-t-2xl rounded-b-none overflow-hidden bg-bg-secondary shadow-sm mb-4;
+    @apply rounded-t-2xl rounded-b-none overflow-hidden bg-secondary shadow-sm mb-4;
   }
   
   .match-user-avatar {
@@ -475,7 +475,7 @@
   
   /* Comment UI on photos */
   .photo-comment {
-    @apply absolute bottom-4 right-4 bg-bg-secondary rounded-full shadow-md p-2 text-sm text-text-primary;
+    @apply absolute bottom-4 right-4 bg-secondary rounded-full shadow-md p-2 text-sm text-foreground;
   }
   
   /* Loading placeholders */
@@ -509,8 +509,6 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
-
-
 
 @layer base {
   * {

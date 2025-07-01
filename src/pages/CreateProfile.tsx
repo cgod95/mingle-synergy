@@ -1,72 +1,65 @@
 // src/pages/CreateProfile.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/firebase';
+import { auth, firestore } from '@/firebase';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useOnboarding } from '@/context/OnboardingContext';
 
-const CreateProfile: React.FC = () => {
-  const navigate = useNavigate();
+export default function CreateProfile() {
   const [name, setName] = useState('');
-  const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { setOnboardingStepComplete } = useOnboarding();
 
-  const handleCreate = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    setCreating(true);
-
+  const handleSubmit = async () => {
+    if (!auth.currentUser) return;
     try {
-      await setDoc(doc(db, 'users', user.uid), {
-        id: user.uid,
+      const ref = doc(firestore, 'users', auth.currentUser.uid);
+      await setDoc(ref, {
+        id: auth.currentUser.uid,
         name,
-        age: parseInt(age),
         bio,
         photos: [],
-        createdAt: new Date().toISOString(),
+        isCheckedIn: false,
+        isVisible: true,
+        interests: [],
+        gender: 'other',
+        interestedIn: ['female', 'male', 'non-binary', 'other'],
+        age: 18,
+        ageRangePreference: { min: 18, max: 99 },
+        matches: [],
+        likedUsers: [],
+        blockedUsers: []
       });
-      navigate('/upload-photos');
-    } catch (err) {
-      console.error('Error creating profile:', err);
-    } finally {
-      setCreating(false);
+      setOnboardingStepComplete('profile');
+      navigate('/photo-upload');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-xl font-semibold mb-4">Create Your Profile</h1>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm space-y-6">
+        <h1 className="text-3xl font-bold text-center">Create Profile</h1>
+        <p className="text-sm text-muted-foreground text-center">Tell us a bit about you</p>
 
-      <input
-        type="text"
-        placeholder="Your Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full p-2 border rounded mb-4"
-      />
-
-      <input
-        type="number"
-        placeholder="Your Age"
-        value={age}
-        onChange={(e) => setAge(e.target.value)}
-        className="w-full p-2 border rounded mb-4"
-      />
-
-      <textarea
-        placeholder="Short Bio"
-        value={bio}
-        onChange={(e) => setBio(e.target.value)}
-        className="w-full p-2 border rounded mb-4"
-      />
-
-      <Button onClick={handleCreate} disabled={creating} className="w-full">
-        {creating ? 'Creating...' : 'Continue'}
-      </Button>
+        <div className="space-y-4">
+          <Input placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input placeholder="Short bio" value={bio} onChange={(e) => setBio(e.target.value)} />
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <Button
+            onClick={handleSubmit}
+            className="w-full"
+            disabled={!name.trim() || !bio.trim()}
+          >
+            Continue
+          </Button>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default CreateProfile;
+}

@@ -15,17 +15,17 @@ interface AppError extends Error {
   context?: string;   // Context where error occurred
   severity?: ErrorSeverity; // How severe the error is
   timestamp?: number; // When the error occurred
-  metadata?: Record<string, any>; // Additional error data
+  metadata?: Record<string, string | number | boolean>; // Additional error data
 }
 
 // Log errors with context
 export const logError = (
   error: Error, 
-  context: Record<string, any> = {},
+  context: Record<string, string | number | boolean> = {},
   severity: ErrorSeverity = ErrorSeverity.ERROR
 ): void => {
   const appError = error as AppError;
-  appError.context = context.source || 'unknown';
+  appError.context = context.source as string || 'unknown';
   appError.severity = severity;
   appError.timestamp = Date.now();
   appError.metadata = context;
@@ -44,23 +44,23 @@ export const logError = (
   // Log to analytics in both dev and prod for error tracking
   try {
     // Use dynamic import to avoid circular dependencies
-    import('../firebase/config').then(({ analytics }) => {
-      if (analytics) {
-        import('firebase/analytics').then((analyticsModule) => {
-          const { logEvent } = analyticsModule;
-          logEvent(analytics, 'app_error', {
-            error_message: error.message,
-            error_code: appError.code || 'unknown',
-            error_severity: severity,
-            error_context: JSON.stringify(context).substring(0, 500), // Limit context length
-            error_stack: error.stack?.substring(0, 500) // Limit stack trace length
-          });
-        });
-      }
-    }).catch(e => {
-      // Silently fail if analytics import fails
-      console.warn('Analytics import failed:', e);
-    });
+    // import('../firebase/config').then(({ analytics }) => {
+    //   if (analytics) {
+    //     import('firebase/analytics').then((analyticsModule) => {
+    //       const { logEvent } = analyticsModule;
+    //       logEvent(analytics, 'app_error', {
+    //         error_message: error.message,
+    //         error_code: appError.code || 'unknown',
+    //         error_severity: severity,
+    //         error_context: JSON.stringify(context).substring(0, 500), // Limit context length
+    //         error_stack: error.stack?.substring(0, 500) // Limit stack trace length
+    //       });
+    //     });
+    //   }
+    // }).catch(e => {
+    //   // Silently fail if analytics import fails
+    //   console.warn('Analytics import failed:', e);
+    // });
   } catch (loggingError) {
     // Silently fail if analytics isn't ready yet
     console.warn('Unable to log to analytics:', loggingError);
@@ -74,7 +74,7 @@ export const logError = (
                severity === ErrorSeverity.ERROR ? 'error' :
                severity === ErrorSeverity.WARNING ? 'warning' : 'info',
         tags: {
-          source: context.source || 'unknown',
+          source: context.source as string || 'unknown',
           code: appError.code || 'unknown'
         },
         extra: context
@@ -86,7 +86,7 @@ export const logError = (
 };
 
 // Log user actions for debugging
-export const logUserAction = (action: string, data: Record<string, any> = {}): void => {
+export const logUserAction = (action: string, data: Record<string, string | number | boolean> = {}): void => {
   // Log to console in development
   if (import.meta.env.DEV) {
     console.log(`[USER ACTION] ${action}`, data);
@@ -94,19 +94,19 @@ export const logUserAction = (action: string, data: Record<string, any> = {}): v
   
   // Log to analytics in both dev and prod for funnel analysis
   try {
-    import('../firebase/config').then(({ analytics }) => {
-      if (analytics) {
-        import('firebase/analytics').then((analyticsModule) => {
-          const { logEvent } = analyticsModule;
-          logEvent(analytics, 'user_action', {
-            action_name: action,
-            action_data: JSON.stringify(data).substring(0, 500) // Limit data length
-          });
-        });
-      }
-    }).catch(e => {
-      console.warn('Failed to import analytics for user action:', e);
-    });
+    // import('../firebase/config').then(({ analytics }) => {
+    //   if (analytics) {
+    //     import('firebase/analytics').then((analyticsModule) => {
+    //       const { logEvent } = analyticsModule;
+    //       logEvent(analytics, 'user_action', {
+    //         action_name: action,
+    //         action_data: JSON.stringify(data).substring(0, 500) // Limit data length
+    //       });
+    //     });
+    //   }
+    // }).catch(e => {
+    //   console.warn('Failed to import analytics for user action:', e);
+    // });
   } catch (error) {
     console.warn('Failed to log user action to analytics:', error);
   }
@@ -197,11 +197,11 @@ export const initErrorTracking = (): void => {
 };
 
 // Create a reusable error boundary component - fixed implementation without JSX
-export const withErrorBoundary = (
-  Component: React.ComponentType<any>, 
+export const withErrorBoundary = <P extends Record<string, unknown>>(
+  Component: React.ComponentType<P>, 
   fallback: React.ReactNode
-): React.FC<any> => {
-  const ErrorBoundaryWrapper: React.FC<any> = (props) => {
+): React.FC<P> => {
+  const ErrorBoundaryWrapper: React.FC<P> = (props) => {
     // Create a fallback component
     const FallbackComponent = () => {
       return React.createElement('div', null, fallback);

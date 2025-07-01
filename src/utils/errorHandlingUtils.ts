@@ -1,12 +1,14 @@
-
-import { useToast } from "@/hooks/use-toast";
 import { logError } from './errorHandler';
 
 interface ErrorContext {
   source: string;
   action?: string;
   userId?: string;
-  additionalData?: Record<string, any>;
+  additionalData?: Record<string, unknown>;
+}
+
+interface ToastFunction {
+  (options: { variant: string; title: string; description: string }): void;
 }
 
 /**
@@ -15,11 +17,13 @@ interface ErrorContext {
  * @param error - The error that occurred
  * @param context - Context information about where the error occurred
  * @param showToast - Whether to show a toast notification to the user
+ * @param toastFn - Optional toast function to use for notifications
  */
 export const handleAppError = (
   error: unknown, 
   context: ErrorContext, 
-  showToast = true
+  showToast = true,
+  toastFn?: ToastFunction
 ): void => {
   // Convert to Error object if it's not already
   const errorObj = error instanceof Error ? error : new Error(String(error));
@@ -33,10 +37,9 @@ export const handleAppError = (
     console.error('Context:', context);
   }
   
-  // Show a toast notification if requested
-  if (showToast) {
-    const { toast } = useToast();
-    toast({
+  // Show a toast notification if requested and toast function provided
+  if (showToast && toastFn) {
+    toastFn({
       variant: "destructive",
       title: "An error occurred",
       description: errorObj.message || "Something went wrong. Please try again.",
@@ -50,17 +53,19 @@ export const handleAppError = (
  * @param fn - The async function to wrap
  * @param context - Context information about where the function is being used
  * @param showToast - Whether to show a toast on error
+ * @param toastFn - Optional toast function to use for notifications
  */
-export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
+export function withErrorHandling<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   context: ErrorContext,
-  showToast = true
-): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-  return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
+  showToast = true,
+  toastFn?: ToastFunction
+): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>> {
+  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     try {
-      return await fn(...args);
+      return await fn(...args) as Awaited<ReturnType<T>>;
     } catch (error) {
-      handleAppError(error, context, showToast);
+      handleAppError(error, context, showToast, toastFn);
       throw error; // Re-throw to allow the caller to handle it
     }
   };

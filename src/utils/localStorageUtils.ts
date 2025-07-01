@@ -1,7 +1,8 @@
-
 /**
  * Storage utility to handle persisting app data in localStorage
  */
+
+import { Match, Interest } from '@/types';
 
 // Constants for storage keys
 const STORAGE_KEYS = {
@@ -88,32 +89,32 @@ export const localStorageUtils = {
 };
 
 // Functions for working with matches
-export const getMatches = (userId: string): any[] => {
+export const getMatches = (userId: string): Match[] => {
   const matches = localStorage.getItem(`matches_${userId}`);
   return matches ? JSON.parse(matches) : [];
 };
 
-export const saveMatches = (userId: string, matches: any[]): void => {
+export const saveMatches = (userId: string, matches: Match[]): void => {
   localStorage.setItem(`matches_${userId}`, JSON.stringify(matches));
 };
 
 // Functions for working with interests
-export const getInterests = (userId: string): any[] => {
+export const getInterests = (userId: string): Interest[] => {
   const interests = localStorage.getItem(`interests_${userId}`);
   return interests ? JSON.parse(interests) : [];
 };
 
-export const saveInterests = (userId: string, interests: any[]): void => {
+export const saveInterests = (userId: string, interests: Interest[]): void => {
   localStorage.setItem(`interests_${userId}`, JSON.stringify(interests));
 };
 
 // Functions for working with liked users
-export const getLikedUsers = (userId: string): any[] => {
+export const getLikedUsers = (userId: string): unknown[] => {
   const likedUsers = localStorage.getItem(`likedUsers_${userId}`);
   return likedUsers ? JSON.parse(likedUsers) : [];
 };
 
-export const saveLikedUsers = (userId: string, likedUsers: any[]): void => {
+export const saveLikedUsers = (userId: string, likedUsers: unknown[]): void => {
   localStorage.setItem(`likedUsers_${userId}`, JSON.stringify(likedUsers));
 };
 

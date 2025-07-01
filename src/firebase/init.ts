@@ -1,8 +1,7 @@
-
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -18,10 +17,10 @@ const firebaseConfig = {
 // Always use mock services in development
 const USE_MOCK = true;
 
-let app = null;
-let auth = null;
-let db = null;
-let storage = null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 
 if (!USE_MOCK) {
   try {
@@ -34,17 +33,17 @@ if (!USE_MOCK) {
   } catch (error) {
     console.error("Firebase initialization error:", error);
     // Fall back to mock objects
-    app = {} as any;
-    auth = {} as any;
-    db = {} as any;
-    storage = {} as any;
+    app = null;
+    auth = null;
+    db = null;
+    storage = null;
   }
 } else {
   console.log('Using mock services for development');
-  app = {} as any;
-  auth = {} as any;
-  db = {} as any;
-  storage = {} as any;
+  app = null;
+  auth = null;
+  db = null;
+  storage = null;
 }
 
 export { app, auth, db, storage };

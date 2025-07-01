@@ -1,8 +1,7 @@
-
 import { memo, ComponentType } from 'react';
 
 // Helper to memoize components with proper displayName
-export function memoWithName<T extends ComponentType<any>>(
+export function memoWithName<T extends ComponentType<unknown>>(
   component: T,
   propsAreEqual?: (prevProps: React.ComponentProps<T>, nextProps: React.ComponentProps<T>) => boolean
 ): typeof component {

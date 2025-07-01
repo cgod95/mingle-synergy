@@ -1,16 +1,75 @@
-
 import { firestore } from '@/firebase/config';
 import { VenueService, Venue, UserProfile } from '@/types/services';
 import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot, increment } from 'firebase/firestore';
 import { calculateDistance } from '@/utils/locationUtils';
 import { saveToStorage, getFromStorage } from '@/utils/localStorageUtils';
 import { isOnline } from '@/utils/networkMonitor';
+import { getAuth } from 'firebase/auth';
+import config from '@/config';
 
 // Cache key constants
 const CACHE_KEYS = {
   VENUES: 'cached_venues',
   VENUE_PREFIX: 'venue_'
 };
+
+// Mock venue data for demo mode
+const mockVenues: Venue[] = [
+  {
+    id: '1',
+    name: 'The Local Bar',
+    type: 'bar',
+    address: '123 Main Street',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: '/images/mock-a.jpg',
+    checkInCount: 42,
+    expiryTime: 120,
+    zones: ['front', 'back', 'outdoor'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'Happy Hour', description: '5-7pm' },
+      { title: 'Live Music', description: 'Fridays' }
+    ],
+  },
+  {
+    id: '2',
+    name: 'Club Nightlife',
+    type: 'club',
+    address: '456 Party Avenue',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: '/images/mock-b.jpg',
+    checkInCount: 88,
+    expiryTime: 120,
+    zones: ['main-floor', 'vip', 'rooftop'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'Student Night', description: 'Thursdays' },
+      { title: 'VIP Packages', description: 'Available' }
+    ],
+  },
+  {
+    id: '3',
+    name: 'Coffee Corner',
+    type: 'cafe',
+    address: '789 Brew Street',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: '/images/mock-c.jpg',
+    checkInCount: 15,
+    expiryTime: 120,
+    zones: ['indoor', 'outdoor'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'Free WiFi', description: 'Available' },
+      { title: 'Artisan Coffee', description: 'Premium beans' }
+    ],
+  },
+];
 
 // Helper function to transform Firestore data
 const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): Venue => {
@@ -35,6 +94,11 @@ class FirebaseVenueService implements VenueService {
   private venuesCollection = collection(firestore, 'venues');
   
   async getVenues(): Promise<Venue[]> {
+    // Return mock data in demo mode
+    if (config.DEMO_MODE) {
+      return mockVenues;
+    }
+
     try {
       // Check network status first
       if (!isOnline()) {
@@ -70,6 +134,12 @@ class FirebaseVenueService implements VenueService {
   }
 
   async getVenueById(id: string): Promise<Venue | null> {
+    // Return mock data in demo mode
+    if (config.DEMO_MODE) {
+      const mockVenue = mockVenues.find(venue => venue.id === id);
+      return mockVenue || null;
+    }
+
     try {
       // Check network status first
       if (!isOnline()) {
@@ -260,6 +330,53 @@ class FirebaseVenueService implements VenueService {
   async getAllVenues(): Promise<Venue[]> {
     return this.getVenues();
   }
+
+  /**
+   * Get all users checked into a specific venue
+   */
+  async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
+    try {
+      const usersRef = collection(firestore, 'users');
+      const q = query(usersRef, where('currentVenue', '==', venueId));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as UserProfile));
+    } catch (error) {
+      console.error('Error fetching users at venue:', error);
+      return [];
+    }
+  }
 }
+
+// Simple standalone check-in function
+export const checkInToVenue = async (venueId: string): Promise<void> => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) throw new Error('User not authenticated.');
+
+  const userRef = doc(firestore, 'users', user.uid);
+  const venueRef = doc(firestore, 'venues', venueId);
+
+  // Confirm venue exists
+  const venueSnap = await getDoc(venueRef);
+  if (!venueSnap.exists()) throw new Error('Venue does not exist.');
+
+  // Update user's checkedInVenues field
+  await updateDoc(userRef, {
+    checkedInVenues: arrayUnion(venueId),
+    lastCheckIn: Date.now(),
+  });
+};
+
+export const getCheckedInUsers = async (venueId: string): Promise<UserProfile[]> => {
+  const usersRef = collection(firestore, 'users');
+  const q = query(usersRef, where('checkedInVenues', 'array-contains', venueId));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+};
 
 export default new FirebaseVenueService();

@@ -1,68 +1,26 @@
-// src/firebase.ts
-import { initializeApp } from 'firebase/app';
-import {
-  connectFirestoreEmulator,
-  getFirestore,
-} from 'firebase/firestore';
-import {
-  connectAuthEmulator,
-  getAuth,
-} from 'firebase/auth';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+// 🧠 Purpose: Firebase core configuration and exports for use across the app.
 
-// ✅ Your Firebase config
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+
+// ✅ Your hardcoded prod config
 const firebaseConfig = {
-  apiKey: 'fake-api-key',
-  authDomain: 'localhost',
-  projectId: 'your-project-id',
-  storageBucket: 'your-project-id.appspot.com',
-  messagingSenderId: '000000000000',
-  appId: '1:000000000000:web:abcdef123456',
+  apiKey: "AIzaSyBKTX6N5AIeVvQhQIz_kAwNe6o3RYXl5vA",
+  authDomain: "mingle-a12a2.firebaseapp.com",
+  projectId: "mingle-a12a2",
+  storageBucket: "mingle-a12a2.appspot.com",
+  messagingSenderId: "412919211446",
+  appId: "1:412919211446:web:7e68a7d9bf4ed1af860d17",
+  measurementId: "G-FSCE44K0P6"
 };
 
-// ✅ Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// ✅ Services
+// ✅ Initialize Firebase services (guarded)
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
-// ✅ Connect to emulators only if running on localhost
-if (typeof window !== 'undefined' && location.hostname === 'localhost') {
-  try {
-    connectAuthEmulator(auth, 'http://localhost:9091');
-  } catch (e) {
-    const error = e as Error;
-    if (error.message?.includes('already connected')) {
-      // Emulator already connected, ignore
-    } else {
-      console.error('Auth emulator error:', e);
-    }
-  }
-
-  try {
-    connectFirestoreEmulator(firestore, 'localhost', 8081);
-  } catch (e) {
-    const error = e as Error;
-    if (error.message?.includes('already connected')) {
-      // Emulator already connected, ignore
-    } else {
-      console.error('Firestore emulator error:', e);
-    }
-  }
-
-  try {
-    connectStorageEmulator(storage, 'localhost', 9198);
-  } catch (e) {
-    const error = e as Error;
-    if (error.message?.includes('already connected')) {
-      // Emulator already connected, ignore
-    } else {
-      console.error('Storage emulator error:', e);
-    }
-  }
-}
-
-// ✅ Export services
-export { app, auth, firestore, storage };
+// ✅ Export all required Firebase modules
+export { auth, firestore, storage };
