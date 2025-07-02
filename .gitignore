@@ -31,3 +31,4 @@ dist-ssr
 *.sw?
 .env.production
 scripts/serviceAccountKey.json
+.vercel

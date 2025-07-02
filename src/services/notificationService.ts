@@ -1,208 +1,274 @@
 import { doc, updateDoc, increment, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase/config';
+import { analytics } from './analytics';
 
-// Notification service implementation
+// Enhanced notification service for Mingle's unique features
+export interface NotificationData {
+  id: string;
+  type: 'match' | 'message' | 'venue_checkin' | 'proximity_alert' | 'match_expiring' | 'reconnect_request' | 'venue_activity';
+  title: string;
+  body: string;
+  data?: Record<string, string | number | boolean>;
+  priority?: 'low' | 'normal' | 'high';
+  timestamp: number;
+  read: boolean;
+}
 
-export class NotificationService {
-  // Request user permission for notifications
-  async requestPermission(): Promise<boolean> {
-    if (!("Notification" in window)) {
-      console.log("This browser does not support notifications");
-      return false;
-    }
-    
-    if (Notification.permission === "granted") {
-      return true;
-    }
-    
-    if (Notification.permission !== "denied") {
-      try {
-        const permission = await Notification.requestPermission();
-        return permission === "granted";
-      } catch (error) {
-        console.error("Error requesting notification permission:", error);
-        return false;
-      }
-    }
-    
-    return false;
-  }
-  
-  // Show a notification to the user
-  showNotification(title: string, options: NotificationOptions = {}): void {
-    if (Notification.permission === "granted") {
-      try {
-        new Notification(title, {
-          icon: '/logo.png',
-          ...options
-        });
-      } catch (error) {
-        console.error("Error showing notification:", error);
-      }
-    }
-  }
-  
-  // Store user's notification preference in Firestore
-  async updateUserNotificationSettings(userId: string, enabled: boolean): Promise<void> {
-    // In a real implementation, store this in Firestore
-    localStorage.setItem(`user_${userId}_notifications`, enabled ? 'enabled' : 'disabled');
+class NotificationService {
+  private isSupported: boolean;
+  private permission: NotificationPermission = 'default';
+  private notifications: NotificationData[] = [];
+  private listeners: ((notifications: NotificationData[]) => void)[] = [];
+
+  constructor() {
+    this.isSupported = 'Notification' in window;
+    this.loadNotifications();
+    this.requestNotificationPermission();
   }
 
-  // Setup handler for foreground notifications
-  setupForegroundHandler(callback: (payload: Record<string, unknown>) => void): () => void {
-    // This is where we would set up a listener for foreground messages
-    // For example, with Firebase Messaging:
-    // const unsubscribe = onMessage(messaging, (payload) => {
-    //   callback(payload);
-    // });
+  private loadNotifications() {
+    const stored = localStorage.getItem('mingle_notifications');
+    if (stored) {
+      this.notifications = JSON.parse(stored);
+    }
+  }
+
+  private saveNotifications() {
+    localStorage.setItem('mingle_notifications', JSON.stringify(this.notifications));
+  }
+
+  private notifyListeners() {
+    this.listeners.forEach(listener => listener(this.notifications));
+  }
+
+  // Request notification permission
+  async requestNotificationPermission(): Promise<NotificationPermission> {
+    if (!this.isSupported) return 'denied';
+
+    if (this.permission === 'default') {
+      this.permission = await Notification.requestPermission();
+    }
+
+    return this.permission;
+  }
+
+  // Subscribe to notification updates
+  subscribe(callback: (notifications: NotificationData[]) => void) {
+    this.listeners.push(callback);
+    callback(this.notifications);
     
-    // For now, we'll just setup a mock listener that doesn't do anything
-    console.log('Setting up foreground notification handler');
-    
-    // Return a function to unsubscribe
     return () => {
-      console.log('Cleaning up foreground notification handler');
+      this.listeners = this.listeners.filter(listener => listener !== callback);
     };
   }
 
-  // Initialize notifications after user has logged in
-  async initNotifications(publicVapidKey?: string): Promise<void> {
-    const hasPermission = await this.requestPermission();
+  // Add a new notification
+  addNotification(notification: Omit<NotificationData, 'id' | 'timestamp' | 'read'>) {
+    const newNotification: NotificationData = {
+      ...notification,
+      id: `notif_${Date.now()}_${Math.random()}`,
+      timestamp: Date.now(),
+      read: false,
+    };
+
+    this.notifications.unshift(newNotification);
     
-    if (hasPermission) {
-      console.log('Notification permission granted');
+    // Keep only last 50 notifications
+    if (this.notifications.length > 50) {
+      this.notifications = this.notifications.slice(0, 50);
+    }
+
+    this.saveNotifications();
+    this.notifyListeners();
+    this.showBrowserNotification(newNotification);
+  }
+
+  // Show browser notification
+  private async showBrowserNotification(notification: NotificationData): Promise<void> {
+    if (this.permission !== 'granted' || !this.isSupported) return;
+
+    const options: NotificationOptions = {
+      body: notification.body,
+      icon: '/logo192.png',
+      badge: '/logo192.png',
+      tag: notification.type,
+      data: notification.data,
+      requireInteraction: notification.priority === 'high',
+      silent: false
+    };
+
+    try {
+      const browserNotification = new Notification(notification.title, options);
       
-      // Register for push notifications if supported and if we have a VAPID key
-      if ('serviceWorker' in navigator && 'PushManager' in window && publicVapidKey) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          
-          // Subscribe to push notifications
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: this.urlBase64ToUint8Array(publicVapidKey)
-          });
-          
-          console.log('Notification subscription:', subscription);
-          
-          // In a real implementation, you would send this subscription to your backend
-          // saveSubscription(subscription);
-        } catch (error) {
-          console.error('Failed to subscribe to push notifications:', error);
-        }
+      browserNotification.onclick = () => {
+        this.markAsRead(notification.id);
+        this.handleNotificationClick(notification);
+        browserNotification.close();
+      };
+
+      // Auto-close after 5 seconds for low priority
+      if (notification.priority === 'low') {
+        setTimeout(() => browserNotification.close(), 5000);
       }
+    } catch (error) {
+      console.error('Failed to show browser notification:', error);
     }
   }
 
-  // Helper function for push subscription
-  urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-    
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
+  // Handle notification clicks
+  private handleNotificationClick(notification: NotificationData) {
+    switch (notification.type) {
+      case 'match':
+        window.location.href = `/matches`;
+        break;
+      case 'message':
+        window.location.href = `/messages`;
+        break;
+      case 'venue_checkin':
+        window.location.href = `/venue/${notification.data?.venueId}`;
+        break;
+      case 'proximity_alert':
+        window.location.href = `/venue/${notification.data?.venueId}`;
+        break;
+      case 'match_expiring':
+        window.location.href = `/matches`;
+        break;
+      case 'reconnect_request':
+        window.location.href = `/matches`;
+        break;
+      case 'venue_activity':
+        window.location.href = `/venue/${notification.data?.venueId}`;
+        break;
     }
-    
-    return outputArray;
+  }
+
+  // Mark notification as read
+  markAsRead(notificationId: string) {
+    const notification = this.notifications.find(n => n.id === notificationId);
+    if (notification) {
+      notification.read = true;
+      this.saveNotifications();
+      this.notifyListeners();
+    }
+  }
+
+  // Mark all notifications as read
+  markAllAsRead() {
+    this.notifications.forEach(n => n.read = true);
+    this.saveNotifications();
+    this.notifyListeners();
+  }
+
+  // Get unread count
+  getUnreadCount(): number {
+    return this.notifications.filter(n => !n.read).length;
+  }
+
+  // Get notifications
+  getNotifications(): NotificationData[] {
+    return this.notifications;
+  }
+
+  // Clear all notifications
+  clearAll() {
+    this.notifications = [];
+    this.saveNotifications();
+    this.notifyListeners();
+  }
+
+  // Delete specific notification
+  deleteNotification(notificationId: string) {
+    this.notifications = this.notifications.filter(n => n.id !== notificationId);
+    this.saveNotifications();
+    this.notifyListeners();
+  }
+
+  // Mingle-specific notification methods
+  notifyNewMatch(matchData: { matchId: string; userName: string; venueName: string }) {
+    this.addNotification({
+      type: 'match',
+      title: 'New Match! 💕',
+      body: `You matched with ${matchData.userName} at ${matchData.venueName}!`,
+      data: { matchId: matchData.matchId, venueName: matchData.venueName },
+      priority: 'high'
+    });
+  }
+
+  notifyNewMessage(messageData: { senderName: string; message: string; matchId: string }) {
+    this.addNotification({
+      type: 'message',
+      title: `Message from ${messageData.senderName}`,
+      body: messageData.message,
+      data: { matchId: messageData.matchId },
+      priority: 'normal'
+    });
+  }
+
+  notifyVenueCheckIn(venueData: { venueName: string; venueId: string; peopleCount: number }) {
+    this.addNotification({
+      type: 'venue_checkin',
+      title: 'Successfully checked in! 📍',
+      body: `You're now visible to ${venueData.peopleCount} people at ${venueData.venueName}`,
+      data: { venueId: venueData.venueId, venueName: venueData.venueName },
+      priority: 'normal'
+    });
+  }
+
+  notifyProximityAlert(proximityData: { venueName: string; venueId: string; newPeopleCount: number }) {
+    this.addNotification({
+      type: 'proximity_alert',
+      title: 'New people nearby! 👥',
+      body: `${proximityData.newPeopleCount} new people checked in at ${proximityData.venueName}`,
+      data: { venueId: proximityData.venueId, venueName: proximityData.venueName },
+      priority: 'low'
+    });
+  }
+
+  notifyMatchExpiring(matchData: { matchId: string; userName: string; timeLeft: string }) {
+    this.addNotification({
+      type: 'match_expiring',
+      title: 'Match expiring soon! ⏰',
+      body: `Your match with ${matchData.userName} expires in ${matchData.timeLeft}`,
+      data: { matchId: matchData.matchId },
+      priority: 'high'
+    });
+  }
+
+  notifyReconnectRequest(reconnectData: { matchId: string; userName: string; venueName: string }) {
+    this.addNotification({
+      type: 'reconnect_request',
+      title: 'Reconnection request! 🔄',
+      body: `${reconnectData.userName} wants to reconnect at ${reconnectData.venueName}`,
+      data: { matchId: reconnectData.matchId },
+      priority: 'normal'
+    });
+  }
+
+  notifyVenueActivity(activityData: { venueName: string; venueId: string; activity: string }) {
+    this.addNotification({
+      type: 'venue_activity',
+      title: `Activity at ${activityData.venueName}`,
+      body: activityData.activity,
+      data: { venueId: activityData.venueId, venueName: activityData.venueName },
+      priority: 'low'
+    });
+  }
+
+  // Check if notifications are enabled
+  isEnabled(): boolean {
+    return this.permission === 'granted';
+  }
+
+  // Get permission status
+  getPermissionStatus(): NotificationPermission {
+    return this.permission;
+  }
+
+  // Check if notifications are supported
+  isNotificationSupported(): boolean {
+    return this.isSupported;
   }
 }
 
 export const notificationService = new NotificationService();
-
-// Export these functions for backward compatibility
-export const requestNotificationPermission = (): Promise<boolean> => {
-  return notificationService.requestPermission();
-};
-
-export const initNotifications = (publicVapidKey?: string): Promise<void> => {
-  return notificationService.initNotifications(publicVapidKey);
-};
-
-export const sendLocalNotification = (title: string, options: NotificationOptions = {}): void => {
-  notificationService.showNotification(title, options);
-};
-
-// Export the helper function directly instead of importing it from itself
-export function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  return notificationService.urlBase64ToUint8Array(base64String);
-}
-
-interface NotificationData {
-  userId: string;
-  unreadMessages: Record<string, number>;
-  lastUpdated: Date;
-}
-
-/**
- * Update notification count for a specific match when a new message arrives
- */
-export const updateMessageNotification = async (
-  userId: string, 
-  matchId: string, 
-  incrementCount: boolean = true
-) => {
-  try {
-    const notificationRef = doc(firestore, 'notifications', userId);
-    const notificationDoc = await getDoc(notificationRef);
-    
-    if (notificationDoc.exists()) {
-      // Update existing notification document
-      const data = notificationDoc.data() as NotificationData;
-      const unreadMessages = data.unreadMessages || {};
-      
-      if (incrementCount) {
-        unreadMessages[matchId] = (unreadMessages[matchId] || 0) + 1;
-      } else {
-        unreadMessages[matchId] = 0; // Mark as read
-      }
-      
-      await updateDoc(notificationRef, {
-        unreadMessages,
-        lastUpdated: new Date()
-      });
-    } else {
-      // Create new notification document
-      const unreadMessages = incrementCount ? { [matchId]: 1 } : { [matchId]: 0 };
-      
-      await setDoc(notificationRef, {
-        userId,
-        unreadMessages,
-        lastUpdated: new Date()
-      });
-    }
-  } catch (error) {
-    console.error('Error updating message notification:', error);
-  }
-};
-
-/**
- * Mark all messages in a match as read for a user
- */
-export const markMatchAsRead = async (userId: string, matchId: string) => {
-  await updateMessageNotification(userId, matchId, false);
-};
-
-/**
- * Get notification count for a specific match
- */
-export const getNotificationCount = async (userId: string, matchId: string): Promise<number> => {
-  try {
-    const notificationRef = doc(firestore, 'notifications', userId);
-    const notificationDoc = await getDoc(notificationRef);
-    
-    if (notificationDoc.exists()) {
-      const data = notificationDoc.data() as NotificationData;
-      return data.unreadMessages?.[matchId] || 0;
-    }
-    
-    return 0;
-  } catch (error) {
-    console.error('Error getting notification count:', error);
-    return 0;
-  }
-};
+export default notificationService;

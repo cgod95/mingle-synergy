@@ -1,220 +1,110 @@
-import { Message } from '@/services/messageService';
+import type { Message } from '@/types';
 
 export const mockMessages: Message[] = [
-  // Match m1 (u1 <-> u2)
+  // Conversation for match m1 (u1 <-> u2)
   {
     id: 'msg1',
+    matchId: 'm1',
     senderId: 'u1',
-    text: 'Hey Jordan! Love your art photos.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 14)
+    receiverId: 'u2',
+    text: 'Hey! I love the plants here 🌱',
+    timestamp: Date.now() - 1000 * 60 * 60 * 2
   },
   {
     id: 'msg2',
+    matchId: 'm1',
     senderId: 'u2',
-    text: 'Thanks Alex! Coffee or art talk first?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 13)
+    receiverId: 'u1',
+    text: 'Me too! Have you tried the matcha latte?',
+    timestamp: Date.now() - 1000 * 60 * 60 * 2 + 1000 * 60 * 2
   },
+  // Conversation for match m2 (u1 <-> u3)
   {
     id: 'msg3',
+    matchId: 'm2',
     senderId: 'u1',
-    text: 'Let\'s do both! What\'s your go-to coffee order?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 12)
+    receiverId: 'u3',
+    text: 'Surf\'s up! 🏄',
+    timestamp: Date.now() - 1000 * 60 * 60 * 24
   },
-  // Match m2 (u1 <-> u3)
   {
     id: 'msg4',
+    matchId: 'm2',
     senderId: 'u3',
-    text: 'Hey Alex, seen any good live music lately?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 59)
+    receiverId: 'u1',
+    text: 'Always! What\'s your go-to drink here?',
+    timestamp: Date.now() - 1000 * 60 * 60 * 24 + 1000 * 60 * 3
   },
+  // Conversation for match m4 (u1 <-> u5) - fizzled
   {
     id: 'msg5',
+    matchId: 'm4',
     senderId: 'u1',
-    text: 'Last week at Opera Bar! You?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 58)
+    receiverId: 'u5',
+    text: 'Did you catch the jazz set?',
+    timestamp: Date.now() - 1000 * 60 * 60 * 48
   },
-  // Match m3 (u2 <-> u4)
   {
     id: 'msg6',
-    senderId: 'u2',
-    text: 'Morgan, your travel pics are amazing!',
-    createdAt: new Date(Date.now() - 1000 * 60 * 44)
+    matchId: 'm4',
+    senderId: 'u5',
+    receiverId: 'u1',
+    text: 'Yes! The saxophonist was amazing.',
+    timestamp: Date.now() - 1000 * 60 * 60 * 48 + 1000 * 60 * 5
   },
+  // Conversation for match m5 (u1 <-> u6) - typo
   {
     id: 'msg7',
-    senderId: 'u4',
-    text: 'Thank you! Next stop: Japan. Ever been?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 43)
+    matchId: 'm5',
+    senderId: 'u1',
+    receiverId: 'u6',
+    text: 'Croisant buddies?',
+    timestamp: Date.now() - 1000 * 60 * 60 * 3
   },
-  // Match m4 (u3 <-> u5)
   {
     id: 'msg8',
-    senderId: 'u5',
-    text: 'Taylor, what\'s your favorite cocktail?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 29)
+    matchId: 'm5',
+    senderId: 'u6',
+    receiverId: 'u1',
+    text: 'Absolutely! Next time, pain au chocolat.',
+    timestamp: Date.now() - 1000 * 60 * 60 * 3 + 1000 * 60 * 2
   },
+  // Conversation for match m6 (u1 <-> u7) - late night
   {
     id: 'msg9',
-    senderId: 'u3',
-    text: 'Negroni! You?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 28)
+    matchId: 'm6',
+    senderId: 'u1',
+    receiverId: 'u7',
+    text: 'If you could buy any piece here, which would it be?',
+    timestamp: Date.now() - 1000 * 60 * 60 * 6
   },
-  // Match m5 (u4 <-> u6)
   {
     id: 'msg10',
-    senderId: 'u6',
-    text: 'Morgan, wine or hiking this weekend?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 19)
+    matchId: 'm6',
+    senderId: 'u7',
+    receiverId: 'u1',
+    text: 'The neon cat sculpture, hands down.',
+    timestamp: Date.now() - 1000 * 60 * 60 * 6 + 1000 * 60 * 1
   },
+  // Rapid-fire exchange for match m2
   {
     id: 'msg11',
-    senderId: 'u4',
-    text: 'Why not both? 🍷⛰️',
-    createdAt: new Date(Date.now() - 1000 * 60 * 18)
+    matchId: 'm2',
+    senderId: 'u1',
+    receiverId: 'u3',
+    text: 'Are you here now?',
+    timestamp: Date.now() - 1000 * 60 * 60 * 24 + 1000 * 60 * 4
   },
-  // Match m6 (u5 <-> u7)
   {
     id: 'msg12',
-    senderId: 'u5',
-    text: 'Emma, favorite gym playlist?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 9)
+    matchId: 'm2',
+    senderId: 'u3',
+    receiverId: 'u1',
+    text: 'Just left! Next time?',
+    timestamp: Date.now() - 1000 * 60 * 60 * 24 + 1000 * 60 * 5
   },
-  {
-    id: 'msg13',
-    senderId: 'u7',
-    text: 'All 80s, all the time!',
-    createdAt: new Date(Date.now() - 1000 * 60 * 8)
-  },
-  // Match m7 (u6 <-> u8)
-  {
-    id: 'msg14',
-    senderId: 'u8',
-    text: 'Riley, best food spot in Sydney?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 4)
-  },
-  {
-    id: 'msg15',
-    senderId: 'u6',
-    text: 'Bondi\'s vegan café! You\'d love it.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 3)
-  },
-  // Match m8 (u7 <-> u9)
-  {
-    id: 'msg16',
-    senderId: 'u9',
-    text: 'Emma, what are you reading now?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 24)
-  },
-  {
-    id: 'msg17',
-    senderId: 'u7',
-    text: 'A mystery novel! Want a rec?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 23)
-  },
-  // Match m9 (u8 <-> u10)
-  {
-    id: 'msg18',
-    senderId: 'u10',
-    text: 'Michael, your photos are stunning.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 49)
-  },
-  {
-    id: 'msg19',
-    senderId: 'u8',
-    text: 'Thanks! Want to shoot together sometime?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 48)
-  },
-  // Match m10 (u9 <-> u11)
-  {
-    id: 'msg20',
-    senderId: 'u11',
-    text: 'Sophia, do you sing as well as cook?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 34)
-  },
-  {
-    id: 'msg21',
-    senderId: 'u9',
-    text: 'Only in the shower! 😂',
-    createdAt: new Date(Date.now() - 1000 * 60 * 33)
-  },
-  // Match m11 (u10 <-> u12)
-  {
-    id: 'msg22',
-    senderId: 'u12',
-    text: 'Liam, craft beer or cocktails tonight?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 14)
-  },
-  {
-    id: 'msg23',
-    senderId: 'u10',
-    text: 'Let\'s start with beer!',
-    createdAt: new Date(Date.now() - 1000 * 60 * 13)
-  },
-  // Match m12 (u11 <-> u13)
-  {
-    id: 'msg24',
-    senderId: 'u13',
-    text: 'Olivia, ever performed at Opera Bar?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 54)
-  },
-  {
-    id: 'msg25',
-    senderId: 'u11',
-    text: 'Not yet! Maybe you\'ll see me there soon.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 53)
-  },
-  // Match m13 (u12 <-> u14)
-  {
-    id: 'msg26',
-    senderId: 'u14',
-    text: 'Noah, what\'s your favorite dish to cook?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 39)
-  },
-  {
-    id: 'msg27',
-    senderId: 'u12',
-    text: 'Homemade pizza! You?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 38)
-  },
-  // Match m14 (u13 <-> u15)
-  {
-    id: 'msg28',
-    senderId: 'u15',
-    text: 'Harper, ever run a marathon abroad?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 11)
-  },
-  {
-    id: 'msg29',
-    senderId: 'u13',
-    text: 'Berlin! Best experience ever.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 10)
-  },
-  // Match m15 (u14 <-> u16)
-  {
-    id: 'msg30',
-    senderId: 'u16',
-    text: 'Avery, favorite vintage find?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 7)
-  },
-  {
-    id: 'msg31',
-    senderId: 'u14',
-    text: 'A 60s leather jacket! You?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 6)
-  },
-  // Match m16 (u15 <-> u16)
-  {
-    id: 'msg32',
-    senderId: 'u15',
-    text: 'Quinn, jazz or poetry night?',
-    createdAt: new Date(Date.now() - 1000 * 60 * 2)
-  },
-  {
-    id: 'msg33',
-    senderId: 'u16',
-    text: 'Both! Let\'s go this Friday.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 1)
-  }
+  // Edge case: empty conversation for match m3
+  // No messages for m3
 ];
 
 export default mockMessages; 

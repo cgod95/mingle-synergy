@@ -1,130 +1,101 @@
-import { Venue } from '@/types/services';
+import { Venue } from '@/types';
 
 export const mockVenues: Venue[] = [
   {
     id: 'v1',
-    name: 'The Grounds of Alexandria',
-    type: 'cafe',
-    address: '7A Huntley St, Alexandria NSW 2015',
+    name: 'The Greenhouse Café',
+    type: 'Cafe',
     city: 'Sydney',
-    latitude: -33.9106,
-    longitude: 151.1957,
-    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24',
-    checkInCount: 16,
-    expiryTime: 120, // 2 hours in minutes
-    zones: [],
-    checkedInUsers: [
-      'u1','u2','u3','u4','u5','u6','u7','u8','u9','u10','u11','u12','u13','u14','u15','u16'
-    ],
-    specials: [
-      {
-        title: "Happy Hour: 2-4PM",
-        description: "50% off all coffee and pastries"
-      },
-      {
-        title: "Weekend Brunch Special",
-        description: "Bottomless mimosas with any breakfast purchase"
-      }
-    ]
+    address: '123 King St, Newtown',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+    vibe: 'Sunny, lots of plants, indie playlist',
+    event: 'Live acoustic set every Sunday',
+    checkInCount: 7,
+    expiryTime: 120
   },
   {
     id: 'v2',
-    name: 'Opera Bar',
-    type: 'bar',
-    address: 'Lower Concourse, Sydney Opera House',
+    name: 'Bondi Beach Bar',
+    type: 'Bar',
     city: 'Sydney',
-    latitude: -33.8572,
-    longitude: 151.2153,
-    image: 'https://images.unsplash.com/photo-1503097581674-a2bfb450dbda',
-    checkInCount: 16,
-    expiryTime: 180, // 3 hours in minutes
-    zones: [],
-    checkedInUsers: [
-      'u1','u2','u3','u4','u5','u6','u7','u8','u9','u10','u11','u12','u13','u14','u15','u16'
-    ],
-    specials: [
-      {
-        title: "Cocktail Hour",
-        description: "Buy one get one free on signature cocktails from 5-7PM"
-      }
-    ]
+    address: '1 Beach Rd, Bondi',
+    image: 'https://images.unsplash.com/photo-1464983953574-0892a716854b',
+    vibe: 'Beachy, relaxed, surfboards on the wall',
+    event: 'Trivia Wednesdays',
+    checkInCount: 5,
+    expiryTime: 180
   },
   {
     id: 'v3',
-    name: 'Fitness First Darlinghurst',
-    type: 'gym',
-    address: '101-103 Oxford St, Darlinghurst',
+    name: 'Sunny Courtyard',
+    type: 'Outdoor',
     city: 'Sydney',
-    latitude: -33.8792,
-    longitude: 151.2151,
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48',
-    checkInCount: 16,
-    expiryTime: 120, // 2 hours in minutes
-    zones: [],
-    checkedInUsers: [
-      'u1','u2','u3','u4','u5','u6','u7','u8','u9','u10','u11','u12','u13','u14','u15','u16'
-    ],
-    specials: []
+    address: '200 Park Ave, Surry Hills',
+    image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429',
+    vibe: 'Open air, fairy lights, dogs welcome',
+    event: 'Yoga in the park, Saturday mornings',
+    checkInCount: 4,
+    expiryTime: 90
   },
   {
     id: 'v4',
-    name: 'The Winery',
-    type: 'restaurant',
-    address: '285A Crown St, Surry Hills',
+    name: 'Opera Bar',
+    type: 'Bar',
     city: 'Sydney',
-    latitude: -33.8830,
-    longitude: 151.2152,
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4',
-    checkInCount: 16,
-    expiryTime: 180, // 3 hours in minutes
-    zones: [],
-    checkedInUsers: [
-      'u1','u2','u3','u4','u5','u6','u7','u8','u9','u10','u11','u12','u13','u14','u15','u16'
-    ],
-    specials: [
-      {
-        title: "Wine Wednesday",
-        description: "Half price bottles of selected wines"
-      },
-      {
-        title: "Chef's Special",
-        description: "Three-course tasting menu for $65 per person"
-      }
-    ]
+    address: 'Lower Concourse, Sydney Opera House',
+    image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',
+    vibe: 'Harbour views, live jazz, cocktails',
+    event: 'Jazz Fridays',
+    checkInCount: 6,
+    expiryTime: 180
   },
   {
     id: 'v5',
-    name: 'Bondi Beach',
-    type: 'other',
-    address: 'Bondi Beach, NSW 2026',
-    city: 'Sydney',
-    latitude: -33.8908,
-    longitude: 151.2743,
-    image: 'https://images.unsplash.com/photo-1562184552-997c461abbe6',
-    checkInCount: 16,
-    expiryTime: 240, // 4 hours in minutes
-    zones: [],
-    checkedInUsers: [
-      'u1','u2','u3','u4','u5','u6','u7','u8','u9','u10','u11','u12','u13','u14','u15','u16'
-    ],
-    specials: []
+    name: 'Lune Bakery',
+    type: 'Bakery',
+    city: 'Melbourne',
+    address: '119 Rose St, Fitzroy',
+    image: 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c',
+    vibe: 'Best croissants in town, minimalist decor',
+    event: 'Croissant masterclass, first Monday each month',
+    checkInCount: 3,
+    expiryTime: 60
   },
   {
     id: 'v6',
-    name: 'The Royal Botanic Garden',
-    type: 'other',
-    address: 'Mrs Macquaries Rd, Sydney',
+    name: 'Gallery Lane',
+    type: 'Gallery',
     city: 'Sydney',
-    latitude: -33.8642,
-    longitude: 151.2166,
-    image: 'https://images.unsplash.com/photo-1597212720128-3348aba9218d',
-    checkInCount: 16,
-    expiryTime: 180, // 3 hours in minutes
-    zones: [],
-    checkedInUsers: [
-      'u1','u2','u3','u4','u5','u6','u7','u8','u9','u10','u11','u12','u13','u14','u15','u16'
-    ],
-    specials: []
+    address: '50 Art St, Chippendale',
+    image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca',
+    vibe: 'Modern art, quiet corners, free entry',
+    event: 'Open mic poetry, last Friday each month',
+    checkInCount: 2,
+    expiryTime: 120
+  },
+  {
+    id: 'v7',
+    name: 'Skyline Rooftop',
+    type: 'Bar',
+    city: 'Sydney',
+    address: '88 Highview Rd, Darlinghurst',
+    image: 'https://images.unsplash.com/photo-1465101178521-c1a9136a3b99',
+    vibe: 'Panoramic city views, sunset DJ sets',
+    event: 'Sundown Sessions every Saturday',
+    checkInCount: 8,
+    expiryTime: 180
+  },
+  {
+    id: 'v8',
+    name: 'Leaf & Letter Bookshop',
+    type: 'other',
+    city: 'Melbourne',
+    address: '42 Ink St, Carlton',
+    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba',
+    vibe: 'Cozy nooks, handwritten staff picks, coffee aroma',
+    event: 'Author Q&A, second Thursday each month',
+    checkInCount: 2,
+    expiryTime: 120
   }
 ];
 

@@ -1,10 +1,12 @@
 // 🧠 Purpose: Implement static Profile page to display current user info.
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Layout from '@/components/Layout';
+import BottomNav from '@/components/BottomNav';
 
 export default function Profile() {
   const { currentUser, signOut } = useAuth();
@@ -13,21 +15,21 @@ export default function Profile() {
   if (!currentUser) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted">
-      <Card className="w-full max-w-md p-6">
-        <CardContent className="flex flex-col gap-4">
-          <h1 className="text-2xl font-bold text-center">Your Profile</h1>
-          <p className="text-center text-muted-foreground">{currentUser.email}</p>
-          <Button onClick={() => navigate('/profile/edit')}>Edit Profile</Button>
-          <Button variant="destructive" onClick={signOut}>Sign Out</Button>
-          <button
-            onClick={() => navigate('/settings')}
-            className="mt-6 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium"
-          >
-            Settings
-          </button>
-        </CardContent>
-      </Card>
-    </div>
+    <Layout>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] pb-20">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle>Your Profile</CardTitle>
+            <p className="text-sm text-neutral-600">{currentUser.email}</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button onClick={() => navigate('/profile/edit')} className="w-full">Edit Profile</Button>
+            <Button variant="outline" onClick={() => navigate('/settings')} className="w-full">Settings</Button>
+            <Button variant="destructive" onClick={signOut} className="w-full">Sign Out</Button>
+          </CardContent>
+        </Card>
+      </div>
+      <BottomNav />
+    </Layout>
   );
 }

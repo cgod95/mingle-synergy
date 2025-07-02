@@ -6,6 +6,8 @@ import { auth } from '@/firebase';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Layout from '@/components/Layout';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
@@ -23,19 +25,45 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <h1 className="text-3xl font-bold text-center">Welcome back</h1>
-        <p className="text-sm text-muted-foreground text-center">Sign in to continue</p>
-
-        <div className="space-y-4">
-          <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <Button onClick={handleSignIn} className="w-full" disabled={!email.trim() || !password.trim()}>Sign In</Button>
-          <p className="text-xs text-center text-muted-foreground">Don't have an account? <a className="underline" href="/signup">Sign up</a></p>
-        </div>
+    <Layout>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle>Welcome back</CardTitle>
+            <p className="text-sm text-neutral-600">Sign in to continue</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-neutral-900">Email</label>
+              <Input 
+                placeholder="Enter your email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-neutral-900">Password</label>
+              <Input 
+                type="password" 
+                placeholder="Enter your password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+              />
+            </div>
+            {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+            <Button 
+              onClick={handleSignIn} 
+              className="w-full" 
+              disabled={!email.trim() || !password.trim()}
+            >
+              Sign In
+            </Button>
+            <p className="text-xs text-center text-neutral-600">
+              Don't have an account? <a className="underline text-neutral-900" href="/onboarding">Sign up</a>
+            </p>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }

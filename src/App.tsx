@@ -25,15 +25,13 @@ import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
 import LegalPages from '@/pages/LegalPages';
 import CheckInSuccess from '@/pages/CheckInSuccess';
-import ReconnectsPage from '@/pages/ReconnectsPage';
-import RequestsPage from '@/pages/RequestsPage';
-import UserProfilePage from '@/pages/UserProfilePage';
-import Reconnect from '@/pages/Reconnect';
 import ChatThreadPage from '@/pages/ChatThreadPage';
 import MatchDetails from '@/pages/MatchDetails';
 import LikedUsers from '@/pages/LikedUsers';
+import UserProfilePage from '@/pages/UserProfilePage';
 import SettingsPage from '@/pages/SettingsPage';
 import Logout from '@/pages/Logout';
+import SimpleVenueView from '@/pages/SimpleVenueView';
 
 const onboardingStepToRoute = {
   email: '/onboarding',
@@ -44,16 +42,19 @@ const onboardingStepToRoute = {
 
 const App = () => {
   const { user, loading } = useAuth();
-  const { onboardingProgress, getNextOnboardingStep, isOnboardingComplete } = useOnboarding();
+  const { onboardingProgress, getNextOnboardingStep } = useOnboarding();
+
+  // Use localStorage flags for onboarding/profile completion
+  const isOnboardingComplete = localStorage.getItem('onboardingComplete') === 'true' && localStorage.getItem('profileComplete') === 'true';
 
   console.log("[App.tsx] loading:", loading);
   console.log("[App.tsx] user:", user);
   console.log("[App.tsx] onboardingComplete:", isOnboardingComplete);
 
-  if (loading) return <div className="p-8">Loading...</div>;
-
   // Helper: get the next onboarding route if not complete
   const nextOnboardingRoute = !isOnboardingComplete ? onboardingStepToRoute[getNextOnboardingStep() || 'email'] : '/venues';
+
+  if (loading) return <div className="p-8">Loading...</div>;
 
   return (
     <Router>
@@ -82,6 +83,7 @@ const App = () => {
         <Route path="/profile/edit" element={user && isOnboardingComplete ? <ProfileEdit /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/profile/:userId" element={user && isOnboardingComplete ? <UserProfilePage /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/venue/:id" element={user && isOnboardingComplete ? <ActiveVenue /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
+        <Route path="/simple-venue/:venueId" element={user && isOnboardingComplete ? <SimpleVenueView /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/check-in-success" element={user && isOnboardingComplete ? <CheckInSuccess /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/liked-users" element={user && isOnboardingComplete ? <LikedUsers /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/matches" element={user && isOnboardingComplete ? <MatchesPage /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
@@ -89,9 +91,6 @@ const App = () => {
         <Route path="/messages" element={user && isOnboardingComplete ? <MessagesPage /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/messages/:matchId" element={user && isOnboardingComplete ? <ChatThreadPage /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/chat/:matchId" element={user && isOnboardingComplete ? <ChatPage /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
-        <Route path="/requests" element={user && isOnboardingComplete ? <RequestsPage /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
-        <Route path="/reconnects" element={user && isOnboardingComplete ? <ReconnectsPage /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
-        <Route path="/reconnect" element={user && isOnboardingComplete ? <Reconnect /> : user ? <Navigate to={nextOnboardingRoute} /> : <Navigate to="/signin" />} />
         <Route path="/logout" element={<Logout />} />
         {/* Catch all route */}
         <Route path="*" element={<NotFound />} />

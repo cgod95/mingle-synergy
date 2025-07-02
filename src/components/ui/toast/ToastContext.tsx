@@ -1,31 +1,14 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContext, useToast } from './toast-context';
 
-type ToastType = 'success' | 'error' | 'info';
-
-interface Toast {
+// Define ToastType and Toast locally for use in this file
+export type ToastType = 'success' | 'error' | 'info';
+export interface Toast {
   id: string;
   message: string;
   type: ToastType;
 }
-
-interface ToastContextType {
-  toasts: Toast[];
-  showToast: (message: string, type?: ToastType) => void;
-  hideToast: (id: string) => void;
-}
-
-// Export context separately for Fast Refresh
-export const ToastContext = createContext<ToastContextType | undefined>(undefined);
-
-// Export hook separately for Fast Refresh
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
-};
 
 export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -37,7 +20,6 @@ export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children 
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = Date.now().toString();
     setToasts(prev => [...prev, { id, message, type }]);
-    
     // Auto-dismiss after 3 seconds
     setTimeout(() => {
       hideToast(id);
@@ -49,7 +31,6 @@ export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children 
     window.showToast = (message: string) => {
       showToast(message);
     };
-    
     return () => {
       delete window.showToast;
     };
@@ -58,7 +39,6 @@ export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children 
   return (
     <ToastContext.Provider value={{ toasts, showToast, hideToast }}>
       {children}
-      
       {/* Toast Container */}
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 space-y-2 pointer-events-none">
         <AnimatePresence>

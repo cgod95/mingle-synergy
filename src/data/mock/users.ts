@@ -3,195 +3,187 @@ import { User } from '@/types';
 export const mockUsers: User[] = [
   {
     id: 'u1',
-    name: 'Alex',
+    name: 'Alex (they/them)',
     photos: [
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d'
     ],
-    bio: 'Coffee enthusiast and book lover',
+    bio: 'I rate every croissant I eat. Current leader: Lune, Fitzroy. Ask me about my failed sourdough starter.',
     isCheckedIn: true,
     currentVenue: 'v1',
     currentZone: 'Near Counter',
     zone: 'Near Counter',
     isVisible: true,
-    interests: ['coffee', 'books'],
-    gender: 'male',
-    interestedIn: ['female'],
+    interests: ['croissants', 'bouldering', 'urban beekeeping', 'bad puns'],
+    gender: 'non-binary',
+    interestedIn: ['female', 'male', 'non-binary'],
     age: 28,
-    ageRangePreference: {
-      min: 25,
-      max: 35
-    },
+    ageRangePreference: { min: 25, max: 35 },
     matches: ['u2', 'u3'],
     likedUsers: ['u2'],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'Bondi Beach Bar',
+    lastActive: Date.now() - 1000 * 60 * 5
   },
   {
     id: 'u2',
-    name: 'Jordan',
+    name: 'Jordan (she/her)',
     photos: [
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
       'https://images.unsplash.com/photo-1438761681033-6461ffad8d80'
     ],
-    bio: 'Art lover and photographer',
+    bio: 'Art lover, photographer, and aspiring jazz saxophonist. I once painted a mural in a laneway.',
     isCheckedIn: true,
     currentVenue: 'v1',
     currentZone: 'Seated Area',
     zone: 'Seated Area',
     isVisible: true,
-    interests: ['art', 'photography'],
+    interests: ['art', 'photography', 'jazz', 'murals'],
     gender: 'female',
-    interestedIn: ['male'],
+    interestedIn: ['male', 'non-binary'],
     age: 26,
-    ageRangePreference: {
-      min: 25,
-      max: 35
-    },
+    ageRangePreference: { min: 25, max: 35 },
     matches: ['u1', 'u4'],
     likedUsers: ['u1'],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'The Greenhouse Café',
+    lastActive: Date.now() - 1000 * 60 * 12
   },
   {
     id: 'u3',
-    name: 'Taylor',
+    name: 'Taylor (he/him)',
     photos: [
       'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6',
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'
     ],
-    bio: 'Music lover and cocktail enthusiast',
+    bio: 'Music lover, cocktail enthusiast, and trivia night regular. I have a playlist for every mood.',
     isCheckedIn: true,
-    currentVenue: 'v1',
+    currentVenue: 'v2',
     isVisible: true,
-    interests: ['music', 'cocktails'],
-    gender: 'non-binary',
-    interestedIn: ['male', 'female', 'non-binary'],
+    interests: ['music', 'cocktails', 'trivia', 'vinyl records'],
+    gender: 'male',
+    interestedIn: ['female', 'non-binary'],
     age: 29,
-    ageRangePreference: {
-      min: 25,
-      max: 40
-    },
+    ageRangePreference: { min: 25, max: 40 },
     matches: ['u1', 'u5'],
     likedUsers: ['u4'],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'Opera Bar',
+    lastActive: Date.now() - 1000 * 60 * 30
   },
   {
     id: 'u4',
-    name: 'Morgan',
+    name: 'Morgan (she/her)',
     photos: [
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2'
     ],
-    bio: 'Adventure seeker and world traveler',
+    bio: 'Adventure seeker, world traveler, and amateur haiku writer. Next stop: Japan.',
     isCheckedIn: true,
-    currentVenue: 'v1',
+    currentVenue: 'v3',
     isVisible: true,
-    interests: ['hiking', 'travel'],
+    interests: ['hiking', 'travel', 'haikus', 'ramen'],
     gender: 'female',
-    interestedIn: ['male'],
+    interestedIn: ['male', 'female'],
     age: 31,
-    ageRangePreference: {
-      min: 28,
-      max: 38
-    },
+    ageRangePreference: { min: 28, max: 38 },
     matches: ['u2', 'u6'],
     likedUsers: [],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'Sunny Courtyard',
+    lastActive: Date.now() - 1000 * 60 * 60
   },
   {
     id: 'u5',
-    name: 'Casey',
+    name: 'Casey (they/them)',
     photos: [
       'https://images.unsplash.com/photo-1519345182560-3f2917c472ef',
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d'
     ],
-    bio: 'Fitness enthusiast and health advocate',
+    bio: 'Fitness enthusiast, health advocate, and secret karaoke star. Challenge me to a push-up contest.',
     isCheckedIn: true,
-    currentVenue: 'v1',
+    currentVenue: 'v2',
     isVisible: true,
-    interests: ['fitness', 'health'],
-    gender: 'male',
-    interestedIn: ['female'],
+    interests: ['fitness', 'health', 'karaoke', 'push-ups'],
+    gender: 'non-binary',
+    interestedIn: ['female', 'male'],
     age: 33,
-    ageRangePreference: {
-      min: 28,
-      max: 40
-    },
-    matches: ['u1', 'u7'],
+    ageRangePreference: { min: 28, max: 40 },
+    matches: ['u3', 'u7'],
     likedUsers: [],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'Bondi Beach Bar',
+    lastActive: Date.now() - 1000 * 60 * 15
   },
   {
     id: 'u6',
-    name: 'Riley',
+    name: 'Riley (she/they)',
     photos: [
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2',
       'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04'
     ],
-    bio: 'Foodie and wine connoisseur',
+    bio: 'Foodie, wine connoisseur, and urban gardener. I grow tomatoes on my balcony.',
     isCheckedIn: true,
-    currentVenue: 'v1',
+    currentVenue: 'v3',
     isVisible: true,
-    interests: ['food', 'wine'],
+    interests: ['food', 'wine', 'gardening', 'balcony tomatoes'],
     gender: 'female',
-    interestedIn: ['male', 'female'],
+    interestedIn: ['male', 'female', 'non-binary'],
     age: 27,
-    ageRangePreference: {
-      min: 25,
-      max: 35
-    },
-    matches: ['u2', 'u8'],
+    ageRangePreference: { min: 25, max: 35 },
+    matches: ['u4', 'u8'],
     likedUsers: [],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'Sunny Courtyard',
+    lastActive: Date.now() - 1000 * 60 * 45
   },
   {
     id: 'u7',
-    name: 'Emma',
+    name: 'Emma (she/her)',
     photos: [
       'https://images.unsplash.com/photo-1614644147798-f8c0fc9da7f6',
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2'
     ],
-    bio: 'Avid reader and coffee addict',
+    bio: 'Avid reader, coffee addict, and aspiring novelist. Ask me about my favorite plot twist.',
     isCheckedIn: true,
     currentVenue: 'v1',
     currentZone: 'Near Counter',
     zone: 'Near Counter',
     isVisible: true,
-    interests: ['reading', 'coffee'],
+    interests: ['reading', 'coffee', 'novels', 'plot twists'],
     gender: 'female',
-    interestedIn: ['male'],
+    interestedIn: ['male', 'female'],
     age: 27,
-    ageRangePreference: {
-      min: 25,
-      max: 38
-    },
+    ageRangePreference: { min: 25, max: 38 },
     matches: ['u3', 'u9'],
     likedUsers: [],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'The Greenhouse Café',
+    lastActive: Date.now() - 1000 * 60 * 10
   },
   {
     id: 'u8',
-    name: 'Michael',
+    name: 'Michael (he/him)',
     photos: [
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'
     ],
-    bio: 'Professional photographer, looking for inspiration',
+    bio: 'Professional photographer, looking for inspiration. I once shot a wedding on a boat.',
     isCheckedIn: true,
-    currentVenue: 'v1',
+    currentVenue: 'v2',
     currentZone: 'Outside',
     zone: 'Outside',
     isVisible: true,
-    interests: ['photography', 'arts'],
+    interests: ['photography', 'arts', 'boats', 'weddings'],
     gender: 'male',
-    interestedIn: ['female'],
+    interestedIn: ['female', 'non-binary'],
     age: 31,
-    ageRangePreference: {
-      min: 27,
-      max: 36
-    },
+    ageRangePreference: { min: 27, max: 36 },
     matches: ['u4', 'u10'],
     likedUsers: [],
-    blockedUsers: []
+    blockedUsers: [],
+    lastCheckIn: 'Opera Bar',
+    lastActive: Date.now() - 1000 * 60 * 20
   },
   {
     id: 'u9',
@@ -397,11 +389,7 @@ export const mockUsers: User[] = [
 
 // Function to get users at a venue - Enhanced to ensure we always return results
 export const getUsersAtVenue = (venueId: string): User[] => {
-  return mockUsers.map(user => ({ 
-    ...user, 
-    currentVenue: venueId,  // Set all users to be at the requested venue
-    isCheckedIn: true 
-  }));
+  return mockUsers.filter(user => user.currentVenue === venueId);
 };
 
 export default mockUsers;

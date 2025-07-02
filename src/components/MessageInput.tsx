@@ -3,9 +3,10 @@
 // This is a core user-facing feature for the MVP chat experience.
 
 import { useState, useEffect } from 'react';
-import { sendMessage, getRemainingMessages, subscribeToMessageLimit } from '@/services/messageService';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { mockMessages } from '@/data/mock';
+import { Message } from '@/types';
 
 interface MessageInputProps {
   matchId: string;
@@ -24,12 +25,19 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
   useEffect(() => {
     if (!currentUser?.uid || !matchId) return;
 
-    const unsubscribe = subscribeToMessageLimit(matchId, currentUser.uid, (canSendMessages, remaining) => {
+    // Simulate real-time updates for message limits
+    const interval = setInterval(() => {
+      const userMessages = mockMessages.filter(
+        msg => msg.matchId === matchId && msg.senderId === currentUser.uid
+      );
+      const remaining = Math.max(0, 3 - userMessages.length);
+      const canSendMessages = remaining > 0;
+      
       setCanSend(canSendMessages);
       setRemainingMessages(remaining);
-    });
+    }, 1000);
 
-    return () => unsubscribe();
+    return () => clearInterval(interval);
   }, [matchId, currentUser?.uid]);
 
   const handleSend = async () => {
@@ -39,7 +47,20 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
     setError(null);
     
     try {
-      await sendMessage(matchId, currentUser.uid, text.trim());
+      // Create new message
+      const newMessage: Message = {
+        id: `msg_${Date.now()}`,
+        matchId,
+        senderId: currentUser.uid,
+        receiverId: '', // Will be set by the parent component
+        text: text.trim(),
+        timestamp: Date.now()
+      };
+
+      // In a real app, this would be saved to the backend
+      // For now, we'll just simulate the success
+      console.log('Message sent:', newMessage);
+      
       setText('');
       onMessageSent();
     } catch (err) {

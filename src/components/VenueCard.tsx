@@ -13,30 +13,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Star, Clock } from 'lucide-react';
+import { Venue } from '@/types';
 
 interface VenueCardProps {
-  venue: {
-    id: string;
-    name: string;
-    description: string;
-    location: string;
-    type?: string;
-    image: string;
-    address: string;
-    checkInCount: number;
-  };
-  className?: string;
-  isCheckedIn?: boolean;
-  onCheckIn?: (venueId: string) => void;
-  onCheckOut?: () => void;
+  venue: Venue;
+  onSelect: (venueId: string) => void;
+  onCheckIn: (venueId: string) => void;
+  isCheckedIn: boolean;
+  userCount: number;
+  index?: number;
 }
 
-const VenueCard: React.FC<VenueCardProps> = ({ 
-  venue, 
-  className,
-  isCheckedIn,
+const VenueCard: React.FC<VenueCardProps> = ({
+  venue,
+  onSelect,
   onCheckIn,
-  onCheckOut
+  isCheckedIn,
+  userCount,
+  index = 0
 }) => {
   const navigate = useNavigate();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -49,7 +47,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
   const hasUsers = usersAtVenue.length > 0;
   
   const getVenueIcon = () => {
-    switch (venue.type?.toLowerCase()) {
+    switch (venue.category?.toLowerCase()) {
       case 'cafe': return <Coffee size={20} className="text-[#6B7280]" />;
       case 'bar': return <Wine size={20} className="text-[#6B7280]" />;
       case 'restaurant': return <Utensils size={20} className="text-[#6B7280]" />;
@@ -64,79 +62,107 @@ const VenueCard: React.FC<VenueCardProps> = ({
   };
 
   const confirmCheckIn = () => {
-    if (onCheckIn) {
-      onCheckIn(venue.id);
-    }
+    onCheckIn(venue.id);
     setShowConfirmation(false);
     navigate(`/venue/${venue.id}`);
   };
   
   return (
-    <>
-      <div 
-        className={cn(
-          "group venue-card animate-scale-in",
-          isCheckedIn && "shadow-[0_0_0_2px_rgba(58,134,255,0.1),0_2px_10px_rgba(0,0,0,0.08)]",
-          className
-        )}
-        onClick={handleCardClick}
-      >
-        <div className="aspect-video w-full overflow-hidden relative">
-          <div className="absolute top-3 right-3 bg-white/80 w-8 h-8 flex items-center justify-center rounded-full z-10 shadow-sm">
-            {getVenueIcon()}
-          </div>
-          
-          <OptimizedImage 
-            src={venue.image} 
-            alt={venue.name}
-            className="w-full h-full"
-            width={600}
-            height={400}
-          />
-        </div>
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-[#202020]/80 via-transparent to-transparent"></div>
-        
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-heading text-white mb-1">{venue.name}</h3>
-          
-          <p className="text-caption text-white/90 mb-3 truncate">{venue.address}</p>
-          
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-1.5 text-[#3A86FF] text-caption font-medium">
-              <Users size={16} className="stroke-[2.5px]" />
-              <span>{venue.checkInCount} people</span>
-            </div>
-          </div>
-          
-          {hasUsers && (
-            <div className="flex mb-4 -space-x-2 overflow-hidden">
-              {usersAtVenue.slice(0, 4).map((user) => (
-                <div key={user.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-                  <OptimizedImage 
-                    src={user.photos[0]} 
-                    alt={user.name}
-                    width={100}
-                    height={100}
-                  />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      whileHover={{ y: -2 }}
+      className="w-full"
+    >
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <h3 className="font-semibold text-lg">{venue.name}</h3>
+                {venue.rating && (
+                  <div className="flex items-center space-x-1">
+                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                    <span className="text-sm font-medium">{venue.rating}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-2">
+                <MapPin className="w-4 h-4" />
+                <span>{venue.address}</span>
+              </div>
+              
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-1">
+                  <Users className="w-4 h-4" />
+                  <span>{userCount} active</span>
                 </div>
-              ))}
-              {usersAtVenue.length > 4 && (
-                <div className="w-8 h-8 rounded-full bg-[#3A86FF] border-2 border-white flex items-center justify-center text-[10px] font-medium text-white shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-                  +{usersAtVenue.length - 4}
-                </div>
-              )}
+                {venue.distance && (
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{venue.distance}km away</span>
+                  </div>
+                )}
+              </div>
             </div>
+            
+            {venue.category && (
+              <Badge variant="secondary" className="ml-2">
+                {venue.category}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-0">
+          {venue.description && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-sm text-muted-foreground mb-4 line-clamp-2"
+            >
+              {venue.description}
+            </motion.p>
           )}
-          
-          <button
-            className="w-full py-3 bg-[#3A86FF] text-white rounded-full hover:brightness-105 active:scale-[0.98] transition-all duration-200 shadow-[0_2px_10px_rgba(58,134,255,0.2)] hover:shadow-[0_1px_5px_rgba(58,134,255,0.15)] text-button flex items-center justify-center"
-            onClick={handleCheckIn}
-          >
-            <Heart size={16} className="mr-2" /> Check In
-          </button>
-        </div>
-      </div>
+
+          <div className="flex space-x-2">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onSelect(venue.id)}
+                className="flex-1"
+              >
+                View Details
+              </Button>
+            </motion.div>
+            
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                size="sm"
+                onClick={handleCheckIn}
+                disabled={isCheckedIn}
+                className="flex-1"
+              >
+                {isCheckedIn ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-1" />
+                    Checked In
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4 mr-1" />
+                    Check In
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
@@ -167,7 +193,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </motion.div>
   );
 };
 

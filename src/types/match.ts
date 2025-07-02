@@ -28,4 +28,10 @@ export type DisplayMatch = {
   age: number;
   bio: string;
   photoUrl: string;
+  isOnline?: boolean;
+  venue?: { name: string };
+  distance?: number;
+  matchedAt?: string;
+  lastMessage?: { content: string };
+  mutualInterests?: string[];
 }; 

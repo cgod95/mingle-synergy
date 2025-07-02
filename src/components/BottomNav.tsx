@@ -1,129 +1,98 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Home, Heart, Users, User, Bell, RefreshCw, MessageCircle } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Home, Heart, Users, User, MessageCircle, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { hasReconnectRequests } from '@/services/reconnectRequestsService';
 import { subscribeToUnreadCounts, getTotalUnreadCount, UnreadCounts } from '@/features/messaging/UnreadMessageService';
+import { motion } from 'framer-motion';
 
+// BottomNav: Main navigation bar for user-facing pages
+// Only includes Venues, Likes, Matches, Messages, Profile
 const BottomNav: React.FC = () => {
   const { currentUser } = useAuth();
-  const [hasRequests, setHasRequests] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<UnreadCounts>({});
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-
-  useEffect(() => {
-    const checkRequests = async () => {
-      if (!currentUser?.uid) return;
-      
-      try {
-        const hasPendingRequests = await hasReconnectRequests(currentUser.uid);
-        setHasRequests(hasPendingRequests);
-      } catch (error) {
-        console.error('Error checking reconnect requests:', error);
-      }
-    };
-
-    checkRequests();
-    
-    // Check every 30 seconds for new requests
-    const interval = setInterval(checkRequests, 30000);
-    return () => clearInterval(interval);
-  }, [currentUser]);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Subscribe to unread message counts
   useEffect(() => {
     if (!currentUser?.uid) return;
-
     const unsubscribe = subscribeToUnreadCounts(currentUser.uid, (counts) => {
       setUnreadCounts(counts);
       const total = getTotalUnreadCount(counts);
       setHasUnreadMessages(total > 0);
     });
-
     return () => unsubscribe();
   }, [currentUser?.uid]);
 
+  const navItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/matches', icon: Heart, label: 'Matches' },
+    { path: '/messages', icon: MessageCircle, label: 'Messages' },
+    { path: '/venues', icon: MapPin, label: 'Venues' },
+    { path: '/profile', icon: User, label: 'Profile' },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow z-50">
-      <ul className="flex justify-around items-center h-14">
-        <li>
-          <NavLink
-            to="/venues"
-            className={({ isActive }) =>
-              isActive ? 'text-blue-600' : 'text-gray-500'
-            }
-          >
-            <Home className="w-6 h-6" />
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/liked-users"
-            className={({ isActive }) =>
-              isActive ? 'text-blue-600' : 'text-gray-500'
-            }
-          >
-            <Heart className="w-6 h-6" />
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/matches"
-            className={({ isActive }) =>
-              isActive ? 'text-blue-600' : 'text-gray-500'
-            }
-          >
-            <Users className="w-6 h-6" />
-          </NavLink>
-        </li>
-        <li className="relative">
-          <NavLink
-            to="/messages"
-            className={({ isActive }) =>
-              isActive ? 'text-blue-600' : 'text-gray-500'
-            }
-          >
-            <MessageCircle className="w-6 h-6" />
-            {hasUnreadMessages && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            )}
-          </NavLink>
-        </li>
-        <li className="relative">
-          <NavLink
-            to="/requests"
-            className={({ isActive }) =>
-              isActive ? 'text-blue-600' : 'text-gray-500'
-            }
-          >
-            <Bell className="w-6 h-6" />
-            {hasRequests && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            )}
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/reconnects"
-            className={({ isActive }) =>
-              isActive ? 'text-blue-600' : 'text-gray-500'
-            }
-          >
-            <RefreshCw className="w-6 h-6" />
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              isActive ? 'text-blue-600' : 'text-gray-500'
-            }
-          >
-            <User className="w-6 h-6" />
-          </NavLink>
-        </li>
-      </ul>
-    </nav>
+    <motion.nav
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 px-4 py-2 z-50"
+    >
+      <div className="flex justify-around items-center max-w-md mx-auto">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.path);
+          
+          return (
+            <motion.button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors duration-200"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.div
+                animate={{
+                  color: active ? '#3B82F6' : '#6B7280',
+                  scale: active ? 1.1 : 1
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                <Icon size={20} />
+              </motion.div>
+              <motion.span
+                animate={{
+                  color: active ? '#3B82F6' : '#6B7280',
+                  fontWeight: active ? '600' : '400'
+                }}
+                transition={{ duration: 0.2 }}
+                className="text-xs"
+              >
+                {item.label}
+              </motion.span>
+              {active && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute -bottom-2 w-1 h-1 bg-blue-500 rounded-full"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
+      </div>
+    </motion.nav>
   );
 };
 

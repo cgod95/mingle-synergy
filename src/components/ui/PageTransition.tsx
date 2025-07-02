@@ -1,43 +1,54 @@
-
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 interface PageTransitionProps {
   children: React.ReactNode;
+  mode?: 'fade' | 'slide' | 'scale';
 }
 
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20
-  },
-  in: {
-    opacity: 1,
-    y: 0
-  },
-  out: {
-    opacity: 0,
-    y: -20
-  }
-};
+const PageTransition: React.FC<PageTransitionProps> = ({ 
+  children, 
+  mode = 'fade' 
+}) => {
+  const location = useLocation();
 
-const pageTransition = {
-  type: 'tween',
-  ease: 'anticipate',
-  duration: 0.3
-};
+  const variants = {
+    fade: {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+      transition: { duration: 0.3 }
+    },
+    slide: {
+      initial: { opacity: 0, x: 20 },
+      animate: { opacity: 1, x: 0 },
+      exit: { opacity: 0, x: -20 },
+      transition: { duration: 0.3, ease: "easeInOut" as const }
+    },
+    scale: {
+      initial: { opacity: 0, scale: 0.95 },
+      animate: { opacity: 1, scale: 1 },
+      exit: { opacity: 0, scale: 1.05 },
+      transition: { duration: 0.3, ease: "easeInOut" as const }
+    }
+  };
 
-const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
+  const currentVariant = variants[mode];
+
   return (
-    <motion.div
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={currentVariant.initial}
+        animate={currentVariant.animate}
+        exit={currentVariant.exit}
+        transition={currentVariant.transition}
+        className="w-full"
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

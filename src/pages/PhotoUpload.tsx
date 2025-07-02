@@ -3,6 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import userService from '@/services/firebase/userService';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Layout from '@/components/Layout';
 
 export default function PhotoUpload() {
   const navigate = useNavigate();
@@ -47,47 +50,51 @@ export default function PhotoUpload() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-white">
-      <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-semibold text-center text-gray-900">Upload a photo</h1>
-        <p className="text-center text-gray-600">
-          You'll need one to check in, but you can skip this step for now.
-        </p>
+    <Layout>
+      <div className="flex flex-col justify-center min-h-[80vh]">
+        <Card className="w-full max-w-sm mx-auto">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle>Upload a photo</CardTitle>
+            <p className="text-sm text-neutral-600">
+              You'll need one to check in, but you can skip this step for now.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex justify-center">
+              <label className="w-40 h-40 rounded-2xl border-2 border-dashed border-neutral-300 flex items-center justify-center cursor-pointer overflow-hidden hover:border-neutral-400 transition-colors">
+                {preview ? (
+                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-neutral-400">Tap to select</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
 
-        <div className="flex justify-center">
-          <label className="w-40 h-40 rounded-full border border-dashed border-gray-400 flex items-center justify-center cursor-pointer overflow-hidden">
-            {preview ? (
-              <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-gray-400">Tap to select</span>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
-        </div>
+            <div className="space-y-4">
+              <Button
+                onClick={handleUpload}
+                disabled={!file || uploading}
+                className="w-full"
+              >
+                {uploading ? 'Uploading...' : 'Continue'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSkip}
+                className="w-full"
+              >
+                Skip for now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      <div className="p-6 space-y-4">
-        <button
-          onClick={handleUpload}
-          disabled={!file || uploading}
-          className={`w-full py-3 rounded-xl font-semibold text-white ${
-            file ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'
-          }`}
-        >
-          {uploading ? 'Uploading...' : 'Continue'}
-        </button>
-        <button
-          onClick={handleSkip}
-          className="w-full py-3 rounded-xl border border-gray-300 text-gray-600 font-semibold bg-white"
-        >
-          Skip for now
-        </button>
-      </div>
-    </div>
+    </Layout>
   );
 } 

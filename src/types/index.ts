@@ -1,4 +1,3 @@
-
 // User types
 export interface User {
   id: string;
@@ -28,19 +27,30 @@ export interface User {
   verificationSelfie?: string;
   // Add occupation field
   occupation?: string;
+  // Demo/mock fields
+  lastCheckIn?: string;
+  lastActive?: number;
 }
 
 // Venue types
 export interface Venue {
   id: string;
   name: string;
-  type: 'cafe' | 'bar' | 'restaurant' | 'gym' | 'other';
+  type: 'cafe' | 'bar' | 'restaurant' | 'gym' | 'other' | 'Bakery' | 'Gallery' | 'Outdoor' | 'Cafe' | 'Bar';
   address: string;
+  city?: string;
   image: string;
   checkInCount: number;
   expiryTime: number; // in minutes
   zones?: VenueZone[];
   specials?: Special[]; // Add specials property
+  vibe?: string;
+  event?: string;
+  // Add missing properties
+  category?: string;
+  rating?: number;
+  distance?: number;
+  description?: string;
 }
 
 // Add Special interface for venue specials
@@ -111,5 +121,15 @@ export interface UserReport {
   reportedUserId: string;
   reason: 'inappropriate' | 'harassment' | 'fake' | 'other';
   description?: string;
+  timestamp: number;
+}
+
+export interface Message {
+  id: string;
+  matchId: string;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  content: string; // Add content property for compatibility
   timestamp: number;
 }

@@ -2,19 +2,26 @@
 // File: /src/pages/Verification.tsx
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Layout from '@/components/Layout';
+import BottomNav from '@/components/BottomNav';
 
 export default function Verification() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
-      <Card className="w-full max-w-md text-center p-6">
-        <CardContent>
-          <h1 className="text-2xl font-bold mb-4">Verify Your Account</h1>
-          <p className="mb-4">Please verify your phone number or email to continue using Mingle.</p>
-          <Button className="w-full" disabled>{/* TODO: Enable when verification requirements are met */}Verify</Button>
-        </CardContent>
-      </Card>
-    </div>
+    <Layout>
+      <div className="flex items-center justify-center min-h-[80vh] pb-20">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle>Verify Your Account</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-neutral-600">Please verify your phone number or email to continue using Mingle.</p>
+            <Button className="w-full" disabled>{/* TODO: Enable when verification requirements are met */}Verify</Button>
+          </CardContent>
+        </Card>
+      </div>
+      <BottomNav />
+    </Layout>
   );
 }

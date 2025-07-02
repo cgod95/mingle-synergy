@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { ReactNode, useRef, useCallback } from 'react';
 import authService from '../services';
 import { AuthContext } from './AuthContext';
+import { AuthNavigationContext, useAuthNavigation } from './auth-context';
 
 type AuthContextType = {
   user: FirebaseUser | null;
@@ -17,18 +18,6 @@ type AuthContextType = {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
-};
-
-// Export context separately for Fast Refresh
-export const AuthNavigationContext = createContext<((navigate: (path: string) => void) => void) | undefined>(undefined);
-
-// Export hook separately for Fast Refresh
-export const useAuthNavigation = () => {
-  const context = useContext(AuthNavigationContext);
-  if (!context) {
-    throw new Error('useAuthNavigation must be used within an AuthProvider');
-  }
-  return context;
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Message } from "@/services/messageService";
+import { Message } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface MessageListProps {
@@ -40,7 +40,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId }) =>
                 "text-xs mt-1 opacity-70",
                 isCurrentUser ? "text-right" : "text-left"
               )}>
-                {new Date(msg.createdAt).toLocaleTimeString([], {
+                {new Date(msg.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}

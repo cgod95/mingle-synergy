@@ -1,32 +1,19 @@
+import React, { ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  pageVariants,
+  pageTransition,
+  cardVariants,
+  listVariants,
+  staggerContainer,
+  buttonVariants,
+  fadeInVariants,
+  slideUpVariants,
+  scaleInVariants
+} from './animations';
 
-import React from 'react';
-import { motion } from 'framer-motion';
-
-// Page transition variants
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 10
-  },
-  in: {
-    opacity: 1,
-    y: 0
-  },
-  out: {
-    opacity: 0,
-    y: -10
-  }
-};
-
-// Page transition settings
-const pageTransition = {
-  type: 'tween',
-  ease: 'easeInOut',
-  duration: 0.3
-};
-
-// Common motion components
-export const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Page wrapper component
+export function PageTransition({ children }: { children: ReactNode }) {
   return (
     <motion.div
       initial="initial"
@@ -38,96 +25,181 @@ export const PageTransition: React.FC<{ children: React.ReactNode }> = ({ childr
       {children}
     </motion.div>
   );
-};
+}
 
-// Fade in variants
-const fadeInVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 }
-};
+// Animated card component
+export function AnimatedCard({ 
+  children, 
+  className = "",
+  onClick
+}: { 
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+}) {
+  return (
+    <motion.div
+      variants={cardVariants}
+      initial="initial"
+      whileHover="hover"
+      whileTap="tap"
+      className={className}
+      onClick={onClick}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
-export const FadeIn: React.FC<{ 
-  children: React.ReactNode;
+// Animated button component
+export function AnimatedButton({ 
+  children, 
+  className = "",
+  onClick,
+  disabled = false
+}: { 
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <motion.button
+      variants={buttonVariants}
+      initial="initial"
+      whileHover={disabled ? "initial" : "hover"}
+      whileTap={disabled ? "initial" : "tap"}
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+// Staggered list component
+export function StaggeredList({ children }: { children: ReactNode }) {
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Animated list item
+export function AnimatedListItem({ children }: { children: ReactNode }) {
+  return (
+    <motion.div variants={listVariants}>
+      {children}
+    </motion.div>
+  );
+}
+
+// Fade in wrapper
+export function FadeIn({ 
+  children, 
+  delay = 0,
+  duration = 0.5
+}: { 
+  children: ReactNode;
   delay?: number;
   duration?: number;
-}> = ({ children, delay = 0, duration = 0.5 }) => {
+}) {
   return (
     <motion.div
-      initial="hidden"
-      animate="visible"
       variants={fadeInVariants}
-      transition={{ duration, delay }}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ delay, duration }}
     >
       {children}
     </motion.div>
   );
-};
+}
 
-// Scale in variants
-const scaleInVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1 }
-};
-
-export const ScaleIn: React.FC<{ 
-  children: React.ReactNode;
-  delay?: number; 
+// Slide up wrapper
+export function SlideUp({ 
+  children, 
+  delay = 0,
+  duration = 0.5
+}: { 
+  children: ReactNode;
+  delay?: number;
   duration?: number;
-}> = ({ children, delay = 0, duration = 0.3 }) => {
+}) {
   return (
     <motion.div
-      initial="hidden"
-      animate="visible"
+      variants={slideUpVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ delay, duration }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Scale in wrapper
+export function ScaleIn({ 
+  children, 
+  delay = 0,
+  duration = 0.3
+}: { 
+  children: ReactNode;
+  delay?: number;
+  duration?: number;
+}) {
+  return (
+    <motion.div
       variants={scaleInVariants}
-      transition={{ 
-        type: 'spring', 
-        stiffness: 260, 
-        damping: 20, 
-        delay 
-      }}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ delay, duration }}
     >
       {children}
     </motion.div>
   );
-};
+}
 
-// List item staggered animation
-export const StaggeredList: React.FC<{ 
-  children: React.ReactNode;
-  staggerDelay?: number;
-}> = ({ children, staggerDelay = 0.05 }) => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: staggerDelay
-      }
-    }
-  };
-  
+// Loading spinner component
+export function LoadingSpinner() {
   return (
     <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
+      className="w-6 h-6 border-2 border-neutral-300 border-t-purple-600 rounded-full"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+    />
+  );
+}
+
+// Pulse animation wrapper
+export function Pulse({ children }: { children: ReactNode }) {
+  return (
+    <motion.div
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ duration: 2, repeat: Infinity }}
     >
       {children}
     </motion.div>
   );
-};
+}
 
-export const StaggeredItem: React.FC<{ 
-  children: React.ReactNode;
-}> = ({ children }) => {
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 }
-  };
-  
+// Bounce animation wrapper
+export function Bounce({ children }: { children: ReactNode }) {
   return (
-    <motion.div variants={itemVariants}>
+    <motion.div
+      animate={{ y: [0, -10, 0] }}
+      transition={{ duration: 1, repeat: Infinity }}
+    >
       {children}
     </motion.div>
   );
-};
+}

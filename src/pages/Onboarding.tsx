@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notificationService } from '../services/notificationService';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Bell, Check, ArrowLeft } from 'lucide-react';
 import { useOnboarding } from '@/context/OnboardingContext';
+import Layout from '@/components/Layout';
 
 const Onboarding = () => {
   const [step, setStep] = useState(0);
@@ -93,10 +95,10 @@ const Onboarding = () => {
     }
 
     try {
-      const permission = await notificationService.requestPermission();
-      localStorage.setItem('notificationsEnabled', permission ? 'true' : 'false');
+      const permission = await notificationService.requestNotificationPermission();
+      localStorage.setItem('notificationsEnabled', permission === 'granted' ? 'true' : 'false');
       
-      if (permission) {
+      if (permission === 'granted') {
         setNotificationStatus('granted');
       } else {
         setNotificationStatus('denied');
@@ -120,6 +122,7 @@ const Onboarding = () => {
 
   const handleComplete = () => {
     setOnboardingStepComplete('email');
+    localStorage.setItem('onboardingComplete', 'true');
     navigate('/create-profile');
   };
 
@@ -129,27 +132,27 @@ const Onboarding = () => {
         return (
           <div className="text-center p-4">
             <div className="text-green-500 mb-2">✓ Notifications enabled</div>
-            <p className="text-sm text-gray-600">You'll receive notifications for matches and messages.</p>
+            <p className="text-sm text-neutral-600">You'll receive notifications for matches and messages.</p>
           </div>
         );
       case 'denied':
         return (
           <div className="text-center p-4">
             <div className="text-yellow-500 mb-2">⚠ Notifications disabled</div>
-            <p className="text-sm text-gray-600">You can enable notifications later in settings.</p>
+            <p className="text-sm text-neutral-600">You can enable notifications later in settings.</p>
           </div>
         );
       case 'unsupported':
         return (
           <div className="text-center p-4">
-            <div className="text-gray-500 mb-2">📱 Notifications not supported</div>
-            <p className="text-sm text-gray-600">Your browser doesn't support notifications.</p>
+            <div className="text-neutral-500 mb-2">📱 Notifications not supported</div>
+            <p className="text-sm text-neutral-600">Your browser doesn't support notifications.</p>
           </div>
         );
       default:
         return (
           <div className="text-center p-4">
-            <p className="text-sm text-gray-600">We'll ask for permission to send you notifications.</p>
+            <p className="text-sm text-neutral-600">We'll ask for permission to send you notifications.</p>
           </div>
         );
     }
@@ -159,19 +162,19 @@ const Onboarding = () => {
     {
       title: 'Our Philosophy',
       description: 'Meet real people at real venues — not just another dating app.',
-      icon: <Check className="w-12 h-12 text-coral-500" />,
+      icon: <Check className="w-12 h-12 text-neutral-600" />,
       action: () => setStep(step + 1),
     },
     {
       title: 'Enable Location',
       description: 'We use your location to show you people nearby in real venues.',
-      icon: <MapPin className="w-12 h-12 text-coral-500" />,
+      icon: <MapPin className="w-12 h-12 text-neutral-600" />,
       action: requestLocationWithTimeout,
     },
     {
       title: 'Enable Notifications',
       description: 'Get notified when someone likes you or when you match.',
-      icon: <Bell className="w-12 h-12 text-coral-500" />,
+      icon: <Bell className="w-12 h-12 text-neutral-600" />,
       action: handleNotificationPermission,
     },
   ];
@@ -179,43 +182,49 @@ const Onboarding = () => {
   const currentStep = steps[step];
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-white to-gray-100 p-6">
-      <div className="w-full max-w-md text-center">
-        <div className="mb-4">{currentStep.icon}</div>
-        <h1 className="text-2xl font-bold mb-2">{currentStep.title}</h1>
-        <p className="text-gray-600 mb-6">{currentStep.description}</p>
+    <Layout>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">{currentStep.icon}</div>
+            <CardTitle>{currentStep.title}</CardTitle>
+            <p className="text-neutral-600">{currentStep.description}</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {step === 2 && getNotificationStepContent()}
 
-        {step === 2 && getNotificationStepContent()}
+            {step < steps.length - 1 && (
+              <Button
+                onClick={currentStep.action}
+                className="w-full"
+                disabled={step === 1 && locationRequesting}
+              >
+                {step === 2 && notificationStatus === 'granted' ? 'Continue' : 'Continue'}
+              </Button>
+            )}
 
-        {step < steps.length - 1 && (
-          <Button
-            onClick={currentStep.action}
-            className="w-full bg-coral-500 text-white py-3"
-            disabled={step === 1 && locationRequesting}
-          >
-            {step === 2 && notificationStatus === 'granted' ? 'Continue' : 'Continue'}
-          </Button>
-        )}
+            {step === 2 && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleComplete}
+              >
+                Skip for now
+              </Button>
+            )}
 
-        {step === 2 && (
-          <button
-            className="w-full mt-4 py-3 rounded-xl border border-gray-300 text-gray-600 font-semibold bg-white hover:bg-gray-100"
-            onClick={handleComplete}
-          >
-            Skip for now
-          </button>
-        )}
-
-        {step > 0 && (
-          <button
-            className="mt-4 text-sm text-gray-500 flex items-center justify-center"
-            onClick={() => setStep(step - 1)}
-          >
-            <ArrowLeft size={16} className="mr-1" /> Back
-          </button>
-        )}
+            {step > 0 && (
+              <button
+                className="mt-4 text-sm text-neutral-600 flex items-center justify-center w-full"
+                onClick={() => setStep(step - 1)}
+              >
+                <ArrowLeft size={16} className="mr-1" /> Back
+              </button>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

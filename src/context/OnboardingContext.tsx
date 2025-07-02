@@ -57,7 +57,9 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     return null;
   };
 
-  const isOnboardingComplete = Object.values(onboardingProgress).every(Boolean);
+  const isOnboardingComplete = Object.values(onboardingProgress).every(Boolean) &&
+    localStorage.getItem('onboardingComplete') === 'true' &&
+    localStorage.getItem('profileComplete') === 'true';
 
   const resetOnboarding = () => {
     setOnboardingProgress(defaultProgress);

@@ -1,25 +1,32 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import venueService from '@/services/firebase/venueService';
-import { Venue } from '@/types/services';
+import { useNavigate, Link } from 'react-router-dom';
+import { mockVenues } from '@/data/mock';
 import ErrorBoundary from '../components/ErrorBoundary';
 import BottomNav from '../components/BottomNav';
 import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
+import { GridSkeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { MapPin, Users, Clock } from 'lucide-react';
+import VenueCard from '@/components/VenueCard';
 
 export default function VenueList() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchVenues = async () => {
       try {
-        const allVenues = await venueService.getVenues();
-        setVenues(allVenues);
-      } catch (error) {
-        console.error('Error fetching venues:', error);
+        setLoading(true);
+        // Use mock data directly in demo mode
+        setVenues(mockVenues);
+      } catch (err) {
+        console.error('Error fetching venues:', err);
+        setError('Failed to load venues');
       } finally {
         setLoading(false);
       }
@@ -55,35 +62,59 @@ export default function VenueList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 flex items-center justify-center">
-        <p className="text-muted-foreground">Loading venues...</p>
-      </div>
+      <Layout>
+        <div className="space-y-8 pb-24">
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-neutral-900">Venues</h1>
+            <p className="text-neutral-600">Find your next connection</p>
+          </div>
+          <GridSkeleton cols={1} rows={6} />
+        </div>
+        <BottomNav />
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[80vh] pb-24">
+          <div className="text-center space-y-4">
+            <p className="text-neutral-600">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </div>
+        </div>
+        <BottomNav />
+      </Layout>
     );
   }
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen p-4 space-y-4 bg-background">
-        <h1 className="text-2xl font-bold text-center">Nearby Venues</h1>
-        {venues.length === 0 ? (
-          <div className="text-center text-muted-foreground">
-            <p>No venues found nearby</p>
+      <Layout>
+        <div className="space-y-8 pb-24">
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-neutral-900">Venues</h1>
+            <p className="text-neutral-600">Find your next connection</p>
           </div>
-        ) : (
-          venues.map((venue) => (
-            <Card key={venue.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCheckIn(venue.id)}>
-              <CardContent className="p-4 space-y-1">
-                <h2 className="text-lg font-semibold">{venue.name}</h2>
-                <p className="text-sm text-muted-foreground">{venue.city}</p>
-                {venue.address && (
-                  <p className="text-sm text-muted-foreground">{venue.address}</p>
-                )}
-                <p className="text-sm text-muted-foreground">{venue.checkInCount} people checked in</p>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+          
+          <div className="space-y-4">
+            {venues.map((venue, idx) => (
+              <VenueCard
+                key={venue.id}
+                venue={venue}
+                onSelect={(id) => navigate(`/simple-venue/${id}`)}
+                onCheckIn={(id) => handleCheckIn(id)}
+                isCheckedIn={false} // TODO: wire up real check-in state
+                userCount={venue.checkInCount || 0}
+                index={idx}
+              />
+            ))}
+          </div>
+        </div>
+      </Layout>
       <BottomNav />
     </ErrorBoundary>
   );

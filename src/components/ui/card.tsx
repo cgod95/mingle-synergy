@@ -1,18 +1,25 @@
-
 import * as React from "react"
+import { motion, HTMLMotionProps } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
+  Omit<HTMLMotionProps<"div">, "ref"> & {
+    hover?: boolean
+    delay?: number
+  }
+>(({ className, hover = false, delay = 0, ...props }, ref) => (
+  <motion.div
     ref={ref}
     className={cn(
-      "rounded-t-2xl rounded-b-none border bg-card text-card-foreground shadow-[0_2px_8px_rgba(0,0,0,0.05)]",
+      "rounded-lg border bg-card text-card-foreground shadow-sm",
       className
     )}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3, delay }}
+    whileHover={hover ? { y: -2, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" } : undefined}
     {...props}
   />
 ))
@@ -24,7 +31,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-3", className)}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
     {...props}
   />
 ))
@@ -37,7 +44,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-xl font-semibold leading-none tracking-tight",
+      "text-2xl font-semibold leading-none tracking-tight",
       className
     )}
     {...props}
@@ -61,7 +68,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-3 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
 ))
 CardContent.displayName = "CardContent"
 
@@ -71,7 +78,7 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-3 pt-0", className)}
+    className={cn("flex items-center p-6 pt-0", className)}
     {...props}
   />
 ))
@@ -84,7 +91,7 @@ const CardDivider = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("border-t border-border my-3", className)}
+    className={cn("border-t border-neutral-200 my-4", className)}
     {...props}
   />
 ))

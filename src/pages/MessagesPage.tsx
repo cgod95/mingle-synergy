@@ -1,134 +1,170 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { SmallLoadingSpinner } from "@/components/FeedbackUtils";
-import BottomNav from "@/components/BottomNav";
-import { ChatPreview as ChatPreviewComponent } from "@/components/ChatPreview";
-import { getUserMatches, mockUsers, mockMessages } from "@/data/mock";
-
-interface MockChatPreview {
-  matchId: string;
-  otherUser: {
-    id: string;
-    name: string;
-    displayName?: string;
-    photoUrl?: string;
-  };
-  lastMessage: string;
-  lastMessageTime: Date;
-  unreadCount: number;
-}
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ListSkeleton } from '@/components/ui/skeleton';
+import { getUserMatches } from '@/data/mock/matches';
+import { mockUsers } from '@/data/mock/users';
+import { Match, User } from '@/types';
+import Layout from '@/components/Layout';
+import BottomNav from '@/components/BottomNav';
+import { MessageCircle, Clock, MapPin } from 'lucide-react';
 
 export default function MessagesPage() {
-  const { currentUser } = useAuth();
-  const [chats, setChats] = useState<MockChatPreview[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [matchedUsers, setMatchedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadChats = async () => {
-      if (!currentUser?.uid) {
-        setLoading(false);
-        return;
-      }
-
+    const loadMatches = async () => {
       try {
         setLoading(true);
-        setError("");
-        
-        // Use mock data instead of Firebase
-        const currentUserId = currentUser.uid || 'u1'; // Default to u1 for demo
-        const userMatches = getUserMatches(currentUserId);
-        
-        const mockChats: MockChatPreview[] = userMatches.map((match) => {
-          const matchedUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
-          const matchedUser = mockUsers.find(user => user.id === matchedUserId);
-          
-          // Get messages for this match
-          const matchMessages = mockMessages.filter(msg => 
-            (msg.senderId === match.userId && msg.senderId === currentUserId) ||
-            (msg.senderId === match.matchedUserId && msg.senderId === currentUserId)
-          );
-          
-          const lastMessage = matchMessages[matchMessages.length - 1];
-          
-          return {
-            matchId: match.id,
-            otherUser: {
-              id: matchedUserId,
-              name: matchedUser?.name || "Unknown",
-              displayName: matchedUser?.name,
-              photoUrl: matchedUser?.photos?.[0]
-            },
-            lastMessage: lastMessage?.text || "Start a conversation!",
-            lastMessageTime: lastMessage?.createdAt || new Date(),
-            unreadCount: Math.floor(Math.random() * 3) // Random unread count for demo
-          };
-        });
+        // For demo, use user u1
+        const userMatches = getUserMatches('u1');
+        setMatches(userMatches);
 
-        setChats(mockChats);
+        // Get matched users data
+        const users = userMatches.map(match => {
+          const matchedUser = mockUsers.find(user => user.id === match.matchedUserId);
+          return matchedUser;
+        }).filter(Boolean) as User[];
+
+        setMatchedUsers(users);
       } catch (err) {
-        console.error(err);
-        setError("Failed to load messages.");
+        console.error('Error loading matches:', err);
+        setError('Failed to load messages');
       } finally {
         setLoading(false);
       }
     };
 
-    loadChats();
-  }, [currentUser?.uid]);
+    loadMatches();
+  }, []);
+
+  const formatTimeRemaining = (expiresAt: number) => {
+    const now = Date.now();
+    const timeLeft = expiresAt - now;
+    
+    if (timeLeft <= 0) return 'Expired';
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <SmallLoadingSpinner />
-        <p className="mt-2 text-muted-foreground">Loading messages...</p>
-      </div>
+      <Layout>
+        <div className="space-y-8 pb-24">
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
+            <p className="text-neutral-600">Your conversations</p>
+          </div>
+          <ListSkeleton count={6} />
+        </div>
+        <BottomNav />
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <div className="text-red-500 text-center">
-          {error}
+      <Layout>
+        <div className="flex items-center justify-center min-h-[80vh] pb-24">
+          <div className="text-center space-y-4">
+            <p className="text-neutral-600">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  if (chats.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 text-center">
-        <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
-        <p className="text-sm text-gray-500">
-          When you match with someone and start chatting, your conversations will appear here.
-        </p>
-      </div>
+        <BottomNav />
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-4 pt-6 pb-24">
-        <h1 className="text-2xl font-semibold mb-4">Messages</h1>
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          {chats.map((chat) => (
-            <ChatPreviewComponent 
-              key={chat.matchId} 
-              match={{
-                id: chat.matchId,
-                displayName: chat.otherUser.displayName || chat.otherUser.name || "Unknown User"
-              }} 
-            />
-          ))}
+    <Layout>
+      <div className="space-y-8 pb-24">
+        <div className="space-y-4">
+          <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
+          <p className="text-neutral-600">Your conversations</p>
         </div>
+
+        {matches.length === 0 ? (
+          <div className="text-center space-y-4 py-12">
+            <MessageCircle className="w-16 h-16 text-neutral-300 mx-auto" />
+            <h3 className="text-lg font-semibold text-neutral-900">No messages yet</h3>
+            <p className="text-neutral-600">Start matching to begin conversations!</p>
+            <Link to="/venues">
+              <Button>Explore Venues</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {matches.map((match, index) => {
+              const matchedUser = matchedUsers[index];
+              if (!matchedUser) return null;
+
+              const timeRemaining = formatTimeRemaining(match.expiresAt);
+              const isExpired = match.expiresAt <= Date.now();
+
+              return (
+                <Link key={match.id} to={`/messages/${match.id}`}>
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src={matchedUser.photos[0]}
+                            alt={matchedUser.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                          <div>
+                            <CardTitle className="text-lg">{matchedUser.name}</CardTitle>
+                            <div className="flex items-center text-sm text-neutral-600">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              {match.venueName}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm font-medium ${
+                            isExpired ? 'text-red-600' : 'text-neutral-600'
+                          }`}>
+                            <Clock className="w-4 h-4 inline mr-1" />
+                            {timeRemaining}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        {match.message && (
+                          <p className="text-sm text-neutral-700 bg-neutral-50 p-3 rounded-lg">
+                            "{match.message}"
+                          </p>
+                        )}
+                        {match.receivedMessage && (
+                          <p className="text-sm text-neutral-600">
+                            {matchedUser.name}: "{match.receivedMessage}"
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
       <BottomNav />
-    </div>
+    </Layout>
   );
 } 

@@ -5,7 +5,9 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOnboarding } from '@/context/OnboardingContext';
+import Layout from '@/components/Layout';
 
 export default function CreateProfile() {
   const [name, setName] = useState('');
@@ -35,6 +37,7 @@ export default function CreateProfile() {
         blockedUsers: []
       });
       setOnboardingStepComplete('profile');
+      localStorage.setItem('profileComplete', 'true');
       navigate('/photo-upload');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -42,24 +45,41 @@ export default function CreateProfile() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <h1 className="text-3xl font-bold text-center">Create Profile</h1>
-        <p className="text-sm text-muted-foreground text-center">Tell us a bit about you</p>
-
-        <div className="space-y-4">
-          <Input placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input placeholder="Short bio" value={bio} onChange={(e) => setBio(e.target.value)} />
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <Button
-            onClick={handleSubmit}
-            className="w-full"
-            disabled={!name.trim() || !bio.trim()}
-          >
-            Continue
-          </Button>
-        </div>
+    <Layout>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle>Create Profile</CardTitle>
+            <p className="text-sm text-neutral-600">Tell us a bit about you</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-neutral-900">Your name</label>
+              <Input 
+                placeholder="Enter your name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-neutral-900">Short bio</label>
+              <Input 
+                placeholder="Tell us about yourself" 
+                value={bio} 
+                onChange={(e) => setBio(e.target.value)} 
+              />
+            </div>
+            {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+            <Button
+              onClick={handleSubmit}
+              className="w-full"
+              disabled={!name.trim() || !bio.trim()}
+            >
+              Continue
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }
