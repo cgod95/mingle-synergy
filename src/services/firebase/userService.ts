@@ -40,13 +40,23 @@ class FirebaseUserService implements UserService {
   }
 
   async updateUserProfile(userId: string, updates: PartialUserProfile): Promise<void> {
-    const userRef = doc(firestore, 'users', userId);
-    await updateDoc(userRef, updates);
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      await updateDoc(userRef, updates);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw new Error('Failed to update profile. Please try again.');
+    }
   }
 
   async createUserProfile(userId: string, data: UserProfile): Promise<void> {
-    const userRef = doc(firestore, 'users', userId);
-    await setDoc(userRef, data);
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      await setDoc(userRef, data);
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      throw new Error('Failed to create profile. Please try again.');
+    }
   }
 
   async getUserById(userId: string): Promise<UserProfile | null> {

@@ -17,7 +17,7 @@ export function memoWithName<T extends ComponentType<unknown>>(
 
 // Simple hook to measure component render time
 export function useRenderTiming(componentName: string) {
-  if (process.env.NODE_ENV !== 'development') {
+  if (import.meta.env.MODE !== 'development') {
     return () => {};
   }
   

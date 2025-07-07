@@ -11,6 +11,8 @@ import MockUserService from './mock/mockUserService';
 import MockVenueService from './mock/mockVenueService';
 import MockMatchService from './mock/mockMatchService';
 import MockInterestService from './mock/mockInterestService';
+import { mockSubscriptionService } from './mock';
+import SubscriptionService from './subscriptionService';
 // If you have a mockReconnectService, import it here
 
 // AuthService always uses Firebase
@@ -21,6 +23,7 @@ export const userService = DEMO_MODE ? MockUserService : FirebaseUserService;
 export const venueService = DEMO_MODE ? MockVenueService : FirebaseVenueService;
 export const matchService = DEMO_MODE ? MockMatchService : FirebaseMatchService;
 export const interestService = DEMO_MODE ? MockInterestService : FirebaseInterestService;
+export const subscriptionService = DEMO_MODE ? mockSubscriptionService : new SubscriptionService();
 // For now, set reconnectService to undefined in both modes
 export const reconnectService = undefined; // TODO: Add mockReconnectService if needed
 

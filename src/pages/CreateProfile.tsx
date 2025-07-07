@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOnboarding } from '@/context/OnboardingContext';
 import Layout from '@/components/Layout';
+import { analytics } from '@/services/analytics';
+import { sanitizeInput, validateProfileData } from '@/utils/security';
 
 export default function CreateProfile() {
   const [name, setName] = useState('');
@@ -15,32 +17,71 @@ export default function CreateProfile() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { setOnboardingStepComplete } = useOnboarding();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!auth.currentUser) return;
+    
+    // Validate and sanitize inputs
     try {
+      const sanitizedName = sanitizeInput.text(name);
+      const sanitizedBio = sanitizeInput.text(bio);
+      
+      const profileValidation = validateProfileData({
+        name: sanitizedName,
+        bio: sanitizedBio
+      });
+      
+      if (!profileValidation.isValid) {
+        setError(profileValidation.errors.join(', '));
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      // Track profile creation attempt
+      analytics.track('profile_creation_attempted', {
+        hasName: !!sanitizedName.trim(),
+        hasBio: !!sanitizedBio.trim(),
+        timestamp: Date.now()
+      });
+
       const ref = doc(firestore, 'users', auth.currentUser.uid);
       await setDoc(ref, {
         id: auth.currentUser.uid,
-        name,
-        bio,
+        uid: auth.currentUser.uid,
+        displayName: sanitizedName,
+        name: sanitizedName,
+        bio: sanitizedBio,
+        email: auth.currentUser.email,
+        createdAt: new Date().toISOString(),
         photos: [],
         isCheckedIn: false,
         isVisible: true,
-        interests: [],
-        gender: 'other',
-        interestedIn: ['female', 'male', 'non-binary', 'other'],
-        age: 18,
-        ageRangePreference: { min: 18, max: 99 },
-        matches: [],
-        likedUsers: [],
-        blockedUsers: []
+        interests: []
       });
       setOnboardingStepComplete('profile');
+      
+      // Track successful profile creation
+      analytics.track('profile_creation_success', {
+        timestamp: Date.now()
+      });
+
       localStorage.setItem('profileComplete', 'true');
       navigate('/photo-upload');
     } catch (err: unknown) {
+      console.error('Profile creation error:', err);
+      
+      // Track profile creation error
+      analytics.track('profile_creation_error', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        timestamp: Date.now()
+      });
+
       setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 

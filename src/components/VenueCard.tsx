@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Clock } from 'lucide-react';
 import { Venue } from '@/types';
+import { analytics } from '@/services/analytics';
 
 interface VenueCardProps {
   venue: Venue;
@@ -56,15 +57,32 @@ const VenueCard: React.FC<VenueCardProps> = ({
     }
   };
 
-  const handleCheckIn = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowConfirmation(true);
+  const handleSelect = () => {
+    // Track venue selection analytics
+    analytics.track('venue_card_selected', {
+      venueId: venue.id,
+      venueName: venue.name,
+      venueType: venue.type,
+      userCount,
+      timestamp: Date.now()
+    });
+    
+    onSelect(venue.id);
   };
 
-  const confirmCheckIn = () => {
+  const handleCheckIn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Track check-in attempt analytics
+    analytics.track('venue_check_in_attempted', {
+      venueId: venue.id,
+      venueName: venue.name,
+      venueType: venue.type,
+      userCount,
+      timestamp: Date.now()
+    });
+    
     onCheckIn(venue.id);
-    setShowConfirmation(false);
-    navigate(`/venue/${venue.id}`);
   };
   
   return (
@@ -72,94 +90,67 @@ const VenueCard: React.FC<VenueCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
-      whileHover={{ y: -2 }}
-      className="w-full"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="pb-3">
+      <Card 
+        className="cursor-pointer hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        onClick={handleSelect}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleSelect();
+          }
+        }}
+        tabIndex={0}
+        role="button"
+        aria-label={`View details for ${venue.name} - ${userCount} people checked in`}
+      >
+        <CardContent className="p-4">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <h3 className="font-semibold text-lg">{venue.name}</h3>
-                {venue.rating && (
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-medium">{venue.rating}</span>
-                  </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center space-x-2">
+                <h3 className="font-semibold text-lg text-neutral-900">
+                  {venue.name}
+                </h3>
+                {venue.checkInCount > 10 && (
+                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full" role="status" aria-label="Popular venue">
+                    Popular
+                  </span>
                 )}
               </div>
               
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-2">
-                <MapPin className="w-4 h-4" />
+              <div className="flex items-center space-x-1 text-sm text-neutral-600">
+                <MapPin className="h-4 w-4" aria-hidden="true" />
                 <span>{venue.address}</span>
               </div>
               
-              <div className="flex items-center space-x-4 text-sm">
+              <div className="flex items-center space-x-4 text-sm text-neutral-600">
                 <div className="flex items-center space-x-1">
-                  <Users className="w-4 h-4" />
-                  <span>{userCount} active</span>
+                  <Users className="h-4 w-4" aria-hidden="true" />
+                  <span>{userCount} people</span>
                 </div>
-                {venue.distance && (
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="w-4 h-4" />
-                    <span>{venue.distance}km away</span>
-                  </div>
-                )}
+                <div className="flex items-center space-x-1">
+                  <Clock className="h-4 w-4" aria-hidden="true" />
+                  <span>{venue.type}</span>
+                </div>
               </div>
             </div>
             
-            {venue.category && (
-              <Badge variant="secondary" className="ml-2">
-                {venue.category}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-0">
-          {venue.description && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-sm text-muted-foreground mb-4 line-clamp-2"
-            >
-              {venue.description}
-            </motion.p>
-          )}
-
-          <div className="flex space-x-2">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <div className="flex flex-col space-y-2">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onSelect(venue.id)}
-                className="flex-1"
-              >
-                View Details
-              </Button>
-            </motion.div>
-            
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                size="sm"
                 onClick={handleCheckIn}
                 disabled={isCheckedIn}
-                className="flex-1"
+                className={`min-w-[100px] ${
+                  isCheckedIn 
+                    ? 'bg-green-500 hover:bg-green-600' 
+                    : 'bg-blue-500 hover:bg-blue-600'
+                }`}
+                aria-label={isCheckedIn ? `Already checked in to ${venue.name}` : `Check in to ${venue.name}`}
               >
-                {isCheckedIn ? (
-                  <>
-                    <Clock className="w-4 h-4 mr-1" />
-                    Checked In
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="w-4 h-4 mr-1" />
-                    Check In
-                  </>
-                )}
+                {isCheckedIn ? 'Checked In' : 'Check In'}
               </Button>
-            </motion.div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -185,7 +176,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
             </Button>
             <Button
               type="button"
-              onClick={confirmCheckIn}
+              onClick={handleCheckIn}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
               Check In

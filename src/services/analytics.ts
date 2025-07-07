@@ -1,104 +1,154 @@
-// Analytics service for tracking user behavior and app performance
+// Comprehensive analytics service for user engagement and insights
 
 export interface AnalyticsEvent {
-  event: string;
+  name: string;
   properties?: Record<string, unknown>;
   timestamp?: number;
   userId?: string;
   sessionId?: string;
 }
 
-export interface UserBehavior {
+export interface UserEngagementMetrics {
+  dailyActiveUsers: number;
+  weeklyActiveUsers: number;
+  monthlyActiveUsers: number;
+  sessionDuration: number;
+  pagesPerSession: number;
+  retentionRate: {
+    day1: number;
+    day7: number;
+    day30: number;
+  };
+}
+
+export interface MatchSuccessMetrics {
+  totalMatches: number;
+  successfulMatches: number; // Matches that led to messages
+  matchRate: number; // Matches per user
+  messageRate: number; // Messages per match
+  responseRate: number; // Response rate to messages
+  timeToFirstMessage: number; // Average time from match to first message
+  venueMatchRate: Record<string, number>; // Match rate by venue
+}
+
+export interface VenueAnalytics {
+  venueId: string;
+  venueName: string;
+  checkIns: number;
+  uniqueUsers: number;
+  matches: number;
+  matchRate: number;
+  averageTimeSpent: number;
+  popularHours: Record<number, number>; // Hour -> count
+  userRetention: number; // Users who return
+}
+
+export interface UserBehaviorInsights {
+  userId: string;
+  profileCompleteness: number;
+  activityLevel: 'low' | 'medium' | 'high';
+  preferredVenues: string[];
+  preferredTimes: string[];
+  interactionPatterns: {
+    likesGiven: number;
+    likesReceived: number;
+    messagesSent: number;
+    messagesReceived: number;
+    matchesInitiated: number;
+    matchesReceived: number;
+  };
+  engagementScore: number; // 0-100
+}
+
+interface UserBehavior {
   pageViews: Record<string, number>;
-  timeSpent: Record<string, number>;
-  interactions: Record<string, number>;
-  lastActivity: number;
+  timeOnSite: number;
+  interactions: string[];
+  conversionFunnel: {
+    signup: number;
+    profile_complete: number;
+    first_venue: number;
+    first_like: number;
+    first_match: number;
+    first_message: number;
+  };
+}
+
+interface MatchAnalytics {
+  totalMatches: number;
+  matchRate: number;
+  averageTimeToMatch: number;
+  venueMatchRates: Record<string, number>;
+  userTypeMatchRates: Record<string, number>;
+}
+
+interface MatchData {
+  matchId: string;
+  userId: string;
+  matchedUserId: string;
+  venueId?: string;
+  venueName?: string;
+  timeToMatch: number;
+  mutualInterests: number;
 }
 
 class AnalyticsService {
   private events: AnalyticsEvent[] = [];
-  private userBehavior: UserBehavior = {
-    pageViews: {},
-    timeSpent: {},
-    interactions: {},
-    lastActivity: Date.now()
-  };
-  private sessionId: string;
   private isEnabled: boolean = true;
+  private sessionId: string;
+  private userId?: string;
+  private userBehavior: UserBehavior;
+  private matchAnalytics: MatchAnalytics;
+  private readonly storageKey = 'mingle_analytics_events';
+  private readonly maxEvents = 1000; // Keep last 1000 events in memory
 
   constructor() {
     this.sessionId = this.generateSessionId();
+    this.userBehavior = {
+      pageViews: {},
+      timeOnSite: 0,
+      interactions: [],
+      conversionFunnel: {
+        signup: 0,
+        profile_complete: 0,
+        first_venue: 0,
+        first_like: 0,
+        first_match: 0,
+        first_message: 0
+      }
+    };
+    this.matchAnalytics = {
+      totalMatches: 0,
+      matchRate: 0,
+      averageTimeToMatch: 0,
+      venueMatchRates: {},
+      userTypeMatchRates: {}
+    };
+    
     this.initializeTracking();
+    this.loadEvents();
   }
 
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private initializeTracking(): void {
+  private initializeTracking() {
     // Track page views
     this.trackPageView(window.location.pathname);
     
-    // Track time spent on pages
-    this.startTimeTracking();
-    
+    // Track time on site
+    setInterval(() => {
+      this.userBehavior.timeOnSite += 1;
+    }, 1000);
+
     // Track user interactions
-    this.trackUserInteractions();
-  }
-
-  private startTimeTracking(): void {
-    let startTime = Date.now();
-    const currentPage = window.location.pathname;
-
-    // Update time spent when user leaves page
-    const handleBeforeUnload = () => {
-      const timeSpent = Date.now() - startTime;
-      this.updateTimeSpent(currentPage, timeSpent);
-    };
-
-    // Update time spent when user navigates
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        const timeSpent = Date.now() - startTime;
-        this.updateTimeSpent(currentPage, timeSpent);
-      } else {
-        startTime = Date.now();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Clean up on page unload
-    window.addEventListener('unload', () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    });
-  }
-
-  private trackUserInteractions(): void {
-    // Track clicks on important elements
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      const tagName = target.tagName.toLowerCase();
-      const className = target.className;
-      const id = target.id;
-
-      // Track button clicks
-      if (tagName === 'button' || className.includes('btn') || className.includes('button')) {
-        this.track('button_click', {
-          buttonText: target.textContent?.trim(),
-          buttonClass: className,
-          buttonId: id
-        });
-      }
-
-      // Track form interactions
-      if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
-        this.track('form_interaction', {
-          fieldType: target.getAttribute('type') || tagName,
-          fieldName: target.getAttribute('name'),
-          fieldId: id
+      if (target.tagName === 'BUTTON' || target.closest('button')) {
+        this.track('button_clicked', {
+          button_text: target.textContent?.trim(),
+          button_type: target.getAttribute('data-type') || 'unknown'
         });
       }
     });
@@ -109,137 +159,284 @@ class AnalyticsService {
       const scrollDepth = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
       if (scrollDepth > maxScrollDepth) {
         maxScrollDepth = scrollDepth;
-        if (maxScrollDepth % 25 === 0) { // Track every 25%
-          this.track('scroll_depth', { depth: maxScrollDepth });
-        }
+        this.track('scroll_depth', { depth: maxScrollDepth });
       }
     });
   }
 
-  track(event: string, properties?: Record<string, unknown>): void {
+  // Core tracking methods
+  track(eventName: string, properties: Record<string, unknown> = {}) {
     if (!this.isEnabled) return;
 
-    const analyticsEvent: AnalyticsEvent = {
-      event,
-      properties,
-      timestamp: Date.now(),
+    const event: AnalyticsEvent = {
+      name: eventName,
+      properties: {
+        ...properties,
+        session_id: this.sessionId,
+        timestamp: Date.now(),
+        url: window.location.href,
+        user_agent: navigator.userAgent
+      },
+      userId: this.userId,
       sessionId: this.sessionId
     };
 
-    this.events.push(analyticsEvent);
-    this.userBehavior.lastActivity = Date.now();
-
-    // In a real app, you'd send this to your analytics service
-    console.log('Analytics Event:', analyticsEvent);
+    this.events.push(event);
+    this.processEvent(event);
+    
+    // Send to analytics service (in production, this would be Firebase Analytics, Mixpanel, etc.)
+    this.sendToAnalyticsService(event);
   }
 
-  trackPageView(page: string): void {
+  trackPageView(page: string) {
     this.userBehavior.pageViews[page] = (this.userBehavior.pageViews[page] || 0) + 1;
     this.track('page_view', { page });
   }
 
-  trackUserAction(action: string, details?: Record<string, unknown>): void {
-    this.userBehavior.interactions[action] = (this.userBehavior.interactions[action] || 0) + 1;
-    this.track('user_action', { action, ...details });
+  trackUserBehavior(action: string, data?: unknown) {
+    this.userBehavior.interactions.push(action);
+    this.track('user_behavior', { action, data });
   }
 
-  trackError(error: Error, context?: Record<string, unknown>): void {
-    this.track('error', {
-      message: error.message,
-      stack: error.stack,
-      ...context
+  // Conversion funnel tracking
+  trackConversionFunnel(step: keyof UserBehavior['conversionFunnel']) {
+    this.userBehavior.conversionFunnel[step] = Date.now();
+    this.track('conversion_funnel', { step, timestamp: Date.now() });
+  }
+
+  // Match analytics
+  trackMatch(matchData: MatchData) {
+    this.matchAnalytics.totalMatches++;
+    
+    this.track('match_created', {
+      match_id: matchData.matchId,
+      user_id: matchData.userId,
+      matched_user_id: matchData.matchedUserId,
+      venue_id: matchData.venueId,
+      venue_name: matchData.venueName,
+      time_to_match: matchData.timeToMatch,
+      mutual_interests: matchData.mutualInterests
+    });
+
+    // Update venue match rates
+    if (matchData.venueId) {
+      this.matchAnalytics.venueMatchRates[matchData.venueId] = 
+        (this.matchAnalytics.venueMatchRates[matchData.venueId] || 0) + 1;
+    }
+  }
+
+  // Venue analytics
+  trackVenueInteraction(venueId: string, action: string, data?: unknown) {
+    this.track('venue_interaction', {
+      venue_id: venueId,
+      action,
+      data
     });
   }
 
-  trackPerformance(metric: string, value: number): void {
-    this.track('performance', { metric, value });
+  // A/B Testing
+  trackABTest(testName: string, variant: string, conversion?: boolean) {
+    this.track('ab_test', {
+      test_name: testName,
+      variant,
+      conversion
+    });
   }
 
-  private updateTimeSpent(page: string, timeMs: number): void {
-    this.userBehavior.timeSpent[page] = (this.userBehavior.timeSpent[page] || 0) + timeMs;
+  // Performance tracking
+  trackPerformance(metric: string, value: number, unit: string = 'ms') {
+    this.track('performance', {
+      metric,
+      value,
+      unit
+    });
   }
 
-  // User journey tracking
-  trackOnboardingStep(step: string, completed: boolean): void {
-    this.track('onboarding_step', { step, completed });
+  // Error tracking
+  trackError(error: Error, context?: unknown) {
+    this.track('error', {
+      error_message: error.message,
+      error_stack: error.stack,
+      context
+    });
   }
 
-  trackMatch(matchId: string, venueId: string): void {
-    this.track('match_created', { matchId, venueId });
+  // User engagement
+  trackEngagement(action: string, duration?: number) {
+    this.track('engagement', {
+      action,
+      duration,
+      time_on_site: this.userBehavior.timeOnSite
+    });
   }
 
-  trackMessage(messageType: 'sent' | 'received', matchId: string): void {
-    this.track('message', { type: messageType, matchId });
+  // Revenue tracking
+  trackRevenue(amount: number, currency: string = 'USD', source?: string) {
+    this.track('revenue', {
+      amount,
+      currency,
+      source
+    });
   }
 
-  trackVenueVisit(venueId: string, action: 'view' | 'like' | 'check_in'): void {
-    this.track('venue_interaction', { venueId, action });
+  // Custom event tracking
+  trackCustomEvent(eventName: string, properties: Record<string, unknown> = {}) {
+    this.track(eventName, properties);
   }
 
-  // Get analytics data
-  getEvents(): AnalyticsEvent[] {
-    return [...this.events];
+  // Analytics processing
+  private processEvent(event: AnalyticsEvent) {
+    switch (event.name) {
+      case 'user_signed_up':
+        this.trackConversionFunnel('signup');
+        break;
+      case 'profile_completed':
+        this.trackConversionFunnel('profile_complete');
+        break;
+      case 'venue_visited':
+        this.trackConversionFunnel('first_venue');
+        break;
+      case 'like_sent':
+        this.trackConversionFunnel('first_like');
+        break;
+      case 'match_created':
+        this.trackConversionFunnel('first_match');
+        break;
+      case 'message_sent':
+        this.trackConversionFunnel('first_message');
+        break;
+    }
   }
 
-  getUserBehavior(): UserBehavior {
-    return { ...this.userBehavior };
+  // Send to analytics service (placeholder for production)
+  private sendToAnalyticsService(event: AnalyticsEvent) {
+    // In production, this would send to Firebase Analytics, Mixpanel, etc.
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Analytics Event:', event);
+    }
+    
+    // Example: Send to Firebase Analytics
+    // if (window.gtag) {
+    //   window.gtag('event', event.name, event.properties);
+    // }
   }
 
-  getSessionId(): string {
-    return this.sessionId;
-  }
-
-  // Export data for analysis
-  exportData(): Record<string, unknown> {
+  // Analytics reporting
+  getAnalyticsReport() {
     return {
       sessionId: this.sessionId,
+      userId: this.userId,
+      userBehavior: this.userBehavior,
+      matchAnalytics: this.matchAnalytics,
+      events: this.events.length,
+      timeOnSite: this.userBehavior.timeOnSite
+    };
+  }
+
+  // Export analytics data
+  exportAnalyticsData() {
+    return {
       events: this.events,
       userBehavior: this.userBehavior,
+      matchAnalytics: this.matchAnalytics,
       timestamp: Date.now()
     };
   }
 
+  // Set user ID for tracking
+  setUserId(userId: string) {
+    this.userId = userId;
+    this.track('user_identified', { user_id: userId });
+  }
+
   // Enable/disable tracking
-  enable(): void {
+  enable() {
     this.isEnabled = true;
   }
 
-  disable(): void {
+  disable() {
     this.isEnabled = false;
   }
 
-  // Clear data
-  clear(): void {
+  // Clear analytics data
+  clear() {
     this.events = [];
     this.userBehavior = {
       pageViews: {},
-      timeSpent: {},
-      interactions: {},
-      lastActivity: Date.now()
+      timeOnSite: 0,
+      interactions: [],
+      conversionFunnel: {
+        signup: 0,
+        profile_complete: 0,
+        first_venue: 0,
+        first_like: 0,
+        first_match: 0,
+        first_message: 0
+      }
     };
+  }
+
+  // Load events from localStorage
+  private loadEvents(): void {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        this.events = JSON.parse(stored);
+      }
+    } catch (error) {
+      console.warn('Failed to load analytics events:', error);
+      this.events = [];
+    }
+  }
+
+  // Save events to localStorage
+  private saveEvents(): void {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.events));
+    } catch (error) {
+      console.warn('Failed to save analytics events:', error);
+    }
   }
 }
 
 // Create singleton instance
 export const analytics = new AnalyticsService();
 
-// Performance monitoring
-export const trackPerformance = (): void => {
-  // Track page load time
-  window.addEventListener('load', () => {
-    const loadTime = performance.now();
-    analytics.trackPerformance('page_load_time', loadTime);
-  });
-
-  // Track navigation timing
-  if ('navigation' in performance) {
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    if (navigation) {
-      analytics.trackPerformance('dom_content_loaded', navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart);
-      analytics.trackPerformance('first_paint', navigation.loadEventEnd - navigation.loadEventStart);
-    }
-  }
+// Export individual tracking functions for convenience
+export const track = (eventName: string, properties?: Record<string, unknown>) => {
+  analytics.track(eventName, properties);
 };
 
-// Initialize performance tracking
-trackPerformance(); 
+export const trackPageView = (page: string) => {
+  analytics.trackPageView(page);
+};
+
+export const trackMatch = (matchData: MatchData) => {
+  analytics.trackMatch(matchData);
+};
+
+export const trackVenueInteraction = (venueId: string, action: string, data?: unknown) => {
+  analytics.trackVenueInteraction(venueId, action, data);
+};
+
+export const trackABTest = (testName: string, variant: string, conversion?: boolean) => {
+  analytics.trackABTest(testName, variant, conversion);
+};
+
+export const trackPerformance = (metric: string, value: number, unit?: string) => {
+  analytics.trackPerformance(metric, value, unit);
+};
+
+export const trackError = (error: Error, context?: unknown) => {
+  analytics.trackError(error, context);
+};
+
+export const trackEngagement = (action: string, duration?: number) => {
+  analytics.trackEngagement(action, duration);
+};
+
+export const trackRevenue = (amount: number, currency?: string, source?: string) => {
+  analytics.trackRevenue(amount, currency, source);
+};
+
+export default analytics; 

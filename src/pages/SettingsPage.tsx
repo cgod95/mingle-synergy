@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Settings, 
   User, 
@@ -29,15 +30,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { subscriptionService } from '@/services/subscriptionService';
+import { subscriptionService, SubscriptionTier } from '@/services/subscriptionService';
 import { analytics } from '@/services/analytics';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 import PremiumUpgradeModal from '@/components/ui/PremiumUpgradeModal';
 import Layout from '@/components/Layout';
-import BottomNav from '@/components/BottomNav';
+import { useAuth } from '@/context/AuthContext';
+
+// Define the subscription type locally since it's not exported
+interface SubscriptionData {
+  tierId: string;
+  status: 'active' | 'canceled' | 'past_due' | 'unpaid';
+  currentPeriodEnd: Date;
+  features: string[];
+  metadata?: Record<string, string>;
+}
 
 const SettingsPage: React.FC = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -45,8 +57,9 @@ const SettingsPage: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState(subscriptionService.getCurrentPlan());
-  const [userSubscription, setUserSubscription] = useState(subscriptionService.getUserSubscription());
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
+  const [tier, setTier] = useState<SubscriptionTier | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Load user preferences from localStorage
@@ -60,9 +73,33 @@ const SettingsPage: React.FC = () => {
       setRealtimeEnabled(preferences.realtime ?? true);
     }
 
-    // Track page view
-    analytics.trackPageView('/settings');
-  }, []);
+    const fetchSubscription = async () => {
+      if (!currentUser?.uid) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const sub = subscriptionService.getUserSubscription(currentUser.uid);
+        if (sub) {
+          setSubscription({
+            tierId: sub.tierId,
+            status: sub.status,
+            currentPeriodEnd: sub.currentPeriodEnd,
+            features: sub.features
+          });
+          const tierObj = subscriptionService.getTier(sub.tierId);
+          setTier(tierObj || null);
+        } else {
+          setTier(null);
+        }
+      } catch (err) {
+        setTier(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubscription();
+  }, [currentUser]);
 
   const savePreferences = () => {
     const preferences = {
@@ -77,19 +114,11 @@ const SettingsPage: React.FC = () => {
 
   const handleNotificationToggle = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
-    if (enabled) {
-      notificationService.requestNotificationPermission();
-    }
     savePreferences();
   };
 
   const handleAnalyticsToggle = (enabled: boolean) => {
     setAnalyticsEnabled(enabled);
-    if (enabled) {
-      analytics.enable();
-    } else {
-      analytics.disable();
-    }
     savePreferences();
   };
 
@@ -105,8 +134,7 @@ const SettingsPage: React.FC = () => {
 
   const handleExportData = () => {
     const data = {
-      analytics: analytics.exportData(),
-      subscription: userSubscription,
+      subscription: subscription,
       preferences: {
         notifications: notificationsEnabled,
         darkMode,
@@ -145,19 +173,19 @@ const SettingsPage: React.FC = () => {
         {
           label: 'Profile Settings',
           description: 'Edit your profile information',
-          action: () => window.location.href = '/profile/edit',
+          action: () => navigate('/profile/edit'),
           icon: ChevronRight
         },
         {
           label: 'Privacy Settings',
           description: 'Control your privacy and visibility',
-          action: () => window.location.href = '/privacy',
+          action: () => navigate('/privacy'),
           icon: ChevronRight
         },
         {
           label: 'Verification',
           description: 'Verify your identity',
-          action: () => window.location.href = '/verification',
+          action: () => navigate('/verification'),
           icon: ChevronRight
         }
       ]
@@ -167,23 +195,23 @@ const SettingsPage: React.FC = () => {
       icon: Crown,
       items: [
         {
-          label: currentPlan?.name || 'Free Plan',
-          description: currentPlan?.description || 'Basic features',
+          label: tier ? tier.name : 'Free Plan',
+          description: tier ? tier.features.join(', ') : 'Basic features',
           action: () => setIsPremiumModalOpen(true),
-          icon: currentPlan?.id === 'free' ? Star : Crown,
-          badge: currentPlan?.id === 'free' ? 'Upgrade' : 'Active',
-          badgeVariant: currentPlan?.id === 'free' ? 'secondary' : 'default'
+          icon: tier ? (tier.id === 'free' ? Star : Crown) : Star,
+          badge: tier ? (tier.id === 'free' ? 'Upgrade' : 'Active') : '',
+          badgeVariant: tier ? (tier.id === 'free' ? 'secondary' : 'default') : 'default'
         },
         {
           label: 'Billing & Payment',
           description: 'Manage your payment methods',
-          action: () => window.location.href = '/billing',
+          action: () => navigate('/billing'),
           icon: CreditCard
         },
         {
           label: 'Usage Statistics',
           description: 'View your app usage',
-          action: () => window.location.href = '/usage',
+          action: () => navigate('/usage-stats'),
           icon: BarChart3
         }
       ]
@@ -305,19 +333,19 @@ const SettingsPage: React.FC = () => {
         {
           label: 'Help Center',
           description: 'Get help and find answers',
-          action: () => window.location.href = '/help',
+          action: () => navigate('/help'),
           icon: HelpCircle
         },
         {
           label: 'Contact Support',
           description: 'Reach out to our support team',
-          action: () => window.location.href = '/contact',
+          action: () => navigate('/contact'),
           icon: ChevronRight
         },
         {
           label: 'About',
           description: 'App version and information',
-          action: () => window.location.href = '/about',
+          action: () => navigate('/about'),
           icon: Info
         }
       ]
@@ -403,7 +431,7 @@ const SettingsPage: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   localStorage.clear();
-                  window.location.href = '/';
+                  navigate('/');
                 }}
                 className="w-full text-red-600 border-red-200 hover:bg-red-50"
               >
@@ -421,7 +449,6 @@ const SettingsPage: React.FC = () => {
           trigger="manual"
         />
       </div>
-      <BottomNav />
     </Layout>
   );
 };

@@ -2,348 +2,452 @@
 
 import { analytics } from './analytics';
 
-export interface SubscriptionPlan {
+// Extend Window interface for Stripe
+declare global {
+  interface Window {
+    Stripe?: (key: string) => {
+      createToken: (element: HTMLElement) => Promise<{ token?: { id: string }; error?: { message: string } }>;
+      createPaymentMethod: (params: { type: string; card: HTMLElement }) => Promise<{ paymentMethod?: { id: string }; error?: { message: string } }>;
+      confirmCardPayment: (clientSecret: string, params: { payment_method: string }) => Promise<{ paymentIntent?: { status: string }; error?: { message: string } }>;
+    };
+  }
+}
+
+export interface SubscriptionTier {
   id: string;
   name: string;
-  description: string;
   price: number;
-  currency: string;
   interval: 'monthly' | 'yearly';
   features: string[];
+  limits: {
+    dailyLikes: number;
+    dailySuperLikes: number;
+    dailyRewinds: number;
+    profileBoosts: number;
+    messageFilters: number;
+    advancedFilters: number;
+    readReceipts: boolean;
+    unlimitedMessages: boolean;
+    prioritySupport: boolean;
+  };
   popular?: boolean;
-  trialDays?: number;
+  bestValue?: boolean;
 }
 
 export interface UserSubscription {
   id: string;
-  planId: string;
-  status: 'active' | 'canceled' | 'expired' | 'trial';
-  startDate: number;
-  endDate?: number;
-  trialEndDate?: number;
-  autoRenew: boolean;
-  paymentMethod?: string;
+  userId: string;
+  tierId: string;
+  status: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing';
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
+  cancelAtPeriodEnd: boolean;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  features: string[];
+  usage: {
+    dailyLikes: number;
+    dailySuperLikes: number;
+    dailyRewinds: number;
+    profileBoosts: number;
+    messageFilters: number;
+    advancedFilters: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface PaymentMethod {
   id: string;
-  type: 'card' | 'paypal' | 'apple_pay' | 'google_pay';
-  last4?: string;
+  type: 'card' | 'bank_account';
+  last4: string;
   brand?: string;
-  expiryMonth?: number;
-  expiryYear?: number;
+  expMonth?: number;
+  expYear?: number;
   isDefault: boolean;
 }
 
 class SubscriptionService {
-  private plans: SubscriptionPlan[] = [
+  private stripe: any | null = null;
+  private readonly tiers: SubscriptionTier[] = [
     {
       id: 'free',
       name: 'Free',
-      description: 'Basic features for everyone',
       price: 0,
-      currency: 'USD',
       interval: 'monthly',
       features: [
-        '5 matches per day',
-        'Basic messaging',
-        'Venue discovery',
+        'Basic matching',
+        'Limited daily likes',
+        'Basic chat',
         'Profile creation'
-      ]
+      ],
+      limits: {
+        dailyLikes: 10,
+        dailySuperLikes: 0,
+        dailyRewinds: 0,
+        profileBoosts: 0,
+        messageFilters: 0,
+        advancedFilters: 0,
+        readReceipts: false,
+        unlimitedMessages: false,
+        prioritySupport: false
+      }
     },
     {
       id: 'premium',
       name: 'Premium',
-      description: 'Enhanced experience with unlimited features',
       price: 9.99,
-      currency: 'USD',
       interval: 'monthly',
       features: [
-        'Unlimited matches',
-        'Unlimited messaging',
-        'See who liked you',
+        'Unlimited likes',
+        'Super likes',
+        'Rewind last swipe',
+        'Profile boost',
         'Advanced filters',
-        'Priority support',
         'Read receipts',
-        'Undo last swipe'
+        'Unlimited messages',
+        'Priority support'
       ],
-      popular: true,
-      trialDays: 7
+      limits: {
+        dailyLikes: -1, // unlimited
+        dailySuperLikes: 5,
+        dailyRewinds: 3,
+        profileBoosts: 1,
+        messageFilters: 5,
+        advancedFilters: 10,
+        readReceipts: true,
+        unlimitedMessages: true,
+        prioritySupport: true
+      },
+      popular: true
     },
     {
       id: 'premium_yearly',
-      name: 'Premium Yearly',
-      description: 'Best value with 2 months free',
+      name: 'Premium',
       price: 99.99,
-      currency: 'USD',
       interval: 'yearly',
       features: [
         'All Premium features',
         '2 months free',
         'Exclusive events access',
-        'Profile boost',
-        'Travel mode'
+        'Profile verification badge'
       ],
-      trialDays: 7
+      limits: {
+        dailyLikes: -1,
+        dailySuperLikes: 10,
+        dailyRewinds: 5,
+        profileBoosts: 2,
+        messageFilters: 10,
+        advancedFilters: 20,
+        readReceipts: true,
+        unlimitedMessages: true,
+        prioritySupport: true
+      },
+      bestValue: true
     }
   ];
 
-  private userSubscription: UserSubscription | null = null;
-  private paymentMethods: PaymentMethod[] = [];
+  private subscriptions: Map<string, UserSubscription> = new Map();
+  private paymentMethods: Map<string, PaymentMethod[]> = new Map();
 
   constructor() {
-    this.loadUserData();
+    this.initializeStripe();
   }
 
-  // Plan management
-  getPlans(): SubscriptionPlan[] {
-    return [...this.plans];
-  }
-
-  getPlan(planId: string): SubscriptionPlan | undefined {
-    return this.plans.find(plan => plan.id === planId);
-  }
-
-  getCurrentPlan(): SubscriptionPlan | null {
-    if (!this.userSubscription) {
-      return this.getPlan('free');
+  private async initializeStripe() {
+    if (typeof window !== 'undefined' && window.Stripe) {
+      this.stripe = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
     }
-    return this.getPlan(this.userSubscription.planId);
   }
 
-  // Subscription management
-  async subscribe(planId: string, paymentMethodId?: string): Promise<UserSubscription> {
-    const plan = this.getPlan(planId);
-    if (!plan) {
-      throw new Error('Invalid plan');
+  // Get all available tiers
+  getTiers(): SubscriptionTier[] {
+    return this.tiers;
+  }
+
+  // Get tier by ID
+  getTier(tierId: string): SubscriptionTier | undefined {
+    return this.tiers.find(tier => tier.id === tierId);
+  }
+
+  // Get user's current subscription
+  getUserSubscription(userId: string): UserSubscription | null {
+    const subscription = this.subscriptions.get(userId);
+    if (!subscription || subscription.status !== 'active') {
+      return null;
+    }
+    return subscription;
+  }
+
+  // Check if user has a specific feature
+  hasFeature(userId: string, feature: string): boolean {
+    const subscription = this.getUserSubscription(userId);
+    if (!subscription) {
+      // Check free tier features
+      const freeTier = this.getTier('free');
+      return freeTier?.features.includes(feature) || false;
     }
 
-    if (plan.price === 0) {
-      // Free plan
-      this.userSubscription = {
-        id: `sub_${Date.now()}`,
-        planId,
-        status: 'active',
-        startDate: Date.now(),
-        autoRenew: false
-      };
-    } else {
-      // Paid plan
-      const trialEndDate = plan.trialDays ? Date.now() + (plan.trialDays * 24 * 60 * 60 * 1000) : undefined;
+    const tier = this.getTier(subscription.tierId);
+    return tier?.features.includes(feature) || false;
+  }
+
+  // Check if user can perform an action (respecting limits)
+  canPerformAction(userId: string, action: keyof UserSubscription['usage']): boolean {
+    const subscription = this.getUserSubscription(userId);
+    if (!subscription) {
+      // Check free tier limits
+      const freeTier = this.getTier('free');
+      const limit = freeTier?.limits[action] || 0;
+      return limit === -1 || subscription?.usage[action] < limit;
+    }
+
+    const tier = this.getTier(subscription.tierId);
+    const limit = tier?.limits[action] || 0;
+    
+    // -1 means unlimited
+    if (limit === -1) return true;
+    
+    return subscription.usage[action] < limit;
+  }
+
+  // Record usage of a feature
+  recordUsage(userId: string, action: keyof UserSubscription['usage']): boolean {
+    const subscription = this.getUserSubscription(userId);
+    if (!subscription) {
+      // Handle free tier usage
+      const freeTier = this.getTier('free');
+      const limit = freeTier?.limits[action] || 0;
       
-      this.userSubscription = {
-        id: `sub_${Date.now()}`,
-        planId,
-        status: trialEndDate ? 'trial' : 'active',
-        startDate: Date.now(),
-        endDate: plan.interval === 'monthly' ? Date.now() + (30 * 24 * 60 * 60 * 1000) : Date.now() + (365 * 24 * 60 * 60 * 1000),
-        trialEndDate,
-        autoRenew: true,
-        paymentMethod: paymentMethodId
-      };
+      if (limit === -1) return true;
+      
+      // For free tier, we'd need to track usage differently
+      // This is a simplified implementation
+      return true;
     }
 
-    this.saveUserData();
-    analytics.track('subscription_started', { planId, planName: plan.name });
+    if (!this.canPerformAction(userId, action)) {
+      return false;
+    }
+
+    subscription.usage[action]++;
+    subscription.updatedAt = new Date();
     
-    return this.userSubscription;
+    analytics.track('feature_usage', {
+      user_id: userId,
+      feature: action,
+      subscription_tier: subscription.tierId
+    });
+
+    return true;
   }
 
-  async cancelSubscription(): Promise<void> {
-    if (!this.userSubscription) {
-      throw new Error('No active subscription');
+  // Create subscription (simulate Stripe integration)
+  async createSubscription(
+    userId: string, 
+    tierId: string, 
+    paymentMethodId: string
+  ): Promise<UserSubscription> {
+    const tier = this.getTier(tierId);
+    if (!tier) {
+      throw new Error('Invalid subscription tier');
     }
 
-    this.userSubscription.status = 'canceled';
-    this.userSubscription.autoRenew = false;
-    this.saveUserData();
-
-    analytics.track('subscription_canceled', { planId: this.userSubscription.planId });
-  }
-
-  async reactivateSubscription(): Promise<void> {
-    if (!this.userSubscription || this.userSubscription.status !== 'canceled') {
-      throw new Error('No canceled subscription to reactivate');
+    const now = new Date();
+    const periodEnd = new Date(now);
+    
+    if (tier.interval === 'monthly') {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    } else {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
     }
 
-    this.userSubscription.status = 'active';
-    this.userSubscription.autoRenew = true;
-    this.saveUserData();
+    const subscription: UserSubscription = {
+      id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      tierId,
+      status: 'active',
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: `cus_${userId}`,
+      stripeSubscriptionId: `sub_${userId}`,
+      features: tier.features,
+      usage: {
+        dailyLikes: 0,
+        dailySuperLikes: 0,
+        dailyRewinds: 0,
+        profileBoosts: 0,
+        messageFilters: 0,
+        advancedFilters: 0
+      },
+      createdAt: now,
+      updatedAt: now
+    };
 
-    analytics.track('subscription_reactivated', { planId: this.userSubscription.planId });
+    this.subscriptions.set(userId, subscription);
+
+    analytics.track('subscription_created', {
+      user_id: userId,
+      tier_id: tierId,
+      price: tier.price,
+      interval: tier.interval
+    });
+
+    return subscription;
   }
 
-  // Payment methods
-  async addPaymentMethod(paymentMethod: Omit<PaymentMethod, 'id'>): Promise<PaymentMethod> {
-    const newPaymentMethod: PaymentMethod = {
+  // Cancel subscription
+  async cancelSubscription(userId: string, cancelAtPeriodEnd: boolean = true): Promise<void> {
+    const subscription = this.subscriptions.get(userId);
+    if (!subscription) {
+      throw new Error('No active subscription found');
+    }
+
+    if (cancelAtPeriodEnd) {
+      subscription.cancelAtPeriodEnd = true;
+      subscription.status = 'active'; // Still active until period ends
+    } else {
+      subscription.status = 'canceled';
+    }
+
+    subscription.updatedAt = new Date();
+
+    analytics.track('subscription_canceled', {
+      user_id: userId,
+      tier_id: subscription.tierId,
+      cancel_at_period_end: cancelAtPeriodEnd
+    });
+  }
+
+  // Upgrade subscription
+  async upgradeSubscription(userId: string, newTierId: string): Promise<UserSubscription> {
+    const currentSubscription = this.getUserSubscription(userId);
+    const newTier = this.getTier(newTierId);
+
+    if (!newTier) {
+      throw new Error('Invalid subscription tier');
+    }
+
+    if (currentSubscription) {
+      // Cancel current subscription
+      await this.cancelSubscription(userId, true);
+    }
+
+    // Create new subscription
+    const newSubscription = await this.createSubscription(userId, newTierId, 'pm_default');
+
+    analytics.track('subscription_upgraded', {
+      user_id: userId,
+      from_tier: currentSubscription?.tierId || 'free',
+      to_tier: newTierId
+    });
+
+    return newSubscription;
+  }
+
+  // Get payment methods for user
+  getUserPaymentMethods(userId: string): PaymentMethod[] {
+    return this.paymentMethods.get(userId) || [];
+  }
+
+  // Add payment method
+  async addPaymentMethod(
+    userId: string, 
+    paymentMethod: Omit<PaymentMethod, 'id' | 'isDefault'>
+  ): Promise<PaymentMethod> {
+    const methods = this.getUserPaymentMethods(userId);
+    const newMethod: PaymentMethod = {
       ...paymentMethod,
-      id: `pm_${Date.now()}`
+      id: `pm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      isDefault: methods.length === 0
     };
 
-    if (newPaymentMethod.isDefault) {
-      this.paymentMethods.forEach(pm => pm.isDefault = false);
-    }
+    this.paymentMethods.set(userId, [...methods, newMethod]);
 
-    this.paymentMethods.push(newPaymentMethod);
-    this.saveUserData();
+    analytics.track('payment_method_added', {
+      user_id: userId,
+      payment_method_type: paymentMethod.type
+    });
 
-    analytics.track('payment_method_added', { type: paymentMethod.type });
-    return newPaymentMethod;
+    return newMethod;
   }
 
-  async removePaymentMethod(paymentMethodId: string): Promise<void> {
-    this.paymentMethods = this.paymentMethods.filter(pm => pm.id !== paymentMethodId);
-    this.saveUserData();
-
-    analytics.track('payment_method_removed');
-  }
-
-  getPaymentMethods(): PaymentMethod[] {
-    return [...this.paymentMethods];
-  }
-
-  // Feature access
-  hasFeature(feature: string): boolean {
-    const currentPlan = this.getCurrentPlan();
-    if (!currentPlan) return false;
-
-    return currentPlan.features.includes(feature);
-  }
-
-  canMatch(): boolean {
-    if (this.hasFeature('Unlimited matches')) return true;
+  // Remove payment method
+  async removePaymentMethod(userId: string, paymentMethodId: string): Promise<void> {
+    const methods = this.getUserPaymentMethods(userId);
+    const updatedMethods = methods.filter(method => method.id !== paymentMethodId);
     
-    // Check daily match limit for free users
-    const today = new Date().toDateString();
-    const dailyMatches = this.getDailyMatches(today);
-    return dailyMatches < 5;
+    this.paymentMethods.set(userId, updatedMethods);
+
+    analytics.track('payment_method_removed', {
+      user_id: userId,
+      payment_method_id: paymentMethodId
+    });
   }
 
-  canMessage(): boolean {
-    return this.hasFeature('Unlimited messaging');
-  }
+  // Get subscription analytics
+  getSubscriptionAnalytics(): {
+    totalSubscribers: number;
+    revenueByTier: Record<string, number>;
+    churnRate: number;
+    averageRevenuePerUser: number;
+  } {
+    const activeSubscriptions = Array.from(this.subscriptions.values())
+      .filter(sub => sub.status === 'active');
 
-  canSeeLikes(): boolean {
-    return this.hasFeature('See who liked you');
-  }
+    const totalSubscribers = activeSubscriptions.length;
+    
+    const revenueByTier: Record<string, number> = {};
+    let totalRevenue = 0;
 
-  // Usage tracking
-  private getDailyMatches(date: string): number {
-    const stored = localStorage.getItem(`daily_matches_${date}`);
-    return stored ? parseInt(stored, 10) : 0;
-  }
+    activeSubscriptions.forEach(sub => {
+      const tier = this.getTier(sub.tierId);
+      if (tier) {
+        revenueByTier[sub.tierId] = (revenueByTier[sub.tierId] || 0) + tier.price;
+        totalRevenue += tier.price;
+      }
+    });
 
-  trackMatch(): void {
-    if (!this.canMatch()) {
-      throw new Error('Daily match limit reached. Upgrade to Premium for unlimited matches.');
-    }
+    const averageRevenuePerUser = totalSubscribers > 0 ? totalRevenue / totalSubscribers : 0;
 
-    const today = new Date().toDateString();
-    const current = this.getDailyMatches(today);
-    localStorage.setItem(`daily_matches_${today}`, (current + 1).toString());
-  }
+    // Simplified churn calculation
+    const canceledThisMonth = Array.from(this.subscriptions.values())
+      .filter(sub => sub.status === 'canceled' && 
+        sub.updatedAt.getMonth() === new Date().getMonth())
+      .length;
 
-  // Billing and invoices
-  async getInvoices(): Promise<Array<{
-    id: string;
-    amount: number;
-    currency: string;
-    status: 'paid' | 'pending' | 'failed';
-    date: number;
-    description: string;
-  }>> {
-    // In a real app, this would fetch from your payment processor
-    return [];
-  }
+    const churnRate = totalSubscribers > 0 ? (canceledThisMonth / totalSubscribers) * 100 : 0;
 
-  async updateBillingInfo(billingInfo: {
-    name: string;
-    email: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  }): Promise<void> {
-    // In a real app, this would update billing info with your payment processor
-    localStorage.setItem('billing_info', JSON.stringify(billingInfo));
-  }
-
-  // Promotional codes
-  async applyPromoCode(code: string): Promise<{
-    valid: boolean;
-    discount?: number;
-    message?: string;
-  }> {
-    // In a real app, this would validate with your backend
-    const validCodes: Record<string, number> = {
-      'WELCOME10': 10,
-      'SAVE20': 20,
-      'FREEMONTH': 100
+    return {
+      totalSubscribers,
+      revenueByTier,
+      churnRate,
+      averageRevenuePerUser
     };
-
-    const discount = validCodes[code];
-    if (discount) {
-      analytics.track('promo_code_applied', { code, discount });
-      return { valid: true, discount, message: `Discount applied: ${discount}% off` };
-    }
-
-    return { valid: false, message: 'Invalid promo code' };
   }
 
-  // Data persistence
-  private saveUserData(): void {
-    try {
-      localStorage.setItem('user_subscription', JSON.stringify(this.userSubscription));
-      localStorage.setItem('payment_methods', JSON.stringify(this.paymentMethods));
-    } catch (error) {
-      console.error('Error saving subscription data:', error);
-    }
-  }
-
-  private loadUserData(): void {
-    try {
-      const subscriptionData = localStorage.getItem('user_subscription');
-      if (subscriptionData) {
-        this.userSubscription = JSON.parse(subscriptionData);
+  // Reset daily usage (should be called daily)
+  resetDailyUsage(): void {
+    const now = new Date();
+    
+    this.subscriptions.forEach(subscription => {
+      const lastReset = new Date(subscription.updatedAt);
+      const daysSinceReset = Math.floor((now.getTime() - lastReset.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceReset >= 1) {
+        subscription.usage = {
+          dailyLikes: 0,
+          dailySuperLikes: 0,
+          dailyRewinds: 0,
+          profileBoosts: 0,
+          messageFilters: 0,
+          advancedFilters: 0
+        };
+        subscription.updatedAt = now;
       }
-
-      const paymentMethodsData = localStorage.getItem('payment_methods');
-      if (paymentMethodsData) {
-        this.paymentMethods = JSON.parse(paymentMethodsData);
-      }
-    } catch (error) {
-      console.error('Error loading subscription data:', error);
-    }
-  }
-
-  // Public API
-  getUserSubscription(): UserSubscription | null {
-    return this.userSubscription ? { ...this.userSubscription } : null;
-  }
-
-  isSubscribed(): boolean {
-    return this.userSubscription?.status === 'active' || this.userSubscription?.status === 'trial';
-  }
-
-  isTrialActive(): boolean {
-    if (!this.userSubscription?.trialEndDate) return false;
-    return Date.now() < this.userSubscription.trialEndDate;
-  }
-
-  getTrialDaysLeft(): number {
-    if (!this.userSubscription?.trialEndDate) return 0;
-    const daysLeft = Math.ceil((this.userSubscription.trialEndDate - Date.now()) / (24 * 60 * 60 * 1000));
-    return Math.max(0, daysLeft);
+    });
   }
 }
 
-// Create singleton instance
-export const subscriptionService = new SubscriptionService();
-
-// Export convenience functions
-export const hasPremiumFeature = (feature: string) => subscriptionService.hasFeature(feature);
-export const canUserMatch = () => subscriptionService.canMatch();
-export const canUserMessage = () => subscriptionService.canMessage();
-export const isUserSubscribed = () => subscriptionService.isSubscribed();
-export const getCurrentPlan = () => subscriptionService.getCurrentPlan(); 
+export const subscriptionService = new SubscriptionService(); 

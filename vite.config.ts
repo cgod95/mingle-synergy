@@ -95,23 +95,89 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            vendor: ['react', 'react-dom', 'react-router-dom'],
-            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-            ui: ['lucide-react']
-          }
-        }
-      },
-      sourcemap: mode !== 'production',
+      target: 'es2015',
       minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: mode === 'production',
-          drop_debugger: mode === 'production'
+          drop_console: true,
+          drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+        },
+      },
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Vendor chunks
+            'react-vendor': ['react', 'react-dom'],
+            'router-vendor': ['react-router-dom'],
+            'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+            'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+            'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge'],
+            'icons-vendor': ['lucide-react'],
+            // Feature chunks
+            'auth': ['./src/services/firebase/authService', './src/context/AuthContext'],
+            'matching': ['./src/services/matchingService', './src/services/firebase/matchService'],
+            'messaging': ['./src/services/messageService', './src/pages/Chat'],
+            'venues': ['./src/services/firebase/venueService', './src/pages/VenueList'],
+            'admin': ['./src/pages/AdminDashboard', './src/services/businessFeatures'],
+          },
+          chunkFileNames: (chunkInfo) => {
+            const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
+            return `js/[name]-[hash].js`;
+          },
+          entryFileNames: 'js/[name]-[hash].js',
+          assetFileNames: (assetInfo) => {
+            const info = assetInfo.name?.split('.') || [];
+            const ext = info[info.length - 1];
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+              return `images/[name]-[hash][extname]`;
+            }
+            if (/woff2?|eot|ttf|otf/i.test(ext)) {
+              return `fonts/[name]-[hash][extname]`;
+            }
+            return `assets/[name]-[hash][extname]`;
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000,
+      sourcemap: false,
+    },
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        'firebase/app',
+        'firebase/auth',
+        'firebase/firestore',
+        'lucide-react',
+        'date-fns',
+        'clsx',
+        'tailwind-merge'
+      ],
+      exclude: [
+        'firebase/analytics',
+        'firebase/performance'
+      ]
+    },
+    preview: {
+      port: 8080,
+      host: true,
+    },
+    css: {
+      devSourcemap: false,
+    },
+    define: {
+      __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
+    },
+    experimental: {
+      renderBuiltUrl(filename, { hostType }) {
+        if (hostType === 'js') {
+          return { js: filename };
+        } else {
+          return { relative: true };
         }
-      }
-    }
+      },
+    },
   }
 });

@@ -1,11 +1,10 @@
-
 import { useEffect } from 'react';
 import { trackError } from '../services/appAnalytics';
 
 export const usePerformance = (componentName: string): void => {
   useEffect(() => {
     // Skip in development mode if requested
-    if (process.env.NODE_ENV === 'development' && 
+    if (import.meta.env.MODE === 'development' && 
         localStorage.getItem('disable_performance_tracking') === 'true') {
       return;
     }

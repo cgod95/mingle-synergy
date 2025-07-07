@@ -7,7 +7,6 @@ import { useToast } from '../components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { ReactNode, useRef, useCallback } from 'react';
 import authService from '../services';
-import { AuthContext } from './AuthContext';
 import { AuthNavigationContext, useAuthNavigation } from './auth-context';
 
 type AuthContextType = {
@@ -19,6 +18,8 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
 };
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -48,8 +49,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setCurrentUser(firebaseUser);
       setLoading(false);
     });
-    return () => unsubscribe();
+    // Fallback: if loading is still true after 5 seconds, set it to false
+    const timeout = setTimeout(() => {
+      setLoading((prev) => {
+        if (prev) {
+          console.warn('[AuthContext] Auth loading timeout fallback triggered (hard)');
+          return false;
+        }
+        return prev;
+      });
+    }, 5000);
+    // Extra hard fallback: force loading to false after 7 seconds no matter what
+    const hardTimeout = setTimeout(() => {
+      console.error('[AuthContext] HARD fallback: Forcing loading to false!');
+      setLoading(false);
+    }, 7000);
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+      clearTimeout(hardTimeout);
+    };
   }, []);
+
+  useEffect(() => {
+    console.log('[AuthContext] loading state changed:', loading);
+  }, [loading]);
 
   useEffect(() => {
     const localUser = localStorage.getItem('currentUser');
@@ -186,4 +210,12 @@ export const WithAuthNavigation: React.FC<{ children: ReactNode }> = ({ children
   }, [navigate, setNavigate]);
   
   return <>{children}</>;
+};
+
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

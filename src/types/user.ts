@@ -15,6 +15,15 @@ export interface UserProfile {
     matches: string[];
     likedUsers: string[];
     blockedUsers: string[];
+    // Extended properties for advanced matching
+    communicationStyle?: 'casual' | 'serious' | 'both';
+    lifestyle?: 'active' | 'relaxed' | 'both';
+    location?: {
+        latitude: number;
+        longitude: number;
+    };
+    activityLevel?: 'low' | 'medium' | 'high';
+    recentVenues?: string[];
 }
 
 export interface User {

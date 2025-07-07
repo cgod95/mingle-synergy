@@ -76,7 +76,7 @@ class ErrorBoundaryClass extends Component<Props & { navigate: (path: string) =>
                 We encountered an unexpected error. Don't worry, your data is safe.
               </p>
               
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.MODE === 'development' && this.state.error && (
                 <details className="text-xs text-neutral-500 bg-neutral-100 p-3 rounded">
                   <summary className="cursor-pointer font-medium mb-2">
                     Error Details (Development)

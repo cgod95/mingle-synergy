@@ -1,6 +1,7 @@
 import { doc, updateDoc, increment, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase/config';
 import { analytics } from './analytics';
+import { advancedFeatures } from './advancedFeatures';
 
 // Enhanced notification service for Mingle's unique features
 export interface NotificationData {
@@ -14,6 +15,33 @@ export interface NotificationData {
   read: boolean;
 }
 
+export interface Notification {
+  id: string;
+  type: 'match' | 'message' | 'venue' | 'system' | 'reconnect';
+  title: string;
+  message: string;
+  data?: Record<string, unknown>;
+  timestamp: number;
+  read: boolean;
+  actionUrl?: string;
+}
+
+export interface PushNotificationConfig {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  data?: Record<string, unknown>;
+  requireInteraction?: boolean;
+  silent?: boolean;
+  actions?: Array<{
+    action: string;
+    title: string;
+    icon?: string;
+  }>;
+}
+
 class NotificationService {
   private isSupported: boolean;
   private permission: NotificationPermission = 'default';
@@ -23,7 +51,7 @@ class NotificationService {
   constructor() {
     this.isSupported = 'Notification' in window;
     this.loadNotifications();
-    this.requestNotificationPermission();
+    this.initializePushNotifications();
   }
 
   private loadNotifications() {
@@ -41,122 +69,310 @@ class NotificationService {
     this.listeners.forEach(listener => listener(this.notifications));
   }
 
+  // Initialize push notifications
+  private async initializePushNotifications(): Promise<void> {
+    if (!this.isSupported) {
+      console.warn('Push notifications not supported');
+      return;
+    }
+
+    this.permission = await this.requestPermission();
+    
+    if (this.permission === 'granted') {
+      await this.subscribeToPushNotifications();
+      this.setupNotificationHandlers();
+    }
+  }
+
   // Request notification permission
-  async requestNotificationPermission(): Promise<NotificationPermission> {
+  async requestPermission(): Promise<NotificationPermission> {
     if (!this.isSupported) return 'denied';
 
-    if (this.permission === 'default') {
-      this.permission = await Notification.requestPermission();
-    }
-
-    return this.permission;
-  }
-
-  // Subscribe to notification updates
-  subscribe(callback: (notifications: NotificationData[]) => void) {
-    this.listeners.push(callback);
-    callback(this.notifications);
-    
-    return () => {
-      this.listeners = this.listeners.filter(listener => listener !== callback);
-    };
-  }
-
-  // Add a new notification
-  addNotification(notification: Omit<NotificationData, 'id' | 'timestamp' | 'read'>) {
-    const newNotification: NotificationData = {
-      ...notification,
-      id: `notif_${Date.now()}_${Math.random()}`,
-      timestamp: Date.now(),
-      read: false,
-    };
-
-    this.notifications.unshift(newNotification);
-    
-    // Keep only last 50 notifications
-    if (this.notifications.length > 50) {
-      this.notifications = this.notifications.slice(0, 50);
-    }
-
-    this.saveNotifications();
-    this.notifyListeners();
-    this.showBrowserNotification(newNotification);
-  }
-
-  // Show browser notification
-  private async showBrowserNotification(notification: NotificationData): Promise<void> {
-    if (this.permission !== 'granted' || !this.isSupported) return;
-
-    const options: NotificationOptions = {
-      body: notification.body,
-      icon: '/logo192.png',
-      badge: '/logo192.png',
-      tag: notification.type,
-      data: notification.data,
-      requireInteraction: notification.priority === 'high',
-      silent: false
-    };
-
     try {
-      const browserNotification = new Notification(notification.title, options);
+      const permission = await Notification.requestPermission();
+      this.permission = permission;
       
-      browserNotification.onclick = () => {
-        this.markAsRead(notification.id);
-        this.handleNotificationClick(notification);
-        browserNotification.close();
-      };
+      // Track permission request
+      analytics.track('notification_permission_requested', {
+        permission,
+        timestamp: Date.now()
+      });
+      
+      return permission;
+    } catch (error) {
+      console.error('Failed to request notification permission:', error);
+      return 'denied';
+    }
+  }
 
-      // Auto-close after 5 seconds for low priority
-      if (notification.priority === 'low') {
-        setTimeout(() => browserNotification.close(), 5000);
+  // Subscribe to push notifications
+  private async subscribeToPushNotifications(): Promise<void> {
+    try {
+      const subscription = await advancedFeatures.subscribeToPushNotifications();
+      
+      if (subscription) {
+        analytics.track('push_notification_subscribed', {
+          timestamp: Date.now()
+        });
       }
     } catch (error) {
-      console.error('Failed to show browser notification:', error);
+      console.error('Failed to subscribe to push notifications:', error);
     }
   }
 
-  // Handle notification clicks
-  private handleNotificationClick(notification: NotificationData) {
-    switch (notification.type) {
-      case 'match':
-        window.location.href = `/matches`;
-        break;
-      case 'message':
-        window.location.href = `/messages`;
-        break;
-      case 'venue_checkin':
-        window.location.href = `/venue/${notification.data?.venueId}`;
-        break;
-      case 'proximity_alert':
-        window.location.href = `/venue/${notification.data?.venueId}`;
-        break;
-      case 'match_expiring':
-        window.location.href = `/matches`;
-        break;
-      case 'reconnect_request':
-        window.location.href = `/matches`;
-        break;
-      case 'venue_activity':
-        window.location.href = `/venue/${notification.data?.venueId}`;
-        break;
+  // Setup notification handlers
+  private setupNotificationHandlers(): void {
+    // Handle notification clicks
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
+          this.handleNotificationClick(event.data.notification);
+        }
+      });
     }
+  }
+
+  // Handle notification click
+  private handleNotificationClick(notification: Notification): void {
+    analytics.track('notification_clicked', {
+      notificationId: notification.id,
+      notificationType: notification.type,
+      timestamp: Date.now()
+    });
+
+    // Navigate to relevant page
+    if (notification.actionUrl) {
+      window.location.href = notification.actionUrl;
+    }
+  }
+
+  // Send local notification
+  async sendLocalNotification(config: PushNotificationConfig): Promise<string> {
+    if (!this.isSupported || this.permission !== 'granted') {
+      return '';
+    }
+
+    const id = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const options: NotificationOptions = {
+        body: config.body,
+        icon: config.icon || '/logo192.png',
+        badge: config.badge,
+        tag: config.tag,
+        data: config.data,
+        requireInteraction: config.requireInteraction,
+        silent: config.silent
+      };
+
+      // Add actions if supported
+      if (config.actions && 'actions' in options) {
+        (options as Record<string, unknown>).actions = config.actions;
+      }
+
+      await registration.showNotification(config.title, options);
+
+      // Track notification sent
+      analytics.track('local_notification_sent', {
+        notificationId: id,
+        title: config.title,
+        timestamp: Date.now()
+      });
+
+      return id;
+    } catch (error) {
+      console.error('Failed to send local notification:', error);
+      return '';
+    }
+  }
+
+  // Send match notification
+  async sendMatchNotification(matchData: {
+    matchId: string;
+    matchedUserName: string;
+    venueName: string;
+  }): Promise<void> {
+    const notification: NotificationData = {
+      id: `match_${matchData.matchId}`,
+      type: 'match',
+      title: 'New Match! 🎉',
+      body: `You matched with ${matchData.matchedUserName} at ${matchData.venueName}`,
+      data: matchData,
+      priority: 'high',
+      timestamp: Date.now(),
+      read: false
+    };
+
+    this.addNotification(notification);
+
+    // Send push notification
+    await this.sendLocalNotification({
+      title: 'New Match! 🎉',
+      body: `You matched with ${matchData.matchedUserName} at ${matchData.venueName}`,
+      icon: '/logo192.png',
+      tag: 'match',
+      data: matchData,
+      actions: [
+        {
+          action: 'view',
+          title: 'View Match'
+        },
+        {
+          action: 'message',
+          title: 'Send Message'
+        }
+      ]
+    });
+  }
+
+  // Send message notification
+  async sendMessageNotification(messageData: {
+    messageId: string;
+    senderName: string;
+    message: string;
+    matchId: string;
+  }): Promise<void> {
+    const notification: NotificationData = {
+      id: `message_${messageData.messageId}`,
+      type: 'message',
+      title: `Message from ${messageData.senderName}`,
+      body: messageData.message,
+      data: messageData,
+      priority: 'normal',
+      timestamp: Date.now(),
+      read: false
+    };
+
+    this.addNotification(notification);
+
+    // Send push notification
+    await this.sendLocalNotification({
+      title: `Message from ${messageData.senderName}`,
+      body: messageData.message,
+      icon: '/logo192.png',
+      tag: 'message',
+      data: messageData,
+      actions: [
+        {
+          action: 'reply',
+          title: 'Reply'
+        },
+        {
+          action: 'view',
+          title: 'View Chat'
+        }
+      ]
+    });
+  }
+
+  // Send venue notification
+  async sendVenueNotification(venueData: {
+    venueId: string;
+    venueName: string;
+    userCount: number;
+  }): Promise<void> {
+    const notification: Notification = {
+      id: `venue_${venueData.venueId}`,
+      type: 'venue',
+      title: 'Venue Update',
+      message: `${venueData.userCount} people are now at ${venueData.venueName}`,
+      data: venueData,
+      timestamp: Date.now(),
+      read: false,
+      actionUrl: `/venue/${venueData.venueId}`
+    };
+
+    this.addNotification(notification);
+
+    // Send push notification
+    await this.sendLocalNotification({
+      title: 'Venue Update',
+      body: `${venueData.userCount} people are now at ${venueData.venueName}`,
+      icon: '/logo192.png',
+      tag: 'venue',
+      data: venueData
+    });
+  }
+
+  // Add notification to list
+  private addNotification(notification: NotificationData): void {
+    this.notifications.unshift(notification);
+    
+    // Keep only last 100 notifications
+    if (this.notifications.length > 100) {
+      this.notifications = this.notifications.slice(0, 100);
+    }
+    
+    this.saveNotifications();
+    this.notifyListeners();
+    
+    // Track notification added
+    analytics.track('notification_added', {
+      notificationId: notification.id,
+      notificationType: notification.type,
+      timestamp: Date.now()
+    });
+  }
+
+  // Get all notifications
+  getNotifications(): Notification[] {
+    return [...this.notifications];
+  }
+
+  // Get unread notifications
+  getUnreadNotifications(): Notification[] {
+    return this.notifications.filter(n => !n.read);
   }
 
   // Mark notification as read
-  markAsRead(notificationId: string) {
+  markAsRead(notificationId: string): void {
     const notification = this.notifications.find(n => n.id === notificationId);
     if (notification) {
       notification.read = true;
       this.saveNotifications();
-      this.notifyListeners();
+      
+      analytics.track('notification_marked_read', {
+        notificationId,
+        timestamp: Date.now()
+      });
     }
   }
 
   // Mark all notifications as read
-  markAllAsRead() {
+  markAllAsRead(): void {
     this.notifications.forEach(n => n.read = true);
     this.saveNotifications();
-    this.notifyListeners();
+    
+    analytics.track('all_notifications_marked_read', {
+      timestamp: Date.now()
+    });
+  }
+
+  // Delete notification
+  deleteNotification(notificationId: string): void {
+    this.notifications = this.notifications.filter(n => n.id !== notificationId);
+    this.saveNotifications();
+    
+    analytics.track('notification_deleted', {
+      notificationId,
+      timestamp: Date.now()
+    });
+  }
+
+  // Clear all notifications
+  clearAllNotifications(): void {
+    this.notifications = [];
+    this.saveNotifications();
+    
+    analytics.track('all_notifications_cleared', {
+      timestamp: Date.now()
+    });
+  }
+
+  // Get notification count
+  getNotificationCount(): number {
+    return this.notifications.length;
   }
 
   // Get unread count
@@ -164,109 +380,14 @@ class NotificationService {
     return this.notifications.filter(n => !n.read).length;
   }
 
-  // Get notifications
-  getNotifications(): NotificationData[] {
-    return this.notifications;
-  }
-
-  // Clear all notifications
-  clearAll() {
-    this.notifications = [];
-    this.saveNotifications();
-    this.notifyListeners();
-  }
-
-  // Delete specific notification
-  deleteNotification(notificationId: string) {
-    this.notifications = this.notifications.filter(n => n.id !== notificationId);
-    this.saveNotifications();
-    this.notifyListeners();
-  }
-
-  // Mingle-specific notification methods
-  notifyNewMatch(matchData: { matchId: string; userName: string; venueName: string }) {
-    this.addNotification({
-      type: 'match',
-      title: 'New Match! 💕',
-      body: `You matched with ${matchData.userName} at ${matchData.venueName}!`,
-      data: { matchId: matchData.matchId, venueName: matchData.venueName },
-      priority: 'high'
-    });
-  }
-
-  notifyNewMessage(messageData: { senderName: string; message: string; matchId: string }) {
-    this.addNotification({
-      type: 'message',
-      title: `Message from ${messageData.senderName}`,
-      body: messageData.message,
-      data: { matchId: messageData.matchId },
-      priority: 'normal'
-    });
-  }
-
-  notifyVenueCheckIn(venueData: { venueName: string; venueId: string; peopleCount: number }) {
-    this.addNotification({
-      type: 'venue_checkin',
-      title: 'Successfully checked in! 📍',
-      body: `You're now visible to ${venueData.peopleCount} people at ${venueData.venueName}`,
-      data: { venueId: venueData.venueId, venueName: venueData.venueName },
-      priority: 'normal'
-    });
-  }
-
-  notifyProximityAlert(proximityData: { venueName: string; venueId: string; newPeopleCount: number }) {
-    this.addNotification({
-      type: 'proximity_alert',
-      title: 'New people nearby! 👥',
-      body: `${proximityData.newPeopleCount} new people checked in at ${proximityData.venueName}`,
-      data: { venueId: proximityData.venueId, venueName: proximityData.venueName },
-      priority: 'low'
-    });
-  }
-
-  notifyMatchExpiring(matchData: { matchId: string; userName: string; timeLeft: string }) {
-    this.addNotification({
-      type: 'match_expiring',
-      title: 'Match expiring soon! ⏰',
-      body: `Your match with ${matchData.userName} expires in ${matchData.timeLeft}`,
-      data: { matchId: matchData.matchId },
-      priority: 'high'
-    });
-  }
-
-  notifyReconnectRequest(reconnectData: { matchId: string; userName: string; venueName: string }) {
-    this.addNotification({
-      type: 'reconnect_request',
-      title: 'Reconnection request! 🔄',
-      body: `${reconnectData.userName} wants to reconnect at ${reconnectData.venueName}`,
-      data: { matchId: reconnectData.matchId },
-      priority: 'normal'
-    });
-  }
-
-  notifyVenueActivity(activityData: { venueName: string; venueId: string; activity: string }) {
-    this.addNotification({
-      type: 'venue_activity',
-      title: `Activity at ${activityData.venueName}`,
-      body: activityData.activity,
-      data: { venueId: activityData.venueId, venueName: activityData.venueName },
-      priority: 'low'
-    });
-  }
-
-  // Check if notifications are enabled
-  isEnabled(): boolean {
-    return this.permission === 'granted';
-  }
-
-  // Get permission status
-  getPermissionStatus(): NotificationPermission {
-    return this.permission;
-  }
-
   // Check if notifications are supported
   isNotificationSupported(): boolean {
     return this.isSupported;
+  }
+
+  // Get current permission status
+  getPermissionStatus(): NotificationPermission {
+    return this.permission;
   }
 }
 

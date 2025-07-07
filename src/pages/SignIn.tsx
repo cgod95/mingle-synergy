@@ -8,19 +8,61 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '@/components/Layout';
+import { analytics } from '@/services/analytics';
+import { sanitizeInput, validateEmail, validatePassword } from '@/utils/security';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignIn = async () => {
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    // Validate and sanitize inputs
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const sanitizedEmail = sanitizeInput.email(email);
+      const passwordValidation = validatePassword(password);
+      
+      if (!passwordValidation.isValid) {
+        setError('Password must be at least 6 characters long');
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      // Track sign-in attempt
+      analytics.track('sign_in_attempted', {
+        email: sanitizedEmail,
+        timestamp: Date.now()
+      });
+
+      await signInWithEmailAndPassword(auth, sanitizedEmail, password);
+      
+      // Track successful sign-in
+      analytics.track('sign_in_success', {
+        timestamp: Date.now()
+      });
+
       navigate('/venues');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (error) {
+      console.error('Sign in error:', error);
+      
+      // Track sign-in error
+      analytics.track('sign_in_error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: Date.now()
+      });
+
+      setError(error instanceof Error ? error.message : 'Failed to sign in');
+    } finally {
+      setLoading(false);
     }
   };
 

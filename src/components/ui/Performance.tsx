@@ -19,126 +19,32 @@ import {
   RefreshCw
 } from 'lucide-react';
 
-// Optimized image component with lazy loading
-export const OptimizedImage: React.FC<{
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
-  className?: string;
-  placeholder?: string;
-  priority?: boolean;
-}> = ({ 
-  src, 
-  alt, 
-  width, 
-  height, 
-  className = '', 
-  placeholder,
-  priority = false 
-}) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(priority);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    if (priority) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [priority]);
-
-  const handleLoad = () => {
-    setIsLoaded(true);
-  };
-
-  const handleError = () => {
-    setHasError(true);
-  };
-
-  if (hasError) {
-    return (
-      <div className={`bg-gray-200 flex items-center justify-center ${className}`}>
-        <Image className="w-8 h-8 text-gray-400" />
-      </div>
-    );
-  }
-
-  return (
-    <div className={`relative overflow-hidden ${className}`}>
-      {/* Placeholder */}
-      {!isLoaded && placeholder && (
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${placeholder})` }}
-        />
-      )}
-      
-      {/* Loading skeleton */}
-      {!isLoaded && !placeholder && (
-        <motion.div
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="absolute inset-0 bg-gray-200"
-        />
-      )}
-
-      {/* Actual image */}
-      {isInView && (
-        <motion.img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          width={width}
-          height={height}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          loading={priority ? 'eager' : 'lazy'}
-        />
-      )}
-    </div>
-  );
-};
-
-// Lazy loaded component wrapper
+// Lazy loaded component wrapper with intersection observer
 export const LazyComponent: React.FC<{
   children: React.ReactNode;
   fallback?: React.ReactNode;
   threshold?: number;
+  rootMargin?: string;
 }> = ({ 
   children, 
-  fallback = <div className="h-32 bg-gray-200 animate-pulse rounded" />,
-  threshold = 0.1 
+  fallback = <div className="h-32 bg-muted animate-pulse rounded" />,
+  threshold = 0.1,
+  rootMargin = "50px"
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && !hasLoaded) {
           setIsVisible(true);
+          setHasLoaded(true);
           observer.disconnect();
         }
       },
-      { threshold }
+      { threshold, rootMargin }
     );
 
     if (ref.current) {
@@ -146,11 +52,56 @@ export const LazyComponent: React.FC<{
     }
 
     return () => observer.disconnect();
-  }, [threshold]);
+  }, [threshold, rootMargin, hasLoaded]);
 
   return (
     <div ref={ref}>
       {isVisible ? children : fallback}
+    </div>
+  );
+};
+
+// Image optimization component
+export const OptimizedImage: React.FC<{
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  className?: string;
+  priority?: boolean;
+}> = ({ 
+  src, 
+  alt, 
+  width, 
+  height, 
+  className = "",
+  priority = false 
+}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  return (
+    <div className={`relative overflow-hidden ${className}`}>
+      {!isLoaded && !error && (
+        <div className="absolute inset-0 bg-muted animate-pulse" />
+      )}
+      {error && (
+        <div className="absolute inset-0 bg-muted flex items-center justify-center">
+          <span className="text-muted-foreground text-sm">Image failed to load</span>
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={priority ? "eager" : "lazy"}
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setError(true)}
+        className={`transition-opacity duration-300 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
+      />
     </div>
   );
 };
@@ -183,39 +134,43 @@ const Performance: React.FC<PerformanceProps> = ({
   const observerRef = useRef<PerformanceObserver | null>(null);
 
   const getPerformanceMetrics = (): PerformanceMetrics => {
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const paint = performance.getEntriesByType('paint');
-    const resources = performance.getEntriesByType('resource');
-    
-    const firstContentfulPaint = paint.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0;
-    const largestContentfulPaint = paint.find(entry => entry.name === 'largest-contentful-paint')?.startTime || 0;
-    
-    // Calculate cumulative layout shift
-    let cumulativeLayoutShift = 0;
-    if ('PerformanceObserver' in window) {
-      // This would be calculated by a LayoutShift observer
-      cumulativeLayoutShift = 0;
-    }
+    try {
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const paint = performance.getEntriesByType('paint');
+      const resources = performance.getEntriesByType('resource');
+      
+      const firstContentfulPaint = paint.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0;
+      const largestContentfulPaint = paint.find(entry => entry.name === 'largest-contentful-paint')?.startTime || 0;
+      
+      // Calculate cumulative layout shift
+      let cumulativeLayoutShift = 0;
+      if ('PerformanceObserver' in window) {
+        // This would be calculated by a LayoutShift observer
+        cumulativeLayoutShift = 0;
+      }
 
-    // Calculate first input delay
-    let firstInputDelay = 0;
-    if ('PerformanceObserver' in window) {
-      // This would be calculated by a FirstInput observer
-      firstInputDelay = 0;
-    }
+      // Calculate first input delay
+      let firstInputDelay = 0;
+      if ('PerformanceObserver' in window) {
+        // This would be calculated by a FirstInput observer
+        firstInputDelay = 0;
+      }
 
-    return {
-      loadTime: navigation.loadEventEnd - navigation.loadEventStart,
-      firstContentfulPaint,
-      largestContentfulPaint,
-      cumulativeLayoutShift,
-      firstInputDelay,
-      timeToInteractive: navigation.domInteractive - navigation.fetchStart,
-      memoryUsage: (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize,
-      networkRequests: resources.length,
-      errors: 0, // Would be tracked separately
-      warnings: 0 // Would be tracked separately
-    };
+      return {
+        loadTime: navigation.loadEventEnd - navigation.loadEventStart,
+        firstContentfulPaint,
+        largestContentfulPaint,
+        cumulativeLayoutShift,
+        firstInputDelay,
+        timeToInteractive: navigation.domInteractive - navigation.fetchStart,
+        memoryUsage: (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize,
+        networkRequests: resources.length,
+        errors: 0, // Would be tracked separately
+        warnings: 0 // Would be tracked separately
+      };
+    } catch (err) {
+      throw new Error('Failed to get performance metrics');
+    }
   };
 
   const getPerformanceScore = (metrics: PerformanceMetrics): number => {
@@ -504,7 +459,7 @@ export const BundleAnalyzer: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       // This would integrate with webpack-bundle-analyzer or similar
       // For now, we'll show a placeholder
       setBundleInfo({
@@ -515,7 +470,7 @@ export const BundleAnalyzer: React.FC = () => {
     }
   }, []);
 
-  if (process.env.NODE_ENV !== 'development' || !bundleInfo) return null;
+  if (import.meta.env.MODE !== 'development' || !bundleInfo) return null;
 
   return (
     <Card className="fixed top-4 left-4 w-64 z-50">

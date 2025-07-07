@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Skeleton } from './skeleton';
 import { Card, CardContent, CardHeader } from './card';
+import { cn } from '@/lib/utils';
 
 // Skeleton animation
 const SkeletonPulse: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ 
@@ -112,32 +113,43 @@ export const MatchCardSkeleton: React.FC<{ index?: number }> = ({ index = 0 }) =
 );
 
 // Message skeleton
-export const MessageSkeleton: React.FC = () => (
-  <div className="flex items-start space-x-3 mb-4">
-    <SkeletonPulse className="w-8 h-8 rounded-full" />
-    <div className="flex-1 space-y-2">
-      <SkeletonPulse className="h-4 w-20" />
-      <div className="space-y-1">
-        <SkeletonPulse className="h-3 w-3/4" />
-        <SkeletonPulse className="h-3 w-1/2" />
-      </div>
+export const MessageSkeleton: React.FC<{ isOwn?: boolean; className?: string }> = ({ 
+  isOwn = false, 
+  className 
+}) => (
+  <div className={cn('flex', isOwn ? 'justify-end' : 'justify-start', className)}>
+    <div className={cn(
+      'max-w-xs lg:max-w-md px-4 py-2 rounded-lg',
+      isOwn 
+        ? 'bg-blue-500 text-white rounded-br-none' 
+        : 'bg-gray-200 dark:bg-gray-700 rounded-bl-none'
+    )}>
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-3 w-24 mt-1" />
     </div>
   </div>
 );
 
 // Venue list skeleton
-export const VenueListSkeleton: React.FC = () => (
-  <div className="space-y-4">
-    {[1, 2, 3, 4].map((i) => (
-      <VenueCardSkeleton key={i} index={i} />
+export const VenueListSkeleton: React.FC<{ count?: number; className?: string }> = ({ 
+  count = 6, 
+  className 
+}) => (
+  <div className={cn('grid gap-4 md:grid-cols-2 lg:grid-cols-3', className)}>
+    {Array.from({ length: count }).map((_, i) => (
+      <VenueCardSkeleton key={i} />
     ))}
   </div>
 );
 
 // User grid skeleton
-export const UserGridSkeleton: React.FC = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {Array.from({ length: 9 }).map((_, i) => (
+export const UserGridSkeleton: React.FC<{ 
+  columns?: number; 
+  rows?: number; 
+  className?: string 
+}> = ({ columns = 2, rows = 3, className }) => (
+  <div className={cn('grid gap-4', className)} style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+    {Array.from({ length: columns * rows }).map((_, i) => (
       <UserCardSkeleton key={i} />
     ))}
   </div>
@@ -153,10 +165,23 @@ export const MatchListSkeleton: React.FC = () => (
 );
 
 // Chat list skeleton
-export const ChatListSkeleton: React.FC = () => (
-  <div className="space-y-2">
-    {[1, 2, 3, 4, 5, 6].map((i) => (
-      <ChatPreviewSkeleton key={i} index={i} />
+export const ChatListSkeleton: React.FC<{ count?: number; className?: string }> = ({ 
+  count = 5, 
+  className 
+}) => (
+  <div className={cn('space-y-3', className)}>
+    {Array.from({ length: count }).map((_, i) => (
+      <div key={i} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+        <Skeleton className="w-12 h-12 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
+        <div className="text-right space-y-1">
+          <Skeleton className="h-3 w-12" />
+          <Skeleton className="w-5 h-5 rounded-full" />
+        </div>
+      </div>
     ))}
   </div>
 );
@@ -347,38 +372,24 @@ export const ChatPreviewSkeleton: React.FC<{ index?: number }> = ({ index = 0 })
   </motion.div>
 );
 
-// Skeleton for UserProfile
-export const UserProfileSkeleton: React.FC = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-    className="space-y-6"
-  >
-    <div className="text-center space-y-4">
-      <SkeletonPulse className="h-24 w-24 rounded-full mx-auto" />
-      <div className="space-y-2">
-        <SkeletonPulse className="h-6 w-32 mx-auto" />
-        <SkeletonPulse className="h-4 w-24 mx-auto" />
+// User profile skeleton
+export const UserProfileSkeleton: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={cn('space-y-4', className)}>
+    <div className="flex items-center space-x-4">
+      <Skeleton className="w-16 h-16 rounded-full" />
+      <div className="space-y-2 flex-1">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
       </div>
     </div>
-    
-    <div className="space-y-4">
-      <SkeletonPulse className="h-4 w-full" />
-      <SkeletonPulse className="h-4 w-3/4" />
-      <SkeletonPulse className="h-4 w-5/6" />
+    <Skeleton className="h-3 w-full" />
+    <Skeleton className="h-3 w-2/3" />
+    <div className="flex space-x-2">
+      <Skeleton className="h-6 w-16 rounded-full" />
+      <Skeleton className="h-6 w-20 rounded-full" />
+      <Skeleton className="h-6 w-14 rounded-full" />
     </div>
-    
-    <div className="space-y-3">
-      <SkeletonPulse className="h-5 w-20" />
-      <div className="flex flex-wrap gap-2">
-        <SkeletonPulse className="h-6 w-16" />
-        <SkeletonPulse className="h-6 w-20" />
-        <SkeletonPulse className="h-6 w-14" />
-        <SkeletonPulse className="h-6 w-18" />
-      </div>
-    </div>
-  </motion.div>
+  </div>
 );
 
 // Skeleton for MessageList
@@ -402,27 +413,43 @@ export const MessageListSkeleton: React.FC = () => (
 );
 
 // Loading spinner with text
-export const LoadingSpinner: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="flex flex-col items-center justify-center p-8 space-y-4"
-  >
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-      className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
-    />
-    <motion.p
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.2 }}
-      className="text-sm text-muted-foreground"
-    >
-      {message}
-    </motion.p>
-  </motion.div>
-);
+export const LoadingSpinner: React.FC<{
+  size?: 'sm' | 'md' | 'lg';
+  color?: 'primary' | 'white' | 'gray';
+  className?: string;
+}> = ({ size = 'md', color = 'primary', className }) => {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8'
+  };
+
+  const colorClasses = {
+    primary: 'text-blue-600',
+    white: 'text-white',
+    gray: 'text-gray-600'
+  };
+
+  return (
+    <div className={cn('animate-spin', sizeClasses[size], colorClasses[color], className)}>
+      <svg fill="none" viewBox="0 0 24 24">
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        />
+      </svg>
+    </div>
+  );
+};
 
 // Pulse loading animation
 export const PulseLoader: React.FC = () => (
@@ -443,4 +470,68 @@ export const PulseLoader: React.FC = () => (
       />
     ))}
   </div>
-); 
+);
+
+// Loading overlay
+export const LoadingOverlay: React.FC<{
+  isLoading: boolean;
+  children: React.ReactNode;
+  message?: string;
+  className?: string;
+}> = ({ isLoading, children, message = 'Loading...', className }) => (
+  <div className={cn('relative', className)}>
+    {children}
+    {isLoading && (
+      <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-50">
+        <div className="text-center space-y-3">
+          <LoadingSpinner size="lg" />
+          <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+// Progress bar
+export const ProgressBar: React.FC<{
+  progress: number; // 0-100
+  className?: string;
+  showLabel?: boolean;
+}> = ({ progress, className, showLabel = false }) => (
+  <div className={cn('w-full', className)}>
+    {showLabel && (
+      <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+        <span>Progress</span>
+        <span>{Math.round(progress)}%</span>
+      </div>
+    )}
+    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+      <div
+        className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+        style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+      />
+    </div>
+  </div>
+);
+
+// Pulse loading
+export const PulseLoading: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={cn('flex space-x-1', className)}>
+    {[0, 1, 2].map((i) => (
+      <div
+        key={i}
+        className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+        style={{ animationDelay: `${i * 0.2}s` }}
+      />
+    ))}
+  </div>
+);
+
+// Shimmer effect
+export const Shimmer: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={cn('relative overflow-hidden', className)}>
+    <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+  </div>
+);
+
+export default Skeleton; 
