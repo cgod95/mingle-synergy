@@ -1,1 +1,1 @@
-ENVIRONMENT_CONFIGURATION_AUDIT: "When debugging any development server issues (like WebSocket connection problems, port conflicts, or environment-related errors), always perform an Environment Configuration Audit first: 1) List all .env files, 2) Read them, 3) Identify dev server port, 4) Match env var port references, 5) Find overrides (VITE_WS_URL, etc.), 6) Map intended vs actual config, 7) Proceed only after confirming correctness."
+
