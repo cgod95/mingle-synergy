@@ -12,12 +12,12 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: 'localhost',
-      port: 8083,
+      port: 8084,
       strictPort: false, // Allow fallback to other ports if 8083 is busy
       hmr: {
+        protocol: 'ws',
         host: 'localhost',
-        // Remove hardcoded port to let HMR use the same port as the server
-        // port: 8083,
+        port: 8084, // 👈 match your server port
       },
     },
     plugins: [
