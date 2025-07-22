@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { analytics } from '@/services/analytics';
 import { usePerformanceMonitoring } from '@/services/performanceMonitoring';
 
-interface User {
+interface VenueUserGridUser {
   id: string;
   name: string;
   age: number;
@@ -20,7 +20,7 @@ interface User {
 }
 
 interface VenueUserGridProps {
-  users: User[];
+  users: VenueUserGridUser[];
   venueName: string;
   onUserLike: (userId: string) => void;
   onUserMessage: (userId: string) => void;

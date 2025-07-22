@@ -5,9 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CreditCard, Calendar, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
-import { subscriptionService } from '@/services/subscriptionService';
+import subscriptionService from '@/services/subscriptionService';
 
 interface SubscriptionTier {
   id: string;
@@ -157,7 +157,7 @@ const Billing: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="min-h-screen bg-gray-50 pb-20">
           <div className="max-w-4xl mx-auto p-4">
             <div className="animate-pulse">
@@ -169,12 +169,12 @@ const Billing: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   return (
-    <Layout>
+    <PrivateLayout>
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="max-w-4xl mx-auto p-4">
           {/* Header */}
@@ -359,7 +359,7 @@ const Billing: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </PrivateLayout>
   );
 };
 

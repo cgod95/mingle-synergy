@@ -28,7 +28,7 @@ import {
   Download,
   Filter
 } from 'lucide-react';
-import Layout from '@/components/Layout';
+import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
 
 interface SystemMetrics {
@@ -176,7 +176,7 @@ const AdvancedAdmin: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="min-h-screen bg-gray-50 pb-20">
           <div className="max-w-7xl mx-auto p-4">
             <div className="animate-pulse">
@@ -190,13 +190,13 @@ const AdvancedAdmin: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   if (!metrics || !analytics || !security) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="min-h-screen bg-gray-50 pb-20">
           <div className="max-w-7xl mx-auto p-4">
             <div className="text-center py-12">
@@ -205,12 +205,12 @@ const AdvancedAdmin: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   return (
-    <Layout>
+    <PrivateLayout>
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="max-w-7xl mx-auto p-4">
           {/* Header */}
@@ -575,7 +575,7 @@ const AdvancedAdmin: React.FC = () => {
           </Tabs>
         </div>
       </div>
-    </Layout>
+    </PrivateLayout>
   );
 };
 

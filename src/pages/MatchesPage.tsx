@@ -11,7 +11,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 import { getUserMatches } from '@/data/mock/matches';
 import { mockUsers } from '@/data/mock/users';
 import { Match, User } from '@/types';
-import Layout from '@/components/Layout';
+import PrivateLayout from '@/components/PrivateLayout';
 import { Heart, MessageCircle, Clock, MapPin } from 'lucide-react';
 
 interface DisplayMatchWithExpiry extends DisplayMatch {
@@ -19,7 +19,7 @@ interface DisplayMatchWithExpiry extends DisplayMatch {
   matchedAt: number;
 }
 
-const MatchesPage = () => {
+export default function MatchesPage() {
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [matchedUsers, setMatchedUsers] = useState<User[]>([]);
@@ -69,7 +69,7 @@ const MatchesPage = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="space-y-8 pb-24">
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-neutral-900">Matches</h1>
@@ -78,13 +78,13 @@ const MatchesPage = () => {
           <ListSkeleton count={6} />
         </div>
         <BottomNav />
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="flex items-center justify-center min-h-[80vh] pb-24">
           <div className="text-center space-y-4">
             <p className="text-neutral-600">{error}</p>
@@ -94,12 +94,12 @@ const MatchesPage = () => {
           </div>
         </div>
         <BottomNav />
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   return (
-    <Layout>
+    <PrivateLayout>
       <div className="space-y-8 pb-24">
         <div className="space-y-4">
           <h1 className="text-2xl font-bold text-neutral-900">Matches</h1>
@@ -182,8 +182,6 @@ const MatchesPage = () => {
         )}
       </div>
       <BottomNav />
-    </Layout>
+    </PrivateLayout>
   );
-};
-
-export default MatchesPage; 
+} 

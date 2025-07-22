@@ -12,7 +12,7 @@ interface OnboardingCarouselProps {
 const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
-  const { isOnboardingComplete, setOnboardingStepComplete } = useOnboarding();
+  const { setIsOnboardingComplete } = useOnboarding();
   
   const slides = [
     {
@@ -54,16 +54,13 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
   const handleComplete = () => {
     // Mark onboarding as complete and navigate to profile edit
     localStorage.setItem('onboardingSeen', 'true');
-    // Mark all onboarding steps as complete
-    setOnboardingStepComplete('email');
-    setOnboardingStepComplete('profile');
-    setOnboardingStepComplete('photo');
-    setOnboardingStepComplete('preferences');
+    // Mark onboarding as complete
+    setIsOnboardingComplete(true);
     
     if (onComplete) {
       onComplete();
     } else {
-      navigate('/profile/edit');
+      navigate('/venues');
     }
   };
   

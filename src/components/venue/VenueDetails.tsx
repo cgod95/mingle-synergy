@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router-dom';  // Import this if you are using React Router
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users } from 'lucide-react';
-import ToggleButton from '../ToggleButton';
-import { getDocs, collection, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { firestore } from '../../firebase/config';
+import logger from '@/utils/Logger';
 
 interface VenueDetailsProps {
   venue: {
@@ -42,19 +42,6 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
   }, [profileExists, navigate]);
 
   useEffect(() => {
-    // Debug user fields to verify correct field names
-    const debugUserFields = async () => {
-      try {
-        // Get a sample user to check field names
-        const sampleUserSnapshot = await getDocs(collection(firestore, 'users'));
-        if (!sampleUserSnapshot.empty) {
-          console.log('Sample user fields:', Object.keys(sampleUserSnapshot.docs[0].data()));
-        }
-      } catch (error) {
-        console.error('Debug error:', error);
-      }
-    };
-    
     // Load users at venue
     const loadUsersAtVenue = async (venueId: string) => {
       try {
@@ -67,17 +54,21 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
         const usersSnapshot = await getDocs(usersQuery);
         setUserCount(usersSnapshot.size);
 
+        logger.debug('Loaded users at venue', { 
+          venueId, 
+          userCount: usersSnapshot.size 
+        });
+
         return usersSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
       } catch (error) {
-        console.error('Error fetching users:', error);
+        logger.error('Error fetching users at venue', error, { venueId });
         return [];
       }
     };
 
-    debugUserFields();
     if (venue.id) {
       loadUsersAtVenue(venue.id);
     }
@@ -141,11 +132,16 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
       
       {onToggleVisibility && (
         <div className="mt-4">
-          <ToggleButton 
-            isVisible={isVisible}
-            onToggle={onToggleVisibility}
-            className="w-full"
-          />
+          <button 
+            onClick={onToggleVisibility}
+            className={`w-full px-4 py-2 rounded-lg transition-colors ${
+              isVisible 
+                ? 'bg-green-500 text-white hover:bg-green-600' 
+                : 'bg-gray-500 text-white hover:bg-gray-600'
+            }`}
+          >
+            {isVisible ? 'Visible to Others' : 'Hidden from Others'}
+          </button>
         </div>
       )}
     </div>

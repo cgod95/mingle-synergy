@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import react from "@vitejs/plugin-react";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -11,11 +11,26 @@ export default defineConfig(({ mode }) => {
   
   return {
     server: {
-      host: "::",
-      port: 8080,
+      host: 'localhost',
+      port: 8083,
+      strictPort: false, // Allow fallback to other ports if 8083 is busy
+      hmr: {
+        host: 'localhost',
+        // Remove hardcoded port to let HMR use the same port as the server
+        // port: 8083,
+      },
     },
     plugins: [
-      react(),
+      react({
+        // Explicitly configure React plugin
+        jsxRuntime: 'automatic',
+        jsxImportSource: 'react',
+        babel: {
+          plugins: [
+            ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
+          ]
+        }
+      }),
       mode === 'development' &&
       componentTagger(),
       VitePWA({
@@ -106,21 +121,23 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Vendor chunks
-            'react-vendor': ['react', 'react-dom'],
-            'router-vendor': ['react-router-dom'],
-            'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-            'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-            'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge'],
-            'icons-vendor': ['lucide-react'],
-            // Feature chunks
-            'auth': ['./src/services/firebase/authService', './src/context/AuthContext'],
-            'matching': ['./src/services/matchingService', './src/services/firebase/matchService'],
-            'messaging': ['./src/services/messageService', './src/pages/Chat'],
-            'venues': ['./src/services/firebase/venueService', './src/pages/VenueList'],
-            'admin': ['./src/pages/AdminDashboard', './src/services/businessFeatures'],
-          },
+          // Only apply manual chunks in production
+          ...(isProduction && {
+            manualChunks: {
+              // Vendor chunks (excluding React to prevent multiple instances)
+              'router-vendor': ['react-router-dom'],
+              'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+              'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+              'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge'],
+              'icons-vendor': ['lucide-react'],
+              // Feature chunks
+              'auth': ['./src/services/firebase/authService', './src/context/AuthContext'],
+              'matching': ['./src/services/matchingService', './src/services/firebase/matchService'],
+              'messaging': ['./src/services/messageService', './src/pages/Chat'],
+              'venues': ['./src/services/firebase/venueService', './src/pages/VenueList'],
+              'admin': ['./src/pages/AdminDashboard', './src/services/businessFeatures'],
+            },
+          }),
           chunkFileNames: (chunkInfo) => {
             const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
             return `js/[name]-[hash].js`;

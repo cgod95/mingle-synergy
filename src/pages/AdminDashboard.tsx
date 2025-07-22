@@ -27,7 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { analytics } from '@/services/analytics';
-import { subscriptionService } from '@/services/subscriptionService';
+import subscriptionService from '@/services/subscriptionService';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 import { deploymentVerifier, type DeploymentReport } from '@/utils/deploymentVerifier';

@@ -4,7 +4,7 @@ import { Match } from '@/types';
 import ChatView from '@/components/ChatView';
 import { useAuth } from '@/context/AuthContext';
 import { mockMatches } from '@/data/mock';
-import Layout from '@/components/Layout';
+import PrivateLayout from '@/components/PrivateLayout';
 import BottomNav from '@/components/BottomNav';
 
 export default function MatchDetailsPage() {
@@ -30,33 +30,33 @@ export default function MatchDetailsPage() {
 
   if (loading) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="p-4 text-center pb-20">
           <p>Loading chat...</p>
         </div>
         <BottomNav />
-      </Layout>
+      </PrivateLayout>
     );
   }
   
   if (!match || !currentUser) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="p-4 text-center pb-20">
           <p>Match not found or not authorized.</p>
         </div>
         <BottomNav />
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   return (
-    <Layout>
+    <PrivateLayout>
       <div className="max-w-2xl mx-auto p-4 h-[80vh] pb-20">
         <h1 className="text-xl font-bold mb-4 text-center">Chat</h1>
         <ChatView match={match} currentUserId={currentUser.uid} />
       </div>
       <BottomNav />
-    </Layout>
+    </PrivateLayout>
   );
 } 

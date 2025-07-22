@@ -2,20 +2,21 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import config from '@/config';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDeveloperKey123456789", // This is a development key
-  authDomain: "mingle-dev.firebaseapp.com",
-  projectId: "mingle-dev",
-  storageBucket: "mingle-dev.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abc123def456",
-  measurementId: "G-DEV123456"
+  apiKey: config.FIREBASE_API_KEY,
+  authDomain: config.FIREBASE_AUTH_DOMAIN,
+  projectId: config.FIREBASE_PROJECT_ID,
+  storageBucket: config.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: config.FIREBASE_MESSAGING_SENDER_ID,
+  appId: config.FIREBASE_APP_ID,
+  measurementId: config.FIREBASE_MEASUREMENT_ID
 };
 
-// Always use mock services in development
-const USE_MOCK = true;
+// Use mock services based on config
+const USE_MOCK = config.USE_MOCK;
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
@@ -28,10 +29,7 @@ if (!USE_MOCK) {
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
-    
-    console.log('Firebase initialized successfully');
   } catch (error) {
-    console.error("Firebase initialization error:", error);
     // Fall back to mock objects
     app = null;
     auth = null;
@@ -39,7 +37,6 @@ if (!USE_MOCK) {
     storage = null;
   }
 } else {
-  console.log('Using mock services for development');
   app = null;
   auth = null;
   db = null;

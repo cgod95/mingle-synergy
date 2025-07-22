@@ -193,7 +193,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
         <div className="flex items-center space-x-2">
           <select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as any)}
+            onChange={(e) => setTimeRange(e.target.value as '7d' | '30d' | '90d')}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="7d">Last 7 days</option>
@@ -210,7 +210,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'trends' | 'demographics' | 'performance')}
               className={cn(
                 "flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/20",

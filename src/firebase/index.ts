@@ -6,18 +6,14 @@ import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 // Import our Firebase configuration
-import { firebase } from './config';
+import { app, auth, firestore, storage } from './config';
 
 // Use the initialized Firebase instance from the config
-const app = firebase.app || initializeApp({});
-const auth = firebase.auth;
-const db = firebase.db;
-const storage = firebase.storage;
-const firestore = db;
+const db = firestore;
 
 // Helper functions
-const isFirebaseAvailable = () => firebase.initialized;
-const getFirestoreCollection = (name) => firebase.getCollection(name);
+const isFirebaseAvailable = () => !!app;
+const getFirestoreCollection = (name: string) => collection(db, name);
 
 console.log('Using real Firebase implementation');
 

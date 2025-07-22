@@ -34,7 +34,11 @@ export const generateCSP = (): string => {
       'https://securetoken.googleapis.com',
       'https://www.googleapis.com',
       'wss://localhost:8080',
-      'ws://localhost:8080'
+      'ws://localhost:8080',
+      'wss://localhost:8083',
+      'ws://localhost:8083',
+      'wss://localhost:8084',
+      'ws://localhost:8084'
     ],
     'frame-src': [
       "'none'"

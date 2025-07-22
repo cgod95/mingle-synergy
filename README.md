@@ -56,23 +56,7 @@ A modern, real-time social networking application that connects people at venues
    cp .env.example .env
    ```
    
-   Update `.env` with your configuration:
-   ```env
-   # Firebase Configuration
-   VITE_FIREBASE_API_KEY=your_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
-   VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-
-   # Push Notifications (VAPID)
-   VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
-
-   # WebSocket Configuration
-   VITE_WS_URL=your_websocket_url
-   ```
+   Update `.env` with your configuration (see Environment Variables section below).
 
 4. **Firebase Setup**
    - Create a new Firebase project
@@ -84,6 +68,63 @@ A modern, real-time social networking application that connects people at venues
    ```bash
    npm run dev
    ```
+
+## 🔧 Environment Variables
+
+The application uses the following environment variables. Copy `.env.example` to `.env` and configure these values:
+
+### Firebase Configuration (Required)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_FIREBASE_API_KEY` | Firebase API key for authentication | `AIzaSyC...` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth domain | `your-project.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID | `your-project-id` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage bucket | `your-project.appspot.com` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | `123456789` |
+| `VITE_FIREBASE_APP_ID` | Firebase app ID | `1:123456789:web:abcdef` |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Firebase Analytics ID | `G-XXXXXXXXXX` |
+
+### Development Settings
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_DEMO_MODE` | Enable demo mode with mock data | `false` |
+| `VITE_USE_MOCK` | Use mock services instead of Firebase | `false` |
+| `VITE_ENVIRONMENT` | Application environment | `development` |
+
+### Firebase Emulator Settings (Local Development)
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_FIREBASE_AUTH_EMULATOR_HOST` | Auth emulator host | `http://localhost:9099` |
+| `VITE_FIREBASE_FIRESTORE_EMULATOR_HOST` | Firestore emulator host | `localhost:8080` |
+| `VITE_FIREBASE_STORAGE_EMULATOR_HOST` | Storage emulator host | `localhost:9199` |
+
+### Push Notifications
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_VAPID_PUBLIC_KEY` | VAPID public key for push notifications | Optional |
+
+### Real-time Features
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_WS_URL` | WebSocket server URL for real-time features | Optional |
+
+### Feature Flags
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_ENABLE_VERIFICATION` | Enable user verification system | `true` |
+| `VITE_ENABLE_RECONNECT` | Enable match reconnection feature | `true` |
+| `VITE_ENABLE_PUSH_NOTIFICATIONS` | Enable push notifications | `true` |
+
+### Performance Monitoring
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_ENABLE_PERFORMANCE_MONITORING` | Enable performance monitoring | `true` |
+| `VITE_ENABLE_ERROR_TRACKING` | Enable error tracking | `true` |
+
+### Analytics (Optional)
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_ANALYTICS_ID` | Analytics tracking ID | Optional |
 
 ## 🧪 Testing
 

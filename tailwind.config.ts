@@ -20,6 +20,13 @@ export default {
   	},
   	extend: {
   		colors: {
+  			mingle: {
+  				background: '#f9f7fc',
+  				primary: '#7357FF',
+  				accent: '#BBA9FF',
+  				text: '#2D2D2D',
+  				muted: '#6B6B6B'
+  			},
   			bg: {
   				primary: '#F8F7F4',
   				secondary: '#FFFFFF',

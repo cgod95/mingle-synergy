@@ -1,7 +1,7 @@
 // Comprehensive test suite for automated testing
 
 import { analytics } from '@/services/analytics';
-import { subscriptionService } from '@/services/subscriptionService';
+import subscriptionService from '@/services/subscriptionService';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';

@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Layout from '@/components/Layout';
+import PublicLayout from '@/components/PublicLayout';
 
 export default function Safety() {
   return (
-    <Layout>
+    <PublicLayout>
       <div className="flex items-center justify-center min-h-[80vh]">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center space-y-2">
@@ -19,6 +19,6 @@ export default function Safety() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </PublicLayout>
   );
 } 

@@ -1,35 +1,46 @@
-// 🧠 Purpose: Implement static Profile page to display current user info.
+// 🧠 Purpose: Display the current user's profile with clean, Hinge-style UI, responsive layout, and edit navigation
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import BottomNav from '@/components/BottomNav';
 
-export default function Profile() {
-  const { currentUser, signOut } = useAuth();
+const Profile: React.FC = () => {
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  if (!currentUser) return null;
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500">Loading profile...</p>
+      </div>
+    );
+  }
 
   return (
-    <Layout>
-      <div className="flex flex-col items-center justify-center min-h-[80vh] pb-20">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center space-y-2">
-            <CardTitle>Your Profile</CardTitle>
-            <p className="text-sm text-neutral-600">{currentUser.email}</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button onClick={() => navigate('/profile/edit')} className="w-full">Edit Profile</Button>
-            <Button variant="outline" onClick={() => navigate('/settings')} className="w-full">Settings</Button>
-            <Button variant="destructive" onClick={signOut} className="w-full">Sign Out</Button>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-white">
+      <div className="w-full max-w-md rounded-2xl shadow-lg p-6 border border-gray-200">
+        <h1 className="text-3xl font-bold mb-6 text-center">Your Profile</h1>
+        <div className="space-y-4 text-lg">
+          <div>
+            <span className="font-semibold">Email:</span>{' '}
+            <span className="text-gray-700">{currentUser.email}</span>
+          </div>
+          {currentUser.displayName && (
+            <div>
+              <span className="font-semibold">Name:</span>{' '}
+              <span className="text-gray-700">{currentUser.displayName}</span>
+            </div>
+          )}
+        </div>
+        <button
+          className="mt-8 w-full py-3 bg-black text-white text-lg rounded-xl hover:bg-gray-900 transition"
+          onClick={() => navigate('/profile-edit')}
+        >
+          Edit Profile
+        </button>
       </div>
-      <BottomNav />
-    </Layout>
+    </div>
   );
-}
+};
+
+export default Profile;

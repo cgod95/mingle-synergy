@@ -8,7 +8,7 @@ import { mockMatches } from '@/data/mock'
 import { mockUsers } from '@/data/mock'
 import { mockMessages } from '@/data/mock'
 import { Match, User, Message } from '@/types'
-import Layout from '@/components/Layout'
+import PrivateLayout from '@/components/PrivateLayout';
 import BottomNav from '@/components/BottomNav'
 
 // Helper function to check if match has expired (3 hours)
@@ -149,7 +149,7 @@ export default function ChatPage() {
 
   if (expired || isExpired) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="p-4 flex flex-col h-screen pb-20">
           <h1 className="text-xl font-bold mb-4">Chat</h1>
           
@@ -170,12 +170,12 @@ export default function ChatPage() {
           )}
         </div>
         <BottomNav />
-      </Layout>
+      </PrivateLayout>
     )
   }
 
   return (
-    <Layout>
+    <PrivateLayout>
       <div className="p-4 flex flex-col h-screen pb-20">
         <h1 className="text-xl font-bold mb-4">Chat</h1>
 
@@ -226,6 +226,6 @@ export default function ChatPage() {
         )}
       </div>
       <BottomNav />
-    </Layout>
+    </PrivateLayout>
   )
 } 

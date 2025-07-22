@@ -10,7 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { mockVenues } from '@/data/mock';
 import { getUsersAtVenue } from '@/data/mock';
-import Layout from '@/components/Layout';
+import PrivateLayout from '@/components/PrivateLayout';
 import BottomNav from '@/components/BottomNav';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 
@@ -109,32 +109,32 @@ const SimpleVenueView: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900 mx-auto mb-4"></div>
             <p className="text-neutral-600">Loading venue...</p>
           </div>
         </div>
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   if (!venue) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <p className="text-neutral-600 mb-4">Venue not found</p>
             <Button onClick={() => navigate('/venues')}>Back to Venues</Button>
           </div>
         </div>
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   return (
-    <Layout>
+    <PrivateLayout>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-neutral-200 px-4 py-3">
         <div className="flex items-center justify-between">
@@ -244,7 +244,7 @@ const SimpleVenueView: React.FC = () => {
       </div>
 
       <BottomNav />
-    </Layout>
+    </PrivateLayout>
   );
 };
 

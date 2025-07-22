@@ -16,17 +16,8 @@ const mockUsers: Record<string, { email: string; password: string; user: User }>
 };
 
 class MockAuthService implements AuthService {
-  // Load user from localStorage if available
-  private currentUser: User | null = (() => {
-    try {
-      const savedUser = localStorage.getItem('currentUser');
-      return savedUser ? JSON.parse(savedUser) : mockUsers['test@example.com'].user;
-    } catch (e) {
-      console.error('Error loading user from localStorage:', e);
-      return mockUsers['test@example.com'].user;
-    }
-  })();
-  
+  // Don't auto-load users - start with null
+  private currentUser: User | null = null;
   private listeners: ((user: User | null) => void)[] = [];
 
   async signIn(email: string, password: string): Promise<UserCredential> {
@@ -65,12 +56,9 @@ class MockAuthService implements AuthService {
   }
 
   async signOut(): Promise<void> {
-    // For development, don't actually sign out
-    console.log('Sign out called but bypassed for development');
-    // Don't actually clear the user for demo purposes
-    // this.currentUser = null;
-    // localStorage.removeItem('currentUser');
-    // this.notifyListeners();
+    this.currentUser = null;
+    localStorage.removeItem('currentUser');
+    this.notifyListeners();
   }
 
   async sendPasswordResetEmail(email: string): Promise<void> {

@@ -1,26 +1,28 @@
-// 🧠 Purpose: Allow navigation to protected routes if in demo mode (bypasses Firebase auth).
+/**
+ * Purpose: Unified route protection for authenticated and onboarding-complete users.
+ * Redirects to /sign-in if not authenticated, or /create-profile if onboarding is incomplete.
+ * Prevents access to protected parts of the app like /venues and /profile.
+ */
+
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/firebase';
-import { useUser } from '../context/UserContext';
-import config from '../config';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { useOnboarding } from '@/context/OnboardingContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, loading] = useAuthState(auth);
-  const { currentUser } = useUser();
+  const { currentUser, isLoading } = useAuth();
+  const { isOnboardingComplete } = useOnboarding();
+  const location = useLocation();
 
-  // If in demo mode, bypass Firebase auth and use UserContext
-  if (config.DEMO_MODE) {
-    if (currentUser) {
-      return <>{children}</>;
-    }
-    return <Navigate to="/onboarding" replace />;
+  if (isLoading) return null;
+
+  if (!currentUser) {
+    return <Navigate to="/sign-in" state={{ from: location }} replace />;
   }
 
-  // Normal Firebase auth flow
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (!user) return <Navigate to="/signin" replace />;
+  if (!isOnboardingComplete) {
+    return <Navigate to="/create-profile" replace />;
+  }
 
   return <>{children}</>;
 };

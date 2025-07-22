@@ -183,7 +183,7 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'report' | 'block' | 'verify' | 'tips')}
               className={cn(
                 "flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/20",

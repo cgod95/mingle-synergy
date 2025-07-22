@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, Users, MapPin, Shield, Zap, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import PublicLayout from '@/components/PublicLayout';
 
 const About: React.FC = () => {
   const navigate = useNavigate();
@@ -54,7 +54,7 @@ const About: React.FC = () => {
   ];
 
   return (
-    <Layout>
+    <PublicLayout>
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="max-w-4xl mx-auto p-4">
           {/* Header */}
@@ -239,7 +239,7 @@ const About: React.FC = () => {
           </Card>
         </div>
       </div>
-    </Layout>
+    </PublicLayout>
   );
 };
 

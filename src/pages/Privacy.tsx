@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import PublicLayout from '@/components/PublicLayout';
 
 export default function Privacy() {
   const navigate = useNavigate();
 
   return (
-    <Layout>
+    <PublicLayout>
       <div className="space-y-6">
         <div className="flex items-center space-x-2">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -68,6 +68,6 @@ export default function Privacy() {
           <Button onClick={() => navigate(-1)}>Got it</Button>
         </div>
       </div>
-    </Layout>
+    </PublicLayout>
   );
 } 

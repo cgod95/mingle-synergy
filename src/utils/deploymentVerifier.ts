@@ -3,7 +3,7 @@ import { collection, getDocs, limit, query, addDoc, deleteDoc } from 'firebase/f
 import { ref, getDownloadURL, uploadString, deleteObject } from 'firebase/storage';
 import { signInAnonymously } from 'firebase/auth';
 import { analytics } from '@/services/analytics';
-import { subscriptionService } from '@/services/subscriptionService';
+import subscriptionService from '@/services/subscriptionService';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 

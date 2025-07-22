@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, TrendingUp, TrendingDown, Users, MessageCircle, Heart, MapPin, Calendar, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import PrivateLayout from '@/components/PrivateLayout';
 
 interface UsageStats {
   totalMatches: number;
@@ -117,7 +117,7 @@ const UsageStats: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="min-h-screen bg-gray-50 pb-20">
           <div className="max-w-6xl mx-auto p-4">
             <div className="animate-pulse">
@@ -131,13 +131,13 @@ const UsageStats: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   if (!stats) {
     return (
-      <Layout>
+      <PrivateLayout>
         <div className="min-h-screen bg-gray-50 pb-20">
           <div className="max-w-6xl mx-auto p-4">
             <div className="text-center py-12">
@@ -146,12 +146,12 @@ const UsageStats: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </PrivateLayout>
     );
   }
 
   return (
-    <Layout>
+    <PrivateLayout>
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="max-w-6xl mx-auto p-4">
           {/* Header */}
@@ -382,7 +382,7 @@ const UsageStats: React.FC = () => {
           </Tabs>
         </div>
       </div>
-    </Layout>
+    </PrivateLayout>
   );
 };
 

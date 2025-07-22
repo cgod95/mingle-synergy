@@ -1,38 +1,28 @@
-// 🧠 Purpose: Entry point for the React app. Ensures Tailwind CSS loads and renders the app properly.
+// 🧠 Purpose: Entry point of the React app that wraps the entire application with necessary providers
+// and renders the root component tree. This version ensures the toast provider is correctly wrapped
+// before any component (like AuthProvider) tries to use it.
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { AuthProvider } from './context/AuthContext.tsx';
-import { OnboardingProvider } from './context/OnboardingContext.tsx';
-import { AppStateProvider } from './context/AppStateContext.tsx';
-import { NotificationProvider } from './context/NotificationContext.tsx';
-import { UserProvider } from './context/UserContext.tsx';
 import App from "./App";
-import "./index.css"; // ✅ Tailwind must be imported here
-import { Toaster } from '@/components/ui/toaster';
-
-// Initialize services
-import '@/services/analytics';
-import '@/services/performanceMonitoring';
-import '@/services/infrastructure';
-import '@/services/dataManagement';
-import '@/services/advancedFeatures';
-import '@/services/businessFeatures';
-import '@/services/technicalExcellence';
+import { Toaster } from "sonner";
+import { AuthProvider } from "@/context/AuthContext";
+import { OnboardingProvider } from "@/context/OnboardingContext";
+import { BrowserRouter as Router } from "react-router-dom";
+import "@/index.css";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <OnboardingProvider>
-        <AppStateProvider>
-          <NotificationProvider>
-            <UserProvider>
-              <Toaster />
-              <App />
-            </UserProvider>
-          </NotificationProvider>
-        </AppStateProvider>
-      </OnboardingProvider>
-    </AuthProvider>
+    <Router>
+      <Toaster position="top-center" />
+      <AuthProvider>
+        <OnboardingProvider>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </OnboardingProvider>
+      </AuthProvider>
+    </Router>
   </React.StrictMode>
 );

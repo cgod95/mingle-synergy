@@ -30,12 +30,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { subscriptionService, SubscriptionTier } from '@/services/subscriptionService';
+import subscriptionService, { SubscriptionTier } from '@/services/subscriptionService';
 import { analytics } from '@/services/analytics';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 import PremiumUpgradeModal from '@/components/ui/PremiumUpgradeModal';
-import Layout from '@/components/Layout';
+import PrivateLayout from '@/components/PrivateLayout';
 import { useAuth } from '@/context/AuthContext';
 
 // Define the subscription type locally since it's not exported
@@ -353,7 +353,7 @@ const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <Layout>
+    <PrivateLayout>
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="max-w-4xl mx-auto p-4">
           {/* Header */}
@@ -449,7 +449,7 @@ const SettingsPage: React.FC = () => {
           trigger="manual"
         />
       </div>
-    </Layout>
+    </PrivateLayout>
   );
 };
 

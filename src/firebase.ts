@@ -1,26 +1,48 @@
 // 🧠 Purpose: Firebase core configuration and exports for use across the app.
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { initializeApp } from "firebase/app";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
+import config from "@/config";
 
-// ✅ Your hardcoded prod config
 const firebaseConfig = {
-  apiKey: "AIzaSyBKTX6N5AIeVvQhQIz_kAwNe6o3RYXl5vA",
-  authDomain: "mingle-a12a2.firebaseapp.com",
-  projectId: "mingle-a12a2",
-  storageBucket: "mingle-a12a2.appspot.com",
-  messagingSenderId: "412919211446",
-  appId: "1:412919211446:web:7e68a7d9bf4ed1af860d17",
-  measurementId: "G-FSCE44K0P6"
+  apiKey: config.FIREBASE_API_KEY,
+  authDomain: config.FIREBASE_AUTH_DOMAIN,
+  projectId: config.FIREBASE_PROJECT_ID,
+  storageBucket: config.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: config.FIREBASE_MESSAGING_SENDER_ID,
+  appId: config.FIREBASE_APP_ID,
 };
 
-// ✅ Initialize Firebase services (guarded)
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const firestore = getFirestore(app);
+const db = getFirestore(app);
 const storage = getStorage(app);
 
-// ✅ Export all required Firebase modules
-export { auth, firestore, storage };
+// 🛠 Emulator Connections (development only)
+if (config.ENVIRONMENT === "development") {
+  const authHost = import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST;
+  const firestoreHost = import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST;
+  const storageHost = import.meta.env.VITE_FIREBASE_STORAGE_EMULATOR_HOST;
+
+  if (authHost) {
+    connectAuthEmulator(auth, authHost);
+  }
+
+  if (firestoreHost) {
+    const [host, port] = firestoreHost.split(":");
+    if (host && port) {
+      connectFirestoreEmulator(db, host, Number(port));
+    }
+  }
+
+  if (storageHost) {
+    const [host, port] = storageHost.split(":");
+    if (host && port) {
+      connectStorageEmulator(storage, host, Number(port));
+    }
+  }
+}
+
+export { app, auth, db, storage };

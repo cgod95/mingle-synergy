@@ -4,6 +4,7 @@ export interface UserProfile {
     age: number;
     gender: string;
     photos: string[];
+    photoURL?: string;
     bio: string;
     isCheckedIn: boolean;
     currentVenue?: string;
@@ -15,6 +16,13 @@ export interface UserProfile {
     matches: string[];
     likedUsers: string[];
     blockedUsers: string[];
+    isOnboardingComplete?: boolean;
+    skippedPhotoUpload?: boolean;
+    preferences?: {
+        genderPreference?: string;
+        minAge?: number;
+        maxAge?: number;
+    };
     // Extended properties for advanced matching
     communicationStyle?: 'casual' | 'serious' | 'both';
     lifestyle?: 'active' | 'relaxed' | 'both';

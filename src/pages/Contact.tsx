@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import PublicLayout from '@/components/PublicLayout';
 import { toast } from '@/components/ui/use-toast';
 
 const Contact: React.FC = () => {
@@ -43,7 +43,7 @@ const Contact: React.FC = () => {
 
   if (isSubmitted) {
     return (
-      <Layout>
+      <PublicLayout>
         <div className="min-h-screen bg-gray-50 pb-20">
           <div className="max-w-2xl mx-auto p-4">
             <div className="text-center py-12">
@@ -58,12 +58,12 @@ const Contact: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </PublicLayout>
     );
   }
 
   return (
-    <Layout>
+    <PublicLayout>
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="max-w-4xl mx-auto p-4">
           {/* Header */}
@@ -232,7 +232,7 @@ const Contact: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </PublicLayout>
   );
 };
 
