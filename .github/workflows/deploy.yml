@@ -27,12 +27,23 @@ jobs:
       - name: Build
         run: npm run build
         env:
+          # Firebase Configuration
           VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          
+          # Feature Flags
+          VITE_ENABLE_ANALYTICS: true
+          VITE_ENABLE_NOTIFICATIONS: true
+          VITE_USE_MOCK: false
+          
+          # Production Environment
+          VITE_ENVIRONMENT: production
+          VITE_API_BASE_URL: https://api.mingle.com
+          VITE_WS_URL: wss://ws.mingle.com
       
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0

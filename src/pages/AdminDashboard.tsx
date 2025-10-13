@@ -146,12 +146,16 @@ const AdminDashboard: React.FC = () => {
         matchesThisWeek: statsData.matchesThisWeek || 0
       };
 
-      const transformedUsers: User[] = usersData.map((user: any) => ({
-        id: user.id || user.userId,
-        name: user.name || user.displayName || 'Unknown User',
-        email: user.email || '',
-        avatar: user.avatar || user.photoURL || ''
-      }));
+      const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+      const toUser = (u: unknown): User => {
+        const r = isRecord(u) ? u : {};
+        const id = typeof r.id === 'string' ? r.id : typeof (r as Record<string, unknown>).userId === 'string' ? (r as Record<string, unknown>).userId as string : '';
+        const name = typeof r.name === 'string' ? r.name : typeof (r as Record<string, unknown>).displayName === 'string' ? (r as Record<string, unknown>).displayName as string : 'Unknown User';
+        const email = typeof r.email === 'string' ? r.email : '';
+        const avatar = typeof r.avatar === 'string' ? r.avatar : typeof (r as Record<string, unknown>).photoURL === 'string' ? (r as Record<string, unknown>).photoURL as string : '';
+        return { id, name, email, avatar };
+      };
+      const transformedUsers: User[] = usersData.map((u: unknown) => toUser(u));
 
       setStats(transformedStats);
       setRecentActivity(activityData);

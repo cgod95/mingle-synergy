@@ -44,7 +44,15 @@ const MessagesPage = () => {
             const lastMsg = sorted[0];
 
             // unread count: messages where !readBy or not includes uid and sender not current user
-            const unread = match.messages.filter(m=>m.senderId!==currentUser.uid && (!('readBy' in m) || !(m as any).readBy?.includes(currentUser.uid))).length;
+            type BaseMessage = { senderId: string; text: string; timestamp: number };
+            type MessageWithReadBy = BaseMessage & { readBy?: string[] };
+            const hasReadBy = (m: BaseMessage | Record<string, unknown>): m is MessageWithReadBy => {
+              const rb = (m as Record<string, unknown>).readBy;
+              return Array.isArray(rb) && rb.every(id => typeof id === 'string');
+            };
+            const unread = match.messages
+              .filter((m: BaseMessage) => m.senderId !== currentUser.uid && (!hasReadBy(m) || !m.readBy?.includes(currentUser.uid)))
+              .length;
 
             return {
               matchId: match.id,

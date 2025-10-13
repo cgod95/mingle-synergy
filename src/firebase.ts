@@ -20,12 +20,28 @@ const validateFirebaseConfig = (): void => {
   ] as const;
 
   const missing = requiredKeys.filter((key) => !firebaseConfig?.[key]);
+  
   if (missing.length > 0) {
-    console.error(
-      "Firebase configuration is missing required keys:",
-      missing,
-      "\nEnsure your environment variables are set (e.g., VITE_FIREBASE_*) or config.ts is correctly wired."
-    );
+    const missingEnvVars = missing.map(key => {
+      const envVarName = `VITE_FIREBASE_${key.toUpperCase().replace('SENDERID', 'SENDER_ID')}`;
+      return envVarName;
+    });
+    
+    const errorMsg = `
+🚨 Firebase Configuration Error 🚨
+
+Missing required environment variables: ${missingEnvVars.join(', ')}
+
+To fix this:
+1. Copy .env.example to .env.local
+2. Fill in your Firebase project values
+3. Or copy .env.development to .env.local for team defaults
+
+Current config: ${JSON.stringify(firebaseConfig, null, 2)}
+`;
+    
+    console.error(errorMsg);
+    throw new Error(`Firebase configuration incomplete. Missing: ${missing.join(', ')}`);
   }
 };
 validateFirebaseConfig();
@@ -54,5 +70,25 @@ if (import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST) {
 }
 
 if (import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST) {
-  connectFirestoreEmulator(db, 'localhost', Number(import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST.split(':').pop()));
+  const emulatorHost = import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST;
+  
+  // Handle both port-only (8080) and full URL (localhost:8080) formats
+  let host = 'localhost';
+  let port = 8080;
+  
+  if (emulatorHost.includes(':')) {
+    // Format: "localhost:8080" or "http://localhost:8080"
+    const parts = emulatorHost.replace(/^https?:\/\//, '').split(':');
+    host = parts[0];
+    port = parseInt(parts[1], 10);
+  } else {
+    // Format: "8080" (port only)
+    port = parseInt(emulatorHost, 10);
+  }
+  
+  if (isNaN(port)) {
+    console.error('Invalid Firestore emulator port:', emulatorHost);
+  } else {
+    connectFirestoreEmulator(db, host, port);
+  }
 }

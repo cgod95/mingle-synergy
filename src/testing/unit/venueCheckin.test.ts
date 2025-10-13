@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import venueService from '@/services/firebase/venueService';
 import userService from '@/services/firebase/userService';
 import { UserProfile } from '@/types/services';
@@ -9,8 +9,8 @@ vi.mock('@/services/firebase/userService');
 vi.mock('@/utils/Logger');
 
 describe('Venue Check-in Logic', () => {
-  const mockVenueService = venueService as any;
-  const mockUserService = userService as any;
+  const mockVenueService = venueService as unknown as Record<string, Mock>;
+  const mockUserService = userService as unknown as Record<string, Mock>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,10 +91,10 @@ describe('Venue Check-in Logic', () => {
     mockUserService.updateUserProfile.mockResolvedValue(undefined);
 
     // Check out by clearing venue
-    await userService.updateUserProfile(userId, {
-      currentVenue: undefined,
-      isCheckedIn: false
-    });
+    await userService.updateUserProfile(
+      userId,
+      ({ currentVenue: undefined, isCheckedIn: false } as unknown) as Partial<UserProfile>
+    );
 
     // Verify user profile was updated to checked out state
     expect(mockUserService.updateUserProfile).toHaveBeenCalledWith(userId, {

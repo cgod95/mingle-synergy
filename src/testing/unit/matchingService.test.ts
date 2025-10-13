@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { matchingService } from '@/services/matchingService';
 import userService from '@/services/firebase/userService';
 import venueService from '@/services/firebase/venueService';
@@ -10,8 +10,8 @@ vi.mock('@/services/firebase/venueService');
 vi.mock('@/utils/Logger');
 
 describe('MatchingService - getPotentialMatches', () => {
-  const mockUserService = userService as any;
-  const mockVenueService = venueService as any;
+  const mockUserService = userService as unknown as Record<string, Mock>;
+  const mockVenueService = venueService as unknown as Record<string, Mock>;
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -52,11 +52,30 @@ A modern, real-time social networking application that connects people at venues
    ```
 
 3. **Environment Configuration**
+   
+   For development (team defaults):
    ```bash
-   cp .env.example .env
+   cp .env.development .env.local
    ```
    
-   Update `.env` with your configuration (see Environment Variables section below).
+   Or create custom configuration:
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your Firebase project settings
+   ```
+   
+   Update `.env.local` with your configuration (see Environment Variables section below).
+   
+   > **Note**: 
+   > - Use `.env.local` for your personal config (gitignored)
+   > - `.env.development` contains team defaults
+   > - `.env.production` is used for production builds
+   
+   **Required Environment Variables:**
+   - All `VITE_FIREBASE_*` variables must be set
+   - Get these from your Firebase project settings  
+   - See `.env.example` for complete list
+   - Files should now exist after running the setup commands above
 
 4. **Firebase Setup**
    - Create a new Firebase project
