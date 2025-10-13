@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useOnboarding } from "@/context/OnboardingContext";
@@ -10,7 +10,7 @@ export default function useRequireOnboarding() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
+  const checkOnboarding = useCallback(() => {
     if (!currentUser || isLoading) return;
     userService.isOnboardingComplete(currentUser.uid).then((complete) => {
       setIsOnboardingComplete(complete);
@@ -19,4 +19,8 @@ export default function useRequireOnboarding() {
       }
     });
   }, [currentUser, isLoading, navigate, location.pathname, setIsOnboardingComplete]);
+
+  useEffect(() => {
+    checkOnboarding();
+  }, [checkOnboarding]);
 } 
