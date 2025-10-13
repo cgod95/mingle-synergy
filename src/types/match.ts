@@ -9,6 +9,7 @@ export type Match = {
     senderId: string;
     text: string;
     timestamp: number;
+    readBy?: string[];
   }[];
   isRematch?: boolean;
   matchExpired?: boolean;

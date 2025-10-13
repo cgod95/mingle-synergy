@@ -11,7 +11,8 @@ import {
   doc,
   orderBy,
   limit,
-  writeBatch
+  writeBatch,
+  updateDoc,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { UserProfile } from "@/types/services";
@@ -109,7 +110,37 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
     senderId,
     text,
     createdAt: serverTimestamp(),
+    readBy: [senderId],
   });
+};
+
+export const markMessageAsRead = async (
+  matchId: string,
+  messageId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const messageRef = doc(db, "messages", messageId);
+    const messageSnap = await getDoc(messageRef);
+
+    if (!messageSnap.exists()) {
+      logger.warn(`Message ${messageId} not found for match ${matchId}`);
+      return;
+    }
+
+    const data = messageSnap.data();
+    const readBy = Array.isArray(data.readBy) ? data.readBy : [];
+
+    if (readBy.includes(userId)) {
+      return;
+    }
+
+    await updateDoc(messageRef, {
+      readBy: [...readBy, userId],
+    });
+  } catch (error) {
+    logger.error('Error marking message as read:', error);
+  }
 };
 
 /**

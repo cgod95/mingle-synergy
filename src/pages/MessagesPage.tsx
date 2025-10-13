@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Clock, Users, Send, Heart } from "lucide-react";
+import { MessageCircle, Clock, Users, Send, Heart, Check } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import matchService from '@/services/firebase/matchService';
 import userService from '@/services/firebase/userService';
@@ -19,6 +19,7 @@ interface Conversation {
   lastMessage?: string;
   lastTimestamp: number;
   unreadCount: number;
+  lastRead: boolean;
 }
 
 const MessagesPage = () => {
@@ -40,19 +41,30 @@ const MessagesPage = () => {
             const otherUserId = match.userId1 === currentUser.uid ? match.userId2 : match.userId1;
             const otherUser = await userService.getUserProfile(otherUserId);
 
-            const sorted = [...match.messages].sort((a,b)=>b.timestamp-a.timestamp);
+            type MessageWithReadBy = {
+              senderId: string;
+              text: string;
+              timestamp: number;
+              readBy?: string[];
+            };
+
+            const messages: MessageWithReadBy[] = Array.isArray(match.messages)
+              ? match.messages
+              : [];
+
+            const sorted = [...messages].sort((a, b) => b.timestamp - a.timestamp);
             const lastMsg = sorted[0];
 
-            // unread count: messages where !readBy or not includes uid and sender not current user
-            type BaseMessage = { senderId: string; text: string; timestamp: number };
-            type MessageWithReadBy = BaseMessage & { readBy?: string[] };
-            const hasReadBy = (m: BaseMessage | Record<string, unknown>): m is MessageWithReadBy => {
-              const rb = (m as Record<string, unknown>).readBy;
-              return Array.isArray(rb) && rb.every(id => typeof id === 'string');
-            };
-            const unread = match.messages
-              .filter((m: BaseMessage) => m.senderId !== currentUser.uid && (!hasReadBy(m) || !m.readBy?.includes(currentUser.uid)))
+            const unread = messages
+              .filter(
+                (m) =>
+                  m.senderId !== currentUser.uid && !(m.readBy || []).includes(currentUser.uid)
+              )
               .length;
+
+            const lastRead = Boolean(
+              lastMsg && Array.isArray(lastMsg.readBy) && lastMsg.readBy.includes(currentUser.uid)
+            );
 
             return {
               matchId: match.id,
@@ -63,6 +75,7 @@ const MessagesPage = () => {
               lastMessage: lastMsg?.text,
               lastTimestamp: lastMsg?.timestamp || match.timestamp,
               unreadCount: unread,
+              lastRead,
             } as Conversation;
           }));
 
@@ -144,9 +157,14 @@ const MessagesPage = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate text-lg">
-                        {conversation.otherUserName}
-                      </h3>
+                      <div className="flex items-center space-x-1">
+                        <h3 className="font-semibold text-gray-900 truncate text-lg">
+                          {conversation.otherUserName}
+                        </h3>
+                        {conversation.lastRead && (
+                          <Check className="w-3 h-3 text-blue-500" aria-label="Read" />
+                        )}
+                      </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <span className="text-xs text-gray-500">{timeAgo(conversation.lastTimestamp)}</span>
