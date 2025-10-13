@@ -4,7 +4,7 @@ import { type VariantProps } from "class-variance-authority"
 import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
-import { buttonVariants } from "./button-constants"
+import { buttonVariants } from "./button.util"
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -64,4 +64,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
-export { Button, buttonVariants }
+export { Button }

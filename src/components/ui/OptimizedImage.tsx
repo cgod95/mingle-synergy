@@ -2,7 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Image as ImageIcon } from 'lucide-react';
 import { imageService } from '../../services/ImageService';
-import logger from '@/utils/Logger';
+import {
+  getPlaceholderStyle,
+  useImagePreload,
+  useLazyImageObserver,
+} from './OptimizedImage.util';
 
 interface OptimizedImageProps {
   src: string;
@@ -31,43 +35,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const [currentSrc, setCurrentSrc] = useState(priority ? src : '');
-  const imgRef = useRef<HTMLImageElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  useEffect(() => {
-    if (priority) {
-      setIsInView(true);
-      setCurrentSrc(src);
-      return;
-    }
-
-    // Set up intersection observer for lazy loading
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsInView(true);
-            setCurrentSrc(src);
-            observerRef.current?.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        rootMargin: '50px 0px',
-        threshold: 0.1
-      }
-    );
-
-    if (imgRef.current) {
-      observerRef.current.observe(imgRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [src, priority]);
+  const { imgRef } = useLazyImageObserver(priority, src, setIsInView, setCurrentSrc);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -80,18 +48,11 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     onError?.();
   };
 
-  const getPlaceholderStyle = () => {
-    if (width && height) {
-      return { width: `${width}px`, height: `${height}px` };
-    }
-    return {};
-  };
-
   return (
     <div 
       ref={imgRef}
       className={`relative overflow-hidden ${className}`}
-      style={getPlaceholderStyle()}
+      style={getPlaceholderStyle(width, height)}
     >
       {/* Loading State */}
       <AnimatePresence>
