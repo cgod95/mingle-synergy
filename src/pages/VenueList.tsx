@@ -1,6 +1,6 @@
 // 🧠 Purpose: Display a scrollable, responsive list of venues post-onboarding using Hinge-style layout and routing
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -14,11 +14,7 @@ const VenueList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadVenues();
-  }, []);
-
-  const loadVenues = async () => {
+  const loadVenues = useCallback(async () => {
     if (!currentUser) return;
 
     try {
@@ -31,7 +27,11 @@ const VenueList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    loadVenues();
+  }, [loadVenues]);
 
   const handleVenueClick = (venue: Venue) => {
     navigate(`/venues/${venue.id}`);

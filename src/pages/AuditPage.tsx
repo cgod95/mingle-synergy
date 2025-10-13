@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,13 +26,7 @@ const AuditPage: React.FC = () => {
     warnings: 0
   });
 
-  useEffect(() => {
-    if (currentUser) {
-      runAudit();
-    }
-  }, [currentUser]);
-
-  const runAudit = async () => {
+  const runAudit = useCallback(async () => {
     setLoading(true);
     const results: AuditResult[] = [];
 
@@ -201,7 +195,13 @@ const AuditPage: React.FC = () => {
     };
     setSummary(summary);
     setLoading(false);
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
+      runAudit();
+    }
+  }, [currentUser, runAudit]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

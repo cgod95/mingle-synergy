@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -33,11 +33,7 @@ const Venues: React.FC = () => {
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    loadVenues();
-  }, []);
-
-  const loadVenues = async () => {
+  const loadVenues = useCallback(async () => {
     if (!currentUser) return;
 
     try {
@@ -77,7 +73,11 @@ const Venues: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    loadVenues();
+  }, [loadVenues]);
 
   const handleCheckIn = async (venueId: string) => {
     if (!currentUser) return;
