@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageCircle, Heart, MapPin, Clock, Star, User } from 'lucide-react';
+import logger from '@/utils/Logger';
 
 type MatchCardProps = {
   match: DisplayMatch;
@@ -45,7 +46,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       setStatus("sent");
       setTimeout(() => setStatus("idle"), 2000);
     } catch (err) {
-      console.error("Error sending message:", err);
+      logger.error("Error sending message:", err);
       setStatus("error");
     }
   };
@@ -65,7 +66,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         setShowWeMetModal(false);
         setTimeout(() => setWeMetStatus("idle"), 2000);
       } catch (err) {
-        console.error("Error confirming we met:", err);
+        logger.error("Error confirming we met:", err);
         setWeMetStatus("error");
       }
     }

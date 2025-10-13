@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { analytics } from '@/services/analytics';
+import logger from '@/utils/Logger';
 
 interface SafetyFeaturesProps {
   className?: string;
@@ -137,22 +138,22 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
       
       // Show success message
       // In a real app, you'd use a toast notification
-      console.log('Report submitted successfully');
+      logger.info('Report submitted successfully');
     } catch (error) {
-      console.error('Failed to submit report:', error);
+      logger.error('Failed to submit report:', error);
     }
   };
 
   const handleBlock = (userId: string) => {
     analytics.track('user_blocked', { blocked_user_id: userId });
     // In a real app, this would call the blocking service
-    console.log('User blocked:', userId);
+    logger.info('User blocked:', userId);
   };
 
   const handleVerify = () => {
     analytics.track('verification_started');
     // In a real app, this would open the verification flow
-    console.log('Starting verification process');
+    logger.info('Starting verification process');
   };
 
   const tabs = [

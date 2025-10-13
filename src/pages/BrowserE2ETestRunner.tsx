@@ -10,6 +10,7 @@ import {
 } from '@/services';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
+import logger from '@/utils/Logger';
 
 interface TestUser {
   email: string;
@@ -28,15 +29,15 @@ async function ensureTestUserExists(email: string, password: string) {
   const auth = getAuth();
   try {
     const credential = await signInWithEmailAndPassword(auth, email, password);
-    console.log('Signed in existing test user.');
+    logger.info('Signed in existing test user.');
     return credential;
   } catch (error: unknown) {
     if (error instanceof FirebaseError && error.code === 'auth/user-not-found') {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('Test user created.');
+      logger.info('Test user created.');
       return credential;
     } else {
-      console.error('Failed to sign in test user:', error);
+      logger.error('Failed to sign in test user:', error);
       throw error;
     }
   }

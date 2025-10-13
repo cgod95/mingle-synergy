@@ -1,4 +1,4 @@
-import { auth, firestore, storage } from '@/firebase/config';
+import { auth, db as firestore, storage } from '@/firebase';
 import { collection, getDocs, limit, query, addDoc, deleteDoc } from 'firebase/firestore';
 import { ref, getDownloadURL, uploadString, deleteObject } from 'firebase/storage';
 import { signInAnonymously } from 'firebase/auth';
@@ -6,6 +6,7 @@ import { analytics } from '@/services/analytics';
 import subscriptionService from '@/services/subscriptionService';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
+import logger from '@/utils/Logger';
 
 interface VerificationResult {
   success: boolean;
@@ -200,7 +201,7 @@ export async function verifyRequiredEnvVars(): Promise<VerificationResult> {
 }
 
 export async function runAllVerifications(): Promise<Record<string, VerificationResult>> {
-  console.log("🔍 Starting Mingle App deployment verification...");
+  logger.info("🔍 Starting Mingle App deployment verification...");
   
   const results: Record<string, VerificationResult> = {
     firebaseConnection: await verifyFirebaseConnection(),
@@ -212,19 +213,19 @@ export async function runAllVerifications(): Promise<Record<string, Verification
   };
   
   // Print summary
-  console.log("====== VERIFICATION RESULTS ======");
+  logger.info("====== VERIFICATION RESULTS ======");
   let allSuccess = true;
   
   Object.entries(results).forEach(([key, result]) => {
-    console.log(`${result.success ? '✅' : '❌'} ${key}: ${result.message}`);
+    logger.info(`${result.success ? '✅' : '❌'} ${key}: ${result.message}`);
     if (!result.success) {
       allSuccess = false;
-      console.error(`  Details:`, result.details || 'No details available');
+      logger.error(`  Details:`, result.details || 'No details available');
     }
   });
   
-  console.log("==================================");
-  console.log(`🏁 Verification ${allSuccess ? 'PASSED' : 'FAILED'}`);
+  logger.info("==================================");
+  logger.info(`🏁 Verification ${allSuccess ? 'PASSED' : 'FAILED'}`);
   
   return results;
 }
@@ -297,7 +298,7 @@ class DeploymentVerifier {
     };
 
     // Log report for debugging
-    console.log('Deployment Verification Report:', report);
+    logger.info('Deployment Verification Report:', report);
     
     // Track analytics
     analytics.track('deployment_verification', {

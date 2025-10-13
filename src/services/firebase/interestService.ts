@@ -13,7 +13,7 @@ import {
   setDoc,
   collection
 } from 'firebase/firestore';
-import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
+import { db } from '@/firebase';
 import { InterestService } from '@/types/services';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
 import services from '..';
@@ -21,13 +21,11 @@ import logger from '@/utils/Logger';
 
 class FirebaseInterestService extends FirebaseServiceBase implements InterestService {
   private getInterestsCollection() {
-    const db = getDB();
     if (!db) return null;
     return collection(db, 'interests');
   }
   
   private getLikesCountCollection() {
-    const db = getDB();
     if (!db) return null;
     return collection(db, 'usersLikesCount');
   }
@@ -148,7 +146,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
         return 3;
       }
     } catch (error) {
-      console.error('Error getting likes remaining:', error);
+      logger.error('Error getting likes remaining:', error);
       
       // If error occurred, try local storage
       const storedLikes = localStorage.getItem(`likes_${userId}_${venueId}`);
@@ -165,7 +163,6 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
         throw new Error('Cannot decrement likes while offline');
       }
       
-      const db = getDB();
       if (!db) {
         throw new Error('Firestore not available');
       }
@@ -205,7 +202,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
       
       return true;
     } catch (error) {
-      console.error('Error decrementing likes:', error);
+      logger.error('Error decrementing likes:', error);
       throw error;
     }
   }
@@ -236,7 +233,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
       
       return true;
     } catch (error) {
-      console.error('Error resetting likes:', error);
+      logger.error('Error resetting likes:', error);
       throw error;
     }
   }

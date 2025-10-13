@@ -1,13 +1,14 @@
 
 import services from '../services';
 import { saveToStorage } from './localStorageUtils';
+import logger from '@/utils/Logger';
 
 /**
  * Utility for testing the complete user journey in the app.
  * This helps verify all key paths before deployment.
  */
 export const testCompleteUserJourney = async () => {
-  console.log('Starting complete user journey test...');
+  logger.info('Starting complete user journey test...');
   const results: Record<string, { success: boolean; message?: string; error?: Error | string | null }> = {};
 
   try {
@@ -16,7 +17,7 @@ export const testCompleteUserJourney = async () => {
     const testPassword = 'Test123!';
     
     // Step 1: Sign up
-    console.log('Testing signup...');
+    logger.info('Testing signup...');
     try {
       await services.auth.signUp(testEmail, testPassword);
       results.signup = { success: true, message: 'Successfully created test account' };
@@ -26,7 +27,7 @@ export const testCompleteUserJourney = async () => {
     }
     
     // Step 2: Complete onboarding
-    console.log('Testing onboarding completion...');
+    logger.info('Testing onboarding completion...');
     try {
       saveToStorage('onboardingComplete', true);
       results.onboarding = { success: true, message: 'Successfully marked onboarding as complete' };
@@ -36,7 +37,7 @@ export const testCompleteUserJourney = async () => {
     }
     
     // Step 3: Create profile
-    console.log('Testing profile creation...');
+    logger.info('Testing profile creation...');
     try {
       const currentUser = await services.auth.getCurrentUser();
       if (!currentUser) throw new Error('No authenticated user found');
@@ -62,7 +63,7 @@ export const testCompleteUserJourney = async () => {
     }
     
     // Step 4: Discover venues
-    console.log('Testing venue discovery...');
+    logger.info('Testing venue discovery...');
     try {
       const venues = await services.venue.getVenues();
       if (venues.length === 0) {
@@ -74,7 +75,7 @@ export const testCompleteUserJourney = async () => {
       };
       
       // Step 5: Check in to venue
-      console.log('Testing venue check-in...');
+      logger.info('Testing venue check-in...');
       const currentUser = await services.auth.getCurrentUser();
       if (!currentUser) throw new Error('No authenticated user found');
       
@@ -87,7 +88,7 @@ export const testCompleteUserJourney = async () => {
       
       // Step 6: Find and express interest in users at venue
       try {
-        console.log('Testing expressing interest...');
+        logger.info('Testing expressing interest...');
         // Use optional chaining and fallback for getUsersAtVenue
         const usersAtVenue = await services.user.getUsersAtVenue?.(testVenue.id) || [];
         
@@ -110,7 +111,7 @@ export const testCompleteUserJourney = async () => {
       
       // Step 7: Check matches
       try {
-        console.log('Testing matches...');
+        logger.info('Testing matches...');
         const matches = await services.match.getMatches(currentUser.uid);
         results.matches = { 
           success: true, 
@@ -119,7 +120,7 @@ export const testCompleteUserJourney = async () => {
         
         // Step 8: Test match interaction (if matches exist)
         if (matches.length > 0) {
-          console.log('Testing match interaction...');
+          logger.info('Testing match interaction...');
           const testMatch = matches[0];
           
           // Simulate reconnect if match is active
@@ -146,7 +147,7 @@ export const testCompleteUserJourney = async () => {
       }
       
       // Step 9: Check out from venue
-      console.log('Testing venue check-out...');
+      logger.info('Testing venue check-out...');
       await services.venue.checkOutFromVenue(currentUser.uid);
       results.venueCheckOut = { 
         success: true, 
@@ -157,7 +158,7 @@ export const testCompleteUserJourney = async () => {
     }
     
     // Step 10: Log out
-    console.log('Testing logout...');
+    logger.info('Testing logout...');
     try {
       await services.auth.signOut();
       results.logout = { success: true, message: 'Successfully logged out' };
@@ -167,7 +168,7 @@ export const testCompleteUserJourney = async () => {
     
     // Overall result
     const allSuccessful = Object.values(results).every(result => result.success);
-    console.log(allSuccessful ? 
+    logger.info(allSuccessful ? 
       'User journey test completed successfully! ✅' : 
       'User journey test completed with some failures ❌'
     );
@@ -177,7 +178,7 @@ export const testCompleteUserJourney = async () => {
       results
     };
   } catch (error) {
-    console.error('User journey test failed:', error);
+    logger.error('User journey test failed:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -191,13 +192,13 @@ export const testIndividualStep = async (
   stepName: string, 
   stepFn: () => Promise<unknown>
 ): Promise<{ success: boolean; result?: unknown; error?: string | null }> => {
-  console.log(`Testing step: ${stepName}...`);
+  logger.info(`Testing step: ${stepName}...`);
   try {
     const result = await stepFn();
-    console.log(`Step '${stepName}' completed successfully`);
+    logger.info(`Step '${stepName}' completed successfully`);
     return { success: true, result };
   } catch (error) {
-    console.error(`Step '${stepName}' failed:`, error);
+    logger.error(`Step '${stepName}' failed:`, error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 

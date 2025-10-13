@@ -1,145 +1,127 @@
 // 🧠 Purpose: Provides comprehensive onboarding context with Firebase sync.
 // Handles per-step progress tracking and backend synchronization.
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import userService from '@/services/firebase/userService';
-import onboardingService, { OnboardingProgress, OnboardingStepId, ONBOARDING_STEPS } from '@/services/firebase/onboardingService';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-
-const ONBOARDING_PATHS = [
-  "/create-profile",
-  "/upload-photos",
-  "/preferences"
-];
+import userService from '@/services/firebase/userService';
 
 interface OnboardingContextType {
-  onboardingProgress: OnboardingProgress | null;
+  currentStep: number;
   isOnboardingComplete: boolean;
-  setStepComplete: (step: OnboardingStepId) => void;
   nextStep: () => void;
   prevStep: () => void;
+  setStepComplete: (step: number) => void;
+  completeOnboarding: () => Promise<void>;
+  resetOnboarding: () => void;
   isLoading: boolean;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
-  const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { currentUser } = useAuth();
+export const useOnboarding = () => {
+  const context = useContext(OnboardingContext);
+  if (context === undefined) {
+    throw new Error('useOnboarding must be used within an OnboardingProvider');
+  }
+  return context;
+};
 
-  // Load onboarding progress from Firebase when user changes
+interface OnboardingProviderProps {
+  children: ReactNode;
+}
+
+export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children }) => {
+  const { currentUser } = useAuth();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load onboarding state from Firebase when user changes
   useEffect(() => {
-    const loadProgress = async () => {
-      if (!currentUser?.uid) {
+    const loadOnboardingState = async () => {
+      if (!currentUser) {
         setIsLoading(false);
         return;
       }
 
       try {
-        setIsLoading(true);
-        let progress = await onboardingService.loadOnboardingProgress(currentUser.uid);
-        
-        if (!progress) {
-          // Initialize onboarding for new user
-          progress = await onboardingService.initializeOnboarding(currentUser.uid);
+        const userProfile = await userService.getUserProfile(currentUser.uid);
+        if (userProfile) {
+          setIsOnboardingComplete(userProfile.isOnboardingComplete || false);
+          // Set current step based on completed steps
+          if (userProfile.name && userProfile.age) {
+            setCompletedSteps(new Set([0])); // Profile step complete
+            setCurrentStep(1);
+          }
+          if ((userProfile.photos && userProfile.photos.length > 0) || userProfile.skippedPhotoUpload) {
+            setCompletedSteps(prev => new Set([...prev, 1])); // Photos step complete
+            setCurrentStep(2);
+          }
+          if (userProfile.interests && userProfile.interests.length > 0) {
+            setCompletedSteps(prev => new Set([...prev, 2])); // Preferences step complete
+            setCurrentStep(3);
+          }
+          console.log('[OnboardingContext] Loaded userProfile:', userProfile);
+          console.log('[OnboardingContext] isOnboardingComplete:', userProfile.isOnboardingComplete);
         }
-        
-        setOnboardingProgress(progress);
       } catch (error) {
-        console.error('[OnboardingContext] Error loading progress:', error);
+        console.error('Error loading onboarding state:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadProgress();
-  }, [currentUser?.uid]);
+    loadOnboardingState();
+  }, [currentUser]);
 
-  // Sync with user profile when onboarding is complete
-  useEffect(() => {
-    if (onboardingProgress?.isComplete && currentUser?.uid) {
-      onboardingService.syncWithUserProfile(currentUser.uid);
-    }
-  }, [onboardingProgress?.isComplete, currentUser?.uid]);
-
-  const isOnboardingComplete = onboardingProgress?.isComplete || false;
-
-  const setStepComplete = async (step: OnboardingStepId) => {
-    if (!currentUser?.uid) return;
-
-    try {
-      await onboardingService.completeStep(currentUser.uid, step);
-      
-      // Reload progress to get updated state
-      const updatedProgress = await onboardingService.loadOnboardingProgress(currentUser.uid);
-      setOnboardingProgress(updatedProgress);
-    } catch (error) {
-      console.error('[OnboardingContext] Error completing step:', error);
-    }
-  };
-
-  const getCurrentStepIndex = () => {
-    return ONBOARDING_PATHS.findIndex(path => location.pathname.startsWith(path));
-  };
-
-  const nextStep = async () => {
-    const idx = getCurrentStepIndex();
-    if (idx === -1) {
-      navigate(ONBOARDING_PATHS[0]);
-      return;
-    }
-    
-    if (idx < ONBOARDING_PATHS.length - 1) {
-      // Mark current step as complete before navigating
-      const currentStep = ONBOARDING_STEPS[idx] as OnboardingStepId;
-      await setStepComplete(currentStep);
-      
-      // Set current step in Firebase
-      if (currentUser?.uid) {
-        const nextStepId = ONBOARDING_STEPS[idx + 1] as OnboardingStepId;
-        await onboardingService.setCurrentStep(currentUser.uid, nextStepId);
-      }
-      
-      navigate(ONBOARDING_PATHS[idx + 1]);
-    } else {
-      // Complete final step and navigate to venues
-      const currentStep = ONBOARDING_STEPS[idx] as OnboardingStepId;
-      await setStepComplete(currentStep);
-      navigate("/venues");
-    }
+  const nextStep = () => {
+    setCurrentStep(prev => prev + 1);
   };
 
   const prevStep = () => {
-    const idx = getCurrentStepIndex();
-    if (idx > 0) {
-      navigate(ONBOARDING_PATHS[idx - 1]);
-    } else {
-      navigate("/");
+    setCurrentStep(prev => Math.max(0, prev - 1));
+  };
+
+  const setStepComplete = (step: number) => {
+    setCompletedSteps(prev => new Set([...prev, step]));
+  };
+
+  const completeOnboarding = async () => {
+    if (!currentUser) return;
+    
+    try {
+      await userService.markOnboardingComplete(currentUser.uid);
+      setIsOnboardingComplete(true);
+      localStorage.setItem('onboardingComplete', 'true');
+      console.log('[OnboardingContext] Onboarding marked complete for user:', currentUser.uid);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      throw error;
     }
   };
 
+  const resetOnboarding = () => {
+    setCurrentStep(0);
+    setIsOnboardingComplete(false);
+    setCompletedSteps(new Set());
+    localStorage.removeItem('onboardingComplete');
+  };
+
+  const value: OnboardingContextType = {
+    currentStep,
+    isOnboardingComplete,
+    nextStep,
+    prevStep,
+    setStepComplete,
+    completeOnboarding,
+    resetOnboarding,
+    isLoading,
+  };
+
   return (
-    <OnboardingContext.Provider
-      value={{
-        onboardingProgress,
-        isOnboardingComplete,
-        setStepComplete,
-        nextStep,
-        prevStep,
-        isLoading,
-      }}
-    >
+    <OnboardingContext.Provider value={value}>
       {children}
     </OnboardingContext.Provider>
   );
-};
-
-export const useOnboarding = () => {
-  const context = useContext(OnboardingContext);
-  if (!context) throw new Error("useOnboarding must be used within an OnboardingProvider");
-  return context;
 }; 

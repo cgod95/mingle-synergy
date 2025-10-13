@@ -1,8 +1,11 @@
 // Advanced matching service with compatibility scoring algorithms
 
-import { UserProfile } from '@/types/services';
 import { analytics } from './analytics';
 import { notificationService } from './notificationService';
+import userService from '@/services/firebase/userService';
+import venueService from '@/services/firebase/venueService';
+import logger from '@/utils/Logger';
+import { UserProfile } from '@/types/services';
 
 export interface CompatibilityScore {
   overall: number; // 0-100
@@ -376,48 +379,195 @@ class MatchingService {
 
   // Get potential matches for a user
   async getPotentialMatches(userId: string, limit: number = 20): Promise<User[]> {
-    const user = this.userCache.get(userId);
-    if (!user) return [];
+    try {
+      // Get current user's profile from Firestore
+      const currentUserProfile = await userService.getUserProfile(userId);
+      if (!currentUserProfile) {
+        logger.error('Current user profile not found', { userId });
+        return [];
+      }
 
-    const allUsers = Array.from(this.userCache.values()).filter(u => u.id !== userId);
-    
-    // Filter and score potential matches
-    const scoredUsers = allUsers
-      .filter(u => this.isEligibleMatch(user, u))
-      .map(u => ({
-        user: u,
-        score: this.calculateCompatibility(user, u)
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
+      // Get all users at the same venue (if user is checked in)
+      let potentialUsers: UserProfile[] = [];
+      
+      if (currentUserProfile.currentVenue) {
+        // Get users at the same venue
+        const venueUsers = await venueService.getUsersAtVenue(currentUserProfile.currentVenue);
+        potentialUsers = venueUsers.filter(user => 
+          user.id !== userId && 
+          user.isCheckedIn && 
+          user.isVisible
+        );
+      } else {
+        // If not checked in, return empty array for now
+        // In production, this could be limited to nearby users
+        potentialUsers = [];
+      }
 
-    return scoredUsers.map(su => su.user);
+      // Apply preference filtering
+      const filteredUsers = potentialUsers.filter(potentialUser => {
+        // 1. Gender preference filtering
+        const currentUserInterestedIn = currentUserProfile.interestedIn || [];
+        const potentialUserInterestedIn = potentialUser.interestedIn || [];
+        
+        const currentUserGender = currentUserProfile.gender;
+        const potentialUserGender = potentialUser.gender;
+        
+        // Check if current user is interested in potential user's gender
+        const currentUserLikesPotentialUser = currentUserInterestedIn.includes(potentialUserGender);
+        // Check if potential user is interested in current user's gender
+        const potentialUserLikesCurrentUser = potentialUserInterestedIn.includes(currentUserGender);
+        
+        if (!currentUserLikesPotentialUser || !potentialUserLikesCurrentUser) {
+          return false;
+        }
+
+        // 2. Age range preference filtering
+        const currentUserAgeRange = currentUserProfile.ageRangePreference || { min: 18, max: 100 };
+        const potentialUserAgeRange = potentialUser.ageRangePreference || { min: 18, max: 100 };
+        
+        const currentUserAge = currentUserProfile.age;
+        const potentialUserAge = potentialUser.age;
+        
+        // Check if ages are within each other's preferred ranges
+        const currentUserAgeOk = potentialUserAge >= currentUserAgeRange.min && 
+                                potentialUserAge <= currentUserAgeRange.max;
+        const potentialUserAgeOk = currentUserAge >= potentialUserAgeRange.min && 
+                                  currentUserAge <= potentialUserAgeRange.max;
+        
+        if (!currentUserAgeOk || !potentialUserAgeOk) {
+          return false;
+        }
+
+        // 3. Check if already liked or matched
+        const currentUserLikedUsers = currentUserProfile.likedUsers || [];
+        const potentialUserLikedUsers = potentialUser.likedUsers || [];
+        
+        // Check if either user has already liked the other
+        const alreadyLiked = currentUserLikedUsers.includes(potentialUser.id) ||
+                            potentialUserLikedUsers.includes(currentUserProfile.id);
+        
+        if (alreadyLiked) {
+          return false;
+        }
+
+        // 4. Check for existing matches
+        const currentUserMatches = currentUserProfile.matches || [];
+        const potentialUserMatches = potentialUser.matches || [];
+        
+        // Check if they already have a match
+        const hasExistingMatch = currentUserMatches.includes(potentialUser.id) ||
+                                potentialUserMatches.includes(currentUserProfile.id);
+        
+        if (hasExistingMatch) {
+          return false;
+        }
+
+        return true;
+      });
+
+      // Convert UserProfile to User format and calculate compatibility scores
+      const scoredUsers = filteredUsers.map(potentialUser => {
+        const user: User = {
+          id: potentialUser.id,
+          name: potentialUser.name,
+          age: potentialUser.age,
+          bio: potentialUser.bio || '',
+          photos: potentialUser.photos || [],
+          interests: potentialUser.interests || [],
+          location: {
+            latitude: 0, // Default values since location not in UserProfile
+            longitude: 0,
+          },
+          preferences: {
+            ageRange: [
+              potentialUser.ageRangePreference?.min || 18,
+              potentialUser.ageRangePreference?.max || 100
+            ],
+            maxDistance: 50, // Default max distance
+            interests: potentialUser.interests || [],
+          },
+          personality: {
+            extroversion: 0.5, // Default values - should be stored in profile
+            openness: 0.5,
+            conscientiousness: 0.5,
+            agreeableness: 0.5,
+            neuroticism: 0.5,
+          },
+          activity: {
+            lastActive: new Date(), // Default to now
+            isOnline: true, // Default to true for now
+            checkInTime: new Date(),
+            venueId: potentialUser.currentVenue || undefined,
+          },
+          verification: {
+            isVerified: potentialUser.verificationStatus === 'verified',
+            isPremium: potentialUser.subscriptionTier === 'premium' || potentialUser.subscriptionTier === 'vip',
+            hasSelfie: !!potentialUser.verificationStatus,
+          },
+        };
+
+        const score = this.calculateCompatibility(
+          this.convertUserProfileToUser(currentUserProfile),
+          user
+        );
+
+        return { user, score };
+      });
+
+      // Sort by compatibility score and return top matches
+      const sortedUsers = scoredUsers
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+        .map(item => item.user);
+
+      return sortedUsers;
+    } catch (error) {
+      logger.error('Error getting potential matches', error, { userId });
+      return [];
+    }
   }
 
-  private isEligibleMatch(user1: User, user2: User): boolean {
-    // Check age preferences
-    const user1AgeOk = user2.age >= user1.preferences.ageRange[0] && 
-                      user2.age <= user1.preferences.ageRange[1];
-    const user2AgeOk = user1.age >= user2.preferences.ageRange[0] && 
-                      user1.age <= user2.preferences.ageRange[1];
-    
-    if (!user1AgeOk || !user2AgeOk) return false;
-
-    // Check distance
-    const distance = this.calculateDistance(user1.location, user2.location);
-    if (distance > user1.preferences.maxDistance || distance > user2.preferences.maxDistance) {
-      return false;
-    }
-
-    // Check if already matched or requested
-    const matchExists = Array.from(this.matches.values()).some(match => 
-      match.users.includes(user1.id) && match.users.includes(user2.id)
-    );
-    
-    const requestExists = this.pendingRequests.has(`${user1.id}-${user2.id}`) ||
-                         this.pendingRequests.has(`${user2.id}-${user1.id}`);
-
-    return !matchExists && !requestExists;
+  // Helper method to convert UserProfile to User format
+  private convertUserProfileToUser(profile: UserProfile): User {
+    return {
+      id: profile.id,
+      name: profile.name,
+      age: profile.age,
+      bio: profile.bio || '',
+      photos: profile.photos || [],
+      interests: profile.interests || [],
+      location: {
+        latitude: 0, // Default values
+        longitude: 0,
+      },
+      preferences: {
+        ageRange: [
+          profile.ageRangePreference?.min || 18,
+          profile.ageRangePreference?.max || 100
+        ],
+        maxDistance: 50,
+        interests: profile.interests || [],
+      },
+      personality: {
+        extroversion: 0.5,
+        openness: 0.5,
+        conscientiousness: 0.5,
+        agreeableness: 0.5,
+        neuroticism: 0.5,
+      },
+      activity: {
+        lastActive: new Date(),
+        isOnline: true,
+        checkInTime: new Date(),
+        venueId: profile.currentVenue || undefined,
+      },
+      verification: {
+        isVerified: profile.verificationStatus === 'verified',
+        isPremium: profile.subscriptionTier === 'premium' || profile.subscriptionTier === 'vip',
+        hasSelfie: !!profile.verificationStatus,
+      },
+    };
   }
 
   // Get user's matches

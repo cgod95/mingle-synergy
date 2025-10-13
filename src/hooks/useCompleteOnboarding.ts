@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import userService from "@/services/firebase/userService";
+import logger from '@/utils/Logger';
 
 export const useCompleteOnboarding = () => {
   const { currentUser: user } = useAuth();
@@ -16,7 +17,7 @@ export const useCompleteOnboarding = () => {
       await userService.completeOnboarding(user.uid);
       navigate("/venues");
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      logger.error('Error completing onboarding:', error);
       // You might want to show a toast notification here
     }
   }, [user, navigate]);

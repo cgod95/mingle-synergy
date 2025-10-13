@@ -1,6 +1,6 @@
 import { GeoPoint, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db, firestore } from '@/firebase/config';
-import { auth } from '@/firebase/config';
+import { db, auth } from '@/firebase';
+import logger from '@/utils/Logger';
 
 export class LocationService {
   private watchId: number | null = null;
@@ -86,12 +86,12 @@ export class LocationService {
         });
       });
       
-      console.log('Location permission granted');
+      logger.info('Location permission granted');
       localStorage.setItem('locationPermissionGranted', 'true');
       
       // Store location in user profile
       if (auth.currentUser) {
-        const userRef = doc(firestore, 'users', auth.currentUser.uid);
+        const userRef = doc(db, 'users', auth.currentUser.uid);
         await updateDoc(userRef, {
           lastLocation: {
             latitude: position.coords.latitude,
@@ -103,7 +103,7 @@ export class LocationService {
       
       return true;
     } catch (error) {
-      console.error('Location permission denied:', error);
+      logger.error('Location permission denied:', error);
       localStorage.setItem('locationPermissionGranted', 'false');
       return false;
     }
@@ -160,7 +160,7 @@ export class LocationService {
         longitude: position.coords.longitude
       };
     } catch (error) {
-      console.error('Error getting current location:', error);
+      logger.error('Error getting current location:', error);
       return null;
     }
   }

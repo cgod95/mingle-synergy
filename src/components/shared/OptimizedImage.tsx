@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
+import logger from '@/utils/Logger';
 
 interface OptimizedImageProps {
   src: string | null | undefined;
@@ -47,7 +48,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const handleError = () => {
     // If the main image fails, try to load the fallback
     if (currentSrc !== fallback) {
-      console.warn(`Failed to load image: ${currentSrc}, trying fallback`);
+      logger.warn(`Failed to load image: ${currentSrc}, trying fallback`);
       setCurrentSrc(fallback);
       
       // Create an image element to preload the fallback
@@ -60,13 +61,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       imgElement.onerror = () => {
         setIsLoading(false);
         setError(true);
-        console.warn(`Failed to load fallback image: ${fallback}`);
+        logger.warn(`Failed to load fallback image: ${fallback}`);
       };
     } else {
       // Both main and fallback failed
       setIsLoading(false);
       setError(true);
-      console.warn(`Failed to load fallback image: ${fallback}`);
+      logger.warn(`Failed to load fallback image: ${fallback}`);
     }
   };
 

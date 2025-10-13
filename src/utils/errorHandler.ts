@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react';
 import React from 'react';
+import logger from '@/utils/Logger';
 
 // Define error severity levels
 export enum ErrorSeverity {
@@ -44,7 +45,7 @@ export const logError = (
   // Log to analytics in both dev and prod for error tracking
   try {
     // Use dynamic import to avoid circular dependencies
-    // import('../firebase/config').then(({ analytics }) => {
+    // import('../firebase').then(({ analytics }) => {
     //   if (analytics) {
     //     import('firebase/analytics').then((analyticsModule) => {
     //       const { logEvent } = analyticsModule;
@@ -63,7 +64,7 @@ export const logError = (
     // });
   } catch (loggingError) {
     // Silently fail if analytics isn't ready yet
-    console.warn('Unable to log to analytics:', loggingError);
+    logger.warn('Unable to log to analytics:', loggingError);
   }
   
   // Send to Sentry in production
@@ -94,7 +95,7 @@ export const logUserAction = (action: string, data: Record<string, string | numb
   
   // Log to analytics in both dev and prod for funnel analysis
   try {
-    // import('../firebase/config').then(({ analytics }) => {
+    // import('../firebase').then(({ analytics }) => {
     //   if (analytics) {
     //     import('firebase/analytics').then((analyticsModule) => {
     //       const { logEvent } = analyticsModule;
@@ -108,7 +109,7 @@ export const logUserAction = (action: string, data: Record<string, string | numb
     //   console.warn('Failed to import analytics for user action:', e);
     // });
   } catch (error) {
-    console.warn('Failed to log user action to analytics:', error);
+    logger.warn('Failed to log user action to analytics:', error);
   }
   
   // Add breadcrumb in production for Sentry

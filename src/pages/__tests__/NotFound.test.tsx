@@ -4,6 +4,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import NotFound from '../NotFound';
 
+// Mock the logger
+vi.mock('@/utils/Logger', () => ({
+  default: {
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  },
+}));
+
 // Mock the useLocation hook
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -28,8 +37,9 @@ describe('NotFound', () => {
     expect(screen.getByText(/Back to Home/i)).toBeInTheDocument();
   });
 
-  it('logs error to console', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('logs error to logger', async () => {
+    const logger = await import('@/utils/Logger');
+    const loggerSpy = vi.spyOn(logger.default, 'error').mockImplementation(() => {});
     
     render(
       <BrowserRouter>
@@ -37,11 +47,11 @@ describe('NotFound', () => {
       </BrowserRouter>
     );
     
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('404 Error'), 
-      expect.stringContaining('/non-existent-route')
+    expect(loggerSpy).toHaveBeenCalledWith(
+      '404 Error: User attempted to access non-existent route:',
+      '/non-existent-route'
     );
     
-    consoleSpy.mockRestore();
+    loggerSpy.mockRestore();
   });
 });

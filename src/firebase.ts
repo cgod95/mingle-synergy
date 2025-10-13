@@ -1,48 +1,58 @@
-// 🧠 Purpose: Firebase core configuration and exports for use across the app.
-
-import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { connectAuthEmulator } from "firebase/auth";
+import { connectFirestoreEmulator } from "firebase/firestore";
 import config from "@/config";
 
-const firebaseConfig = {
-  apiKey: config.FIREBASE_API_KEY,
-  authDomain: config.FIREBASE_AUTH_DOMAIN,
-  projectId: config.FIREBASE_PROJECT_ID,
-  storageBucket: config.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: config.FIREBASE_MESSAGING_SENDER_ID,
-  appId: config.FIREBASE_APP_ID,
+const firebaseConfig = config.FIREBASE_CONFIG;
+
+// Validate required Firebase config at runtime for clearer errors
+const validateFirebaseConfig = (): void => {
+  const requiredKeys = [
+    "apiKey",
+    "authDomain",
+    "projectId",
+    "storageBucket",
+    "messagingSenderId",
+    "appId",
+  ] as const;
+
+  const missing = requiredKeys.filter((key) => !firebaseConfig?.[key]);
+  if (missing.length > 0) {
+    console.error(
+      "Firebase configuration is missing required keys:",
+      missing,
+      "\nEnsure your environment variables are set (e.g., VITE_FIREBASE_*) or config.ts is correctly wired."
+    );
+  }
 };
+validateFirebaseConfig();
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+// ✅ Prevent duplicate initialization
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-// 🛠 Emulator Connections (development only)
-if (config.ENVIRONMENT === "development") {
-  const authHost = import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST;
-  const firestoreHost = import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST;
-  const storageHost = import.meta.env.VITE_FIREBASE_STORAGE_EMULATOR_HOST;
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-  if (authHost) {
-    connectAuthEmulator(auth, authHost);
-  }
+// Environment banner (prints once)
+(() => {
+  console.info('%c⚡ Mingle Firebase Init', 'color: purple; font-weight:bold;', {
+    projectId: firebaseConfig.projectId,
+    emulatorAuth: import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST,
+    emulatorFirestore: import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST,
+  });
+})();
 
-  if (firestoreHost) {
-    const [host, port] = firestoreHost.split(":");
-    if (host && port) {
-      connectFirestoreEmulator(db, host, Number(port));
-    }
-  }
-
-  if (storageHost) {
-    const [host, port] = storageHost.split(":");
-    if (host && port) {
-      connectStorageEmulator(storage, host, Number(port));
-    }
-  }
+// Connect to emulators in development when env vars are provided
+if (import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST) {
+  connectAuthEmulator(auth, import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST, {
+    disableWarnings: true,
+  });
 }
 
-export { app, auth, db, storage };
+if (import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST) {
+  connectFirestoreEmulator(db, 'localhost', Number(import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST.split(':').pop()));
+}

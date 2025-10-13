@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
 import subscriptionService from '@/services/subscriptionService';
+import logger from '@/utils/Logger';
 
 interface SubscriptionTier {
   id: string;
@@ -84,7 +85,7 @@ const Billing: React.FC = () => {
       ]);
 
     } catch (error) {
-      console.error('Failed to load billing data:', error);
+      logger.error('Failed to load billing data:', error);
       toast({
         title: "Error",
         description: "Failed to load billing information",

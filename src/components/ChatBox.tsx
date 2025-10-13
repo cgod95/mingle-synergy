@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { canSendMessage, sendMessage } from '@/services/messageService';
+import logger from '@/utils/Logger';
 
 type ChatBoxProps = {
   matchId: string;
@@ -18,7 +19,7 @@ export default function ChatBox({ matchId, currentUserId, existingMessages }: Ch
         const allowed = await canSendMessage(matchId, currentUserId);
         setCanSend(allowed);
       } catch (error) {
-        console.error('Error checking message limit:', error);
+        logger.error('Error checking message limit:', error);
         setCanSend(false);
       }
     };

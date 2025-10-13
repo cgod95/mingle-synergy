@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { onSnapshot, doc } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { db as firestore } from '@/firebase';
 import { subscribeToMessages, Message } from '@/services/messageService';
 
 interface NotificationData {

@@ -12,6 +12,7 @@ import { LoadingSpinner, PageError } from '@/components/StatusFallbacks';
 import { ErrorAlert } from '@/components/FeedbackUtils';
 import WeMetConfirmationModal from '@/components/WeMetConfirmationModal';
 import { Button } from '@/components/ui/button';
+import logger from '@/utils/Logger';
 
 const Chat: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -43,11 +44,11 @@ const Chat: React.FC = () => {
           const userProfile = await userService.getUserProfile(otherUserId);
           setOtherUser(userProfile);
         } catch (error) {
-          console.error('Error fetching other user profile:', error);
+          logger.error('Error fetching other user profile:', error);
         }
       } catch (err) {
         setError('Failed to load match.');
-        console.error('Error fetching match:', err);
+        logger.error('Error fetching match:', err);
       } finally {
         setLoading(false);
       }
@@ -70,7 +71,7 @@ const Chat: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message.';
       setError(errorMessage);
-      console.error('Error sending message:', err);
+      logger.error('Error sending message:', err);
     } finally {
       setSending(false);
     }
@@ -94,7 +95,7 @@ const Chat: React.FC = () => {
       // You could add a success toast here
       setTimeout(() => setWeMetStatus("idle"), 2000);
     } catch (err) {
-      console.error("Error confirming we met:", err);
+      logger.error("Error confirming we met:", err);
       setWeMetStatus("error");
     }
   };

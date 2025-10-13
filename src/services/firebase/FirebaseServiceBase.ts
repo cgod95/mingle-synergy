@@ -1,12 +1,11 @@
 import { CollectionReference, collection } from 'firebase/firestore';
-import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
+import { db } from '@/firebase';
 import { isOnline } from '@/utils/networkMonitor';
 import logger from '@/utils/Logger';
 
 export class FirebaseServiceBase {
   protected getCollection(collectionName: string): CollectionReference | null {
     try {
-      const db = getDB();
       if (!db) {
         logger.warn(`Firestore not available for collection ${collectionName}`);
         return null;
@@ -20,7 +19,7 @@ export class FirebaseServiceBase {
   }
   
   protected isFirebaseAvailable(): boolean {
-    return isFirebaseAvailable() && isOnline();
+    return db !== null && isOnline();
   }
   
   protected handleError(error: unknown, operation: string): never {

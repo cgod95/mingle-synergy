@@ -12,6 +12,7 @@ import {
   verifyMockStatus,
   verifyRequiredEnvVars
 } from '@/utils/deploymentVerifier';
+import logger from '@/utils/Logger';
 
 type CheckResult = {
   name: string;
@@ -99,7 +100,7 @@ const DeploymentChecklist: React.FC = () => {
 
       setProgress(100);
     } catch (error) {
-      console.error('Error running deployment checks:', error);
+      logger.error('Error running deployment checks:', error);
     } finally {
       setIsRunning(false);
     }

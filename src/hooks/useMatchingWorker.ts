@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import logger from '@/utils/Logger';
 
 interface User {
   id: string;
@@ -39,12 +40,12 @@ export function useMatchingWorker() {
         if (type === 'matchesCalculated') {
           setMatches(workerMatches);
           setIsLoading(false);
-          console.log(`Matching completed in ${processingTime.toFixed(2)}ms`);
+          logger.info(`Matching completed in ${processingTime.toFixed(2)}ms`);
         }
       };
 
       workerRef.current.onerror = (error) => {
-        console.error('Worker error:', error);
+        logger.error('Worker error:', error);
         setError('Failed to calculate matches');
         setIsLoading(false);
       };

@@ -5,8 +5,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { mockMessages } from '@/data/mock';
 import { Message } from '@/types';
+import logger from '@/utils/Logger';
+import { sendMessage, getRemainingMessages } from '@/services/messageService';
 
 interface MessageInputProps {
   matchId: string;
@@ -25,18 +26,21 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
   useEffect(() => {
     if (!currentUser?.uid || !matchId) return;
 
-    // Simulate real-time updates for message limits
-    const interval = setInterval(() => {
-      const userMessages = mockMessages.filter(
-        msg => msg.matchId === matchId && msg.senderId === currentUser.uid
-      );
-      const remaining = Math.max(0, 3 - userMessages.length);
-      const canSendMessages = remaining > 0;
-      
-      setCanSend(canSendMessages);
-      setRemainingMessages(remaining);
-    }, 1000);
+    // Check message limit via messageService util
+    const checkMessageLimit = async () => {
+      try {
+        const remaining = await getRemainingMessages(matchId, currentUser.uid);
+        setRemainingMessages(remaining);
+        setCanSend(remaining > 0);
+      } catch (err) {
+        logger.error('Error checking message limit:', err);
+      }
+    };
 
+    checkMessageLimit();
+    
+    // Check periodically for updates
+    const interval = setInterval(checkMessageLimit, 5000);
     return () => clearInterval(interval);
   }, [matchId, currentUser?.uid]);
 
@@ -47,25 +51,15 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
     setError(null);
     
     try {
-      // Create new message
-      const newMessage: Message = {
-        id: `msg_${Date.now()}`,
-        matchId,
-        senderId: currentUser.uid,
-        receiverId: '', // Will be set by the parent component
-        text: text.trim(),
-        timestamp: Date.now()
-      };
-
-      // In a real app, this would be saved to the backend
-      // For now, we'll just simulate the success
-      console.log('Message sent:', newMessage);
+      // Send message using Firebase service
+      await sendMessage(matchId, currentUser.uid, text.trim());
       
       setText('');
       onMessageSent();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
       setError(errorMessage);
+      logger.error('Error sending message:', err);
     } finally {
       setLoading(false);
     }
@@ -98,21 +92,15 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyPress={handleKeyPress}
-          disabled={loading || !canSend}
-          maxLength={500}
+          disabled={!canSend || loading}
         />
-        <Button 
-          onClick={handleSend} 
+        <Button
+          onClick={handleSend}
           disabled={isDisabled}
-          className="px-4 py-2 text-sm"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Sending...' : 'Send'}
         </Button>
-      </div>
-
-      {/* Character count */}
-      <div className="text-xs text-gray-400 text-right">
-        {text.length}/500
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Image as ImageIcon } from 'lucide-react';
 import { imageService } from '../../services/ImageService';
+import logger from '@/utils/Logger';
 
 interface OptimizedImageProps {
   src: string;
@@ -171,7 +172,7 @@ export const useImagePreload = (srcs: string[]) => {
         const loadedSrcs = await Promise.all(promises);
         setLoadedImages(new Set(loadedSrcs));
       } catch (error) {
-        console.warn('Some images failed to preload:', error);
+        logger.warn('Some images failed to preload:', error);
       }
     };
 

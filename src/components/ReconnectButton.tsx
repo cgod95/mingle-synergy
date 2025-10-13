@@ -4,6 +4,7 @@ import { SmallLoadingSpinner } from "@/components/FeedbackUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { handleReconnectRequest, canReconnect } from "@/services/reconnectService";
 import { useAuth } from "@/context/AuthContext";
+import logger from '@/utils/Logger';
 
 interface ReconnectButtonProps {
   targetUserId: string;
@@ -34,7 +35,7 @@ const ReconnectButton: React.FC<ReconnectButtonProps> = ({
         const allowed = await canReconnect(currentUser.uid, targetUserId);
         setCanReconnectState(allowed);
       } catch (error) {
-        console.error("Error checking reconnect status:", error);
+        logger.error("Error checking reconnect status:", error);
         setCanReconnectState(false);
       }
     };
@@ -77,7 +78,7 @@ const ReconnectButton: React.FC<ReconnectButtonProps> = ({
 
       setCanReconnectState(false);
     } catch (error) {
-      console.error("Error sending reconnect request:", error);
+      logger.error("Error sending reconnect request:", error);
       toast({
         title: "Failed to send request",
         description: error instanceof Error ? error.message : "An unknown error occurred",

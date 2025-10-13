@@ -1,5 +1,7 @@
 // Comprehensive analytics service for user engagement and insights
 
+import logger from '@/utils/Logger';
+
 export interface AnalyticsEvent {
   name: string;
   properties?: Record<string, unknown>;
@@ -312,7 +314,7 @@ class AnalyticsService {
   private sendToAnalyticsService(event: AnalyticsEvent) {
     // In production, this would send to Firebase Analytics, Mixpanel, etc.
     if (process.env.NODE_ENV === 'development') {
-      console.log('Analytics Event:', event);
+      logger.info('Analytics Event:', event);
     }
     
     // Example: Send to Firebase Analytics
@@ -384,7 +386,7 @@ class AnalyticsService {
         this.events = JSON.parse(stored);
       }
     } catch (error) {
-      console.warn('Failed to load analytics events:', error);
+      logger.warn('Failed to load analytics events:', error);
       this.events = [];
     }
   }
@@ -394,7 +396,7 @@ class AnalyticsService {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.events));
     } catch (error) {
-      console.warn('Failed to save analytics events:', error);
+      logger.warn('Failed to save analytics events:', error);
     }
   }
 }

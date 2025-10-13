@@ -3,6 +3,7 @@ import { acceptReconnectRequest } from "@/services/reconnectRequestsService";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { SmallLoadingSpinner } from "@/components/FeedbackUtils";
+import logger from '@/utils/Logger';
 
 interface AcceptReconnectButtonProps {
   targetUid: string;
@@ -34,7 +35,7 @@ export const AcceptReconnectButton = ({
       setAccepted(true);
       onAccept?.(); // Call optional callback
     } catch (err) {
-      console.error(err);
+      logger.error('Error accepting reconnect request:', err);
       setError("Failed to accept reconnect.");
     } finally {
       setLoading(false);

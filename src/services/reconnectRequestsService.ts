@@ -1,6 +1,7 @@
-import { firestore } from "@/firebase";
+import { db } from "@/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { UserProfile } from "@/types/services";
+import logger from '@/utils/Logger';
 
 /**
  * Fetches reconnect requests for a user using subcollection approach
@@ -8,12 +9,12 @@ import { UserProfile } from "@/types/services";
  */
 export const fetchReconnectRequests = async (currentUserId: string): Promise<UserProfile[]> => {
   try {
-    const requestsRef = collection(firestore, "users", currentUserId, "reconnectRequests");
+    const requestsRef = collection(db, "users", currentUserId, "reconnectRequests");
     const snapshot = await getDocs(requestsRef);
     const users: UserProfile[] = [];
 
     for (const docSnap of snapshot.docs) {
-      const userDoc = await getDoc(doc(firestore, "users", docSnap.id));
+      const userDoc = await getDoc(doc(db, "users", docSnap.id));
       if (userDoc.exists()) {
         const userData = userDoc.data();
         users.push({ 
@@ -26,7 +27,7 @@ export const fetchReconnectRequests = async (currentUserId: string): Promise<Use
 
     return users;
   } catch (error) {
-    console.error("Error fetching reconnect requests:", error);
+    logger.error("Error fetching reconnect requests:", error);
     throw new Error("Failed to fetch reconnect requests");
   }
 };
@@ -37,12 +38,12 @@ export const fetchReconnectRequests = async (currentUserId: string): Promise<Use
  */
 export const fetchAcceptedReconnects = async (currentUserId: string): Promise<Array<{user: UserProfile, reconnectedAt: Date}>> => {
   try {
-    const acceptedRef = collection(firestore, "users", currentUserId, "acceptedReconnects");
+    const acceptedRef = collection(db, "users", currentUserId, "acceptedReconnects");
     const snapshot = await getDocs(acceptedRef);
     const reconnectData: Array<{user: UserProfile, reconnectedAt: Date}> = [];
 
     for (const docSnap of snapshot.docs) {
-      const userDoc = await getDoc(doc(firestore, "users", docSnap.id));
+      const userDoc = await getDoc(doc(db, "users", docSnap.id));
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const reconnectDoc = docSnap.data();
@@ -61,7 +62,7 @@ export const fetchAcceptedReconnects = async (currentUserId: string): Promise<Ar
     // Sort by most recent first
     return reconnectData.sort((a, b) => b.reconnectedAt.getTime() - a.reconnectedAt.getTime());
   } catch (error) {
-    console.error("Error fetching accepted reconnects:", error);
+    logger.error("Error fetching accepted reconnects:", error);
     throw new Error("Failed to fetch accepted reconnects");
   }
 };
@@ -75,16 +76,16 @@ export const acceptReconnectRequest = async (
   otherUserId: string
 ): Promise<void> => {
   try {
-    const requestRef = doc(firestore, "users", currentUserId, "reconnectRequests", otherUserId);
-    const reverseRef = doc(firestore, "users", otherUserId, "reconnectRequests", currentUserId);
+    const requestRef = doc(db, "users", currentUserId, "reconnectRequests", otherUserId);
+    const reverseRef = doc(db, "users", otherUserId, "reconnectRequests", currentUserId);
 
     // Delete both sides of the request
     await deleteDoc(requestRef);
     await deleteDoc(reverseRef);
 
     // Create mutual "acceptedReconnects" for analytics and UI state
-    const acceptedRef = doc(firestore, "users", currentUserId, "acceptedReconnects", otherUserId);
-    const reverseAcceptedRef = doc(firestore, "users", otherUserId, "acceptedReconnects", currentUserId);
+    const acceptedRef = doc(db, "users", currentUserId, "acceptedReconnects", otherUserId);
+    const reverseAcceptedRef = doc(db, "users", otherUserId, "acceptedReconnects", currentUserId);
 
     const timestamp = serverTimestamp();
     await setDoc(acceptedRef, { timestamp });
@@ -94,7 +95,7 @@ export const acceptReconnectRequest = async (
     const matchService = (await import('./firebase/matchService')).default;
     await matchService.createMatch(currentUserId, otherUserId, 'reconnect-venue', 'Reconnection');
   } catch (error) {
-    console.error("Error accepting reconnect request:", error);
+    logger.error("Error accepting reconnect request:", error);
     throw new Error("Failed to accept reconnect request");
   }
 };
@@ -108,14 +109,14 @@ export const sendReconnectRequest = async (
   toUserId: string
 ): Promise<void> => {
   try {
-    const requestRef = doc(firestore, "users", toUserId, "reconnectRequests", fromUserId);
-    const reverseRef = doc(firestore, "users", fromUserId, "reconnectRequests", toUserId);
+    const requestRef = doc(db, "users", toUserId, "reconnectRequests", fromUserId);
+    const reverseRef = doc(db, "users", fromUserId, "reconnectRequests", toUserId);
 
     const timestamp = serverTimestamp();
     await setDoc(requestRef, { timestamp });
     await setDoc(reverseRef, { timestamp });
   } catch (error) {
-    console.error("Error sending reconnect request:", error);
+    logger.error("Error sending reconnect request:", error);
     throw new Error("Failed to send reconnect request");
   }
 };
@@ -126,11 +127,11 @@ export const sendReconnectRequest = async (
  */
 export const hasReconnectRequests = async (userId: string): Promise<boolean> => {
   try {
-    const requestsRef = collection(firestore, "users", userId, "reconnectRequests");
+    const requestsRef = collection(db, "users", userId, "reconnectRequests");
     const snapshot = await getDocs(requestsRef);
     return !snapshot.empty;
   } catch (error) {
-    console.error("Error checking reconnect requests:", error);
+    logger.error("Error checking reconnect requests:", error);
     return false;
   }
 }; 

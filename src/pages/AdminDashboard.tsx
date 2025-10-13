@@ -36,13 +36,13 @@ import { businessFeatures } from '@/services/businessFeatures';
 import { infrastructure } from '@/services/infrastructure';
 import { technicalExcellence } from '@/services/technicalExcellence';
 import { usePerformanceMonitoring } from '@/services/performanceMonitoring';
-import { mockVenues } from '@/data/mock';
 import { Venue } from '@/types/index';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/use-toast';
 import venueService from '@/services/firebase/venueService';
 import { Skeleton } from '@/components/ui/skeleton';
+import logger from '@/utils/Logger';
 
 interface SystemMetrics {
   activeUsers: number;
@@ -125,21 +125,44 @@ const AdminDashboard: React.FC = () => {
       // Load all dashboard data in parallel
       const [statsData, activityData, usersData, venuesData] = await Promise.all([
         businessFeatures.getAdminMetrics(),
-        getRecentActivityMock(),
+        getRecentActivity(),
         businessFeatures.getUserReports(),
-        venueService.getAllVenues()
+        venueService.getVenues()
       ]);
 
-      setStats(statsData);
+      // Transform data to match expected types
+      const transformedStats: AdminStats = {
+        totalUsers: statsData.totalUsers || 0,
+        activeUsers: statsData.activeUsers || 0,
+        totalVenues: statsData.totalVenues || 0,
+        activeVenues: statsData.activeVenues || 0,
+        totalMatches: statsData.totalMatches || 0,
+        successfulMatches: statsData.successfulMatches || 0,
+        revenue: statsData.revenue || 0,
+        growthRate: statsData.growthRate || 0,
+        newUsersThisWeek: statsData.newUsersThisWeek || 0,
+        newVenuesThisWeek: statsData.newVenuesThisWeek || 0,
+        revenueGrowth: statsData.revenueGrowth || 0,
+        matchesThisWeek: statsData.matchesThisWeek || 0
+      };
+
+      const transformedUsers: User[] = usersData.map((user: any) => ({
+        id: user.id || user.userId,
+        name: user.name || user.displayName || 'Unknown User',
+        email: user.email || '',
+        avatar: user.avatar || user.photoURL || ''
+      }));
+
+      setStats(transformedStats);
       setRecentActivity(activityData);
-      setUsers(usersData);
+      setUsers(transformedUsers);
       setVenues(venuesData);
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      logger.error('Error loading dashboard data:', error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -165,7 +188,7 @@ const AdminDashboard: React.FC = () => {
       // Refresh data
       loadDashboardData();
     } catch (error) {
-      console.error(`Failed to ${action} user:`, error);
+      logger.error(`Failed to ${action} user:`, error);
       toast({
         title: "Error",
         description: `Failed to ${action} user`,
@@ -194,7 +217,7 @@ const AdminDashboard: React.FC = () => {
       // Refresh data
       loadDashboardData();
     } catch (error) {
-      console.error(`Failed to ${action} venue:`, error);
+      logger.error(`Failed to ${action} venue:`, error);
       toast({
         title: "Error",
         description: `Failed to ${action} venue`,
@@ -516,10 +539,8 @@ const AdminDashboard: React.FC = () => {
 
 export default AdminDashboard;
 
-function getRecentActivityMock() {
-  return Promise.resolve([
-    { description: 'User JohnDoe signed up', timestamp: Date.now() - 1000 * 60 * 60 },
-    { description: 'Venue "Cafe Central" approved', timestamp: Date.now() - 1000 * 60 * 60 * 2 },
-    { description: 'User JaneSmith upgraded to Premium', timestamp: Date.now() - 1000 * 60 * 60 * 3 },
-  ]);
+function getRecentActivity(): ActivityItem[] {
+  // In a real implementation, this would fetch from the database
+  // For now, we'll return an empty array as this is not implemented
+  return [];
 } 

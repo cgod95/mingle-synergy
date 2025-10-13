@@ -10,22 +10,23 @@ import {
   arrayRemove,
   arrayUnion,
   deleteDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { firestore, storage } from '../../firebase/index';
+import { db, storage } from '@/firebase';
 import { UserProfile, UserService } from '@/types/services';
+import logger from '@/utils/Logger';
 
 type PartialUserProfile = Partial<UserProfile>;
 
 class FirebaseUserService implements UserService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const userRef = doc(firestore, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const userData = userSnap.data();
         return { 
-          id: userSnap.id, 
           uid: userSnap.id, // Set uid to the document ID
           displayName: userData.displayName || userData.name, // Use displayName if available, fallback to name
           ...(userData as UserProfile) 
@@ -34,31 +35,31 @@ class FirebaseUserService implements UserService {
         return null;
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      logger.error('Error fetching user profile:', error);
       return null;
     }
   }
 
   async updateUserProfile(userId: string, updates: PartialUserProfile): Promise<void> {
     try {
-      const userRef = doc(firestore, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, updates);
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      logger.error('Error updating user profile:', error);
       throw new Error('Failed to update profile. Please try again.');
     }
   }
 
   async createUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
     try {
-      const userRef = doc(firestore, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       await setDoc(userRef, {
         ...data,
         isOnboardingComplete: false, // 🔒 prevent routing to /venues prematurely
         createdAt: Date.now(),
       });
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      logger.error('Error creating user profile:', error);
       throw new Error('Failed to create profile. Please try again.');
     }
   }
@@ -74,12 +75,12 @@ class FirebaseUserService implements UserService {
   async deleteUser(userId: string): Promise<void> {
     // Note: In production, you might want to use a Cloud Function to handle user deletion
     // as it requires special permissions and cleanup of related data
-    console.warn('User deletion not implemented - use Cloud Functions for production');
+    logger.warn('User deletion not implemented - use Cloud Functions for production');
   }
 
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
     try {
-      const usersRef = collection(firestore, 'users');
+      const usersRef = collection(db, 'users');
       const q = query(usersRef, where('currentVenue', '==', venueId));
       const snapshot = await getDocs(q);
       
@@ -88,7 +89,7 @@ class FirebaseUserService implements UserService {
         ...doc.data()
       } as UserProfile));
     } catch (error) {
-      console.error('Error fetching users at venue:', error);
+      logger.error('Error fetching users at venue:', error);
       return [];
     }
   }
@@ -96,7 +97,7 @@ class FirebaseUserService implements UserService {
   async getReconnectRequests(userId: string): Promise<string[]> {
     try {
       // Approach 1: Get from user document array (simpler for small scale)
-      const userRef = doc(firestore, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       const userSnap = await getDoc(userRef);
       
       if (userSnap.exists()) {
@@ -106,7 +107,7 @@ class FirebaseUserService implements UserService {
       
       return [];
     } catch (error) {
-      console.error('Error fetching reconnect requests:', error);
+      logger.error('Error fetching reconnect requests:', error);
       return [];
     }
   }
@@ -114,7 +115,7 @@ class FirebaseUserService implements UserService {
   async acceptReconnectRequest(userId: string, requesterId: string): Promise<void> {
     try {
       // Remove the request from the user's reconnectRequests array
-      const userRef = doc(firestore, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
         reconnectRequests: arrayRemove(requesterId)
       });
@@ -128,7 +129,7 @@ class FirebaseUserService implements UserService {
       // Remove likes between users to allow fresh matching
       await this.removeLikesBetweenUsers(userId, requesterId);
     } catch (error) {
-      console.error('Error accepting reconnect request:', error);
+      logger.error('Error accepting reconnect request:', error);
       throw error;
     }
   }
@@ -136,8 +137,8 @@ class FirebaseUserService implements UserService {
   private async removeLikesBetweenUsers(userId1: string, userId2: string): Promise<void> {
     try {
       // Remove likes from both users
-      const user1Ref = doc(firestore, 'users', userId1);
-      const user2Ref = doc(firestore, 'users', userId2);
+      const user1Ref = doc(db, 'users', userId1);
+      const user2Ref = doc(db, 'users', userId2);
 
       await updateDoc(user1Ref, {
         likes: arrayRemove(userId2)
@@ -147,19 +148,19 @@ class FirebaseUserService implements UserService {
         likes: arrayRemove(userId1)
       });
     } catch (error) {
-      console.error('Error removing likes between users:', error);
+      logger.error('Error removing likes between users:', error);
     }
   }
 
   async sendReconnectRequest(fromUserId: string, toUserId: string): Promise<void> {
     try {
       // Add the requesting user to the target user's reconnectRequests array
-      const targetUserRef = doc(firestore, 'users', toUserId);
+      const targetUserRef = doc(db, 'users', toUserId);
       await updateDoc(targetUserRef, {
         reconnectRequests: arrayUnion(fromUserId)
       });
     } catch (error) {
-      console.error('Error sending reconnect request:', error);
+      logger.error('Error sending reconnect request:', error);
       throw error;
     }
   }
@@ -188,7 +189,7 @@ class FirebaseUserService implements UserService {
       
       return downloadURL;
     } catch (error) {
-      console.error('Error uploading profile photo:', error);
+      logger.error('Error uploading profile photo:', error);
       throw error;
     }
   }
@@ -196,12 +197,13 @@ class FirebaseUserService implements UserService {
   // 🧠 Purpose: Mark onboarding as complete after preferences are saved
   async completeOnboarding(userId: string): Promise<void> {
     try {
-      const userRef = doc(firestore, 'users', userId);
+      const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
         isOnboardingComplete: true,
+        updatedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      logger.error('Error completing onboarding:', error);
       throw new Error('Failed to complete onboarding. Please try again.');
     }
   }
@@ -212,7 +214,7 @@ class FirebaseUserService implements UserService {
       const userProfile = await this.getUserProfile(userId);
       return userProfile?.isOnboardingComplete || false;
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
+      logger.error('Error checking onboarding status:', error);
       return false;
     }
   }

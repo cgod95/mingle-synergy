@@ -1,248 +1,314 @@
-// 🧠 Purpose: Centralized validation functions for security and data integrity
-import type { ValidationRule, ValidationSchema } from '@/types/common';
+// 🧠 Purpose: Centralized validation utilities for form and API input validation
+import logger from '@/utils/Logger';
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+export interface ValidationRule {
+  test: (value: unknown) => boolean;
+  message: string;
+}
 
 // Email validation
-export const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 254;
+export const validateEmail = (email: string): ValidationResult => {
+  const errors: string[] = [];
+  
+  if (!email) {
+    errors.push('Email is required');
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.push('Please enter a valid email address');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };
 
-// Text sanitization and validation
-export const sanitizeText = (text: string, maxLength: number = 1000): string => {
-  if (!text || typeof text !== 'string') return '';
+// Password validation
+export const validatePassword = (password: string): ValidationResult => {
+  const errors: string[] = [];
   
-  // Remove potentially dangerous HTML/script tags
-  const sanitized = text
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<[^>]*>/g, '')
-    .trim();
+  if (!password) {
+    errors.push('Password is required');
+  } else if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
+  } else if (!/(?=.*[a-z])/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  } else if (!/(?=.*[A-Z])/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  } else if (!/(?=.*\d)/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
   
-  return sanitized.slice(0, maxLength);
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };
 
-export const isValidText = (text: string, minLength: number = 1, maxLength: number = 1000): boolean => {
-  if (!text || typeof text !== 'string') return false;
-  const sanitized = sanitizeText(text, maxLength);
-  return sanitized.length >= minLength && sanitized.length <= maxLength;
+// Username validation
+export const validateUsername = (username: string): ValidationResult => {
+  const errors: string[] = [];
+  
+  if (!username) {
+    errors.push('Username is required');
+  } else if (username.length < 3) {
+    errors.push('Username must be at least 3 characters long');
+  } else if (username.length > 30) {
+    errors.push('Username must be less than 30 characters');
+  } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    errors.push('Username can only contain letters, numbers, and underscores');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// Phone number validation
+export const validatePhoneNumber = (phone: string): ValidationResult => {
+  const errors: string[] = [];
+  
+  if (!phone) {
+    errors.push('Phone number is required');
+  } else if (!/^\+?[\d\s\-()]+$/.test(phone)) {
+    errors.push('Please enter a valid phone number');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };
 
 // Age validation
-export const isValidAge = (age: number): boolean => {
-  return Number.isInteger(age) && age >= 18 && age <= 120;
-};
-
-// Name validation
-export const isValidName = (name: string): boolean => {
-  if (!name || typeof name !== 'string') return false;
+export const validateAge = (age: number): ValidationResult => {
+  const errors: string[] = [];
   
-  const sanitized = sanitizeText(name, 50);
-  const nameRegex = /^[a-zA-Z\s\-'.]+$/;
-  
-  return sanitized.length >= 2 && 
-         sanitized.length <= 50 && 
-         nameRegex.test(sanitized);
-};
-
-// Bio validation
-export const isValidBio = (bio: string): boolean => {
-  if (!bio || typeof bio !== 'string') return false;
-  
-  const sanitized = sanitizeText(bio, 500);
-  return sanitized.length >= 10 && sanitized.length <= 500;
-};
-
-// URL validation
-export const isValidUrl = (url: string): boolean => {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
-  } catch {
-    return false;
+  if (!age || isNaN(age)) {
+    errors.push('Age is required');
+  } else if (age < 18) {
+    errors.push('You must be at least 18 years old');
+  } else if (age > 100) {
+    errors.push('Please enter a valid age');
   }
-};
-
-// Phone number validation (basic)
-export const isValidPhone = (phone: string): boolean => {
-  const phoneRegex = /^\+?[\d\s\-()]{10,15}$/;
-  return phoneRegex.test(phone);
-};
-
-// Password strength validation
-export const isStrongPassword = (password: string): boolean => {
-  if (!password || typeof password !== 'string') return false;
   
-  const hasMinLength = password.length >= 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-  
-  return hasMinLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };
 
-// File validation
-export const isValidImageFile = (file: File): boolean => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  const maxSize = 5 * 1024 * 1024; // 5MB
+// Location validation
+export const validateLocation = (location: { lat: number; lng: number }): ValidationResult => {
+  const errors: string[] = [];
   
-  return allowedTypes.includes(file.type) && file.size <= maxSize;
-};
-
-export const isValidFileSize = (file: File, maxSizeMB: number = 5): boolean => {
-  return file.size <= maxSizeMB * 1024 * 1024;
-};
-
-// Venue-specific validation
-export const isValidVenueName = (name: string): boolean => {
-  if (!name || typeof name !== 'string') return false;
+  if (!location) {
+    errors.push('Location is required');
+  } else if (typeof location.lat !== 'number' || typeof location.lng !== 'number') {
+    errors.push('Invalid location format');
+  } else if (location.lat < -90 || location.lat > 90) {
+    errors.push('Invalid latitude');
+  } else if (location.lng < -180 || location.lng > 180) {
+    errors.push('Invalid longitude');
+  }
   
-  const sanitized = sanitizeText(name, 100);
-  return sanitized.length >= 2 && sanitized.length <= 100;
-};
-
-export const isValidVenueAddress = (address: string): boolean => {
-  if (!address || typeof address !== 'string') return false;
-  
-  const sanitized = sanitizeText(address, 200);
-  return sanitized.length >= 5 && sanitized.length <= 200;
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };
 
 // Message validation
-export const isValidMessage = (message: string): boolean => {
-  if (!message || typeof message !== 'string') return false;
+export const validateMessage = (message: string): ValidationResult => {
+  const errors: string[] = [];
   
-  const sanitized = sanitizeText(message, 1000);
-  return sanitized.length >= 1 && sanitized.length <= 1000;
-};
-
-// Interest validation
-export const isValidInterest = (interest: string): boolean => {
-  if (!interest || typeof interest !== 'string') return false;
-  
-  const sanitized = sanitizeText(interest, 50);
-  return sanitized.length >= 2 && sanitized.length <= 50;
-};
-
-// Rate limiting validation
-export const isValidRateLimit = (timestamp: number, lastActionTime: number, minIntervalMs: number = 1000): boolean => {
-  return timestamp - lastActionTime >= minIntervalMs;
-};
-
-// Form validation helpers
-export const validateFormField = (value: unknown, rules: ValidationRule): string | null => {
-  if (rules.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
-    return 'This field is required';
+  if (!message) {
+    errors.push('Message is required');
+  } else if (message.length > 1000) {
+    errors.push('Message must be less than 1000 characters');
+  } else if (message.trim().length === 0) {
+    errors.push('Message cannot be empty');
   }
   
-  if (typeof value === 'string') {
-    if (rules.minLength && value.length < rules.minLength) {
-      return `Minimum length is ${rules.minLength} characters`;
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// File validation
+export const validateFile = (file: File, options: {
+  maxSize?: number;
+  allowedTypes?: string[];
+  maxWidth?: number;
+  maxHeight?: number;
+} = {}): ValidationResult => {
+  const errors: string[] = [];
+  const { maxSize = 5 * 1024 * 1024, allowedTypes = ['image/jpeg', 'image/png', 'image/webp'] } = options;
+  
+  if (!file) {
+    errors.push('File is required');
+  } else {
+    if (file.size > maxSize) {
+      errors.push(`File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB`);
     }
     
-    if (rules.maxLength && value.length > rules.maxLength) {
-      return `Maximum length is ${rules.maxLength} characters`;
+    if (!allowedTypes.includes(file.type)) {
+      errors.push(`File type must be one of: ${allowedTypes.join(', ')}`);
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// URL validation
+export const validateUrl = (url: string): ValidationResult => {
+  const errors: string[] = [];
+  
+  if (!url) {
+    errors.push('URL is required');
+  } else {
+    try {
+      new URL(url);
+    } catch {
+      errors.push('Please enter a valid URL');
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// Generic object validation
+export const validateObject = (obj: Record<string, unknown>, rules: Record<string, ValidationRule[]>): ValidationResult => {
+  const errors: string[] = [];
+  
+  for (const [field, fieldRules] of Object.entries(rules)) {
+    const value = obj[field];
+    
+    for (const rule of fieldRules) {
+      if (!rule.test(value)) {
+        errors.push(rule.message);
+      }
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// Sanitize user input
+export const sanitizeInput = (input: string): string => {
+  if (typeof input !== 'string') {
+    return '';
+  }
+  
+  // Remove HTML tags
+  const sanitized = input.replace(/<[^>]*>/g, '');
+  
+  // Remove potentially dangerous characters
+  const cleaned = sanitized.replace(/[<>"'&]/g, '');
+  
+  // Trim whitespace
+  return cleaned.trim();
+};
+
+// Validate and sanitize form data
+export const validateAndSanitizeForm = (formData: Record<string, unknown>, validationRules: Record<string, ValidationRule[]>): {
+  isValid: boolean;
+  errors: Record<string, string[]>;
+  sanitizedData: Record<string, unknown>;
+} => {
+  const errors: Record<string, string[]> = {};
+  const sanitizedData: Record<string, unknown> = {};
+  let isValid = true;
+  
+  for (const [field, value] of Object.entries(formData)) {
+    const fieldRules = validationRules[field] || [];
+    const fieldErrors: string[] = [];
+    
+    // Apply validation rules
+    for (const rule of fieldRules) {
+      if (!rule.test(value)) {
+        fieldErrors.push(rule.message);
+      }
     }
     
-    if (rules.pattern && !rules.pattern.test(value)) {
-      return 'Invalid format';
+    // Sanitize string values
+    if (typeof value === 'string') {
+      sanitizedData[field] = sanitizeInput(value);
+    } else {
+      sanitizedData[field] = value;
+    }
+    
+    if (fieldErrors.length > 0) {
+      errors[field] = fieldErrors;
+      isValid = false;
     }
   }
   
-  if (rules.custom) {
-    const result = rules.custom(value);
-    if (typeof result === 'string') {
-      return result;
-    }
-    if (!result) {
-      return 'Invalid value';
-    }
+  if (!isValid) {
+    logger.warn('Form validation failed', { errors, formData });
   }
   
-  return null;
+  return {
+    isValid,
+    errors,
+    sanitizedData
+  };
 };
 
-export const validateForm = (data: Record<string, unknown>, schema: ValidationSchema): Record<string, string> => {
-  const errors: Record<string, string> = {};
+// Rate limiting helper
+export const createRateLimiter = (maxRequests: number, windowMs: number) => {
+  const requests = new Map<string, number[]>();
   
-  for (const [field, rules] of Object.entries(schema)) {
-    const error = validateFormField(data[field], rules);
-    if (error) {
-      errors[field] = error;
+  return (identifier: string): boolean => {
+    const now = Date.now();
+    const userRequests = requests.get(identifier) || [];
+    
+    // Remove old requests outside the window
+    const validRequests = userRequests.filter(time => now - time < windowMs);
+    
+    if (validRequests.length >= maxRequests) {
+      logger.warn('Rate limit exceeded', { identifier, maxRequests, windowMs });
+      return false;
     }
-  }
-  
-  return errors;
+    
+    validRequests.push(now);
+    requests.set(identifier, validRequests);
+    return true;
+  };
 };
 
-// Common validation schemas
-export const userProfileSchema: ValidationSchema = {
-  name: {
-    required: true,
-    minLength: 2,
-    maxLength: 50,
-    custom: (value) => isValidName(value as string) || 'Please enter a valid name',
-  },
-  age: {
-    required: true,
-    custom: (value) => isValidAge(value as number) || 'Age must be between 18 and 120',
-  },
-  bio: {
-    required: true,
-    minLength: 10,
-    maxLength: 500,
-    custom: (value) => isValidBio(value as string) || 'Bio must be between 10 and 500 characters',
-  },
-  email: {
-    required: true,
-    custom: (value) => isValidEmail(value as string) || 'Please enter a valid email address',
-  },
-};
-
-export const messageSchema: ValidationSchema = {
-  text: {
-    required: true,
-    minLength: 1,
-    maxLength: 1000,
-    custom: (value) => isValidMessage(value as string) || 'Message must be between 1 and 1000 characters',
-  },
-};
-
-export const venueSchema: ValidationSchema = {
-  name: {
-    required: true,
-    minLength: 2,
-    maxLength: 100,
-    custom: (value) => isValidVenueName(value as string) || 'Please enter a valid venue name',
-  },
-  address: {
-    required: true,
-    minLength: 5,
-    maxLength: 200,
-    custom: (value) => isValidVenueAddress(value as string) || 'Please enter a valid address',
-  },
-};
-
-// Export all validation functions
-export const validators = {
-  isValidEmail,
-  sanitizeText,
-  isValidText,
-  isValidAge,
-  isValidName,
-  isValidBio,
-  isValidUrl,
-  isValidPhone,
-  isStrongPassword,
-  isValidImageFile,
-  isValidFileSize,
-  isValidVenueName,
-  isValidVenueAddress,
-  isValidMessage,
-  isValidInterest,
-  isValidRateLimit,
-  validateFormField,
-  validateForm,
-  userProfileSchema,
-  messageSchema,
-  venueSchema,
+// Export common validation rules
+export const commonValidationRules = {
+  email: [
+    { test: (value: unknown) => !!value, message: 'Email is required' },
+    { test: (value: unknown) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value as string), message: 'Please enter a valid email address' }
+  ],
+  password: [
+    { test: (value: unknown) => !!value, message: 'Password is required' },
+    { test: (value: unknown) => (value as string).length >= 8, message: 'Password must be at least 8 characters long' },
+    { test: (value: unknown) => /(?=.*[a-z])/.test(value as string), message: 'Password must contain at least one lowercase letter' },
+    { test: (value: unknown) => /(?=.*[A-Z])/.test(value as string), message: 'Password must contain at least one uppercase letter' },
+    { test: (value: unknown) => /(?=.*\d)/.test(value as string), message: 'Password must contain at least one number' }
+  ],
+  username: [
+    { test: (value: unknown) => !!value, message: 'Username is required' },
+    { test: (value: unknown) => (value as string).length >= 3, message: 'Username must be at least 3 characters long' },
+    { test: (value: unknown) => (value as string).length <= 30, message: 'Username must be less than 30 characters' },
+    { test: (value: unknown) => /^[a-zA-Z0-9_]+$/.test(value as string), message: 'Username can only contain letters, numbers, and underscores' }
+  ]
 }; 

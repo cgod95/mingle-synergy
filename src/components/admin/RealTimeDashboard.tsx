@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { analytics } from '@/services/analytics';
+import logger from '@/utils/Logger';
 
 interface LiveUser {
   id: string;
@@ -111,7 +112,7 @@ export const RealTimeDashboard: React.FC = () => {
         
         wsRef.current.onopen = () => {
           setIsConnected(true);
-          console.log('Real-time dashboard connected');
+          logger.info('Real-time dashboard connected');
         };
 
         wsRef.current.onmessage = (event) => {
@@ -124,17 +125,17 @@ export const RealTimeDashboard: React.FC = () => {
 
         wsRef.current.onclose = () => {
           setIsConnected(false);
-          console.log('Real-time dashboard disconnected');
+          logger.info('Real-time dashboard disconnected');
           // Reconnect after 5 seconds
           setTimeout(connectWebSocket, 5000);
         };
 
         wsRef.current.onerror = (error) => {
-          console.error('WebSocket error:', error);
+          logger.error('WebSocket error:', error);
           setIsConnected(false);
         };
       } catch (error) {
-        console.error('Failed to connect to WebSocket:', error);
+        logger.error('Failed to connect to WebSocket:', error);
         setIsConnected(false);
       }
     };

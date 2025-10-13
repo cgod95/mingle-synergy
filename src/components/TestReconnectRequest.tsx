@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { sendReconnectRequest } from "@/services/reconnectRequestsService";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import logger from '@/utils/Logger';
 
 interface TestReconnectRequestProps {
   targetUserId: string;
@@ -31,7 +32,7 @@ export const TestReconnectRequest = ({ targetUserId }: TestReconnectRequestProps
         description: "Reconnect request sent successfully!",
       });
     } catch (error) {
-      console.error("Failed to send reconnect request:", error);
+      logger.error("Failed to send reconnect request:", error);
       toast({
         title: "Error",
         description: "Failed to send reconnect request",

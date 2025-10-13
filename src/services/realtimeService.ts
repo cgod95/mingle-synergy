@@ -1,6 +1,7 @@
 // Real-time service for live updates and data synchronization
 
 import { analytics } from './analytics';
+import logger from '@/utils/Logger';
 
 export interface RealtimeEvent {
   type: string;
@@ -101,7 +102,7 @@ class RealtimeService {
         try {
           callback(data);
         } catch (error) {
-          console.error(`Error in event listener for ${event}:`, error);
+          logger.error(`Error in event listener for ${event}:`, error);
           analytics.trackError(error as Error, { event, data });
         }
       });

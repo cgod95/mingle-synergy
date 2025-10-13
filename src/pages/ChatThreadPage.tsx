@@ -10,6 +10,7 @@ import { mockMatches } from "@/data/mock";
 import { mockUsers } from "@/data/mock";
 import { mockMessages } from "@/data/mock";
 import PrivateLayout from '@/components/PrivateLayout';
+import logger from '@/utils/Logger';
 
 export default function ChatThreadPage() {
   const { matchId } = useParams();
@@ -28,7 +29,7 @@ export default function ChatThreadPage() {
         // Find match in mock data
         const matchData = mockMatches.find(m => m.id === matchId);
         if (!matchData) {
-          console.error("Match not found");
+          logger.error("Match not found");
           setLoading(false);
           return;
         }
@@ -49,7 +50,7 @@ export default function ChatThreadPage() {
         
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching chat data:", error);
+        logger.error("Error fetching chat data:", error);
         setLoading(false);
       }
     };

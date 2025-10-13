@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PublicLayout from '@/components/PublicLayout';
 
@@ -17,6 +17,7 @@ export default function Privacy() {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
+          <Shield className="w-7 h-7 text-green-500 mr-2" />
           <h1 className="text-3xl font-bold text-neutral-900">Privacy Policy</h1>
         </div>
 

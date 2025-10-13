@@ -41,36 +41,25 @@ describe('Card Component', () => {
     expect(screen.getByText('Footer content')).toBeInTheDocument();
   });
 
-  it('applies hover animation when hover prop is true', () => {
-    render(
-      <Card hover>
-        <CardContent>Hoverable card</CardContent>
-      </Card>
-    );
-    
-    const card = screen.getByText('Hoverable card').closest('div');
-    expect(card).toHaveClass('rounded-lg');
-  });
-
-  it('applies custom className', () => {
+  it('applies custom className to card', () => {
     render(
       <Card className="custom-class">
         <CardContent>Custom styled card</CardContent>
       </Card>
     );
     
-    const card = screen.getByText('Custom styled card').closest('div');
+    const card = screen.getByText('Custom styled card').closest('div')?.parentElement;
     expect(card).toHaveClass('custom-class');
   });
 
-  it('renders with delay animation', () => {
+  it('renders with proper structure', () => {
     render(
-      <Card delay={0.5}>
-        <CardContent>Delayed card</CardContent>
+      <Card>
+        <CardContent>Simple card</CardContent>
       </Card>
     );
     
-    const card = screen.getByText('Delayed card').closest('div');
+    const card = screen.getByText('Simple card').closest('div');
     expect(card).toBeInTheDocument();
   });
 

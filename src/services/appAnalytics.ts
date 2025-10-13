@@ -1,82 +1,86 @@
-import { app } from '../firebase/init';
+import logger from '@/utils/Logger';
 
-// Simple wrapper for analytics events with error handling
-const logAnalyticsEvent = (eventName: string, eventParams: Record<string, string | number | boolean> = {}): void => {
-  // Skip analytics if we're using mock services
-  if (Object.keys(app).length === 0) {
-    console.log(`[MOCK ANALYTICS] ${eventName}`, eventParams);
-    return;
+// Analytics service for tracking user events
+class AppAnalytics {
+  private isInitialized = false;
+
+  /**
+   * Initialize analytics
+   */
+  initialize(): void {
+    this.isInitialized = true;
+    logger.info('Analytics initialized');
   }
-  
-  // Comment out Firebase Analytics for emulator use
-  console.log(`[ANALYTICS DISABLED] ${eventName}`, eventParams);
-  
-  // try {
-  //   // Get analytics instance and logEvent function dynamically to avoid circular dependencies
-  //   import('firebase/analytics').then((analyticsModule) => {
-  //     const { getAnalytics, logEvent } = analyticsModule;
-  //     const analytics = getAnalytics(app);
-  //     if (analytics) {
-  //       logEvent(analytics, eventName, eventParams);
-  //     }
-  //   }).catch(e => {
-  //     console.warn(`Failed to load analytics module: ${e.message}`);
-  //   });
-  // } catch (error) {
-  //   console.warn(`Failed to log analytics event: ${eventName}`, error);
-  // }
-};
 
-// User events
-export const trackUserSignUp = (method: string): void => 
-  logAnalyticsEvent('sign_up', { method });
+  /**
+   * Track an event
+   */
+  track(eventName: string, eventParams: Record<string, unknown> = {}): void {
+    if (!this.isInitialized) {
+      logger.warn('Analytics not initialized, skipping event:', eventName);
+      return;
+    }
 
-export const trackUserLogin = (method: string): void => 
-  logAnalyticsEvent('login', { method });
+    try {
+      // In production, this would send to a real analytics service
+      // For now, we'll just log the event
+      logger.info(`[ANALYTICS] ${eventName}`, eventParams);
+      
+      // TODO: Implement real analytics service integration
+      // Example: Google Analytics, Mixpanel, Amplitude, etc.
+    } catch (error) {
+      logger.error('Error tracking analytics event:', error);
+    }
+  }
 
-// App usage events
-export const trackVenueCheckIn = (venueId: string, venueName: string): void => 
-  logAnalyticsEvent('venue_check_in', { 
-    venue_id: venueId, 
-    venue_name: venueName 
-  });
+  /**
+   * Track user sign up
+   */
+  trackSignUp(method: string): void {
+    this.track('user_sign_up', { method });
+  }
 
-export const trackVenueCheckOut = (venueId: string, venueName: string, durationMinutes?: number): void => 
-  logAnalyticsEvent('venue_check_out', { 
-    venue_id: venueId, 
-    venue_name: venueName,
-    ...(durationMinutes !== undefined ? { duration_minutes: durationMinutes } : {})
-  });
+  /**
+   * Track user sign in
+   */
+  trackSignIn(method: string): void {
+    this.track('user_sign_in', { method });
+  }
 
-export const trackInterestSent = (venueId: string): void => 
-  logAnalyticsEvent('interest_sent', { venue_id: venueId });
+  /**
+   * Track venue check-in
+   */
+  trackVenueCheckIn(venueId: string, venueName: string): void {
+    this.track('venue_check_in', { venueId, venueName });
+  }
 
-export const trackMatchCreated = (venueId: string): void => 
-  logAnalyticsEvent('match_created', { venue_id: venueId });
+  /**
+   * Track match creation
+   */
+  trackMatchCreated(matchId: string, venueId: string): void {
+    this.track('match_created', { matchId, venueId });
+  }
 
-export const trackContactShared = (matchId: string): void => 
-  logAnalyticsEvent('contact_shared', { match_id: matchId });
+  /**
+   * Track message sent
+   */
+  trackMessageSent(matchId: string): void {
+    this.track('message_sent', { matchId });
+  }
 
-// Error tracking
-export const trackError = (errorCode: string, errorMessage: string, additionalData: Record<string, string | number | boolean> = {}): void => 
-  logAnalyticsEvent('app_error', {
-    error_code: errorCode,
-    error_message: errorMessage,
-    ...additionalData
-  });
+  /**
+   * Track onboarding step completion
+   */
+  trackOnboardingStep(step: string): void {
+    this.track('onboarding_step_completed', { step });
+  }
 
-// Screen tracking
-export const trackScreenView = (screenName: string): void => 
-  logAnalyticsEvent('screen_view', { screen_name: screenName });
+  /**
+   * Track profile update
+   */
+  trackProfileUpdate(fields: string[]): void {
+    this.track('profile_updated', { fields });
+  }
+}
 
-export default { 
-  trackUserSignUp, 
-  trackUserLogin, 
-  trackVenueCheckIn, 
-  trackVenueCheckOut,
-  trackInterestSent,
-  trackMatchCreated,
-  trackContactShared,
-  trackError,
-  trackScreenView
-};
+export default new AppAnalytics();

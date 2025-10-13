@@ -1,5 +1,7 @@
 // Infrastructure service for scalability, API versioning, CDN, and monitoring
 
+import logger from '@/utils/Logger';
+
 export interface APIVersion {
   version: string;
   status: 'stable' | 'beta' | 'deprecated' | 'sunset';
@@ -390,7 +392,7 @@ class InfrastructureService {
       message: `Alert: ${rule.name} triggered`
     };
 
-    console.warn('Infrastructure Alert:', alert);
+    logger.warn('Infrastructure Alert:', alert);
 
     // Send to alert channels
     rule.channels.forEach(channel => {
@@ -410,23 +412,23 @@ class InfrastructureService {
         this.sendWebhookAlert(alert);
         break;
       default:
-        console.warn(`Unknown alert channel: ${channel}`);
+        logger.warn(`Unknown alert channel: ${channel}`);
     }
   }
 
   private sendEmailAlert(alert: Record<string, unknown>): void {
     // In a real app, this would send an email
-    console.log('Email alert sent:', alert.message);
+    logger.info('Email alert sent:', alert.message);
   }
 
   private sendSlackAlert(alert: Record<string, unknown>): void {
     // In a real app, this would send to Slack
-    console.log('Slack alert sent:', alert.message);
+    logger.info('Slack alert sent:', alert.message);
   }
 
   private sendWebhookAlert(alert: Record<string, unknown>): void {
     // In a real app, this would send to webhook
-    console.log('Webhook alert sent:', alert.message);
+    logger.info('Webhook alert sent:', alert.message);
   }
 
   // Health checks

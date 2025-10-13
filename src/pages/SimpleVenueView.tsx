@@ -8,11 +8,15 @@ import { Heart, MessageCircle, MapPin, Users, Clock, ArrowLeft } from 'lucide-re
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { mockVenues } from '@/data/mock';
-import { getUsersAtVenue } from '@/data/mock';
 import PrivateLayout from '@/components/PrivateLayout';
 import BottomNav from '@/components/BottomNav';
 import OptimizedImage from '@/components/shared/OptimizedImage';
+import venueService from '@/services/firebase/venueService';
+import userService from '@/services/firebase/userService';
+import matchService from '@/services/firebase/matchService';
+import { Venue } from '@/types';
+import { UserProfile } from '@/types/services';
+import logger from '@/utils/Logger';
 
 interface VenueUser {
   id: string;
@@ -31,9 +35,10 @@ const SimpleVenueView: React.FC = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
   
-  const [venue, setVenue] = useState(mockVenues.find(v => v.id === venueId));
+  const [venue, setVenue] = useState<Venue | null>(null);
   const [venueUsers, setVenueUsers] = useState<VenueUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!venueId) {
@@ -41,51 +46,73 @@ const SimpleVenueView: React.FC = () => {
       return;
     }
 
-    const venueData = mockVenues.find(v => v.id === venueId);
-    if (!venueData) {
-      navigate('/venues');
-      return;
-    }
+    const fetchVenueData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    setVenue(venueData);
+        // Fetch venue from Firestore
+        const venueData = await venueService.getVenueById(venueId);
+        if (!venueData) {
+          setError('Venue not found');
+          setLoading(false);
+          return;
+        }
 
-    // Get users at this venue (excluding current user)
-    const usersAtVenue = getUsersAtVenue(venueId).filter(user => 
-      user.id !== currentUser?.uid && user.isCheckedIn
-    );
+        setVenue(venueData);
 
-    // Transform to VenueUser format
-    const transformedUsers: VenueUser[] = usersAtVenue.map(user => ({
-      id: user.id,
-      name: user.name,
-      age: user.age,
-      photos: user.photos || [],
-      bio: user.bio || '',
-      interests: user.interests || [],
-      zone: user.zone || user.currentZone,
-      lastActive: user.lastActive || Date.now()
-    }));
+        // Get users at this venue from Firestore
+        const usersAtVenue = await venueService.getUsersAtVenue(venueId);
+        
+        // Filter out current user and only show checked-in users
+        const filteredUsers = usersAtVenue.filter(user => 
+          user.id !== currentUser?.uid && user.isCheckedIn
+        );
 
-    setVenueUsers(transformedUsers);
-    setLoading(false);
+        // Transform to VenueUser format
+        const transformedUsers: VenueUser[] = filteredUsers.map(user => ({
+          id: user.id,
+          name: user.name,
+          age: user.age,
+          photos: user.photos || [],
+          bio: user.bio || '',
+          interests: user.interests || [],
+          zone: user.currentZone,
+          lastActive: Date.now() // TODO: Add lastActive to user profile
+        }));
+
+        setVenueUsers(transformedUsers);
+      } catch (err) {
+        logger.error('Error fetching venue data:', err);
+        setError('Failed to load venue data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVenueData();
   }, [venueId, currentUser?.uid, navigate]);
 
-  const handleLike = (userId: string) => {
+  const handleLike = async (userId: string) => {
+    if (!currentUser || !venueId) return;
+
     const user = venueUsers.find(u => u.id === userId);
     if (!user) return;
 
-    // Simulate match chance
-    const isMatch = Math.random() < 0.3; // 30% chance for demo
-
-    if (isMatch) {
-      toast({
-        title: "It's a match! 💕",
-        description: `You and ${user.name} liked each other at ${venue?.name}!`,
-      });
-    } else {
+    try {
+      // Use real like functionality
+      await matchService.likeUser(currentUser.uid, userId, venueId);
+      
       toast({
         title: "Like sent! ❤️",
         description: `${user.name} will be notified of your interest`,
+      });
+    } catch (err) {
+      logger.error('Error liking user:', err);
+      toast({
+        title: "Error",
+        description: "Failed to send like. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -98,151 +125,137 @@ const SimpleVenueView: React.FC = () => {
     const now = Date.now();
     const diff = now - timestamp;
     const minutes = Math.floor(diff / (1000 * 60));
-    
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'Just now';
   };
 
   if (loading) {
     return (
       <PrivateLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900 mx-auto mb-4"></div>
-            <p className="text-neutral-600">Loading venue...</p>
-          </div>
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center pb-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-gray-600">Loading venue...</p>
         </div>
+        <BottomNav />
       </PrivateLayout>
     );
   }
 
-  if (!venue) {
+  if (error || !venue) {
     return (
       <PrivateLayout>
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center pb-20">
           <div className="text-center">
-            <p className="text-neutral-600 mb-4">Venue not found</p>
-            <Button onClick={() => navigate('/venues')}>Back to Venues</Button>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {error || 'Venue not found'}
+            </h3>
+            <Button onClick={() => navigate('/venues')} className="mt-4">
+              Back to Venues
+            </Button>
           </div>
         </div>
+        <BottomNav />
       </PrivateLayout>
     );
   }
 
   return (
     <PrivateLayout>
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-neutral-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
+      <div className="min-h-screen bg-gray-50 pb-20">
+        {/* Header */}
+        <div className="bg-white border-b px-4 py-3 flex items-center gap-3">
+          <button 
             onClick={() => navigate('/venues')}
-            className="p-2"
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
           >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          
-          <div className="text-center">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
             <h1 className="font-semibold text-lg">{venue.name}</h1>
-            <div className="flex items-center justify-center space-x-2 text-sm text-neutral-600">
-              <Users className="w-4 h-4" />
-              <span>{venueUsers.length} people here</span>
-            </div>
+            <p className="text-sm text-gray-600">{venue.address}</p>
           </div>
-          
-          <div className="w-8"></div> {/* Spacer for centering */}
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          {venueUsers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <Users className="w-12 h-12 text-neutral-400 mb-4" />
+              <h3 className="text-lg font-medium text-neutral-900 mb-2">No one here yet</h3>
+              <p className="text-neutral-600 mb-6">Be the first to check in and meet people!</p>
+              <Button onClick={() => navigate(`/venues/${venueId}`)}>
+                Check In Here
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {venueUsers.map((user, index) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Card className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="relative">
+                        <OptimizedImage
+                          src={user.photos[0] || ''}
+                          alt={user.name}
+                          className="w-full h-32 object-cover"
+                          fallback={
+                            <div className="w-full h-32 bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center">
+                              <span className="text-2xl font-bold text-white">
+                                {user.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          }
+                        />
+                        <div className="absolute top-2 right-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {getTimeAgo(user.lastActive)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-semibold text-sm truncate">{user.name}, {user.age}</h3>
+                        <p className="text-xs text-gray-500 truncate">{user.bio}</p>
+                        <div className="flex gap-1 mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs"
+                            onClick={() => handleLike(user.id)}
+                          >
+                            <Heart className="w-3 h-3 mr-1" />
+                            Like
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-xs"
+                            onClick={() => handleViewProfile(user.id)}
+                          >
+                            <MessageCircle className="w-3 h-3 mr-1" />
+                            Profile
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* People Grid */}
-      <div className="p-4 pb-24">
-        {venueUsers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-            <Users className="w-12 h-12 text-neutral-400 mb-4" />
-            <h3 className="text-lg font-medium text-neutral-900 mb-2">No one here yet</h3>
-            <p className="text-neutral-600 mb-6">Be the first to check in and meet people!</p>
-            <Button onClick={() => navigate(`/venue/${venueId}`)}>
-              Check In Here
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-3">
-            {venueUsers.map((user, index) => (
-              <motion.div
-                key={user.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Card className="overflow-hidden cursor-pointer group">
-                  <div className="relative aspect-square">
-                    <OptimizedImage
-                      src={user.photos[0] || '/placeholder.svg'}
-                      alt={user.name}
-                      className="w-full h-full object-cover"
-                      fallback="/placeholder.svg"
-                    />
-                    
-                    {/* Overlay with user info */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                        <h3 className="font-medium text-sm truncate">{user.name}, {user.age}</h3>
-                        {user.zone && (
-                          <div className="flex items-center text-xs opacity-90">
-                            <MapPin className="w-3 h-3 mr-1" />
-                            {user.zone}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Active indicator */}
-                    <div className="absolute top-2 right-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <div className="flex space-x-1">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="w-8 h-8 p-0 bg-white/90 hover:bg-white"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLike(user.id);
-                          }}
-                        >
-                          <Heart className="w-4 h-4 text-red-500" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="w-8 h-8 p-0 bg-white/90 hover:bg-white"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewProfile(user.id);
-                          }}
-                        >
-                          <MessageCircle className="w-4 h-4 text-blue-500" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
-
       <BottomNav />
     </PrivateLayout>
   );

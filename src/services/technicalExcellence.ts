@@ -1,5 +1,7 @@
 // Comprehensive technical excellence service
 
+import logger from '@/utils/Logger';
+
 export interface CodeQualityMetrics {
   complexity: number;
   maintainability: number;
@@ -125,7 +127,7 @@ class TechnicalExcellenceService {
 
   // Testing Utilities
   async runTests(testSuite: string = 'all'): Promise<TestResult[]> {
-    console.log(`Running tests for suite: ${testSuite}`);
+    logger.info(`Running tests for suite: ${testSuite}`);
     
     // Simulate test execution
     const testCases = this.generateTestCases(testSuite);

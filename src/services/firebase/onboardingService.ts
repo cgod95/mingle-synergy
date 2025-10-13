@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { db } from '@/firebase';
 import logger from '@/utils/Logger';
 
 // Onboarding step definitions
@@ -30,7 +30,7 @@ export type OnboardingStepId = typeof ONBOARDING_STEPS[number];
 
 class FirebaseOnboardingService {
   private getOnboardingDoc(userId: string) {
-    return doc(firestore, 'onboarding', userId);
+    return doc(db, 'onboarding', userId);
   }
 
   /**

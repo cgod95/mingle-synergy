@@ -1,12 +1,13 @@
 
-import { firestore } from '@/firebase/config';
+import { db } from '@/firebase';
 import { VerificationService, VerificationStatus } from '@/types/services';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import logger from '@/utils/Logger';
 
 class FirebaseVerificationService implements VerificationService {
   async getVerificationStatus(userId: string): Promise<VerificationStatus> {
     try {
-      const userDocRef = doc(firestore, 'users', userId);
+      const userDocRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
@@ -21,7 +22,7 @@ class FirebaseVerificationService implements VerificationService {
         lastVerificationAttempt: userData.lastVerificationAttempt || null
       };
     } catch (error) {
-      console.error('Error getting verification status:', error);
+      logger.error('Error getting verification status:', error);
       return {
         isVerified: false,
         pendingVerification: false,
@@ -32,7 +33,7 @@ class FirebaseVerificationService implements VerificationService {
   
   async submitVerification(userId: string, selfieUrl: string): Promise<boolean> {
     try {
-      const userDocRef = doc(firestore, 'users', userId);
+      const userDocRef = doc(db, 'users', userId);
       
       await updateDoc(userDocRef, {
         pendingVerification: true,
@@ -41,11 +42,11 @@ class FirebaseVerificationService implements VerificationService {
       });
       
       // In a production app, this would trigger a Cloud Function to process the verification
-      console.log(`Verification submitted for user ${userId}`);
+      logger.info(`Verification submitted for user ${userId}`);
       
       return true;
     } catch (error) {
-      console.error('Error submitting verification:', error);
+      logger.error('Error submitting verification:', error);
       return false;
     }
   }
@@ -57,7 +58,7 @@ class FirebaseVerificationService implements VerificationService {
       // Request verification if user isn't verified and doesn't have a pending verification
       return !status.isVerified && !status.pendingVerification;
     } catch (error) {
-      console.error('Error checking if verification is needed:', error);
+      logger.error('Error checking if verification is needed:', error);
       return false;
     }
   }

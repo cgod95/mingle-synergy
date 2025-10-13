@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Home, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import logger from '@/utils/Logger';
 
 interface Props {
   children: ReactNode;
@@ -38,7 +39,7 @@ class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: strin
 
     // Log error to console in development
     if (import.meta.env.DEV) {
-      console.error('Route Error Boundary caught an error:', error, errorInfo);
+      logger.error('Route Error Boundary caught an error:', error, errorInfo);
     }
 
     // In production, send to error reporting service
@@ -74,7 +75,7 @@ class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: strin
         body: JSON.stringify(errorReport)
       });
     } catch (reportError) {
-      console.error('Failed to report error:', reportError);
+      logger.error('Failed to report error:', reportError);
     }
   };
 

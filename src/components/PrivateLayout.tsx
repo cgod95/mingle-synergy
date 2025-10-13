@@ -2,28 +2,23 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import BottomNav from './BottomNav';
 import PageTransition from './ui/PageTransition';
-import DemoModeIndicator from './DemoModeIndicator';
 import { useAuth } from '@/context/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
   showBottomNav?: boolean;
   className?: string;
-  showDemoIndicator?: boolean;
 }
 
 const PrivateLayout: React.FC<LayoutProps> = ({ 
   children, 
   showBottomNav = true,
-  className = "",
-  showDemoIndicator = true
+  className = ""
 }) => {
-  const { user } = useAuth();
-  const shouldShowDemoIndicator = showDemoIndicator && user;
+  const { currentUser } = useAuth();
 
   return (
     <div className={`min-h-screen bg-background text-base text-foreground font-sans ${className}`}>
-      {shouldShowDemoIndicator && <DemoModeIndicator variant="compact" />}
       <PageTransition mode="fade">
         <motion.main
           initial={{ opacity: 0 }}

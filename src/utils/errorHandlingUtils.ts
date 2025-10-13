@@ -1,4 +1,5 @@
 import { logError } from './errorHandler';
+import logger from '@/utils/Logger';
 
 interface ErrorContext {
   source: string;
@@ -33,8 +34,8 @@ export const handleAppError = (
   
   // Log to console in development
   if (import.meta.env.DEV) {
-    console.error(`Error in ${context.source}${context.action ? ` (${context.action})` : ''}:`, error);
-    console.error('Context:', context);
+    logger.error(`Error in ${context.source}${context.action ? ` (${context.action})` : ''}:`, error);
+    logger.error('Context:', context);
   }
   
   // Show a toast notification if requested and toast function provided

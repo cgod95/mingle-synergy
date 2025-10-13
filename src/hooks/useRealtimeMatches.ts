@@ -1,80 +1,60 @@
 import { useEffect, useState } from "react";
-import { db } from "@/firebase/config";
+import { db } from "@/firebase";
 import {
   collection,
-  onSnapshot,
   query,
   where,
-  deleteDoc,
-  doc,
+  onSnapshot,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { FirestoreMatch } from "@/types/match";
+import { Match } from "@/types/match";
+import logger from '@/utils/Logger';
 
-const MATCH_EXPIRATION_HOURS = 3;
-
-export function useRealtimeMatches(): FirestoreMatch[] {
+export const useRealtimeMatches = () => {
   const { currentUser } = useAuth();
-  const [matches, setMatches] = useState<FirestoreMatch[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentUser?.uid) return;
+    if (!currentUser?.email) return;
 
-    const matchRef = collection(db, "matches");
-    const q = query(
-      matchRef,
-      where("userId1", "==", currentUser.uid)
+    // Use mock uid for development
+    const mockUid = "mock-user-id";
+
+    setLoading(true);
+
+    // Query for matches where the current user is a participant
+    const matchesQuery = query(
+      collection(db, "matches"),
+      where("participantIds", "array-contains", mockUid),
+      orderBy("createdAt", "desc"),
+      limit(50)
     );
 
-    const unsubscribe1 = onSnapshot(q, async (snapshot) => {
-      const results: FirestoreMatch[] = [];
-
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data() as FirestoreMatch;
-        const matchAge = Date.now() - data.timestamp;
-        const isExpired = matchAge > MATCH_EXPIRATION_HOURS * 60 * 60 * 1000;
-
-        if (isExpired) {
-          await deleteDoc(doc(db, "matches", docSnap.id));
-        } else {
-          results.push({ ...data, id: docSnap.id });
-        }
+    const unsubscribe = onSnapshot(
+      matchesQuery,
+      (snapshot) => {
+        const matchesData: Match[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          matchesData.push({
+            id: doc.id,
+            ...data,
+          } as Match);
+        });
+        setMatches(matchesData);
+        setLoading(false);
+      },
+      (error) => {
+        logger.error("Error listening to matches:", error);
+        setLoading(false);
       }
-
-      setMatches(results);
-    });
-
-    const q2 = query(
-      matchRef,
-      where("userId2", "==", currentUser.uid)
     );
 
-    const unsubscribe2 = onSnapshot(q2, async (snapshot) => {
-      const results: FirestoreMatch[] = [];
+    return () => unsubscribe();
+  }, [currentUser]);
 
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data() as FirestoreMatch;
-        const matchAge = Date.now() - data.timestamp;
-        const isExpired = matchAge > MATCH_EXPIRATION_HOURS * 60 * 60 * 1000;
-
-        if (isExpired) {
-          await deleteDoc(doc(db, "matches", docSnap.id));
-        } else {
-          results.push({ ...data, id: docSnap.id });
-        }
-      }
-
-      setMatches((prev) => [
-        ...prev.filter((m) => !results.find((r) => r.id === m.id)),
-        ...results,
-      ]);
-    });
-
-    return () => {
-      unsubscribe1();
-      unsubscribe2();
-    };
-  }, [currentUser?.uid]);
-
-  return matches;
-} 
+  return { matches, loading };
+}; 

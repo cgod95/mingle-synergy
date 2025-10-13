@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import logger from '@/utils/Logger';
 
 interface CacheEntry<T> {
   data: T;
@@ -36,14 +37,14 @@ class Cache<T> {
       const oldestKey = this.cache.keys().next().value;
       this.cache.delete(oldestKey);
       if (this.enableLogging) {
-        console.log(`Cache: Removed oldest entry ${oldestKey} due to size limit`);
+        logger.info(`Cache: Removed oldest entry ${oldestKey} due to size limit`);
       }
     }
 
     this.cache.set(key, { data, timestamp, ttl });
     
     if (this.enableLogging) {
-      console.log(`Cache: Set ${key} with TTL ${ttl}ms`);
+      logger.info(`Cache: Set ${key} with TTL ${ttl}ms`);
     }
   }
 
@@ -52,7 +53,7 @@ class Cache<T> {
     
     if (!entry) {
       if (this.enableLogging) {
-        console.log(`Cache: Miss for ${key}`);
+        logger.info(`Cache: Miss for ${key}`);
       }
       return null;
     }
@@ -63,13 +64,13 @@ class Cache<T> {
     if (isExpired) {
       this.cache.delete(key);
       if (this.enableLogging) {
-        console.log(`Cache: Expired entry ${key}`);
+        logger.info(`Cache: Expired entry ${key}`);
       }
       return null;
     }
 
     if (this.enableLogging) {
-      console.log(`Cache: Hit for ${key}`);
+      logger.info(`Cache: Hit for ${key}`);
     }
     return entry.data;
   }
@@ -81,7 +82,7 @@ class Cache<T> {
   delete(key: string): boolean {
     const deleted = this.cache.delete(key);
     if (this.enableLogging && deleted) {
-      console.log(`Cache: Manually deleted ${key}`);
+      logger.info(`Cache: Manually deleted ${key}`);
     }
     return deleted;
   }
@@ -89,7 +90,7 @@ class Cache<T> {
   clear(): void {
     this.cache.clear();
     if (this.enableLogging) {
-      console.log('Cache: Cleared all entries');
+      logger.info('Cache: Cleared all entries');
     }
   }
 
@@ -109,7 +110,7 @@ class Cache<T> {
       if (now - entry.timestamp > entry.ttl) {
         this.cache.delete(key);
         if (this.enableLogging) {
-          console.log(`Cache: Cleaned up expired entry ${key}`);
+          logger.info(`Cache: Cleaned up expired entry ${key}`);
         }
       }
     }

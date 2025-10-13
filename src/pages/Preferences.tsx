@@ -8,14 +8,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import userService from '@/services/firebase/userService';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { Button } from '@/components/ui/button';
 
 const Preferences: React.FC = () => {
   const { currentUser } = useAuth();
-  const { setStepComplete } = useOnboarding();
+  const { setStepComplete, completeOnboarding } = useOnboarding();
   const navigate = useNavigate();
 
   const [preferredGender, setPreferredGender] = useState<'male' | 'female' | 'any' | ''>('');
   const [ageRange, setAgeRange] = useState<[number, number]>([18, 35]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
   const handleSubmit = async () => {
@@ -24,63 +26,91 @@ const Preferences: React.FC = () => {
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
       if (currentUser) {
         const interestedIn: ('male' | 'female' | 'non-binary' | 'other')[] = preferredGender === 'any' 
           ? ['male', 'female', 'non-binary', 'other']
           : [preferredGender as 'male' | 'female' | 'non-binary' | 'other'];
+        
         await userService.updateUserProfile(currentUser.uid, {
           interestedIn,
           ageRangePreference: { min: ageRange[0], max: ageRange[1] },
         });
-        await userService.markOnboardingComplete(currentUser.uid);
-        setStepComplete('preferences');
+        
+        setStepComplete(2); // Preferences step complete
+        await completeOnboarding();
         navigate('/venues');
       }
     } catch (err) {
       setError('An error occurred while saving preferences.');
+      console.error('Preferences save error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      <h1 className="text-2xl font-bold mb-4">Set Your Preferences</h1>
+    <div className="min-h-screen bg-mingle-background flex flex-col items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-mingle-text mb-2">Set Your Preferences</h1>
+          <p className="text-mingle-muted">Help us find the right matches for you</p>
+        </div>
 
-      {error && <p className="text-red-500 mb-2">{error}</p>}
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-mingle-text mb-3">
+              I'm interested in
+            </label>
+            <select
+              value={preferredGender}
+              onChange={(e) => setPreferredGender(e.target.value as 'male' | 'female' | 'any' | '')}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mingle-primary focus:border-transparent"
+            >
+              <option value="">Select your preference...</option>
+              <option value="female">Women</option>
+              <option value="male">Men</option>
+              <option value="any">Anyone</option>
+            </select>
+          </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Preferred Gender</label>
-        <select
-          value={preferredGender}
-          onChange={(e) => setPreferredGender(e.target.value as 'male' | 'female' | 'any' | '')}
-          className="border rounded px-3 py-2 w-full"
-        >
-          <option value="">Select...</option>
-          <option value="female">Women</option>
-          <option value="male">Men</option>
-          <option value="any">Anyone</option>
-        </select>
+          <div>
+            <label className="block text-sm font-medium text-mingle-text mb-3">
+              Age Range: 18 - {ageRange[1]}
+            </label>
+            <input
+              type="range"
+              min="18"
+              max="99"
+              value={ageRange[1]}
+              onChange={(e) => setAgeRange([18, parseInt(e.target.value)])}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+            />
+            <div className="flex justify-between text-xs text-mingle-muted mt-2">
+              <span>18</span>
+              <span>{ageRange[1]}</span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <Button
+            onClick={handleSubmit}
+            className="w-full"
+            loading={loading}
+            disabled={loading || !preferredGender}
+          >
+            {loading ? 'Saving...' : 'Complete Setup'}
+          </Button>
+        </div>
       </div>
-
-      <div className="mb-6 w-full">
-        <label className="block text-sm font-medium mb-1">Preferred Age Range</label>
-        <input
-          type="range"
-          min="18"
-          max="99"
-          value={ageRange[1]}
-          onChange={(e) => setAgeRange([18, parseInt(e.target.value)])}
-          className="w-full"
-        />
-        <p className="text-center mt-2 text-sm text-gray-600">18 - {ageRange[1]}</p>
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        className="bg-black text-white px-4 py-2 rounded-lg"
-      >
-        Continue
-      </button>
     </div>
   );
 };

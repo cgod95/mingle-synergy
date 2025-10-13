@@ -1,5 +1,7 @@
 // Performance monitoring service with real-time metrics and budget alerts
 
+import logger from '@/utils/Logger';
+
 export interface PerformanceMetric {
   name: string;
   value: number;
@@ -50,7 +52,7 @@ class PerformanceMonitoringService {
   endTimer(timerId: string): number {
     const startTime = this.timers.get(timerId);
     if (!startTime) {
-      console.warn(`Timer ${timerId} not found`);
+      logger.warn(`Timer ${timerId} not found`);
       return 0;
     }
 
@@ -252,7 +254,7 @@ class PerformanceMonitoringService {
     }
 
     // Log alert
-    console.warn(`Performance Alert: ${alert.message}`);
+    logger.warn(`Performance Alert: ${alert.message}`);
   }
 
   // Clear old metrics and alerts

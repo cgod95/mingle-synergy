@@ -1,5 +1,7 @@
 // Comprehensive data management service with caching, optimistic updates, and offline handling
 
+import logger from '@/utils/Logger';
+
 export interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
@@ -246,7 +248,7 @@ class DataManagementService {
           await this.processOfflineQueueItem(item);
           this.removeFromOfflineQueue(item.id);
         } catch (error) {
-          console.error(`Failed to process offline queue item ${item.id}:`, error);
+          logger.error(`Failed to process offline queue item ${item.id}:`, error);
           
           if (item.retryCount >= item.maxRetries) {
             // Remove permanently failed items
@@ -318,7 +320,7 @@ class DataManagementService {
 
       localStorage.setItem('mingle_data_cache', JSON.stringify(data));
     } catch (error) {
-      console.warn('Failed to save cache to localStorage:', error);
+      logger.warn('Failed to save cache to localStorage:', error);
     }
   }
 
@@ -341,7 +343,7 @@ class DataManagementService {
 
       this.updateSyncStatus();
     } catch (error) {
-      console.warn('Failed to load cache from localStorage:', error);
+      logger.warn('Failed to load cache from localStorage:', error);
     }
   }
 
@@ -371,7 +373,7 @@ class DataManagementService {
           const data = await fetcher(key);
           this.set(key, data);
         } catch (error) {
-          console.warn(`Failed to warm cache for key ${key}:`, error);
+          logger.warn(`Failed to warm cache for key ${key}:`, error);
         }
       }
     });
@@ -472,7 +474,7 @@ class DataManagementService {
       
       return true;
     } catch (error) {
-      console.error('Failed to import data:', error);
+      logger.error('Failed to import data:', error);
       return false;
     }
   }

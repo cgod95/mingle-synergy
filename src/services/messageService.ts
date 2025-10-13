@@ -13,16 +13,22 @@ import {
   limit,
   writeBatch
 } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { db } from '@/firebase';
 import { UserProfile } from "@/types/services";
 import { FirestoreMatch } from "@/types/match";
+import logger from '@/utils/Logger';
 
 export interface Message {
   id: string;
+  matchId: string;
   senderId: string;
+  receiverId: string;
   text: string;
-  createdAt: Date;
-  readBy?: string[]; // Array of user IDs who have read this message
+  content: string; // Add the missing content property
+  timestamp: number;
+  readBy?: string[];
+  type?: 'text' | 'image' | 'location';
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -37,7 +43,7 @@ export const sendMessageWithLimit = async ({
   senderId: string;
   message: string;
 }) => {
-  const messagesRef = collection(firestore, "messages");
+  const messagesRef = collection(db, "messages");
 
   const q = query(
     messagesRef,
@@ -64,14 +70,14 @@ export const sendMessageWithLimit = async ({
 export const canSendMessage = async (matchId: string, senderId: string): Promise<boolean> => {
   try {
     const q = query(
-      collection(firestore, "messages"),
+      collection(db, "messages"),
       where("matchId", "==", matchId),
       where("senderId", "==", senderId)
     );
     const snapshot = await getDocs(q);
     return snapshot.size < 3;
   } catch (error) {
-    console.error('Error checking message limit:', error);
+    logger.error('Error checking message limit:', error);
     return false;
   }
 };
@@ -80,7 +86,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
  * Send a message, but prevent sending to expired matches (older than 3 hours)
  */
 export const sendMessage = async (matchId: string, senderId: string, text: string): Promise<void> => {
-  const matchDoc = await getDoc(doc(firestore, "matches", matchId));
+  const matchDoc = await getDoc(doc(db, "matches", matchId));
   if (!matchDoc.exists()) throw new Error("Match does not exist");
 
   const matchData = matchDoc.data();
@@ -98,7 +104,7 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
     throw new Error("Message limit reached");
   }
 
-  await addDoc(collection(firestore, "messages"), {
+  await addDoc(collection(db, "messages"), {
     matchId,
     senderId,
     text,
@@ -112,14 +118,14 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
 export const getMessageCount = async (matchId: string, senderId: string): Promise<number> => {
   try {
     const q = query(
-      collection(firestore, "messages"),
+      collection(db, "messages"),
       where("matchId", "==", matchId),
       where("senderId", "==", senderId)
     );
     const snapshot = await getDocs(q);
     return snapshot.size;
   } catch (error) {
-    console.error('Error getting message count:', error);
+    logger.error('Error getting message count:', error);
     return 0;
   }
 };
@@ -142,7 +148,7 @@ export const subscribeToMessageLimit = (
   callback: (canSend: boolean, remaining: number) => void
 ) => {
   const q = query(
-    collection(firestore, "messages"),
+    collection(db, "messages"),
     where("matchId", "==", matchId),
     where("senderId", "==", senderId)
   );
@@ -173,7 +179,7 @@ export interface ChatPreview {
 export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
   try {
     // Get all matches for the user (where user is either userId1 or userId2)
-    const matchesRef = collection(firestore, "matches");
+    const matchesRef = collection(db, "matches");
     
     // Query for matches where user is userId1
     const q1 = query(
@@ -214,13 +220,13 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
       if (!otherUserId) continue;
 
       // Get the other user's profile
-      const userDoc = await getDoc(doc(firestore, "users", otherUserId));
+      const userDoc = await getDoc(doc(db, "users", otherUserId));
       if (!userDoc.exists()) continue;
 
       const userData = userDoc.data() as UserProfile;
       
       // Get the last message from the messages collection
-      const messagesRef = collection(firestore, "messages");
+      const messagesRef = collection(db, "messages");
       const messagesQuery = query(
         messagesRef,
         where("matchId", "==", match.id),
@@ -259,7 +265,7 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
     // Sort by last message time (most recent first)
     return chatPreviews.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
   } catch (error) {
-    console.error("Error fetching user chats:", error);
+    logger.error("Error fetching user chats:", error);
     throw new Error("Failed to fetch chats");
   }
 };
@@ -272,7 +278,7 @@ export const subscribeToMessages = (
   matchId: string, 
   callback: (messages: Message[]) => void
 ) => {
-  const messagesRef = collection(firestore, "messages");
+  const messagesRef = collection(db, "messages");
   const q = query(
     messagesRef,
     where("matchId", "==", matchId),
@@ -296,7 +302,7 @@ export const subscribeToMessages = (
  */
 export const markMessagesAsRead = async (matchId: string, userId: string): Promise<void> => {
   try {
-    const messagesRef = collection(firestore, "messages");
+    const messagesRef = collection(db, "messages");
     const q = query(
       messagesRef,
       where("matchId", "==", matchId),
@@ -304,7 +310,7 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     );
     
     const snapshot = await getDocs(q);
-    const batch = writeBatch(firestore);
+    const batch = writeBatch(db);
     
     snapshot.docs.forEach((doc) => {
       const data = doc.data();
@@ -319,6 +325,6 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     
     await batch.commit();
   } catch (error) {
-    console.error('Error marking messages as read:', error);
+    logger.error('Error marking messages as read:', error);
   }
 }; 

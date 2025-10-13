@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+import logger from '@/utils/Logger';
 
 interface PullToRefreshOptions {
   onRefresh: () => Promise<void>;
@@ -54,7 +55,7 @@ export const usePullToRefresh = ({
           showRefreshingIndicator();
           await onRefresh();
         } catch (error) {
-          console.error('Refresh failed:', error);
+          logger.error('Refresh failed:', error);
         } finally {
           hideRefreshIndicator();
         }

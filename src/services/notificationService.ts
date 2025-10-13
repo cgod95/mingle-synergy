@@ -1,7 +1,8 @@
 import { doc, updateDoc, increment, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { db } from '@/firebase';
 import { analytics } from './analytics';
 import { advancedFeatures } from './advancedFeatures';
+import logger from '@/utils/Logger';
 
 // Enhanced notification service for Mingle's unique features
 export interface NotificationData {
@@ -73,12 +74,12 @@ class NotificationService {
   private async initializePushNotifications(): Promise<void> {
     // 🧠 Purpose: Prevent push registration in development mode
     if (import.meta.env.MODE === 'development') {
-      console.log('Push notifications disabled in development mode');
+      logger.info('Push notifications disabled in development mode');
       return;
     }
 
     if (!this.isSupported) {
-      console.warn('Push notifications not supported');
+      logger.warn('Push notifications not supported');
       return;
     }
 
@@ -106,7 +107,7 @@ class NotificationService {
       
       return permission;
     } catch (error) {
-      console.error('Failed to request notification permission:', error);
+      logger.error('Failed to request notification permission:', error);
       return 'denied';
     }
   }
@@ -122,7 +123,7 @@ class NotificationService {
         });
       }
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      logger.error('Failed to subscribe to push notifications:', error);
     }
   }
 
@@ -188,7 +189,7 @@ class NotificationService {
 
       return id;
     } catch (error) {
-      console.error('Failed to send local notification:', error);
+      logger.error('Failed to send local notification:', error);
       return '';
     }
   }
@@ -433,12 +434,12 @@ class NotificationService {
   }
 
   public notifyVenueCheckIn(payload: Record<string, unknown>) {
-    console.warn('[notificationService] notifyVenueCheckIn is a stub. Payload:', payload);
+    logger.warn('[notificationService] notifyVenueCheckIn is a stub. Payload:', payload);
     // TODO: Implement real notification logic
   }
 
   public notifyVenueActivity(payload: Record<string, unknown>) {
-    console.warn('[notificationService] notifyVenueActivity is a stub. Payload:', payload);
+    logger.warn('[notificationService] notifyVenueActivity is a stub. Payload:', payload);
     // TODO: Implement real notification logic
   }
 }

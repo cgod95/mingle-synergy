@@ -1,5 +1,7 @@
 // Advanced Service Worker for PWA
 
+import logger from '@/utils/Logger';
+
 const CACHE_NAME = 'mingle-v1';
 const STATIC_CACHE = 'mingle-static-v1';
 const DYNAMIC_CACHE = 'mingle-dynamic-v1';
@@ -76,7 +78,7 @@ class AdvancedServiceWorker {
 
     // Push notifications
     self.addEventListener('push', (event: PushEvent) => {
-      console.log('Push event received:', event);
+      logger.info('Push event received:', event);
       
       if (event.data) {
         const data = event.data.json() as { title: string; body: string; icon?: string; badge?: string; data?: unknown };
@@ -121,7 +123,7 @@ class AdvancedServiceWorker {
   }
 
   private async handleInstall(): Promise<void> {
-    console.log('Service Worker installing...');
+    logger.info('Service Worker installing...');
 
     // Pre-cache static files
     const cache = await caches.open(STATIC_CACHE);
@@ -132,7 +134,7 @@ class AdvancedServiceWorker {
   }
 
   private async handleActivate(): Promise<void> {
-    console.log('Service Worker activating...');
+    logger.info('Service Worker activating...');
 
     // Clean up old caches
     const cacheNames = await caches.keys();
@@ -245,7 +247,7 @@ class AdvancedServiceWorker {
   }
 
   private async handleBackgroundSync(event: SyncEvent): Promise<void> {
-    console.log('Background sync triggered:', event.tag);
+    logger.info('Background sync triggered:', event.tag);
 
     switch (event.tag) {
       case 'sync-messages':
@@ -258,7 +260,7 @@ class AdvancedServiceWorker {
         await this.syncUserData();
         break;
       default:
-        console.log('Unknown sync tag:', event.tag);
+        logger.info('Unknown sync tag:', event.tag);
     }
   }
 
@@ -272,7 +274,7 @@ class AdvancedServiceWorker {
         await this.removePendingMessage(message.id);
       }
     } catch (error) {
-      console.error('Failed to sync messages:', error);
+      logger.error('Failed to sync messages:', error);
     }
   }
 
@@ -295,7 +297,7 @@ class AdvancedServiceWorker {
         await this.setLastSyncTime('matches', Date.now());
       }
     } catch (error) {
-      console.error('Failed to sync matches:', error);
+      logger.error('Failed to sync matches:', error);
     }
   }
 
@@ -314,12 +316,12 @@ class AdvancedServiceWorker {
         await this.updateUserData(userData);
       }
     } catch (error) {
-      console.error('Failed to sync user data:', error);
+      logger.error('Failed to sync user data:', error);
     }
   }
 
   private async handlePushNotification(event: PushEvent): Promise<void> {
-    console.log('Push notification received:', event);
+    logger.info('Push notification received:', event);
 
     const options = {
       body: event.data?.text() || 'You have a new notification!',
@@ -376,7 +378,7 @@ class AdvancedServiceWorker {
   }
 
   private async handleOnline(): Promise<void> {
-    console.log('App is online');
+    logger.info('App is online');
     
     // Trigger background sync for all pending syncs
     const registration = await self.registration;
@@ -386,7 +388,7 @@ class AdvancedServiceWorker {
   }
 
   private async handleOffline(): Promise<void> {
-    console.log('App is offline');
+    logger.info('App is offline');
     
     // Show offline notification
     const clients = await self.clients.matchAll();

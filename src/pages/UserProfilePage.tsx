@@ -12,6 +12,7 @@ import { ArrowLeft, User as UserIcon, Calendar, MapPin } from 'lucide-react';
 import { mockUsers } from '@/data/mock';
 import Layout from '@/components/Layout';
 import PrivateLayout from '@/components/PrivateLayout';
+import logger from '@/utils/Logger';
 
 const UserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -36,7 +37,7 @@ const UserProfilePage: React.FC = () => {
           setError('User profile not found');
         }
       } catch (err) {
-        console.error('Error fetching user profile:', err);
+        logger.error('Error fetching user profile:', err);
         setError('Failed to load user profile');
       } finally {
         setLoading(false);

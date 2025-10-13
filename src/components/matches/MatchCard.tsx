@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/toast/ToastContext';
 import { useUser } from '@/context/UserContext';
 import { FirestoreMatch } from '@/types/match';
 import { useNavigate } from 'react-router-dom';
+import logger from '@/utils/Logger';
 
 // Define ContactInfo type
 export type ContactInfo = {
@@ -98,7 +99,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       await removeLikeBetweenUsers(userId1, userId2);
       return true;
     } catch (error) {
-      console.error('Error removing like between users:', error);
+      logger.error('Error removing like between users:', error);
       return false;
     }
   };
@@ -118,7 +119,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       navigate('/matches');
       onReconnectRequest?.();
     } catch (error) {
-      console.error('Error reconnecting:', error);
+      logger.error('Error reconnecting:', error);
       showToast("Failed to reconnect. Please try again.", "error");
       navigate('/venues');
     }
@@ -161,7 +162,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         setValidationError('Something went wrong. Please try again.');
       }
     } catch (error) {
-      console.error('Error sharing contact:', error);
+      logger.error('Error sharing contact:', error);
       setValidationError('Failed to share contact info. Please try again.');
     } finally {
       setIsSharing(false);

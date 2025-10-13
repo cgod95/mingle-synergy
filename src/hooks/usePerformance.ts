@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { trackError } from '../services/appAnalytics';
+import logger from '@/utils/Logger';
 
 export const usePerformance = (componentName: string): void => {
   useEffect(() => {
@@ -31,18 +32,18 @@ export const usePerformance = (componentName: string): void => {
         try {
           observer.observe({ entryTypes: ['longtask'] });
         } catch (err) {
-          console.warn('Failed to observe longtask entries:', err);
+          logger.warn('Failed to observe longtask entries:', err);
         }
         
         return () => {
           try {
             observer.disconnect();
           } catch (err) {
-            console.warn('Failed to disconnect observer:', err);
+            logger.warn('Failed to disconnect observer:', err);
           }
         };
       } catch (error) {
-        console.warn('PerformanceObserver error:', error);
+        logger.warn('PerformanceObserver error:', error);
       }
     }
     

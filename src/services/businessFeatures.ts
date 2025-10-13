@@ -1,5 +1,7 @@
 // Comprehensive business features service
 
+import logger from '@/utils/Logger';
+
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -299,61 +301,48 @@ class BusinessFeaturesService {
     return this.adminMetrics;
   }
 
-  async getUserReports(
-    filters: {
-      status?: string;
-      subscription?: string;
-      dateRange?: { start: Date; end: Date };
-    } = {},
-    limit: number = 50
-  ): Promise<UserReport[]> {
-    // In a real app, this would fetch from your backend
-    const mockReports: UserReport[] = Array.from({ length: limit }, (_, i) => ({
-      userId: `user_${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      joinDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
-      lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-      subscription: i % 3 === 0 ? {
-        id: `sub_${i}`,
-        userId: `user_${i + 1}`,
-        planId: 'premium',
-        status: 'active',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        autoRenew: true
-      } : null,
-      activity: {
-        matches: Math.floor(Math.random() * 50),
-        messages: Math.floor(Math.random() * 200),
-        venues: Math.floor(Math.random() * 20),
-        logins: Math.floor(Math.random() * 100)
-      },
-      status: ['active', 'inactive', 'suspended'][Math.floor(Math.random() * 3)] as 'active' | 'inactive' | 'suspended'
-    }));
-
-    return mockReports;
+  /**
+   * Get user reports for admin dashboard
+   */
+  async getUserReports(limit: number = 10): Promise<UserReport[]> {
+    try {
+      // In a real implementation, this would query the database
+      // For now, we'll return an empty array as this is not implemented
+      logger.info('Get user reports called with limit:', limit);
+      
+      // TODO: Implement real user reports functionality
+      // This would typically involve:
+      // 1. Querying user reports from database
+      // 2. Applying filters and pagination
+      // 3. Returning formatted results
+      
+      return [];
+    } catch (error) {
+      logger.error('Error getting user reports:', error);
+      throw new Error('Failed to get user reports');
+    }
   }
 
-  async getVenueReports(
-    filters: {
-      status?: string;
-      popularity?: 'high' | 'medium' | 'low';
-    } = {},
-    limit: number = 50
-  ): Promise<VenueReport[]> {
-    // In a real app, this would fetch from your backend
-    const mockReports: VenueReport[] = Array.from({ length: limit }, (_, i) => ({
-      venueId: `venue_${i + 1}`,
-      name: `Venue ${i + 1}`,
-      location: `Location ${i + 1}`,
-      popularity: Math.random(),
-      matches: Math.floor(Math.random() * 100),
-      checkIns: Math.floor(Math.random() * 500),
-      revenue: Math.floor(Math.random() * 10000),
-      status: Math.random() > 0.1 ? 'active' : 'inactive'
-    }));
-
-    return mockReports;
+  /**
+   * Get venue reports for admin dashboard
+   */
+  async getVenueReports(limit: number = 10): Promise<VenueReport[]> {
+    try {
+      // In a real implementation, this would query the database
+      // For now, we'll return an empty array as this is not implemented
+      logger.info('Get venue reports called with limit:', limit);
+      
+      // TODO: Implement real venue reports functionality
+      // This would typically involve:
+      // 1. Querying venue reports from database
+      // 2. Applying filters and pagination
+      // 3. Returning formatted results
+      
+      return [];
+    } catch (error) {
+      logger.error('Error getting venue reports:', error);
+      throw new Error('Failed to get venue reports');
+    }
   }
 
   async getSystemHealth(): Promise<SystemHealth> {
@@ -438,25 +427,25 @@ class BusinessFeaturesService {
   // Admin Actions
   async suspendUser(userId: string, reason: string): Promise<boolean> {
     // In a real app, this would update the user status in your database
-    console.log(`Suspending user ${userId} for reason: ${reason}`);
+    logger.info(`Suspending user ${userId} for reason: ${reason}`);
     return true;
   }
 
   async unsuspendUser(userId: string): Promise<boolean> {
     // In a real app, this would update the user status in your database
-    console.log(`Unsuspending user ${userId}`);
+    logger.info(`Unsuspending user ${userId}`);
     return true;
   }
 
   async deleteUser(userId: string): Promise<boolean> {
     // In a real app, this would delete the user from your database
-    console.log(`Deleting user ${userId}`);
+    logger.info(`Deleting user ${userId}`);
     return true;
   }
 
   async updateVenueStatus(venueId: string, status: 'active' | 'inactive'): Promise<boolean> {
     // In a real app, this would update the venue status in your database
-    console.log(`Updating venue ${venueId} status to ${status}`);
+    logger.info(`Updating venue ${venueId} status to ${status}`);
     return true;
   }
 

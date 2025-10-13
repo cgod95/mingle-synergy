@@ -1,5 +1,6 @@
 import { trackError } from './appAnalytics';
 import { logError } from '@/utils/errorHandler';
+import logger from '@/utils/Logger';
 
 interface ErrorWithCode extends Error {
   code?: string;

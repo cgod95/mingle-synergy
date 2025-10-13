@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PublicLayout from '@/components/PublicLayout';
+import { ShieldCheck } from 'lucide-react';
 
 export default function Safety() {
   return (
@@ -10,7 +11,10 @@ export default function Safety() {
       <div className="flex items-center justify-center min-h-[80vh]">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center space-y-2">
-            <CardTitle>Safety First</CardTitle>
+            <div className="flex flex-col items-center gap-2">
+              <ShieldCheck className="w-10 h-10 text-yellow-500 mb-1" />
+              <CardTitle>Safety First</CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-neutral-600 text-center">

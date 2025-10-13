@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { auth, firestore } from '@/firebase/config';
+import { auth, db as firestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import services from '@/services';
 

@@ -4,11 +4,11 @@ import MessageInput from './MessageInput';
 import ExpiredMatchNotice from './ExpiredMatchNotice';
 import MessageLimitNotice from './Notices/MessageLimitNotice';
 import ReconnectionPrompt from './ReconnectionPrompt';
-import { mockUsers } from '@/data/mock';
-import { mockMessages } from '@/data/mock';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import { MessageCircle, Clock, User as UserIcon } from 'lucide-react';
+import userService from '@/services/firebase/userService';
+import { UserProfile } from '@/types/services';
 
 interface ChatViewProps {
   match: Match;
@@ -21,6 +21,7 @@ export default function ChatView({ match, currentUserId, onNewMessage }: ChatVie
   const [messageLimitReached, setMessageLimitReached] = useState(false);
   const [otherUser, setOtherUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,20 +35,39 @@ export default function ChatView({ match, currentUserId, onNewMessage }: ChatVie
       setIsExpired(now > expiresAt);
     }
 
-    // Get messages for this match
-    const matchMessages = mockMessages.filter(msg => msg.matchId === match.id);
-    setMessages(matchMessages);
-    
-    const sentMessages = matchMessages.filter(m => m.senderId === currentUserId).length;
-    setMessageLimitReached(sentMessages >= 3);
+    // Messages are now handled by the parent component
+    setMessages([]);
+    setLoading(false);
   }, [match, currentUserId]);
 
   useEffect(() => {
-    // Fetch the other user's profile
-    const fetchOtherUser = () => {
-      const otherUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
-      const otherUserProfile = mockUsers.find(u => u.id === otherUserId);
-      setOtherUser(otherUserProfile || null);
+    // Fetch the other user's profile from Firebase
+    const fetchOtherUser = async () => {
+      try {
+        const otherUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
+        const otherUserProfile = await userService.getUserProfile(otherUserId);
+        
+        if (otherUserProfile) {
+          // Convert UserProfile to User format
+          const adaptedUser: User = {
+            id: otherUserProfile.id,
+            name: otherUserProfile.name,
+            photos: otherUserProfile.photos || [],
+            bio: otherUserProfile.bio || '',
+            isCheckedIn: otherUserProfile.isCheckedIn,
+            currentVenue: otherUserProfile.currentVenue || '',
+            isVisible: otherUserProfile.isVisible,
+            interests: otherUserProfile.interests || [],
+            gender: otherUserProfile.gender,
+            interestedIn: otherUserProfile.interestedIn || [],
+            age: otherUserProfile.age,
+            ageRangePreference: otherUserProfile.ageRangePreference,
+          };
+          setOtherUser(adaptedUser);
+        }
+      } catch (error) {
+        console.error('Error fetching other user:', error);
+      }
     };
 
     fetchOtherUser();
@@ -62,13 +82,23 @@ export default function ChatView({ match, currentUserId, onNewMessage }: ChatVie
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-white">
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 to-white">
       {/* Chat Header */}
       <div className="flex items-center space-x-4 p-4 bg-white border-b shadow-sm">
         <motion.div whileHover={{ scale: 1.05 }}>
           <Avatar className="h-12 w-12 border-2 border-pink-200">
-            <AvatarImage src={otherUser?.photoURL} alt={otherUser?.name} />
+            <AvatarImage src={otherUser?.photos?.[0]} alt={otherUser?.name} />
             <AvatarFallback className="bg-gradient-to-br from-pink-200 to-purple-200 text-lg font-semibold">
               {otherUser?.name?.charAt(0) || 'U'}
             </AvatarFallback>
@@ -98,89 +128,61 @@ export default function ChatView({ match, currentUserId, onNewMessage }: ChatVie
 
         {messages.length === 0 && !isExpired && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-64 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-8"
           >
-            <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
-              <MessageCircle className="w-8 h-8 text-pink-500" />
+            <div className="text-gray-500 mb-4">
+              <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">Start a conversation!</p>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Start the conversation!</h3>
-            <p className="text-gray-600">Send a message to {otherUser?.name || 'your match'} to get things started.</p>
           </motion.div>
         )}
 
-        {messages.map((msg, index) => {
-          const isOwnMessage = msg.senderId === currentUserId;
-          const showAvatar = !isOwnMessage;
-          const showTime = index === messages.length - 1 || 
-            messages[index + 1]?.senderId !== msg.senderId;
-
-          return (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`flex items-end space-x-2 ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}
+        {messages.map((message) => (
+          <motion.div
+            key={message.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex ${message.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                message.senderId === currentUserId
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-800'
+              }`}
             >
-              {/* Avatar */}
-              {showAvatar && (
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src={otherUser?.photoURL} alt={otherUser?.name} />
-                  <AvatarFallback className="bg-gradient-to-br from-pink-200 to-purple-200 text-sm">
-                    {otherUser?.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              
-              {/* Message Bubble */}
-              <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-                <div
-                  className={`max-w-xs px-4 py-3 rounded-2xl ${
-                    isOwnMessage
-                      ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-br-md'
-                      : 'bg-white text-gray-800 rounded-bl-md border border-gray-200 shadow-sm'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed">{msg.text}</p>
-                </div>
-                
-                {/* Time Stamp */}
-                {showTime && (
-                  <div className={`flex items-center space-x-1 mt-1 text-xs text-gray-500 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                    <Clock className="w-3 h-3" />
-                    <span>{formatTime(msg.timestamp)}</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Spacer for own messages */}
-              {isOwnMessage && <div className="w-8" />}
-            </motion.div>
-          );
-        })}
-        
+              <p className="text-sm">{message.text}</p>
+              <p className={`text-xs mt-1 ${
+                message.senderId === currentUserId ? 'text-blue-100' : 'text-gray-500'
+              }`}>
+                {formatTime(message.timestamp)}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+
         <div ref={bottomRef} />
       </div>
 
-      {/* Input Section */}
-      <div className="p-4 bg-white border-t">
-        {isExpired ? (
-          <ReconnectionPrompt name={otherUser?.name || 'your match'} />
-        ) : messageLimitReached ? (
-          <MessageLimitNotice />
-        ) : (
-          <MessageInput
-            matchId={match.id}
-            onMessageSent={() => {
-              // Refresh messages
-              const updatedMessages = mockMessages.filter(msg => msg.matchId === match.id);
-              setMessages(updatedMessages);
-            }}
-          />
-        )}
-      </div>
+      {/* Message Input */}
+      {!isExpired && (
+        <div className="p-4 border-t bg-white">
+          {messageLimitReached ? (
+            <MessageLimitNotice />
+          ) : (
+            <MessageInput matchId={match.id} onMessageSent={() => onNewMessage?.('')} />
+          )}
+        </div>
+      )}
+
+      {/* Reconnection Prompt for Expired Matches */}
+      {isExpired && otherUser && (
+        <div className="p-4 border-t bg-white">
+          <ReconnectionPrompt name={otherUser.name || 'your match'} />
+        </div>
+      )}
     </div>
   );
 } 

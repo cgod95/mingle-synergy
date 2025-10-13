@@ -1,100 +1,63 @@
 // 🧠 Purpose: Implement Matches page UI to display matched users from mock data.
 
-import React, { useState } from "react";
-import MatchCard from "@/components/MatchCard";
-import { DisplayMatch } from "@/types/match";
-import { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import BottomNav from '../components/BottomNav';
-import ErrorBoundary from '../components/ErrorBoundary';
-import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
-import { getUserMatches, mockUsers } from "@/data/mock";
-import { useToast } from "@/hooks/use-toast";
+import React from "react";
 
-const Matches: React.FC = () => {
-  const { currentUser } = useAuth();
-  const [matches, setMatches] = useState<DisplayMatch[]>([]);
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchMatches = async () => {
-      if (!currentUser) return;
-      try {
-        // Use mock data instead of Firebase
-        const currentUserId = currentUser.uid || 'u1'; // Default to u1 for demo
-        const userMatches = getUserMatches(currentUserId);
-        
-        const displayMatches: DisplayMatch[] = userMatches.map((match) => {
-          const matchedUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
-          const matchedUser = mockUsers.find(user => user.id === matchedUserId);
-          
-          return {
-            id: match.id,
-            name: matchedUser?.name || "Unknown",
-            age: matchedUser?.age || 0,
-            bio: matchedUser?.bio || "",
-            photoUrl: matchedUser?.photos?.[0] || "",
-          };
-        });
-
-        setMatches(displayMatches);
-      } catch (error) {
-        console.error('Error fetching matches:', error);
-      }
-    };
-
-    fetchMatches();
-  }, [currentUser]);
-
-  const handleWeMetClick = (matchId: string) => {
-    setSelectedMatchId(matchId);
-    setShowConfirmation(true);
-  };
-
-  const handleConfirm = async () => {
-    if (!currentUser || !selectedMatchId) return;
-    
-    // Show success toast
-    toast({
-      title: "We Met! 🎉",
-      description: "Thanks for confirming! Your match has been updated.",
-      duration: 3000,
-    });
-    
-    setShowConfirmation(false);
-    setSelectedMatchId(null);
-  };
-
-  const handleCancel = () => {
-    setShowConfirmation(false);
-    setSelectedMatchId(null);
-  };
+const Matches = () => {
+  const mockMatches = [
+    {
+      id: "1",
+      name: "Sarah",
+      age: 25,
+      photoUrl: "https://i.pravatar.cc/150?img=1",
+      venue: "The Velvet Lounge",
+      timeAgo: "2 hours ago"
+    },
+    {
+      id: "2",
+      name: "Emma",
+      age: 28,
+      photoUrl: "https://i.pravatar.cc/150?img=2", 
+      venue: "Neon Terrace",
+      timeAgo: "1 day ago"
+    },
+    {
+      id: "3",
+      name: "Jessica",
+      age: 24,
+      photoUrl: "https://i.pravatar.cc/150?img=3",
+      venue: "Garden Underground", 
+      timeAgo: "3 days ago"
+    }
+  ];
 
   return (
-    <ErrorBoundary>
-      <div className="pb-16 p-4">
-        <h1 className="text-xl font-semibold mb-4">Your Matches</h1>
-        <div className="space-y-4">
-          {matches.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No matches yet. Check into a venue to meet people!</p>
-          ) : (
-            matches.map((match) => (
-              <MatchCard key={match.id} match={match} onWeMetClick={handleWeMetClick} />
-            ))
-          )}
-        </div>
+    <div className="p-4 pt-6 pb-24">
+      <h1 className="text-3xl font-bold mb-6 text-center">Your Matches</h1>
+      <div className="space-y-4">
+        {mockMatches.map((match) => (
+          <div
+            key={match.id}
+            className="border rounded-2xl p-4 shadow-sm hover:shadow-md transition"
+          >
+            <div className="flex items-center space-x-4">
+              <img
+                src={match.photoUrl}
+                alt={`${match.name}'s photo`}
+                className="w-16 h-16 rounded-full"
+              />
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold">{match.name}, {match.age}</h3>
+                <p className="text-sm text-gray-600">{match.venue}</p>
+                <p className="text-xs text-gray-500">{match.timeAgo}</p>
+              </div>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition">
+                Message
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
-      <BottomNav />
-
-      {/* Confirmation Modal */}
-      <WeMetConfirmationModal
-        open={showConfirmation}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-      />
-    </ErrorBoundary>
+    </div>
   );
 };
 

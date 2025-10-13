@@ -1,4 +1,4 @@
-import { firestore } from "@/firebase/config";
+import { db } from "@/firebase";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 
 /**
@@ -7,7 +7,7 @@ import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
  * @returns true if both users confirmed, false otherwise
  */
 export async function hasBothConfirmed(matchId: string): Promise<boolean> {
-  const matchRef = doc(firestore, "matches", matchId);
+  const matchRef = doc(db, "matches", matchId);
   const matchSnap = await getDoc(matchRef);
 
   if (!matchSnap.exists()) return false;
@@ -26,7 +26,7 @@ export async function hasBothConfirmed(matchId: string): Promise<boolean> {
  * @returns true if user confirmed, false otherwise
  */
 export async function getUserConfirmationStatus(matchId: string, userId: string): Promise<boolean> {
-  const matchRef = doc(firestore, "matches", matchId);
+  const matchRef = doc(db, "matches", matchId);
   const matchSnap = await getDoc(matchRef);
 
   if (!matchSnap.exists()) return false;
@@ -44,7 +44,7 @@ export async function getUserConfirmationStatus(matchId: string, userId: string)
  * @returns Promise that resolves when confirmation is saved
  */
 export async function confirmUserMet(matchId: string, userId: string): Promise<void> {
-  const matchRef = doc(firestore, "matches", matchId);
+  const matchRef = doc(db, "matches", matchId);
   
   await updateDoc(matchRef, {
     [`confirmations.${userId}`]: true,
@@ -58,7 +58,7 @@ export async function confirmUserMet(matchId: string, userId: string): Promise<v
  * @returns number of confirmed users (0, 1, or 2)
  */
 export async function getConfirmationCount(matchId: string): Promise<number> {
-  const matchRef = doc(firestore, "matches", matchId);
+  const matchRef = doc(db, "matches", matchId);
   const matchSnap = await getDoc(matchRef);
 
   if (!matchSnap.exists()) return 0;

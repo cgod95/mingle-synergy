@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { firestore } from '../../firebase/config';
+import { db as firestore } from '@/firebase';
 import logger from '@/utils/Logger';
 
 interface VenueDetailsProps {

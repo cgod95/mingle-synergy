@@ -4,6 +4,7 @@ export type Match = {
   userId2: string;
   venueId: string;
   timestamp: number;
+  matchedAt: number; // When the match was created
   messages: {
     senderId: string;
     text: string;

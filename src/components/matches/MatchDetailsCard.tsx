@@ -4,6 +4,7 @@ import { Phone, Instagram, Ghost, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import logger from '@/utils/Logger';
 
 interface ContactInfo {
   type: 'phone' | 'instagram' | 'snapchat' | 'custom';
@@ -56,7 +57,7 @@ const MatchDetailsCard: React.FC<MatchDetailsCardProps> = ({
         sharedAt: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error sharing contact:', error);
+      logger.error('Error sharing contact:', error);
     } finally {
       setIsSharing(false);
     }

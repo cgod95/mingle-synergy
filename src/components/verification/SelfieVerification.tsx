@@ -1,11 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, RefreshCw, Upload, AlertTriangle } from 'lucide-react';
+import { Camera, RefreshCw, Upload, AlertTriangle, SkipForward } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import services from '@/services';
-import { storage } from '@/firebase/config';
+import verificationService from '@/services/firebase/verificationService';
+import { storage } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import logger from '@/utils/Logger';
 
 interface SelfieVerificationProps {
   userId: string;
@@ -21,6 +22,8 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   
+  const isDevelopment = import.meta.env.MODE === 'development';
+  
   const startCamera = async () => {
     try {
       setCameraError(null);
@@ -34,7 +37,7 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
       
       setIsCapturing(true);
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      logger.error('Error accessing camera:', error);
       setCameraError('Could not access camera. Please check permissions.');
       toast({
         variant: "destructive",
@@ -84,6 +87,42 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
     startCamera();
   };
   
+  const bypassVerification = async () => {
+    if (!isDevelopment) {
+      toast({
+        variant: "destructive",
+        title: "Bypass Not Allowed",
+        description: "Verification bypass is only available in development mode."
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // Simulate verification completion
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      logger.info('Verification bypassed in development mode', { userId });
+      
+      toast({
+        title: "Verification Bypassed",
+        description: "Verification completed (development bypass)."
+      });
+      
+      onVerificationComplete();
+    } catch (error) {
+      logger.error('Error bypassing verification:', error);
+      toast({
+        variant: "destructive",
+        title: "Bypass Failed",
+        description: "Failed to bypass verification. Please try again."
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
   const uploadSelfie = async () => {
     if (!capturedImage) return;
     
@@ -102,7 +141,7 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
       const downloadURL = await getDownloadURL(selfieRef);
       
       // Update user verification status using our service
-      const success = await services.verification.submitVerification(userId, downloadURL);
+      const success = await verificationService.submitVerification(userId, downloadURL);
       
       if (success) {
         toast({
@@ -114,7 +153,7 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
         throw new Error("Failed to submit verification");
       }
     } catch (error) {
-      console.error('Error uploading verification photo:', error);
+      logger.error('Error uploading verification photo:', error);
       toast({
         variant: "destructive",
         title: "Upload Failed",
@@ -222,14 +261,28 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
             </Button>
           </div>
         ) : (
-          <Button
-            onClick={startCamera}
-            className="w-full"
-            size="lg"
-          >
-            <Camera className="mr-2" />
-            Start Camera
-          </Button>
+          <div className="space-y-3">
+            <Button
+              onClick={startCamera}
+              className="w-full"
+              size="lg"
+            >
+              <Camera className="mr-2" />
+              Start Camera
+            </Button>
+            
+            {isDevelopment && (
+              <Button
+                onClick={bypassVerification}
+                disabled={isUploading}
+                variant="outline"
+                className="w-full"
+              >
+                <SkipForward className="mr-2" />
+                Skip Verification (Dev)
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </div>

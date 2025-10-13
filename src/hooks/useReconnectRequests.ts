@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { fetchReconnectRequests } from "@/services/reconnectRequestsService";
 import { UserProfile } from "@/types/services";
 import { useAuth } from "@/context/AuthContext";
+import logger from '@/utils/Logger';
 
 export const useReconnectRequests = () => {
   const { currentUser } = useAuth();
@@ -18,7 +19,7 @@ export const useReconnectRequests = () => {
         setError(null);
       })
       .catch(err => {
-        console.error("Failed to fetch reconnect requests:", err);
+        logger.error("Failed to fetch reconnect requests:", err);
         setError("Failed to fetch reconnect requests.");
       })
       .finally(() => setLoading(false));

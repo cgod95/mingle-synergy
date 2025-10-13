@@ -74,10 +74,11 @@ describe('Button Component', () => {
   });
 
   it('has proper focus styles', () => {
-    render(<Button>Focusable</Button>);
+    render(<Button>Test Button</Button>);
+    
     const button = screen.getByRole('button');
     
     fireEvent.focus(button);
-    expect(button).toHaveClass('focus:outline-none');
+    expect(button).toHaveClass('focus-visible:outline-none');
   });
 }); 

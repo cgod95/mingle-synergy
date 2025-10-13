@@ -1,5 +1,6 @@
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+import { db } from '@/firebase';
+import logger from '@/utils/Logger';
 
 export interface UnreadCounts {
   [matchId: string]: number;
@@ -9,7 +10,7 @@ export const getUnreadMessageCounts = async (userId: string): Promise<UnreadCoun
   try {
     // Get all matches for the user
     const matchesQuery = query(
-      collection(firestore, 'matches'),
+      collection(db, 'matches'),
       where('participantIds', 'array-contains', userId)
     );
     
@@ -22,7 +23,7 @@ export const getUnreadMessageCounts = async (userId: string): Promise<UnreadCoun
 
     // Get unread messages for all matches
     const unreadQuery = query(
-      collection(firestore, 'messages'),
+      collection(db, 'messages'),
       where('matchId', 'in', matchIds),
       where('readBy', 'array-contains', userId)
     );
@@ -45,7 +46,7 @@ export const getUnreadMessageCounts = async (userId: string): Promise<UnreadCoun
 
     return unreadCounts;
   } catch (error) {
-    console.error('Error fetching unread message counts:', error);
+    logger.error('Error fetching unread message counts:', error);
     return {};
   }
 };
@@ -58,7 +59,7 @@ export const subscribeToUnreadCounts = (
 
   // Subscribe to matches changes
   const matchesQuery = query(
-    collection(firestore, 'matches'),
+    collection(db, 'matches'),
     where('participantIds', 'array-contains', userId)
   );
 

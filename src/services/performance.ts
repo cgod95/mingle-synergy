@@ -1,5 +1,7 @@
 // Comprehensive performance monitoring service
 
+import logger from '@/utils/Logger';
+
 export interface PerformanceMetric {
   name: string;
   value: number;
@@ -104,7 +106,7 @@ class PerformanceMonitor {
     this.observeMemoryUsage();
     this.observeCustomMetrics();
 
-    console.log('Performance monitoring started');
+    logger.info('Performance monitoring started');
   }
 
   // Stop monitoring
@@ -119,7 +121,7 @@ class PerformanceMonitor {
     }
     this.observers.clear();
 
-    console.log('Performance monitoring stopped');
+    logger.info('Performance monitoring stopped');
   }
 
   // Navigation Timing
@@ -300,7 +302,7 @@ class PerformanceMonitor {
 
     const isViolation = metric.value > budget.threshold;
     if (isViolation) {
-      console.warn(`Performance budget violation: ${metric.name} = ${metric.value}${metric.unit} (threshold: ${budget.threshold}${budget.unit})`);
+      logger.warn(`Performance budget violation: ${metric.name} = ${metric.value}${metric.unit} (threshold: ${budget.threshold}${budget.unit})`);
       
       // In a real app, you'd send this to your analytics service
       this.reportViolation(budget, metric);
@@ -317,7 +319,7 @@ class PerformanceMonitor {
     };
 
     // In a real app, you'd send this to your error reporting service
-    console.error('Performance violation:', violation);
+    logger.error('Performance violation:', violation);
   }
 
   // Get performance report
@@ -490,7 +492,7 @@ class PerformanceMonitor {
       
       return true;
     } catch (error) {
-      console.error('Failed to import metrics:', error);
+      logger.error('Failed to import metrics:', error);
       return false;
     }
   }

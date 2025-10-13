@@ -1,168 +1,195 @@
 import { 
+  getAuth, 
   createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
-  onAuthStateChanged as firebaseOnAuthStateChanged,
-  User,
-  fetchSignInMethodsForEmail,
-  AuthError
+  signInWithEmailAndPassword, 
+  signOut, 
+  sendPasswordResetEmail, 
+  onAuthStateChanged, 
+  UserCredential as FirebaseUserCredential,
+  User as FirebaseUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, firestore } from '@/firebase/config';
-import { AuthService, UserCredential } from '@/types/services';
-import { logError } from '@/utils/errorHandler';
+import { db } from '@/firebase';
+import { User, UserCredential } from '@/types/services';
 import logger from '@/utils/Logger';
 
-const errorMessages: Record<string, string> = {
-  'auth/email-already-in-use': 'This email is already in use. Please try signing in instead.',
-  'auth/invalid-email': 'Please enter a valid email address.',
-  'auth/user-not-found': 'No account found with this email. Please sign up instead.',
-  'auth/wrong-password': 'Incorrect password. Please try again or reset your password.',
+// Error message mapping
+const AUTH_ERROR_MESSAGES = {
+  'auth/user-not-found': 'No account found with this email address.',
+  'auth/wrong-password': 'Incorrect password. Please try again.',
+  'auth/email-already-in-use': 'An account with this email already exists.',
   'auth/weak-password': 'Password should be at least 6 characters.',
+  'auth/invalid-email': 'Please enter a valid email address.',
   'auth/too-many-requests': 'Too many unsuccessful login attempts. Please try again later.',
-  'auth/network-request-failed': 'Network error. Please check your connection.'
+  'auth/network-request-failed': 'Network error. Please check your connection.',
+  'auth/user-disabled': 'This account has been disabled.',
+  'auth/operation-not-allowed': 'This operation is not allowed.',
+  'auth/invalid-credential': 'Invalid credentials. Please try again.',
 };
 
-interface FirebaseErrorWithCode extends Error {
-  code?: string;
-}
+class AuthService {
+  private auth = getAuth();
 
-class FirebaseAuthService implements AuthService {
-  async signIn(email: string, password: string): Promise<UserCredential> {
-    try {
-      logger.info('Attempting sign in', { email });
-      
-      try {
-        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-        logger.debug('Available sign in methods', { methods: signInMethods });
-        if (signInMethods.length === 0) {
-          throw new Error('No account found with this email. Would you like to sign up instead?');
-        }
-      } catch (error: unknown) {
-        logger.warn('Failed to check if user exists', error);
-        const firebaseError = error as FirebaseErrorWithCode;
-        if (firebaseError.code && firebaseError.code !== 'auth/user-not-found') {
-          throw error;
-        }
-      }
-      
-      const credential = await firebaseSignInWithEmailAndPassword(auth, email, password);
-      logger.info('Sign in successful', { userId: credential.user.uid });
-      
-      const userDoc = await getDoc(doc(firestore, 'users', credential.user.uid));
-      
-      if (!userDoc.exists()) {
-        logger.info('Creating new user profile in Firestore', { userId: credential.user.uid });
-        await setDoc(doc(firestore, 'users', credential.user.uid), {
-          email,
-          id: credential.user.uid,
-          createdAt: new Date().toISOString(),
-          photos: [],
-          isCheckedIn: false,
-          isVisible: true,
-          interests: []
-        });
-      }
-      
-      return {
-        user: {
-          uid: credential.user.uid,
-          email: credential.user.email,
-          displayName: credential.user.displayName,
-          photoURL: credential.user.photoURL,
-          emailVerified: credential.user.emailVerified
-        }
-      };
-    } catch (error: unknown) {
-      logger.error('Sign in error', error);
-      logError(error as Error, { source: 'auth', action: 'signIn' });
-      
-      const firebaseError = error as FirebaseErrorWithCode;
-      const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to sign in. Please check your credentials and try again.';
-      throw new Error(errorMessage);
-    }
-  }
-
+  /**
+   * Sign up a new user
+   */
   async signUp(email: string, password: string): Promise<UserCredential> {
     try {
-      try {
-        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-        if (signInMethods.length > 0) {
-          throw new Error(errorMessages['auth/email-already-in-use'] || 'This email is already registered.');
-        }
-      } catch (error: unknown) {
-        const firebaseError = error as FirebaseErrorWithCode;
-        if (firebaseError.code && firebaseError.code !== 'auth/email-already-in-use') {
-          throw error;
-        }
-      }
+      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      const user = userCredential.user;
       
-      const credential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      await setDoc(doc(firestore, 'users', credential.user.uid), {
-        email,
-        id: credential.user.uid,
-        createdAt: new Date().toISOString(),
-        photos: [],
-        isCheckedIn: false,
-        isVisible: true,
-        interests: []
+      // Create user profile in Firestore
+      await this.createUserProfile(user.uid, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified
       });
       
       return {
         user: {
-          uid: credential.user.uid,
-          email: credential.user.email,
-          displayName: credential.user.displayName,
-          photoURL: credential.user.photoURL,
-          emailVerified: credential.user.emailVerified
-        }
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          emailVerified: user.emailVerified
+        },
+        uid: user.uid
       };
     } catch (error: unknown) {
-      logger.error('Sign up error', error);
-      
-      const firebaseError = error as FirebaseErrorWithCode;
-      const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to sign up. Please try again.';
+      const errorMessage = this.getErrorMessage((error as { code?: string }).code || '');
+      logger.error('Sign up error:', error);
       throw new Error(errorMessage);
     }
   }
 
-  async signOut(): Promise<void> {
-    await firebaseSignOut(auth);
+  /**
+   * Sign in an existing user
+   */
+  async signIn(email: string, password: string): Promise<UserCredential> {
+    try {
+      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      const user = userCredential.user;
+      
+      return {
+        user: {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          emailVerified: user.emailVerified
+        },
+        uid: user.uid
+      };
+    } catch (error: unknown) {
+      const errorMessage = this.getErrorMessage((error as { code?: string }).code || '');
+      logger.error('Sign in error:', error);
+      throw new Error(errorMessage);
+    }
   }
 
+  /**
+   * Sign out the current user
+   */
+  async signOut(): Promise<void> {
+    try {
+      await signOut(this.auth);
+      logger.info('User signed out successfully');
+    } catch (error) {
+      logger.error('Sign out error:', error);
+      throw new Error('Failed to sign out');
+    }
+  }
+
+  /**
+   * Send password reset email
+   */
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
-      await firebaseSendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(this.auth, email);
+      logger.info('Password reset email sent');
     } catch (error: unknown) {
-      logger.error('Password reset error', error);
-      
-      const firebaseError = error as FirebaseErrorWithCode;
-      const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to send password reset email. Please try again.';
+      const errorMessage = this.getErrorMessage((error as { code?: string }).code || '');
+      logger.error('Password reset error:', error);
       throw new Error(errorMessage);
     }
   }
 
+  /**
+   * Get current user
+   */
   async getCurrentUser(): Promise<User | null> {
-    return auth.currentUser;
+    const user = this.auth.currentUser;
+    if (!user) return null;
+    
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified
+    };
   }
 
+  /**
+   * Listen to auth state changes
+   */
   onAuthStateChanged(callback: (user: User | null) => void): () => void {
-    if (!auth) {
-      logger.warn('Auth not initialized, using mock implementation');
-      return () => {};
-    }
-    return firebaseOnAuthStateChanged(auth, callback);
+    return onAuthStateChanged(this.auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const user: User = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          emailVerified: firebaseUser.emailVerified
+        };
+        callback(user);
+      } else {
+        callback(null);
+      }
+    });
   }
 
+  /**
+   * Sign in with email and password (alias for signIn)
+   */
   async signInWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
     return this.signIn(email, password);
   }
 
+  /**
+   * Sign up with email and password (alias for signUp)
+   */
   async signUpWithEmailAndPassword(email: string, password: string): Promise<UserCredential> {
     return this.signUp(email, password);
   }
+
+  /**
+   * Create user profile in Firestore
+   */
+  private async createUserProfile(uid: string, userData: Partial<User>): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await setDoc(userRef, {
+        ...userData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      logger.error('Error creating user profile:', error);
+      throw new Error('Failed to create user profile');
+    }
+  }
+
+  /**
+   * Get error message from Firebase error code
+   */
+  private getErrorMessage(errorCode: string): string {
+    return AUTH_ERROR_MESSAGES[errorCode as keyof typeof AUTH_ERROR_MESSAGES] || 
+           'An unexpected error occurred. Please try again.';
+  }
 }
 
-export default new FirebaseAuthService();
+export default new AuthService();

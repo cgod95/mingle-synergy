@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import PublicLayout from '@/components/PublicLayout';
+import { FileText } from 'lucide-react';
 
 const Terms: React.FC = () => {
   const navigate = useNavigate();
@@ -14,7 +15,10 @@ const Terms: React.FC = () => {
       <div className="flex flex-col items-center justify-center min-h-[80vh]">
         <Card className="max-w-xl w-full">
           <CardHeader className="text-center space-y-2">
-            <CardTitle>Terms & Conditions</CardTitle>
+            <div className="flex flex-col items-center gap-2">
+              <FileText className="w-10 h-10 text-blue-500 mb-1" />
+              <CardTitle>Terms & Conditions</CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-sm text-neutral-600 space-y-4 max-h-[400px] overflow-y-auto">

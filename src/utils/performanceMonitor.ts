@@ -1,7 +1,8 @@
 import { getPerformance, trace } from 'firebase/performance';
-import { firestore as db } from '@/firebase/config';
+import { db } from '@/firebase';
 import { logError } from './errorHandler';
-// import { analytics } from '@/firebase/config';
+import logger from '@/utils/Logger';
+// import { analytics } from '@/firebase';
 // import { logEvent } from 'firebase/analytics';
 
 // Interface for the non-standard Performance.memory API
@@ -27,12 +28,12 @@ export const initPerformanceMonitoring = () => {
       import('firebase/performance').then(({ getPerformance }) => {
         try {
           perf = getPerformance();
-          console.log('Firebase Performance initialized');
+          logger.info('Firebase Performance initialized');
         } catch (error) {
-          console.warn('Firebase Performance initialization failed, continuing without performance monitoring');
+          logger.warn('Firebase Performance initialization failed, continuing without performance monitoring');
         }
       }).catch(error => {
-        console.warn('Failed to load Firebase Performance module:', error);
+        logger.warn('Failed to load Firebase Performance module:', error);
       });
     } catch (error) {
       logError(error as Error, { source: 'Performance initialization' });
@@ -134,7 +135,7 @@ export class MemoryMonitor {
     // Check if memory API is available
     const performanceWithMemory = performance as PerformanceWithMemory;
     if (!performanceWithMemory.memory) {
-      console.warn('Performance.memory API is not available in this browser');
+      logger.warn('Performance.memory API is not available in this browser');
       return;
     }
     
@@ -174,7 +175,7 @@ export class MemoryMonitor {
     
     // If memory usage is consistently growing by more than 20%
     if (secondAvg > firstAvg * 1.2) {
-      console.warn('Possible memory leak detected', {
+      logger.warn('Possible memory leak detected', {
         initial_avg_heap: firstAvg,
         current_avg_heap: secondAvg,
         increase_pct: ((secondAvg - firstAvg) / firstAvg) * 100

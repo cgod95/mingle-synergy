@@ -8,10 +8,20 @@ afterEach(() => {
   cleanup();
 });
 
+// Mock Notification API
+Object.defineProperty(window, 'Notification', {
+  value: {
+    permission: 'granted',
+    requestPermission: vi.fn().mockResolvedValue('granted'),
+  },
+  writable: true,
+});
+
 // Mock the Firebase modules
 vi.mock('firebase/app', () => ({
   initializeApp: vi.fn(),
   getApp: vi.fn(),
+  getApps: vi.fn(() => []),
 }));
 
 vi.mock('firebase/auth', () => ({
@@ -19,7 +29,7 @@ vi.mock('firebase/auth', () => ({
   signInWithEmailAndPassword: vi.fn(),
   createUserWithEmailAndPassword: vi.fn(),
   signOut: vi.fn(),
-  onAuthStateChanged: vi.fn(),
+  onAuthStateChanged: vi.fn(() => () => {}), // Return unsubscribe function
 }));
 
 vi.mock('firebase/firestore', () => ({
@@ -36,4 +46,14 @@ vi.mock('firebase/firestore', () => ({
   orderBy: vi.fn(),
   limit: vi.fn(),
   enableIndexedDbPersistence: vi.fn(),
+  serverTimestamp: vi.fn(() => new Date()),
+}));
+
+vi.mock('firebase/storage', () => ({
+  getStorage: vi.fn(),
+  ref: vi.fn(),
+  uploadBytes: vi.fn(),
+  getDownloadURL: vi.fn(),
+  deleteObject: vi.fn(),
+  listAll: vi.fn(),
 }));

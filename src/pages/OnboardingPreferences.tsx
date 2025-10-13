@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useOnboarding } from "@/context/OnboardingContext";
+import logger from '@/utils/Logger';
 
 export default function OnboardingPreferences() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function OnboardingPreferences() {
       await setStepComplete('preferences');
       await nextStep(); // This will complete onboarding and navigate to /venues
     } catch (error) {
-      console.error('Error completing preferences step:', error);
+      logger.error('Error completing preferences step:', error);
     }
   };
 

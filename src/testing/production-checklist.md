@@ -5,7 +5,7 @@
 
 ### Firebase Configuration
 - [ ] Firebase config uses correct production project ID
-- [ ] Firebase services are properly initialized in `firebase/config.ts`
+- [ ] Firebase services are properly initialized in `firebase.ts`
 - [ ] `USE_MOCK` is set to `false` in `src/services/index.ts`
 
 ### Security

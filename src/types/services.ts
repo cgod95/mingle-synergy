@@ -41,6 +41,19 @@ export type Venue = {
   image: string;
   checkedInUsers: string[];
   specials?: Array<{ title: string; description: string }>;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+// Define VenueUser type for users at a venue
+export type VenueUser = {
+  id: string;
+  name: string;
+  photos: string[];
+  bio?: string;
+  age: number;
+  interests: string[];
+  checkInTime: Date;
 };
 
 export interface VenueService {
@@ -133,6 +146,9 @@ export interface UserProfile {
   verificationSelfie?: string;
   occupation?: string;
   reconnectRequests?: string[];
+  isOnboardingComplete?: boolean;
+  skippedPhotoUpload?: boolean;
+  checkedInVenueId?: string | null;
 }
 
 // Add a VerificationService interface
