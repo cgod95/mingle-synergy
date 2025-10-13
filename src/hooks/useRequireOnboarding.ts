@@ -18,5 +18,5 @@ export default function useRequireOnboarding() {
         navigate("/create-profile");
       }
     });
-  }, [currentUser, isLoading]);
+  }, [currentUser, isLoading, navigate, location.pathname, setIsOnboardingComplete]);
 } 

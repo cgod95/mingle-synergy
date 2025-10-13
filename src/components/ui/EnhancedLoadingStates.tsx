@@ -1,6 +1,6 @@
 // Comprehensive loading states and skeleton loaders
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton as SkeletonUI } from '@/components/ui/skeleton';
@@ -424,44 +424,37 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const startY = useRef<number>(0);
   const currentY = useRef<number>(0);
 
-  const handleTouchStart = (e: TouchEvent) => {
+  const handleTouchStart = useCallback((e: TouchEvent) => {
     if (refreshing) return;
-    
     const touch = e.touches[0];
     startY.current = touch.clientY;
     currentY.current = touch.clientY;
-  };
+  }, [refreshing]);
 
-  const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     if (refreshing) return;
-    
     const touch = e.touches[0];
     currentY.current = touch.clientY;
-    
     const scrollTop = containerRef.current?.scrollTop || 0;
-    
     // Only allow pull to refresh when at the top
     if (scrollTop <= 0) {
-      const pullDistance = Math.max(0, currentY.current - startY.current);
-      setPullDistance(pullDistance);
-      setIsPulling(pullDistance > 0);
-      
-      if (pullDistance > 0) {
+      const nextPullDistance = Math.max(0, currentY.current - startY.current);
+      setPullDistance(nextPullDistance);
+      setIsPulling(nextPullDistance > 0);
+      if (nextPullDistance > 0) {
         e.preventDefault();
       }
     }
-  };
+  }, [refreshing]);
 
-  const handleTouchEnd = async () => {
+  const handleTouchEnd = useCallback(async () => {
     if (refreshing || !isPulling) return;
-    
     if (pullDistance >= threshold) {
       await onRefresh();
     }
-    
     setPullDistance(0);
     setIsPulling(false);
-  };
+  }, [refreshing, isPulling, pullDistance, threshold, onRefresh]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -476,7 +469,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [refreshing, pullDistance, threshold]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return (
     <div ref={containerRef} className="relative overflow-hidden">

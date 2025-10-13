@@ -1,6 +1,6 @@
 // 🧠 Purpose: Display a detailed view of a venue after check-in, showing venue name, location, and user matching
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -28,13 +28,7 @@ const ActiveVenue: React.FC = () => {
   const [liking, setLiking] = useState<string | null>(null);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    if (id) {
-      loadVenueData();
-    }
-  }, [id]);
-
-  const loadVenueData = async () => {
+  const loadVenueData = useCallback(async () => {
     if (!id || !currentUser) return;
 
     try {
@@ -67,7 +61,11 @@ const ActiveVenue: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, currentUser]);
+
+  useEffect(() => {
+    loadVenueData();
+  }, [loadVenueData]);
 
   const handleLike = async (userId: string) => {
     if (!currentUser || !id) return;
