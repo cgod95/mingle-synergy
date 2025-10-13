@@ -1,9 +1,9 @@
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  addDoc, 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
   serverTimestamp,
   Timestamp,
   onSnapshot,
@@ -13,12 +13,47 @@ import {
   limit,
   writeBatch,
   updateDoc,
+  DocumentData,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { UserProfile } from "@/types/services";
 import { FirestoreMatch } from "@/types/match";
 import logger from '@/utils/Logger';
 
+export class MessageWindowExpiredError extends Error {
+  constructor(message = 'Match window has expired') {
+    super(message);
+    this.name = 'MessageWindowExpiredError';
+  }
+}
+
+export class MessageLimitExceededError extends Error {
+  constructor(message = 'Message limit reached for this match') {
+    super(message);
+    this.name = 'MessageLimitExceededError';
+  }
+}
+
+const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+
+const extractTimestamp = (data: DocumentData | undefined): number | null => {
+  if (!data) return null;
+  const timestamp = data.timestamp ?? data.createdAt;
+  if (typeof timestamp === 'number') {
+    return timestamp;
+  }
+  if (timestamp instanceof Timestamp) {
+    return timestamp.toMillis();
+  }
+  if (timestamp?.toDate) {
+    return timestamp.toDate().getTime();
+  }
+  return null;
+};
+
+const isWithinMessageWindow = (createdAt: number): boolean => {
+  return Date.now() - createdAt <= THREE_HOURS_MS;
+};
 export interface Message {
   id: string;
   matchId: string;
@@ -88,21 +123,23 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
  */
 export const sendMessage = async (matchId: string, senderId: string, text: string): Promise<void> => {
   const matchDoc = await getDoc(doc(db, "matches", matchId));
-  if (!matchDoc.exists()) throw new Error("Match does not exist");
-
-  const matchData = matchDoc.data();
-  const createdAt = typeof matchData.timestamp === 'number' ? matchData.timestamp : 0;
-  const now = Date.now();
-  const threeHours = 3 * 60 * 60 * 1000;
-
-  if (now - createdAt > threeHours) {
-    throw new Error("Match has expired. Please reconnect by checking in again.");
+  if (!matchDoc.exists()) {
+    throw new Error("Match does not exist");
   }
 
-  // Check message limit
+  const matchData = matchDoc.data();
+  const createdAt = extractTimestamp(matchData);
+  if (!createdAt) {
+    throw new MessageWindowExpiredError();
+  }
+
+  if (!isWithinMessageWindow(createdAt)) {
+    throw new MessageWindowExpiredError();
+  }
+
   const canSend = await canSendMessage(matchId, senderId);
   if (!canSend) {
-    throw new Error("Message limit reached");
+    throw new MessageLimitExceededError();
   }
 
   await addDoc(collection(db, "messages"), {

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Clock, Users, Send, Heart, Check } from "lucide-react";
+import { MessageCircle, Clock, Users, Send, Heart, Check, AlertTriangle } from "lucide-react";
+import { MessageLimitExceededError, MessageWindowExpiredError } from '@/services/messageService';
 import { useAuth } from '@/context/AuthContext';
 import matchService from '@/services/firebase/matchService';
 import userService from '@/services/firebase/userService';
@@ -20,6 +21,8 @@ interface Conversation {
   lastTimestamp: number;
   unreadCount: number;
   lastRead: boolean;
+  messageLimitReached: boolean;
+  messageWindowExpired: boolean;
 }
 
 const MessagesPage = () => {
@@ -28,6 +31,9 @@ const MessagesPage = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const MESSAGE_LIMIT = 3;
+  const MESSAGE_WINDOW_MS = 3 * 60 * 60 * 1000;
 
   useEffect(() => {
     if (!currentUser) return;
@@ -66,6 +72,14 @@ const MessagesPage = () => {
               lastMsg && Array.isArray(lastMsg.readBy) && lastMsg.readBy.includes(currentUser.uid)
             );
 
+            const createdAt = match.timestamp || 0;
+            const now = Date.now();
+            const messageWindowExpired = now - createdAt > MESSAGE_WINDOW_MS;
+
+            const messageLimitReached = messages.filter(
+              (m) => m.senderId === currentUser.uid
+            ).length >= MESSAGE_LIMIT;
+
             return {
               matchId: match.id,
               otherUserId,
@@ -76,6 +90,8 @@ const MessagesPage = () => {
               lastTimestamp: lastMsg?.timestamp || match.timestamp,
               unreadCount: unread,
               lastRead,
+              messageLimitReached,
+              messageWindowExpired,
             } as Conversation;
           }));
 
@@ -94,6 +110,19 @@ const MessagesPage = () => {
     setup();
     return ()=>{ if(unsubscribe) unsubscribe(); };
   }, [currentUser]);
+
+  const [feedbackMessage, feedbackVariant] = useMemo(() => {
+    const hasExpired = conversations.some((conversation) => conversation.messageWindowExpired);
+    const hasLimit = conversations.some((conversation) => conversation.messageLimitReached);
+
+    if (hasExpired) {
+      return ["Messaging window has ended. Check in again to reconnect.", "warning"] as const;
+    }
+    if (hasLimit) {
+      return ["Message limit reached. Wait for a reply or reconnect.", "info"] as const;
+    }
+    return [null, null] as const;
+  }, [conversations]);
 
   const timeAgo = (timestamp: number) => {
     const diff = Date.now() - timestamp;
@@ -115,6 +144,18 @@ const MessagesPage = () => {
 
       {/* Messages List */}
       <div className="space-y-3">
+        {feedbackMessage && (
+          <div
+            className={`flex items-center space-x-2 rounded-md border px-3 py-2 text-sm ${
+              feedbackVariant === "warning"
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : "border-blue-200 bg-blue-50 text-blue-800"
+            }`}
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <span>{feedbackMessage}</span>
+          </div>
+        )}
         {loading ? (
           <p className="text-center text-gray-500">Loading...</p>
         ) : conversations.length === 0 ? (
