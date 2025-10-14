@@ -59,7 +59,8 @@ export const expireOldMessagesDev = onRequest(async (req, res) => {
     const clean = req.query.clean === "1" || req.query.clean === "true";
     const result = await runExpiryOnce(Date.now(), { clean });
     res.json(result);
-  } catch (e: any) {
-    res.status(500).json({ error: e?.message ?? "unknown error" });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    res.status(500).json({ error: msg });
   }
 });

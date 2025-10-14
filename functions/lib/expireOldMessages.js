@@ -86,6 +86,7 @@ exports.expireOldMessagesDev = (0, https_1.onRequest)(async (req, res) => {
         res.json(result);
     }
     catch (e) {
-        res.status(500).json({ error: e?.message ?? "unknown error" });
+        const msg = e instanceof Error ? e.message : String(e);
+        res.status(500).json({ error: msg });
     }
 });
