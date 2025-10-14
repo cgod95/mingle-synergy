@@ -1,15 +1,3 @@
 {
-  "projects": {
-    "prod": "mingle-a12a2"
-  },
-  "targets": {
-    "mingle-a12a2": {
-      "hosting": {
-        "prod": [
-          "mingle-a12a2"
-        ]
-      }
-    }
-  },
-  "etags": {}
+  "projects": { "default": "demo-mingle" }
 }

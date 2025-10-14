@@ -1,26 +1,26 @@
-import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { onRequest } from "firebase-functions/v2/https";
 
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
 const db = admin.firestore();
 
-export const expireOldMessages = functions.pubsub
-  .schedule("every 1 hours")
-  .onRun(async () => {
-    const now = Date.now();
-    const expirationTime = now - 3 * 60 * 60 * 1000; // 3 hours ago
+export async function runExpiryOnce(now = Date.now()) {
+  // TODO: implement real pruning with `db`
+  return { scannedMatches: 0, expiredMatches: 0, cleanedMessages: 0, now };
+}
 
-    const messagesRef = db.collection("messages");
-    const snapshot = await messagesRef.where("timestamp", "<", expirationTime).get();
+export const expireOldMessages = onSchedule("every 1 hours", async () => {
+  await runExpiryOnce();
+});
 
-    if (snapshot.empty) {
-      console.log("No old messages to delete.");
-      return null;
-    }
-
-    const batch = db.batch();
-    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-    await batch.commit();
-
-    console.log(`Expired ${snapshot.size} old messages.`);
-    return null;
-  }); 
+export const expireOldMessagesDev = onRequest(async (_req, res) => {
+  try {
+    const result = await runExpiryOnce();
+    res.json(result);
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message ?? "unknown error" });
+  }
+});
