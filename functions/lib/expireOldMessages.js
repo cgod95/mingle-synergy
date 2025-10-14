@@ -38,20 +38,51 @@ exports.runExpiryOnce = runExpiryOnce;
 const admin = __importStar(require("firebase-admin"));
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const https_1 = require("firebase-functions/v2/https");
+const firestore_1 = require("firebase-admin/firestore");
 if (admin.apps.length === 0) {
     admin.initializeApp();
 }
 const db = admin.firestore();
-async function runExpiryOnce(now = Date.now()) {
-    // TODO: implement real pruning with `db`
-    return { scannedMatches: 0, expiredMatches: 0, cleanedMessages: 0, now };
+const MATCHES_COLLECTION = "matches";
+const MESSAGES_SUBCOLLECTION = "messages";
+const WINDOW_MS = 3 * 60 * 60 * 1000;
+async function runExpiryOnce(now = Date.now(), opts) {
+    const cutoff = new Date(now - WINDOW_MS);
+    const q = await db.collection(MATCHES_COLLECTION)
+        .where("createdAt", "<=", firestore_1.Timestamp.fromDate(cutoff))
+        .where("expired", "==", false)
+        .get();
+    let expiredMatches = 0;
+    let cleanedMessages = 0;
+    for (const doc of q.docs) {
+        const matchRef = doc.ref;
+        await matchRef.set({ expired: true, expiredAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        expiredMatches++;
+        if (opts?.clean) {
+            const msgs = await matchRef.collection(MESSAGES_SUBCOLLECTION).get();
+            const batch = db.batch();
+            msgs.docs.forEach((m) => batch.delete(m.ref));
+            if (!msgs.empty) {
+                await batch.commit();
+                cleanedMessages += msgs.size;
+            }
+        }
+    }
+    return {
+        scannedMatches: q.size,
+        expiredMatches,
+        cleanedMessages,
+        cutoff: cutoff.getTime(),
+        now,
+    };
 }
 exports.expireOldMessages = (0, scheduler_1.onSchedule)("every 1 hours", async () => {
     await runExpiryOnce();
 });
-exports.expireOldMessagesDev = (0, https_1.onRequest)(async (_req, res) => {
+exports.expireOldMessagesDev = (0, https_1.onRequest)(async (req, res) => {
     try {
-        const result = await runExpiryOnce();
+        const clean = req.query.clean === "1" || req.query.clean === "true";
+        const result = await runExpiryOnce(Date.now(), { clean });
         res.json(result);
     }
     catch (e) {
