@@ -55,7 +55,8 @@ const PhilosophyIntro = () => {
       </div>
       
       <Button 
-        onClick={() => navigate('/location')} 
+        data-testid="cta-get-started"
+        onClick={() => navigate('/sign-up')} 
         className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-6 rounded-full font-medium mt-8"
       >
         Get Started
