@@ -121,6 +121,15 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
 /**
  * Send a message, but prevent sending to expired matches (older than 3 hours)
  */
+export const getMatchCreation = async (matchId: string): Promise<number | null> => {
+  const matchDoc = await getDoc(doc(db, "matches", matchId));
+  if (!matchDoc.exists()) {
+    return null;
+  }
+  const data = matchDoc.data();
+  return extractTimestamp(data) ?? null;
+};
+
 export const sendMessage = async (matchId: string, senderId: string, text: string): Promise<void> => {
   const matchDoc = await getDoc(doc(db, "matches", matchId));
   if (!matchDoc.exists()) {

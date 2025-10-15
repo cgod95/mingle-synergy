@@ -109,7 +109,7 @@ const MessagesPage = () => {
 
     setup();
     return ()=>{ if(unsubscribe) unsubscribe(); };
-  }, [currentUser]);
+  }, [currentUser, MESSAGE_WINDOW_MS]);
 
   const [feedbackMessage, feedbackVariant] = useMemo(() => {
     const hasExpired = conversations.some((conversation) => conversation.messageWindowExpired);

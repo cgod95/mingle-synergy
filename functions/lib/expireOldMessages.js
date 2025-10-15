@@ -56,7 +56,7 @@ async function runExpiryOnce(now = Date.now(), opts) {
     let cleanedMessages = 0;
     for (const doc of q.docs) {
         const matchRef = doc.ref;
-        await matchRef.set({ expired: true, expiredAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        await matchRef.set({ expired: true, expiredAt: firestore_1.FieldValue.serverTimestamp() }, { merge: true });
         expiredMatches++;
         if (opts?.clean) {
             const msgs = await matchRef.collection(MESSAGES_SUBCOLLECTION).get();

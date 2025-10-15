@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest } from "firebase-functions/v2/https";
-import { Timestamp } from "firebase-admin/firestore";
+import { Timestamp, FieldValue } from "firebase-admin/firestore";
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -25,7 +25,7 @@ export async function runExpiryOnce(now = Date.now(), opts?: { clean?: boolean }
   for (const doc of q.docs) {
     const matchRef = doc.ref;
     await matchRef.set(
-      { expired: true, expiredAt: admin.firestore.FieldValue.serverTimestamp() },
+      { expired: true, expiredAt: FieldValue.serverTimestamp() },
       { merge: true }
     );
     expiredMatches++;
