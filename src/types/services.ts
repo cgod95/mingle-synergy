@@ -149,6 +149,7 @@ export interface UserProfile {
   isOnboardingComplete?: boolean;
   skippedPhotoUpload?: boolean;
   checkedInVenueId?: string | null;
+  checkedInAt?: number | null;
 }
 
 // Add a VerificationService interface

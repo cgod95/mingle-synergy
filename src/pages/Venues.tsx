@@ -4,7 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import venueService from "@/services/firebase/venueService";
 import userService from "@/services/firebase/userService";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -27,18 +26,26 @@ interface VenueWithUI {
 const Venues: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const { userProfile, needsPhotoUpload } = useUserProfile();
+  const { needsPhotoUpload } = useUserProfile();
   const [venues, setVenues] = useState<VenueWithUI[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const loadVenues = useCallback(async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setError("You need to be signed in to check in at a venue.");
+      return;
+    }
 
     try {
       setLoading(true);
-      const userProfile = await userService.getUserProfile(currentUser.uid);
+      const profile = await userService.getUserProfile(currentUser.uid);
+      if (!profile) {
+        setError("Your profile could not be found. Please try again later.");
+        setVenues([]);
+        return;
+      }
       const venueList = await venueService.getVenues();
       
       // Transform venues to include UI-specific properties with real images
@@ -51,12 +58,16 @@ const Venues: React.FC = () => {
         
         const vibes = ["Cozy", "Trendy", "Lively", "Chill", "Upscale"];
         
+        const isCheckedIn = profile?.checkedInVenueId
+          ? profile.checkedInVenueId === venue.id
+          : profile?.currentVenue === venue.id;
+
         return {
           id: venue.id,
           name: venue.name,
           city: venue.city,
           address: venue.address,
-          isCheckedIn: userProfile?.currentVenue === venue.id,
+          isCheckedIn,
           distance: `${0.1 + index * 0.1} mi`,
           userCount: venue.checkedInUsers.length + Math.floor(Math.random() * 8) + 2,
           type: venue.type,
@@ -94,7 +105,15 @@ const Venues: React.FC = () => {
     setError("");
 
     try {
+      const checkedInAt = Date.now();
+
       await venueService.checkIn(currentUser.uid, venueId);
+      await userService.updateUserProfile(currentUser.uid, {
+        checkedInVenueId: venueId,
+        checkedInAt,
+        isCheckedIn: true,
+        currentVenue: venueId,
+      });
       
       setVenues(prev => prev.map(venue => ({
         ...venue,
@@ -211,16 +230,6 @@ const Venues: React.FC = () => {
                   {getVenueTypeIcon(venue.type)}
                 </div>
                 
-                {/* Top Right - Check-in Status */}
-                {venue.isCheckedIn && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-blue-500 text-white px-3 py-1">
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Checked In
-                    </Badge>
-                  </div>
-                )}
-                
                 {/* Bottom - Vibe Badge */}
                 <div className="absolute bottom-4 left-4">
                   <Badge variant="secondary" className="bg-white/90 text-gray-800">
@@ -232,7 +241,15 @@ const Venues: React.FC = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-xl mb-2">{venue.name}</CardTitle>
+                    <CardTitle className="text-xl mb-2 flex items-center gap-2">
+                      <span>{venue.name}</span>
+                      {venue.isCheckedIn && (
+                        <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold">
+                          <CheckCircle className="w-3 h-3" />
+                          Checked in
+                        </Badge>
+                      )}
+                    </CardTitle>
                     <div className="flex items-center text-gray-600 text-sm mb-2">
                       <MapPin className="w-4 h-4 mr-1" />
                       {venue.city}
@@ -268,6 +285,7 @@ const Venues: React.FC = () => {
 
                   {!venue.isCheckedIn && (
                     <Button
+                      data-testid="checkin-cta"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCheckIn(venue.id);
