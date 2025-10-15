@@ -6,7 +6,7 @@ export const AuthContext = createContext<{ currentUser: User | null }>({ current
 
 type Props = { children: ReactNode };
 
-const AuthProvider: React.FC<Props> = ({ children }) => {
+export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
