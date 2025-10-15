@@ -1,67 +1,68 @@
-# Cursor Kickoff Plan — Mingle Synergy (October 2025)
+# Cursor Kickoff Plan — Mingle Synergy (Oct 2025)
 
 ## Mission
-Complete, stabilize, and polish the Mingle MVP so it can be safely deployed and maintained.  
-Cursor acts as the autonomous executor. ChatGPT provides architectural and strategic guidance.
+Ship the Mingle MVP: onboarding → venue check-in → match → chat (3 msgs / 3h window) → expiry. Cursor is the executor; ChatGPT is the architect. Priorities: stability, CI, E2E, deploy.
 
----
+## Current Status
+- ✅ Auth + onboarding + profile + photos
+- ✅ Venues list + active venue + check-in
+- ✅ Likes → mutual match flow
+- ✅ Messaging with 3-message cap per user per match
+- ✅ 3-hour match window enforced client/service
+- ✅ Expiry function marks old matches (dev endpoint OK)
+- ✅ Lint errors cleared; typecheck/build pass
+- ✅ Basic Playwright smoke scaffold
+- ⚙️ Remaining: notifications wiring, read-receipts UI, cleaner job polish, CI + E2E finalization, deploy runbook
 
-## Current Status (snapshot)
-- ✅ Onboarding, profile creation, venue system, likes, matches, and 3-message/3-hour chat window implemented.
-- ✅ Firestore + Auth + Storage integrated and tested through emulator.
-- ✅ Expiry Cloud Function marks expired matches; cleaner deferred.
-- ✅ TypeScript types consistent; build passes.
-- ✅ ESLint mostly clear (only “only-export-components” warnings remain).
-- ⚙️ CI, lint enforcement, and Playwright smoke tests pending final integration.
+## Remaining MVP Features (must-complete)
+1) Notifications (FCM)
+   - Store device token after permission grant
+   - Cloud Function trigger to send push on mutual match + message receipts (stub OK)
+   - Basic in-app handling (foreground)
+2) Read Receipts
+   - Persist `readBy` / `readAt` in Firestore on view
+   - Show small “Seen” indicator for latest outbound message
+3) Expiry Cleaner Job
+   - Delete subcollection `messages` for expired matches (scheduled)
+4) CI + Tests
+   - CI: lint + typecheck + build + e2e
+   - Unskip onboarding test; add match/chat limits spec
+5) Deploy
+   - Verify prod env, deploy Functions + Hosting, smoke in prod
 
----
+## Guardrails
+- No new features beyond MVP scope
+- No dep bumps without an explicit subtask
+- Small, atomic PRs with clear subjects
+- Keep build green at every step
 
-## Primary Goals
-1. **Finalize stability**
-   - Finish CI workflow (`lint + typecheck + build + e2e`).
-   - Silence or split remaining ESLint warnings.
-   - Verify expiry + message limits in emulator and prod.
-2. **QA & Testing**
-   - Unskip onboarding Playwright suite.
-   - Add smoke tests for check-in, match, and chat.
-3. **Deployment**
-   - Confirm environment config for production.
-   - Deploy Firebase functions and web app build.
-   - Validate post-deploy runbook.
-4. **Docs & Tracking**
-   - Maintain `docs/TODO_EXPIRY.md` for deferred cleaner.
-   - Generate a final `DEPLOY_README.md` for future hand-offs.
+## Execution Loop (daily)
+Morning:
+- Parse this plan; propose a batch of 3–6 atomic tasks with exact file paths and expected diffs
+- Run tasks in order, stopping on first red build
+Midday:
+- Report: commits, lint/typecheck/build/e2e status, next deltas
+Evening:
+- Run: `pnpm lint && pnpm typecheck && pnpm build && pnpm test:e2e`
+- Write `/reports/YYYY-MM-DD.md` with pass/fail and follow-ups
 
----
+## Acceptance Criteria
+- All MVP flows verified by E2E against local preview + emulator
+- CI green on push and PR
+- 0 TS errors; ≤5 non-critical lint warnings
+- Prod deploy complete; smoke tested
 
-## Execution Loop
-Cursor follows this daily rhythm:
-1. **Morning (Kickoff)**
-   - Parse this file.
-   - Generate granular tasks with file paths and expected diffs.
-   - Start executing autonomously.
-2. **Midday (Progress Report)**
-   - Summarize commits, passing/failing tests, lint state.
-   - Propose next incremental batch.
-3. **Evening (Validation)**
-   - Run `pnpm lint && pnpm typecheck && pnpm build && pnpm test:e2e`.
-   - Produce an E2E status report (✅/⚠️/❌).
-   - Update a lightweight daily log in `/reports/YYYY-MM-DD.md`.
+## Backlog (priority order)
+P1: CI finalize; fix onboarding e2e; add match→3 msgs→blocked / 3h expiry spec  
+P1: Read receipts: persist + UI chip on latest outbound  
+P1: Expiry cleaner: scheduled function deletes subcollection for expired matches  
+P2: Notifications: token capture + function stub + foreground handler  
+P2: Trim remaining `only-export-components` warnings (split helpers/constants)  
+P2: Bundle: optional finer vendor/manualChunks  
+P3: Docs: DEPLOY_README.md; update TODO_EXPIRY.md as we defer pieces
 
----
-
-## Style & Rules
-- Use single, copy-pasteable commits.
-- Never modify package versions without confirmation.
-- Prioritize working builds over perfect code style.
-- Never add new features beyond MVP scope.
-- ChatGPT provides architectural oversight; Cursor executes and reports.
-
----
-
-## Success Criteria
-- CI green on all pushes.
-- Local emulator parity with prod.
-- All MVP features (check-in → match → chat → expire) verified.
-- 0 TypeScript errors; ≤ 5 non-critical lint warnings.
+## Reporting Format (Cursor must output)
+- “Morning Plan”: checklist with files + diffs summary
+- “Midday Status”: ✅/⚠️ for lint/typecheck/build/e2e + commit SHAs
+- “Evening Validation”: command logs condensed + next actions
 
