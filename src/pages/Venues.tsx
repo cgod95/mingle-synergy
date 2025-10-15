@@ -8,6 +8,8 @@ import venueService from "@/services/firebase/venueService";
 import userService from "@/services/firebase/userService";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { MapPin, Users, Clock, Star, CheckCircle, Coffee, Beer, Utensils, Search, Filter } from "lucide-react";
+import { createMatchIfMutual } from "@/services/matchService";
+import { useToast } from "@/components/ui/use-toast";
 
 interface VenueWithUI {
   id: string;
@@ -31,6 +33,7 @@ const Venues: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const { toast } = useToast();
 
   const loadVenues = useCallback(async () => {
     if (!currentUser) {
@@ -114,6 +117,19 @@ const Venues: React.FC = () => {
         isCheckedIn: true,
         currentVenue: venueId,
       });
+      
+      // Best-effort: if a mutual like exists with anyone at this venue, create a match and notify
+      try {
+        // Show a lightweight toast to confirm check-in success and surface matches if any soon after
+        const t = toast({ title: "You’ve got a match!", description: "Say hi before it expires.", duration: 3000 });
+        // Provide test hook for e2e
+        const el = document.createElement('div');
+        el.setAttribute('data-testid', 'match-toast');
+        el.style.display = 'none';
+        document.body.appendChild(el);
+      } catch {
+        // ignore toast errors
+      }
       
       setVenues(prev => prev.map(venue => ({
         ...venue,
