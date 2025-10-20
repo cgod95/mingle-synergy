@@ -1,48 +1,34 @@
-// 🧠 Purpose: Firebase core configuration and exports for use across the app.
-
-import { initializeApp } from "firebase/app";
+import { getApps, getApp, initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage, connectStorageEmulator } from "firebase/storage";
-import config from "@/config";
 
+// Read config from env (fallbacks keep demo mode from crashing)
 const firebaseConfig = {
-  apiKey: config.FIREBASE_API_KEY,
-  authDomain: config.FIREBASE_AUTH_DOMAIN,
-  projectId: config.FIREBASE_PROJECT_ID,
-  storageBucket: config.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: config.FIREBASE_MESSAGING_SENDER_ID,
-  appId: config.FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "demo.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "demo.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123:web:demo",
 };
 
-const app = initializeApp(firebaseConfig);
+// Singleton app
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+// Core SDKs
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-// 🛠 Emulator Connections (development only)
-if (config.ENVIRONMENT === "development") {
-  const authHost = import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST;
-  const firestoreHost = import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_HOST;
-  const storageHost = import.meta.env.VITE_FIREBASE_STORAGE_EMULATOR_HOST;
-
-  if (authHost) {
-    connectAuthEmulator(auth, authHost);
-  }
-
-  if (firestoreHost) {
-    const [host, port] = firestoreHost.split(":");
-    if (host && port) {
-      connectFirestoreEmulator(db, host, Number(port));
-    }
-  }
-
-  if (storageHost) {
-    const [host, port] = storageHost.split(":");
-    if (host && port) {
-      connectStorageEmulator(storage, host, Number(port));
-    }
-  }
+// Optional: connect to emulators if requested
+const useEmu = import.meta.env.VITE_USE_FIREBASE_EMULATOR === "true";
+if (useEmu) {
+  try {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099");
+  } catch {}
+  try {
+    const port = Number(import.meta.env.VITE_FIRESTORE_EMULATOR_PORT) || 8082;
+    connectFirestoreEmulator(db, "127.0.0.1", port);
+  } catch {}
 }
 
-export { app, auth, db, storage };
+export { app, auth, db };

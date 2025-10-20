@@ -1,0 +1,41 @@
+import Profile from './pages/Profile';
+import Venues from './pages/VenueList';
+import SignUp from './pages/SignUp';
+import SignIn from './pages/SignIn';
+import LandingPage from './pages/LandingPage';
+import NotFoundStandalone from './pages/NotFoundStandalone';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { AuthProvider } from "./context/AuthContext";
+import { OnboardingProvider } from "./context/OnboardingContext";
+
+import LandingPage from "./pages/LandingPage";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import Venues from "./pages/VenueList";
+import Profile from "./pages/Profile";
+import NotFound from "./pages/NotFoundStandalone";
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ErrorBoundary>
+        <AuthProvider>
+          <OnboardingProvider>
+            <div data-testid="app-loaded" style={{ display: "none" }} />
+            <Routes>
+  <Route path="/" element={<LandingPage />} />
+  <Route path="/sign-in" element={<SignIn />} />
+  <Route path="/sign-up" element={<SignUp />} />
+  <Route path="/venues" element={<Venues />} />
+  <Route path="/profile" element={<Profile />} />
+  <Route path="/404" element={<NotFoundStandalone />} />
+  <Route path="*" element={<NotFoundStandalone />} />
+</Routes>
+          </OnboardingProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </BrowserRouter>
+  );
+}

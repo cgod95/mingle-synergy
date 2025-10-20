@@ -1,30 +1,17 @@
-/**
- * Purpose: Unified route protection for authenticated and onboarding-complete users.
- * Redirects to /sign-in if not authenticated, or /create-profile if onboarding is incomplete.
- * Prevents access to protected parts of the app like /venues and /profile.
- */
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useOnboarding } from '@/context/OnboardingContext';
+export default function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const { user, loading, isDemo } = useAuth();
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser, isLoading } = useAuth();
-  const { isOnboardingComplete } = useOnboarding();
-  const location = useLocation();
+  if (loading) return <div style={{ padding: 24 }}>Loading...</div>;
 
-  if (isLoading) return null;
-
-  if (!currentUser) {
-    return <Navigate to="/sign-in" state={{ from: location }} replace />;
+  // demo safety: allow if demo-auth persisted
+  if (isDemo && (user || sessionStorage.getItem("demo-auth") === "1")) {
+    return children;
   }
 
-  if (!isOnboardingComplete) {
-    return <Navigate to="/create-profile" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-export default ProtectedRoute; 
+  if (!user) return <Navigate to="/sign-in" replace />;
+  return children;
+}

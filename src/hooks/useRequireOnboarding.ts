@@ -1,22 +1,19 @@
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { useOnboarding } from "@/context/OnboardingContext";
-import userService from "@/services/firebase/userService";
+import * as React from "react";
 
-export default function useRequireOnboarding() {
-  const { currentUser, isLoading } = useAuth();
-  const { setIsOnboardingComplete } = useOnboarding();
-  const navigate = useNavigate();
-  const location = useLocation();
+type Result = {
+  isOnboardingComplete: boolean;
+  setIsOnboardingComplete: (v: boolean) => void;
+};
 
-  useEffect(() => {
-    if (!currentUser || isLoading) return;
-    userService.isOnboardingComplete(currentUser.uid).then((complete) => {
-      setIsOnboardingComplete(complete);
-      if (!complete && !location.pathname.startsWith("/create-profile")) {
-        navigate("/create-profile");
-      }
-    });
-  }, [currentUser, isLoading]);
-} 
+export default function useRequireOnboarding(): Result {
+  const demo = import.meta.env.VITE_DEMO_MODE === "true";
+  const [isOnboardingComplete, setIsOnboardingComplete] = React.useState<boolean>(demo ? true : false);
+
+  // If you had redirect logic before, we intentionally skip it in demo mode.
+  React.useEffect(() => {
+    if (demo) return;
+    // (keep any real redirect checks here in non-demo)
+  }, [demo]);
+
+  return { isOnboardingComplete, setIsOnboardingComplete };
+}

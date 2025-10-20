@@ -1,35 +1,71 @@
-// 🧠 Purpose: Provides user auth state and loading flag with added logging for stuck state debugging
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { auth } from "../firebase";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, getAuth, User } from 'firebase/auth';
+type AuthCtx = {
+  user: User | null;
+  loading: boolean;
+  signOutUser: () => Promise<void>;
+  signInDemo?: () => void;
+  isDemo: boolean;
+};
 
-const AuthContext = createContext<{
-  currentUser: User | null;
-  isLoading: boolean;
-  hasPhoto: boolean;
-}>({
-  currentUser: null,
-  isLoading: true,
-  hasPhoto: false
+const AuthContext = createContext<AuthCtx>({
+  user: null,
+  loading: true,
+  signOutUser: async () => {},
+  isDemo: false,
 });
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+function isDemoEnv() {
+  const v = String(import.meta.env.VITE_DEMO_MODE ?? "").trim().toLowerCase();
+  return v === "true" || v === "1" || v === "yes";
+}
 
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isDemo = isDemoEnv();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // load persisted demo auth
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getAuth(), (firebaseUser) => {
-      setCurrentUser(firebaseUser);
-      setIsLoading(false);
+    if (isDemo) {
+      const persisted = sessionStorage.getItem("demo-auth") === "1";
+      if (persisted) {
+        // @ts-expect-error minimal shape is fine for UI checks
+        const fakeUser: User = { uid: "demo-user-1", displayName: "Demo User", email: "demo@example.com" };
+        setUser(fakeUser);
+      }
+      setLoading(false);
+      return;
+    }
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
     });
+    return () => unsub();
+  }, [isDemo]);
 
-    return () => unsubscribe();
-  }, []);
+  const signOutUser = async () => {
+    if (isDemo) {
+      sessionStorage.removeItem("demo-auth");
+      setUser(null);
+      return;
+    }
+    await signOut(auth);
+    setUser(null);
+  };
 
-  const hasPhoto = Boolean(currentUser?.photoURL);
+  const signInDemo = () => {
+    if (!isDemo) return;
+    // @ts-expect-error minimal shape is fine
+    const fakeUser: User = { uid: "demo-user-1", displayName: "Demo User", email: "demo@example.com" };
+    sessionStorage.setItem("demo-auth", "1");
+    setUser(fakeUser);
+  };
 
   return (
-    <AuthContext.Provider value={{ currentUser, isLoading, hasPhoto }}>
+    <AuthContext.Provider value={{ user, loading, signOutUser, signInDemo, isDemo }}>
       {children}
     </AuthContext.Provider>
   );

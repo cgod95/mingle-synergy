@@ -1,46 +1,99 @@
-// 🧠 Purpose: Display the current user's profile with clean, Hinge-style UI, responsive layout, and edit navigation
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import {
+  getCurrentUserProfile,
+  saveCurrentUserProfile,
+  UserProfile,
+} from "../services/firebase/userProfileService";
 
-import React from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+export default function Profile() {
+  const { user, loading } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [form, setForm] = useState<{ displayName: string; age: string }>({
+    displayName: "",
+    age: "",
+  });
 
-const Profile: React.FC = () => {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      if (!user) return;
+      setBusy(true);
+      setErr(null);
+      try {
+        const p = (await getCurrentUserProfile()) as UserProfile | null;
+        if (p) {
+          setForm({
+            displayName: p.displayName ?? "",
+            age: p.age != null ? String(p.age) : "",
+          });
+        }
+      } catch (e: any) {
+        setErr(e?.message || "Failed to load profile");
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }, [user]);
 
-  if (!currentUser) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">Loading profile...</p>
-      </div>
-    );
-  }
+  if (loading) return <main style={{ padding: 24 }}>Loading…</main>;
+  if (!user) return <main style={{ padding: 24 }}>Please sign in.</main>;
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setErr(null);
+    setMsg(null);
+    try {
+      const ageNum =
+        form.age.trim() === "" ? null : Math.max(0, Math.floor(Number(form.age)));
+      await saveCurrentUserProfile({
+        displayName: form.displayName.trim(),
+        age: Number.isFinite(ageNum as number) ? (ageNum as number) : null,
+      });
+      setMsg("Saved!");
+    } catch (e: any) {
+      setErr(e?.message || "Failed to save profile");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-white">
-      <div className="w-full max-w-md rounded-2xl shadow-lg p-6 border border-gray-200">
-        <h1 className="text-3xl font-bold mb-6 text-center">Your Profile</h1>
-        <div className="space-y-4 text-lg">
-          <div>
-            <span className="font-semibold">Email:</span>{' '}
-            <span className="text-gray-700">{currentUser.email}</span>
-          </div>
-          {currentUser.displayName && (
-            <div>
-              <span className="font-semibold">Name:</span>{' '}
-              <span className="text-gray-700">{currentUser.displayName}</span>
-            </div>
-          )}
-        </div>
-        <button
-          className="mt-8 w-full py-3 bg-black text-white text-lg rounded-xl hover:bg-gray-900 transition"
-          onClick={() => navigate('/profile-edit')}
-        >
-          Edit Profile
-        </button>
-      </div>
-    </div>
-  );
-};
+    <main style={{ padding: 24, maxWidth: 520, margin: "0 auto" }}>
+      <h1>Your profile</h1>
+      <form onSubmit={save} style={{ display: "grid", gap: 12, marginTop: 16 }}>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Display name</span>
+          <input
+            value={form.displayName}
+            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+            placeholder="eg. Callum"
+            required
+            style={{ padding: 10 }}
+          />
+        </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          <span>Age</span>
+          <input
+            type="number"
+            min={18}
+            max={120}
+            value={form.age}
+            onChange={(e) => setForm((f) => ({ ...f, age: e.target.value }))}
+            placeholder="eg. 27"
+            style={{ padding: 10 }}
+          />
+        </label>
 
-export default Profile;
+        <button type="submit" disabled={busy} style={{ padding: 10 }}>
+          {busy ? "Saving…" : "Save"}
+        </button>
+
+        {err && <div style={{ color: "crimson", fontSize: 12 }}>{err}</div>}
+        {msg && <div style={{ color: "green", fontSize: 12 }}>{msg}</div>}
+      </form>
+    </main>
+  );
+}

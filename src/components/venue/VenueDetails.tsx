@@ -1,151 +1,174 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users } from 'lucide-react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { firestore } from '../../firebase/config';
-import logger from '@/utils/Logger';
+import React from "react";
+import { useParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import {
+  getPeopleAtVenue,
+  getCheckedInVenue,
+  checkIn,
+  likePerson,
+  getMatches,
+} from "../../services/demoPresence";
 
-interface VenueDetailsProps {
-  venue: {
-    name: string;
-    address?: string;
-    city?: string;
-    userCount: number;
-    id: string;
-    specials?: Array<{
-      title: string;
-      description: string;
-    }>;
-  };
-  expiryTime: string;
-  onCheckOut: () => void;
-  isVisible?: boolean;
-  onToggleVisibility?: () => void;
-}
-
-const VenueDetails: React.FC<VenueDetailsProps> = ({ 
-  venue, 
-  expiryTime, 
-  onCheckOut,
-  isVisible = true,
-  onToggleVisibility
-}) => {
-  const [userCount, setUserCount] = useState<number>(venue.userCount);
-
-  // Check if profile exists, if not, redirect to profile creation page
-  const profileExists = localStorage.getItem('profile');  // or your profile checking logic
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!profileExists) {
-      navigate('/create-profile');
-    }
-  }, [profileExists, navigate]);
-
-  useEffect(() => {
-    // Load users at venue
-    const loadUsersAtVenue = async (venueId: string) => {
-      try {
-        const usersQuery = query(
-          collection(firestore, 'users'),
-          where('currentVenue', '==', venueId),
-          where('isVisible', '==', true)
-        );
-
-        const usersSnapshot = await getDocs(usersQuery);
-        setUserCount(usersSnapshot.size);
-
-        logger.debug('Loaded users at venue', { 
-          venueId, 
-          userCount: usersSnapshot.size 
-        });
-
-        return usersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (error) {
-        logger.error('Error fetching users at venue', error, { venueId });
-        return [];
-      }
-    };
-
-    if (venue.id) {
-      loadUsersAtVenue(venue.id);
-    }
-  }, [venue.id]);
+export default function VenueDetails() {
+  const { id: venueIdParam } = useParams();
+  const venueId = venueIdParam || "bar-101";
 
   return (
-    <div className="mb-6">
-      {/* Existing JSX logic here */}
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h1 className="text-xl font-bold">{venue.name}</h1>
-          <p className="text-gray-600 text-sm">
-            {venue.address || venue.city || ''}
-          </p>
-          <div className="flex items-center text-sm text-gray-500 mt-1">
-            <Users className="w-4 h-4 mr-1" />
-            {userCount} people here now
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-sm text-gray-600">Expires at {expiryTime}</div>
-          <button 
-            onClick={onCheckOut}
-            className="text-red-500 text-sm font-medium mt-1"
-          >
-            Check Out
-          </button>
-        </div>
-      </div>
-      
-      {/* Prominent Check-out Box */}
-      <div className="bg-white shadow-md rounded-lg p-4 mb-4 flex justify-between items-center border-l-4 border-coral-500">
-        <div>
-          <span className="text-coral-700 font-medium">You are checked in</span>
-          <p className="text-xs text-gray-600">Other users can see you here</p>
-        </div>
-        <button 
-          onClick={onCheckOut}
-          className="px-4 py-2 bg-coral-500 text-white rounded-lg shadow-sm hover:bg-coral-600 transition-colors"
+    <main style={{ padding: 24 }}>
+      <h1>Venue</h1>
+      <div style={{ color: "#666", marginBottom: 8 }}>ID: {venueId}</div>
+
+      {import.meta.env.VITE_DEMO_MODE === "true" ? (
+        <DemoPeopleSection venueId={venueId} />
+      ) : (
+        <div>Live mode not yet implemented here.</div>
+      )}
+    </main>
+  );
+}
+
+function DemoPeopleSection({ venueId }: { venueId: string }) {
+  const { user } = useAuth();
+  const uid = user?.uid || "demo-user";
+
+  const initiallyChecked =
+    getCheckedInVenue(uid) === venueId;
+
+  const [checkedIn, setCheckedIn] = React.useState(initiallyChecked);
+  const [likeNotice, setLikeNotice] = React.useState<string | null>(null);
+  const [matchNotice, setMatchNotice] = React.useState<string | null>(null);
+
+  const roster = getPeopleAtVenue(venueId);
+  const matches = getMatches(uid, venueId);
+
+  const handleCheckIn = () => {
+    checkIn(uid, venueId);
+    setCheckedIn(true);
+  };
+
+  const handleLike = (pid: string, name: string) => {
+    likePerson(uid, venueId, pid);
+    setLikeNotice(`You liked ${name}`);
+    const m = getMatches(uid, venueId).find((x) => x.id === pid);
+    if (m) setMatchNotice(`It's a match with ${name}!`);
+    setTimeout(() => {
+      setLikeNotice(null);
+      setMatchNotice(null);
+    }, 1500);
+  };
+
+  return (
+    <section style={{ marginTop: 16 }}>
+      {!checkedIn ? (
+        <button
+          onClick={handleCheckIn}
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #ddd",
+            borderRadius: 8,
+            cursor: "pointer",
+          }}
         >
-          Check Out
+          Check in here
         </button>
+      ) : (
+        <div style={{ margin: "8px 0", fontSize: 12, color: "#2a6" }}>
+          Checked in (demo)
+        </div>
+      )}
+
+      <h3 style={{ marginTop: 12 }}>People here (demo)</h3>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))",
+          gap: 12,
+        }}
+      >
+        {roster.map((p) => (
+          <div
+            key={p.id}
+            style={{
+              border: "1px solid #eee",
+              borderRadius: 12,
+              padding: 12,
+              background: "#fff",
+            }}
+          >
+            <img
+              src={p.photo}
+              alt={p.name}
+              style={{
+                width: "100%",
+                height: 120,
+                objectFit: "cover",
+                borderRadius: 8,
+              }}
+            />
+            <div style={{ fontWeight: 600, marginTop: 8 }}>{p.name}</div>
+            <div style={{ fontSize: 12, color: "#555" }}>{p.bio || ""}</div>
+            <button
+              onClick={() => handleLike(p.id, p.name)}
+              style={{
+                marginTop: 8,
+                width: "100%",
+                padding: "6px 10px",
+                border: "1px solid #ddd",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
+            >
+              Like
+            </button>
+          </div>
+        ))}
       </div>
-      
-      {/* Specials & Offers Section */}
-      <div className="mt-2 mb-3">
-        <h3 className="text-sm font-medium text-gray-700 mb-1">Specials & Offers</h3>
-        {venue.specials && venue.specials.length > 0 ? (
-          <div className="bg-coral-50 p-2 rounded border border-coral-100 text-sm">
-            {venue.specials.map((special, index) => (
-              <div key={index} className={index > 0 ? "mt-1 pt-1 border-t border-coral-100" : ""}>
-                <p className="font-medium text-coral-700">{special.title}</p>
-                <p className="text-xs text-gray-600">{special.description}</p>
+
+      {matches.length ? (
+        <div
+          style={{
+            marginTop: 12,
+            padding: 10,
+            background: "#f6fff6",
+            border: "1px solid #dfe",
+            borderRadius: 8,
+          }}
+        >
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Matches (demo)</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {matches.map((m) => (
+              <div
+                key={m.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  border: "1px solid #eee",
+                  borderRadius: 8,
+                  padding: "6px 8px",
+                  background: "#fff",
+                }}
+              >
+                <img
+                  src={m.photo}
+                  alt={m.name}
+                  style={{ width: 28, height: 28, borderRadius: "50%" }}
+                />
+                <span style={{ fontSize: 13 }}>{m.name}</span>
               </div>
             ))}
           </div>
-        ) : (
-          <p className="text-xs text-gray-500 italic">No current specials</p>
-        )}
-      </div>
-      
-      {onToggleVisibility && (
-        <div className="mt-4">
-          <button 
-            onClick={onToggleVisibility}
-            className={`w-full px-4 py-2 rounded-lg transition-colors ${
-              isVisible 
-                ? 'bg-green-500 text-white hover:bg-green-600' 
-                : 'bg-gray-500 text-white hover:bg-gray-600'
-            }`}
-          >
-            {isVisible ? 'Visible to Others' : 'Hidden from Others'}
-          </button>
         </div>
-      )}
-    </div>
-  );
-};
+      ) : null}
 
-export default VenueDetails;
+      {likeNotice ? (
+        <div style={{ marginTop: 8, fontSize: 12 }}>{likeNotice}</div>
+      ) : null}
+      {matchNotice ? (
+        <div style={{ marginTop: 4, fontSize: 12, color: "#2a6" }}>
+          {matchNotice}
+        </div>
+      ) : null}
+    </section>
+  );
+}

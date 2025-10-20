@@ -1,6 +1,7 @@
 {
   "projects": {
-    "prod": "mingle-a12a2"
+    "prod": "mingle-a12a2",
+    "default": "mingle-a12a2"
   },
   "targets": {
     "mingle-a12a2": {

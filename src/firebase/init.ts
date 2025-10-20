@@ -1,46 +1,36 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
-import config from '@/config';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
-// Firebase configuration
+// Read env with safe fallbacks
+const USE_EMU = String(import.meta.env.VITE_USE_FIREBASE_EMULATOR) === "true";
+const AUTH_HOST = import.meta.env.VITE_FIREBASE_EMULATOR_AUTH_HOST || "localhost";
+const AUTH_PORT = Number(import.meta.env.VITE_FIREBASE_EMULATOR_AUTH_PORT || 9099);
+const FS_HOST = import.meta.env.VITE_FIRESTORE_EMULATOR_HOST || "localhost";
+const FS_PORT = Number(import.meta.env.VITE_FIRESTORE_EMULATOR_PORT || 8082);
+
+// Your web config (prod values OK here; emulator ignores them locally)
 const firebaseConfig = {
-  apiKey: config.FIREBASE_API_KEY,
-  authDomain: config.FIREBASE_AUTH_DOMAIN,
-  projectId: config.FIREBASE_PROJECT_ID,
-  storageBucket: config.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: config.FIREBASE_MESSAGING_SENDER_ID,
-  appId: config.FIREBASE_APP_ID,
-  measurementId: config.FIREBASE_MEASUREMENT_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "fake-local-key",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "localhost",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "mingle-a12a2",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "fake-local-app-id",
 };
 
-// Use mock services based on config
-const USE_MOCK = config.USE_MOCK;
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
-let storage: FirebaseStorage | null = null;
-
-if (!USE_MOCK) {
+// Guard so we only connect once per page load
+const g = globalThis as any;
+if (USE_EMU && !g.__MINGLE_EMULATORS_CONNECTED__) {
   try {
-    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    storage = getStorage(app);
-  } catch (error) {
-    // Fall back to mock objects
-    app = null;
-    auth = null;
-    db = null;
-    storage = null;
-  }
-} else {
-  app = null;
-  auth = null;
-  db = null;
-  storage = null;
+    connectAuthEmulator(auth, `http://${AUTH_HOST}:${AUTH_PORT}`, { disableWarnings: true });
+  } catch {}
+  try {
+    connectFirestoreEmulator(db, FS_HOST, FS_PORT);
+  } catch {}
+  g.__MINGLE_EMULATORS_CONNECTED__ = true;
 }
 
-export { app, auth, db, storage };
+export { app, auth, db };

@@ -1,50 +1,41 @@
-// 🧠 Purpose: Display a scrollable, responsive list of venues post-onboarding using Hinge-style layout and routing
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { VENUES } from "../data/venues";
+import { likeVenue } from "../lib/demoStore";
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useOnboarding } from '@/context/OnboardingContext';
+export default function VenueList() {
+  const [venues, setVenues] = useState([...VENUES]);
 
-const mockVenues = [
-  { id: '1', name: 'The Velvet Lounge', location: 'Sydney' },
-  { id: '2', name: 'Neon Terrace', location: 'Melbourne' },
-  { id: '3', name: 'Garden Underground', location: 'Brisbane' },
-];
-
-const VenueList: React.FC = () => {
-  const { currentUser } = useAuth();
-  const { isOnboardingComplete } = useOnboarding();
-  const navigate = useNavigate();
-
-  const handleVenueClick = (id: string) => {
-    navigate(`/venue/${id}`);
+  const handleLike = (v: (typeof VENUES)[number]) => {
+    likeVenue(v);
+    setVenues(prev => prev.filter(x => x.id !== v.id));
+    alert(`Liked: ${v.name}`);
   };
 
-  if (!currentUser || !isOnboardingComplete) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg text-gray-600">Loading...</p>
-      </div>
-    );
-  }
+  const handleSkip = (vId: string) => {
+    setVenues(prev => prev.filter(x => x.id !== vId));
+  };
 
   return (
-    <div className="min-h-screen bg-white px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">Venues Near You</h1>
-      <div className="space-y-4">
-        {mockVenues.map((venue) => (
-          <div
-            key={venue.id}
-            onClick={() => handleVenueClick(venue.id)}
-            className="cursor-pointer border rounded-2xl p-5 shadow-md hover:bg-gray-50 transition"
-          >
-            <h2 className="text-xl font-semibold">{venue.name}</h2>
-            <p className="text-gray-500">{venue.location}</p>
-          </div>
-        ))}
-      </div>
-    </div>
+    <main style={{ padding: 24 }}>
+      <h1>Venues</h1>
+      {venues.length === 0 ? (
+        <p>No more venues. Check your <Link to="/matches">matches</Link>.</p>
+      ) : (
+        <ul style={{ display: "grid", gap: 12, listStyle: "none", padding: 0 }}>
+          {venues.map((v) => (
+            <li key={v.id} style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8 }}>
+              <div style={{ fontWeight: 600 }}>{v.name}</div>
+              {v.description && <div style={{ fontSize: 13, color: "#666" }}>{v.description}</div>}
+              <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+                <Link to={`/venues/${v.id}`}>Details</Link>
+                <button onClick={() => handleLike(v)}>Like</button>
+                <button onClick={() => handleSkip(v.id)}>Skip</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
   );
-};
-
-export default VenueList;
+}
