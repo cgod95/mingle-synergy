@@ -1,60 +1,55 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { listMatches } from "../lib/likesStore";
-import { getPerson } from "../lib/api";
-import SafeImg from "../components/common/SafeImg";
-import { ensureChat, getThread, getLastMessage } from "../lib/chatStore";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { getActiveMatches, getRemainingSeconds, isExpired, type Match } from "../lib/matchStore";
+
+function fmt(s: number) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
 
 export default function Matches() {
-  const navigate = useNavigate();
-  const items = useMemo(() => {
-    const ids = listMatches();
-    return ids.map((id) => getPerson(id)).filter(Boolean) as {id:string;name:string;photo?:string}[];
-  }, []);
-
-  function openChat(id: string, name: string) {
-    ensureChat(id, { name });
-    const t = getThread(id);
-    if (!t || !t.messages.length) {
-      // seed a friendly opener once
-      ensureChat(id, { name });
-    }
-    navigate(`/chat/${id}`);
-  }
-
-  if (!items.length) {
-    return (
-      <div className="mx-auto max-w-xl p-4">
-        <h1 className="text-xl font-semibold">Matches</h1>
-        <p className="mt-2 text-neutral-600">No matches yet. Like someone at a venue to get started.</p>
-      </div>
-    );
-  }
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const t = setInterval(() => setTick(x=>x+1), 1000); return () => clearInterval(t); }, []);
+  const matches: Match[] = useMemo(() => getActiveMatches(), [tick]);
 
   return (
-    <div className="mx-auto max-w-3xl p-4 grid gap-4 sm:grid-cols-2">
-      {items.map((p) => {
-        const last = getLastMessage(p.id);
-        return (
-          <button
-            key={p.id}
-            onClick={() => openChat(p.id, p.name)}
-            className="overflow-hidden rounded-xl border bg-white text-left hover:shadow-sm transition"
-          >
-            <SafeImg
-              src={p.photo || "/assets/avatars/default.png"}
-              alt={p.name}
-              className="h-40 w-full object-cover"
-            />
-            <div className="p-3">
-              <div className="font-medium">{p.name}</div>
-              <div className="mt-1 text-sm text-neutral-500 line-clamp-1">
-                {last ? last.text : "Say hi 👋"}
-              </div>
-            </div>
-          </button>
-        );
-      })}
-    </div>
+    <main className="mx-auto max-w-6xl px-4 py-6">
+      <h1 className="mb-4 text-xl font-semibold text-slate-900">Your Matches</h1>
+
+      {matches.length === 0 ? (
+        <div className="card p-6 text-sm text-slate-600">No active matches yet. Visit a venue and like someone to start a chat.</div>
+      ) : (
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {matches.map(m => {
+            const remain = getRemainingSeconds(m);
+            const expired = isExpired(m);
+            const last = m.messages?.[m.messages.length-1];
+            return (
+              <li key={m.id} className="card p-4">
+                <div className="flex items-center gap-3">
+                  <img src={m.otherAvatar} alt={m.otherName} className="h-10 w-10 rounded-full ring-1 ring-slate-200 object-cover"/>
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-slate-900">{m.otherName}</div>
+                    <div className="truncate text-xs text-slate-500">{last?.text ?? "—"}</div>
+                  </div>
+                  <div className="ml-auto text-xs">
+                    {expired ? (
+                      <span className="badge bg-slate-200 text-slate-700">Expired</span>
+                    ) : (
+                      <span className="badge">Expires in {fmt(remain)}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <Link to={"/chat/"+m.id} className="btn-primary">Open chat</Link>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </main>
   );
 }

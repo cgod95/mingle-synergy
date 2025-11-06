@@ -73,7 +73,7 @@ export default function VenueDetails() {
 
         <div className="p-4">
           <h2 className="mb-3 text-lg font-semibold">People here</h2>
-          {!people.length && (
+          {!(people?.length ?? 0) && (
             <div className="rounded-lg border bg-neutral-50 p-4 text-neutral-700">
               No one is displayed here yet.
             </div>

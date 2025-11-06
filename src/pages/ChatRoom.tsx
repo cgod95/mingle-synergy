@@ -1,140 +1,126 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { appendMessage, ensureChat, getThread } from "../lib/chatStore";
-import { isBlocked, block } from "../lib/blockStore";
-import { timeAgo } from "../lib/timeago";
 
-function displayNameFromId(id?: string) {
-  if (!id) return "Unknown";
-  // Humanize the id a bit as a fallback
-  return id.charAt(0).toUpperCase() + id.slice(1);
+// Optional demo match lookup (if present in your repo); safe-optional import.
+let getMatch: undefined | ((id: string) => any);
+try {
+  // @ts-ignore
+  const mod = require("../lib/demoMatches") as any;
+  if (mod && typeof mod.getMatch === "function") getMatch = mod.getMatch;
+} catch {}
+
+/** Local storage helpers */
+const messagesKey = (id: string) => `mingle:messages:${id}`;
+type Msg = { sender: "you" | "them"; text: string; ts: number };
+
+function loadMessages(id: string): Msg[] {
+  try {
+    const raw = localStorage.getItem(messagesKey(id));
+    return raw ? (JSON.parse(raw) as Msg[]) : [];
+  } catch {
+    return [];
+  }
+}
+function saveMessages(id: string, msgs: Msg[]) {
+  try {
+    localStorage.setItem(messagesKey(id), JSON.stringify(msgs));
+  } catch {}
+}
+function ensureThread(id: string): Msg[] {
+  const cur = loadMessages(id);
+  if (cur.length > 0) return cur;
+  const starter: Msg[] = [
+    { sender: "them", text: "Hey 👋", ts: Date.now() - 60_000 },
+  ];
+  saveMessages(id, starter);
+  return starter;
 }
 
 export default function ChatRoom() {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const [text, setText] = useState("");
+  const [msgs, setMsgs] = useState<Msg[]>([]);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  // Always ensure a chat thread exists for the matchId (idempotent)
-  useEffect(() => {
-    if (matchId) ensureChat(matchId, { name: displayNameFromId(matchId) });
+  const header = useMemo(() => {
+    if (!matchId) return "Chat";
+    const m = getMatch ? getMatch(matchId) : null;
+    return m?.name ?? "Chat";
   }, [matchId]);
 
-  // Fetch the thread safely
-  const thread = useMemo(() => {
-    if (!matchId) return undefined;
-    return getThread(matchId);
+  useEffect(() => {
+    if (!matchId) return;
+    const seeded = ensureThread(matchId);
+    setMsgs(seeded);
   }, [matchId]);
 
-  // Autoscroll on new messages
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [thread?.messages?.length]);
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [msgs]);
 
   if (!matchId) {
     return (
-      <div className="rounded-xl border bg-white p-4">
-        Invalid chat. <button className="text-indigo-600 underline" onClick={() => navigate("/chat")}>Back to chats</button>
+      <div className="p-4">
+        <button onClick={() => navigate(-1)} className="rounded-lg border px-3 py-1 mr-2">← Back</button>
+        <div className="mt-3 rounded-xl border bg-white p-4">Chat not found.</div>
       </div>
     );
   }
 
-  if (!thread) {
-    // If for some reason it still doesn't exist, create and render a minimal shell
-    ensureChat(matchId, { name: displayNameFromId(matchId) });
-    return (
-      <div className="rounded-xl border bg-white p-4">
-        Setting things up… <button className="text-indigo-600 underline" onClick={() => navigate(`/chat/${matchId}`)}>Retry</button>
-      </div>
-    );
-  }
-
-  const blocked = isBlocked(matchId);
-  const name = thread.name || displayNameFromId(matchId);
-  const messages = thread.messages ?? [];
-
-  function onSend(e: React.FormEvent) {
+  const onSend = (e: React.FormEvent) => {
     e.preventDefault();
     const t = text.trim();
     if (!t) return;
-    if (blocked) return;
-    appendMessage(matchId, { sender: "you", ts: Date.now(), text: t });
+    const next = [...msgs, { sender: "you", text: t, ts: Date.now() }];
+    setMsgs(next);
+    saveMessages(matchId, next);
     setText("");
-  }
-
-  function onBlock() {
-    block(matchId);
-    navigate("/chat");
-  }
+  };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="p-4">
       <div className="mb-3 flex items-center justify-between">
-        <button className="text-sm text-neutral-500 hover:text-neutral-800" onClick={() => navigate("/chat")}>
-          ← Back
-        </button>
-        <div className="text-sm text-neutral-500">
-          Last activity: {messages.length ? timeAgo(messages[messages.length - 1].ts) : "just now"}
+        <button onClick={() => navigate(-1)} className="rounded-lg border px-3 py-1">← Back</button>
+        <div className="text-sm text-neutral-600">
+          <span className="font-medium">{header}</span>
         </div>
       </div>
 
-      <div className="rounded-2xl border bg-white p-4">
-        <h1 className="mb-2 text-lg font-semibold">{name}</h1>
-        {blocked && (
-          <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-            You blocked this conversation.
-          </div>
-        )}
-
-        <div className="mb-4 max-h-[55vh] overflow-y-auto pr-1">
-          {messages.length === 0 && (
-            <div className="mb-2 text-sm text-neutral-500">Say hi to start the chat.</div>
-          )}
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`mb-2 flex ${m.sender === "you" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                  m.sender === "you" ? "bg-indigo-600 text-white" : "bg-neutral-100 text-neutral-900"
-                }`}
+      <div className="rounded-2xl border bg-white p-4 min-h-[280px]">
+        <div className="space-y-2">
+          {msgs.map((m, i) => (
+            <div key={i} className={m.sender === "you" ? "text-right" : "text-left"}>
+              <span
+                className={
+                  "inline-block rounded-2xl px-3 py-2 " +
+                  (m.sender === "you"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-neutral-100 text-neutral-900")
+                }
               >
-                <div className="whitespace-pre-wrap">{m.text}</div>
-                <div className={`mt-1 text-[10px] ${m.sender === "you" ? "text-white/80" : "text-neutral-500"}`}>
-                  {timeAgo(m.ts)}
-                </div>
-              </div>
+                {m.text}
+              </span>
             </div>
           ))}
           <div ref={endRef} />
         </div>
-
-        <form onSubmit={onSend} className="flex gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={blocked ? "You blocked this chat" : "Type a message"}
-            disabled={blocked}
-            className="flex-1 rounded-xl border px-3 py-2"
-          />
-          <button
-            type="submit"
-            disabled={blocked}
-            className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Send
-          </button>
-          <button
-            type="button"
-            onClick={onBlock}
-            className="rounded-xl border px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
-          >
-            Block
-          </button>
-        </form>
       </div>
+
+      <form onSubmit={onSend} className="mt-3 flex gap-2">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type a message"
+          className="flex-1 rounded-xl border px-3 py-2"
+        />
+        <button
+          type="submit"
+          className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500"
+        >
+          Send
+        </button>
+      </form>
     </div>
   );
 }

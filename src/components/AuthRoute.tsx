@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 const AuthRoute: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
-    return <Navigate to="/venues" replace />;
+    return <Navigate to="/checkin" replace />;
   }
   return <>{children}</>;
 };
