@@ -14,7 +14,7 @@ export function checkOut(uid: string) {
   localStorage.removeItem(K(`checkin_${uid}`));
 }
 
-export function getPeopleAtVenue(venueId: string): DemoPerson[] {
+export function listPeopleForVenueAtVenue(venueId: string): DemoPerson[] {
   return demoPeopleByVenue[venueId] ?? [];
 }
 
@@ -39,7 +39,7 @@ export function getMyLikes(myUid: string, venueId: string): string[] {
 // Demo mutual-like approximation (~40% chance)
 export function getMatches(myUid: string, venueId: string): DemoPerson[] {
   const mine = new Set(getMyLikes(myUid, venueId));
-  const roster = getPeopleAtVenue(venueId);
+  const roster = listPeopleForVenueAtVenue(venueId);
   return roster.filter(p => {
     if (!mine.has(p.id)) return false;
     const seed = (p.id.charCodeAt(0) + venueId.length) % 10;

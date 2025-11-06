@@ -1,0 +1,19 @@
+import { mountToastHost } from "@/components/ToastHost";
+import "./index.css";
+import { seedDemoOnce } from "@/lib/likes";
+import { demoPeople } from "@/lib/demoPeople";
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { ensureDemoLikesSeed } from "./lib/likesStore";
+import { ensureDemoThreadsSeed } from "./lib/chatStore";
+import App from "./App";
+
+const root = ensureDemoLikesSeed();
+ensureDemoThreadsSeed();
+
+createRoot(document.getElementById("root")!);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

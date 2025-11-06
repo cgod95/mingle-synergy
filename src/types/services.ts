@@ -44,12 +44,12 @@ export type Venue = {
 };
 
 export interface VenueService {
-  getVenues: () => Promise<Venue[]>;
+  listVenues: () => Promise<Venue[]>;
   getVenueById: (id: string) => Promise<Venue | null>;
   checkInToVenue: (userId: string, venueId: string) => Promise<void>;
   checkOutFromVenue: (userId: string) => Promise<void>;
   getNearbyVenues?: (latitude: number, longitude: number, radiusKm?: number) => Promise<Venue[]>;
-  getVenuesByIds?: (venueIds: string[]) => Promise<Venue[]>;
+  listVenuesByIds?: (venueIds: string[]) => Promise<Venue[]>;
   getAllVenues: () => Promise<Venue[]>;
   getUsersAtVenue: (venueId: string) => Promise<UserProfile[]>;
 }

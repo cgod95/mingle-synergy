@@ -1,0 +1,103 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { appendMessage, ensureChat, getThread } from "../lib/chatStore";
+import { block, isBlocked } from "../lib/blockStore";
+import { toast } from "../lib/toast";
+
+export default function ChatRoom() {
+  const { matchId } = useParams();
+  const id = matchId || "";
+  const nav = useNavigate();
+  const [text, setText] = useState("");
+  const [menu, setMenu] = useState(false);
+  const [tick, setTick] = useState(0);
+  const scroller = useRef<HTMLDivElement | null>(null);
+
+  const thread = useMemo(() => (id ? ensureChat(id) : undefined), [id]);
+
+  useEffect(() => {
+    const reload = () => setTick(t => t + 1);
+    window.addEventListener("storage", reload);
+    window.addEventListener("mingle:chat-update", reload);
+    return () => {
+      window.removeEventListener("storage", reload);
+      window.removeEventListener("mingle:chat-update", reload);
+    };
+  }, []);
+
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 999999, behavior: "smooth" });
+  }, [tick, thread?.messages.length]);
+
+  if (!id || !thread || isBlocked(id)) {
+    return (
+      <div className="p-6">
+        <button onClick={() => nav(-1)} className="text-sm text-indigo-600">← Back</button>
+        <div className="mt-4 rounded-xl border bg-white p-6">Chat not available.</div>
+      </div>
+    );
+  }
+
+  const onSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    const msg = text.trim();
+    if (!msg) return;
+    appendMessage(id, { sender: "you", ts: Date.now(), text: msg });
+    setText("");
+  };
+
+  const live = getThread(id)!;
+
+  const doBlock = () => {
+    block(id);
+    toast("User blocked", "success");
+    nav("/chat");
+  };
+  const doReport = () => {
+    toast("Report sent. Thanks for keeping Mingle safe.", "info");
+  };
+
+  return (
+    <div className="p-0 sm:p-6">
+      <div className="rounded-2xl border bg-white overflow-hidden">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => nav(-1)} className="text-sm text-indigo-600">← Back</button>
+            <div className="font-medium">{live.name || id}</div>
+          </div>
+          <div className="relative">
+            <button onClick={() => setMenu(v=>!v)} className="rounded-full border px-3 py-1 text-sm">•••</button>
+            {menu && (
+              <div className="absolute right-0 z-20 mt-1 w-40 rounded-lg border bg-white py-1 text-sm shadow-md">
+                <button onClick={doBlock} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">Block</button>
+                <button onClick={doReport} className="block w-full px-3 py-1.5 text-left hover:bg-neutral-50">Report</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div ref={scroller} className="h-[50vh] sm:h-[60vh] overflow-y-auto px-4 py-3 bg-neutral-50">
+          {live.messages.map((m, i) => (
+            <div key={i} className={`my-1 flex ${m.sender === "you" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${m.sender === "you" ? "bg-indigo-600 text-white" : "bg-white border"}`}>
+                {m.text}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={onSend} className="flex gap-2 border-t p-3">
+          <input
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Type a message"
+            className="flex-1 rounded-xl border px-3 py-2"
+          />
+          <button className="rounded-xl bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-500">
+            Send
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

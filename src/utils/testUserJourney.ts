@@ -64,7 +64,7 @@ export const testCompleteUserJourney = async () => {
     // Step 4: Discover venues
     console.log('Testing venue discovery...');
     try {
-      const venues = await services.venue.getVenues();
+      const venues = await services.venue.listVenues();
       if (venues.length === 0) {
         throw new Error('No venues found');
       }

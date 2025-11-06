@@ -1,0 +1,72 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { getMatches } from "../lib/likesStore";
+import { ensureChat, appendMessage } from "../lib/chatStore";
+
+type MatchProfile = { id: string; name: string; photo?: string };
+
+const DEMO_PEOPLE: MatchProfile[] = [
+  { id: "vx-01-p1", name: "Maya", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop" },
+  { id: "vx-02-p2", name: "Ari", photo: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=400&auto=format&fit=crop" },
+  { id: "vx-03-p3", name: "Sacha", photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop" },
+  { id: "vx-01-p4", name: "Leo", photo: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=400&auto=format&fit=crop" },
+  { id: "vx-02-p5", name: "Noa", photo: "https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?w=400&auto=format&fit=crop" },
+  { id: "vx-03-p6", name: "June", photo: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=400&auto=format&fit=crop" },
+];
+
+export default function Matches() {
+  const nav = useNavigate();
+  const matchedIds = getMatches();
+  const matches = DEMO_PEOPLE.filter((p) => matchedIds.includes(p.id));
+
+  function openChat(p: MatchProfile) {
+    ensureChat(p.id, { name: p.name, photo: p.photo });
+    appendMessage(p.id, {
+      sender: "them",
+      ts: Date.now() - 1000 * 60 * 3,
+      text: `Hey ${p.name.split(" ")[0]} 👋`,
+    });
+    nav(`/chat/${p.id}`);
+  }
+
+  if (!matches.length) {
+    return (
+      <div className="rounded-xl border bg-white p-6 text-center text-sm text-neutral-600 shadow-sm">
+        No matches yet — likes that match will appear here.
+      </div>
+    );
+  }
+
+  return (
+    <section className="space-y-4">
+      <h1 className="text-xl font-semibold">Matches</h1>
+
+      <div className="grid grid-cols-3 gap-3">
+        {matches.map((p) => (
+          <div
+            key={p.id}
+            className="overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-md transition"
+          >
+            <img
+              src={p.photo}
+              alt={p.name}
+              className="h-28 w-full object-cover"
+              loading="lazy"
+            />
+            <div className="p-2 text-center">
+              <div className="text-sm font-medium text-neutral-800 truncate">
+                {p.name}
+              </div>
+              <button
+                onClick={() => openChat(p)}
+                className="mt-2 w-full rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500"
+              >
+                Message
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

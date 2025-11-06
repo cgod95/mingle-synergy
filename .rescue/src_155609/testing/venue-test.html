@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue Check-in Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Venue Check-in Test</h1>
+    
+    <div class="test-container">
+        <h2>Test Controls</h2>
+        <button class="test-button" onclick="runFullTest()">Run Full Test</button>
+        <button class="test-button" onclick="testCheckIn()">Test Check-in</button>
+        <button class="test-button" onclick="testCheckOut()">Test Check-out</button>
+        <button class="test-button" onclick="clearLog()">Clear Log</button>
+    </div>
+    
+    <div class="test-container">
+        <h2>Test Log</h2>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script type="module">
+        // Import the test function
+        import { testVenueCheckIn } from './venue-checkin-test.ts';
+        
+        // Make it available globally
+        window.testVenueCheckIn = testVenueCheckIn;
+        
+        // Log function
+        window.log = function(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        };
+        
+        // Test functions
+        window.runFullTest = async function() {
+            log('🧪 Starting full venue check-in test...', 'info');
+            try {
+                await testVenueCheckIn();
+                log('✅ Full test completed successfully!', 'success');
+            } catch (error) {
+                log(`❌ Full test failed: ${error.message}`, 'error');
+            }
+        };
+        
+        window.testCheckIn = async function() {
+            log('🧪 Testing venue check-in...', 'info');
+            try {
+                const { venueService } = await import('@/services');
+                await venueService.checkInToVenue('test-user-123', 'v1');
+                log('✅ Check-in test successful!', 'success');
+            } catch (error) {
+                log(`❌ Check-in test failed: ${error.message}`, 'error');
+            }
+        };
+        
+        window.testCheckOut = async function() {
+            log('🧪 Testing venue check-out...', 'info');
+            try {
+                const { venueService } = await import('@/services');
+                await venueService.checkOutFromVenue('test-user-123');
+                log('✅ Check-out test successful!', 'success');
+            } catch (error) {
+                log(`❌ Check-out test failed: ${error.message}`, 'error');
+            }
+        };
+        
+        window.clearLog = function() {
+            document.getElementById('log').innerHTML = '';
+        };
+        
+        // Initial log
+        log('🚀 Venue check-in test page loaded. Click "Run Full Test" to start testing.', 'info');
+    </script>
+</body>
+</html> 

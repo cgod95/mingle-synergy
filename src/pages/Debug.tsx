@@ -1,29 +1,20 @@
-import React, { useState } from "react";
-import { getLiked, unlikeVenue } from "../lib/demoStore";
+import { resetLikesStore, ensureDemoLikesSeed } from "../lib/likesStore";
+import { ensureDemoThreadsSeed } from "../lib/chatStore";
 
 export default function Debug() {
-  const [count, setCount] = useState(getLiked().length);
-
-  const clearLikes = () => {
-    getLiked().forEach(v => unlikeVenue(v.id));
-    setCount(getLiked().length);
-    alert("Cleared likes");
-  };
-
-  const clearAll = () => {
-    localStorage.clear();
-    setCount(0);
-    alert("Cleared localStorage");
-  };
-
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Debug</h1>
-      <p>Liked venues: {count}</p>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={clearLikes}>Clear likes</button>
-        <button onClick={clearAll}>Clear ALL local storage</button>
+    <div>
+      <h1 className="text-xl font-semibold">Debug</h1>
+      <div className="mt-4 space-y-2">
+        <button
+          className="rounded bg-neutral-800 px-3 py-2 text-white"
+          onClick={() => { localStorage.clear(); alert("localStorage cleared"); }}
+        >Clear localStorage</button>
+        <button
+          className="rounded bg-indigo-600 px-3 py-2 text-white"
+          onClick={() => { resetLikesStore(); ensureDemoLikesSeed(); ensureDemoThreadsSeed(); alert("Demo likes/chats seeded"); }}
+        >Seed demo likes & chats</button>
       </div>
-    </main>
+    </div>
   );
 }

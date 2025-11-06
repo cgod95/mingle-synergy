@@ -1,0 +1,137 @@
+import { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { getVenue } from "../../lib/demoVenues";
+import { likePerson, isMatched } from "../../lib/likesStore";
+import { ensureChat, appendMessage } from "../../lib/chatStore";
+import { toast } from "../../lib/toast";
+
+type Person = {
+  id: string;
+  name: string;
+  age?: number;
+  photo?: string;
+  bio?: string;
+};
+
+export default function VenueDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const venue = useMemo(() => (id ? getVenue(id) : undefined), [id]);
+
+  if (!venue) {
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <h1 className="text-xl font-semibold">Venue not found</h1>
+        <button onClick={() => navigate(-1)} className="mt-4 text-indigo-600 hover:underline">
+          Go back
+        </button>
+      </div>
+    );
+  }
+
+  function onLike(p: Person) {
+    likePerson(p.id);
+
+    if (isMatched(p.id)) {
+      toast("It's a match! Opening chat…");
+      const t = ensureChat(p.id, { name: p.name });
+      if (!t.messages.length) {
+        appendMessage(p.id, {
+          sender: "them",
+          ts: Date.now(),
+          text: `Hey ${p.name.split(" ")[0]} 👋`,
+        });
+      }
+      setTimeout(() => navigate(`/chat/${p.id}`), 450);
+    } else {
+      toast("Like sent! If they like you back, you'll match.");
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 pb-20">
+      {/* Hero / banner */}
+      <div className="relative mt-2 overflow-hidden rounded-2xl border">
+        <img
+          src={venue.image || "/placeholder-venue.jpg"}
+          alt={venue.name}
+          className="aspect-[16/9] w-full object-cover"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+        <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-white drop-shadow-sm">{venue.name}</h1>
+            {venue.location ? (
+              <p className="text-sm text-neutral-100/90">{venue.location}</p>
+            ) : null}
+          </div>
+          <button
+            onClick={() => navigate("/checkin")}
+            className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-500"
+          >
+            Check in
+          </button>
+        </div>
+      </div>
+
+      {/* About */}
+      {venue.description ? (
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold">About</h2>
+          <p className="mt-1 text-neutral-700">{venue.description}</p>
+        </div>
+      ) : null}
+
+      {/* People checked in */}
+      <div className="mt-6">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">People checked in</h2>
+          <span className="text-sm text-neutral-500">
+            {Array.isArray(venue.people) ? venue.people.length : 0} here now
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {(venue.people as Person[] | undefined)?.map((p) => (
+            <div key={p.id} className="group overflow-hidden rounded-2xl border bg-white">
+              <div className="relative">
+                <img
+                  src={p.photo || "/avatar-fallback.png"}
+                  alt={p.name}
+                  className="aspect-square w-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 transition group-hover:opacity-100" />
+                <button
+                  onClick={() => onLike(p)}
+                  className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-neutral-900 shadow hover:bg-white"
+                >
+                  Like
+                </button>
+              </div>
+              <div className="p-3">
+                <div className="flex items-center justify-between">
+                  <div className="truncate font-medium">
+                    {p.name}
+                    {p.age ? <span className="ml-1 text-neutral-500">· {p.age}</span> : null}
+                  </div>
+                </div>
+                {p.bio ? (
+                  <p className="mt-1 line-clamp-2 text-sm text-neutral-600">{p.bio}</p>
+                ) : (
+                  <p className="mt-1 text-sm text-neutral-400">—</p>
+                )}
+              </div>
+            </div>
+          )) || (
+            <div className="col-span-full rounded-xl border p-4 text-sm text-neutral-600">
+              No one visible right now.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

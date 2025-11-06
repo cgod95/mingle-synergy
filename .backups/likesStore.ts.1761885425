@@ -1,0 +1,58 @@
+type Store = {
+  mine: string[];      // ids I liked
+  likedMe: string[];   // ids who liked me
+  matches: coerceArr(string[];   // mutual ids)
+};
+
+const KEY = "mingle:likes";
+
+function load(): Store {
+  try {
+    const raw = localStorage.getItem(KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return {
+      mine: Array.isArray(parsed.mine) ? parsed.mine : [],
+      likedMe: Array.isArray(parsed.likedMe) ? parsed.likedMe : [],
+      matches: Array.isArray(parsed.matches) ? parsed.matches : [],
+    };
+  } catch {
+    return { mine: [], likedMe: [], matches: [] };
+  }
+}
+
+function save(s: Store) {
+  localStorage.setItem(KEY, JSON.stringify(s));
+}
+
+export function likePerson(id: string) {
+  const s = load();
+  if (!s.mine.includes(id)) s.mine.push(id);
+  if (s.likedMe.includes(id) && !s.matches.includes(id)) s.matches.push(id);
+  save(s);
+}
+
+export function seedLikedMe(ids: string[]) {
+  const s = load();
+  for (const id of ids) if (!s.likedMe.includes(id)) s.likedMe.push(id);
+  for (const id of s.mine) if (s.likedMe.includes(id) && !s.matches.includes(id)) s.matches.push(id);
+  save(s);
+}
+
+export function isMatched(id: string): boolean {
+  return load().matches.includes(id);
+}
+
+export function listMatches(): string[] {
+  return load().matches.slice().reverse();
+}
+
+export function ensureDemoLikesSeed() {
+  // give you some inbound likes for demo flow
+  seedLikedMe(["p1","p3"]);
+}
+
+function coerceArr(v: unknown): string[] {
+  if (Array.isArray(v)) return v as string[];
+  if (v == null) return [];
+  try { const parsed = typeof v === "string" ? JSON.parse(v) : v; return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+}

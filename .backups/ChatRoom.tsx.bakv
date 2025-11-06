@@ -1,0 +1,93 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getMatch, appendMessage, markAllRead, getRemainingSeconds, isExpired, type Match } from "../lib/matchStore";
+
+function fmt(s: number) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h > 0) return `${h}h ${m}m ${sec}s`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+export default function ChatRoom() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [match, setMatch] = useState<Match | undefined>(() => (id ? getMatch(id) : undefined));
+  const [remain, setRemain] = useState<number>(() => (match ? getRemainingSeconds(match) : 0));
+  const [text, setText] = useState("");
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const tick = () => {
+      if (!id) return;
+      const m = getMatch(id);
+      setMatch(m);
+      setRemain(m ? getRemainingSeconds(m) : 0);
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [id]);
+
+  useEffect(() => { if (id) markAllRead(id); }, [id]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [match?.messages?.length]);
+
+  const expired = useMemo(() => (match ? isExpired(match) : true), [match]);
+
+  const onSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !text.trim() || expired) return;
+    appendMessage(id, { sender: "you", text: text.trim() });
+    setText("");
+    const m = getMatch(id);
+    setMatch(m);
+  };
+
+  if (!match) {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-6">
+        <button onClick={() => navigate(-1)} className="btn-ghost mb-3">← Back</button>
+        <div className="card p-6 text-sm text-slate-600">Chat not found.</div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-6">
+      <div className="mb-3 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="btn-ghost">← Back</button>
+        <img src={match.otherAvatar} alt={match.otherName} className="h-8 w-8 rounded-full ring-1 ring-slate-200"/>
+        <div className="font-medium text-slate-900">{match.otherName}</div>
+        <div className="ml-auto text-xs text-slate-600">
+          {expired ? <span className="badge bg-slate-200 text-slate-700">Expired</span> : <>Expires in <strong>{fmt(remain)}</strong></>}
+        </div>
+      </div>
+
+      <div className="card min-h-[280px] p-3">
+        {(match.messages || []).map(m => (
+          <div key={m.id} className={"mb-2 flex " + (m.sender === "you" ? "justify-end" : "justify-start")}>
+            <div className={(m.sender === "you" ? "bg-indigo-50" : "bg-slate-100") + " max-w-[75%] rounded-2xl px-3 py-2 text-[13px] text-slate-900"}>
+              <div className="whitespace-pre-wrap">{m.text}</div>
+            </div>
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      <form onSubmit={onSend} className="mt-3 flex gap-2">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={expired ? "This chat has expired" : "Type a message"}
+          disabled={expired}
+          className={"flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm " + (expired ? "bg-slate-100 text-slate-500" : "bg-white")}
+        />
+        <button type="submit" disabled={expired || !text.trim()} className="btn-primary disabled:cursor-not-allowed">
+          Send
+        </button>
+      </form>
+
+      {expired && <div className="mt-2 text-xs text-rose-700">This match has expired. Start a new match to keep chatting.</div>}
+    </main>
+  );
+}

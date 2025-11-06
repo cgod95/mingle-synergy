@@ -1,99 +1,99 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import {
-  getCurrentUserProfile,
-  saveCurrentUserProfile,
-  UserProfile,
-} from "../services/firebase/userProfileService";
+import React, { useRef, useState } from "react";
+import SafeImg from "../components/common/SafeImg";
+import { loadProfile, saveProfile } from "../lib/profileStore";
 
 export default function Profile() {
-  const { user, loading } = useAuth();
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [form, setForm] = useState<{ displayName: string; age: string }>({
-    displayName: "",
-    age: "",
-  });
+  const initial = loadProfile();
+  const [name, setName] = useState(initial.name || "You");
+  const [bio, setBio] = useState(initial.bio || "");
+  const [photo, setPhoto] = useState<string | undefined>(initial.photo || undefined);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    (async () => {
-      if (!user) return;
-      setBusy(true);
-      setErr(null);
-      try {
-        const p = (await getCurrentUserProfile()) as UserProfile | null;
-        if (p) {
-          setForm({
-            displayName: p.displayName ?? "",
-            age: p.age != null ? String(p.age) : "",
-          });
-        }
-      } catch (e: any) {
-        setErr(e?.message || "Failed to load profile");
-      } finally {
-        setBusy(false);
-      }
-    })();
-  }, [user]);
+  function onPick() {
+    inputRef.current?.click();
+  }
 
-  if (loading) return <main style={{ padding: 24 }}>Loading…</main>;
-  if (!user) return <main style={{ padding: 24 }}>Please sign in.</main>;
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = String(reader.result || "");
+      setPhoto(data);
+    };
+    reader.readAsDataURL(f);
+  }
 
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setErr(null);
-    setMsg(null);
-    try {
-      const ageNum =
-        form.age.trim() === "" ? null : Math.max(0, Math.floor(Number(form.age)));
-      await saveCurrentUserProfile({
-        displayName: form.displayName.trim(),
-        age: Number.isFinite(ageNum as number) ? (ageNum as number) : null,
-      });
-      setMsg("Saved!");
-    } catch (e: any) {
-      setErr(e?.message || "Failed to save profile");
-    } finally {
-      setBusy(false);
-    }
-  };
+  function onSave() {
+    saveProfile({ name: name.trim() || "You", bio: bio.trim(), photo });
+  }
+
+  function onRemovePhoto() {
+    setPhoto(undefined);
+  }
 
   return (
-    <main style={{ padding: 24, maxWidth: 520, margin: "0 auto" }}>
-      <h1>Your profile</h1>
-      <form onSubmit={save} style={{ display: "grid", gap: 12, marginTop: 16 }}>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Display name</span>
-          <input
-            value={form.displayName}
-            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-            placeholder="eg. Callum"
-            required
-            style={{ padding: 10 }}
-          />
-        </label>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span>Age</span>
-          <input
-            type="number"
-            min={18}
-            max={120}
-            value={form.age}
-            onChange={(e) => setForm((f) => ({ ...f, age: e.target.value }))}
-            placeholder="eg. 27"
-            style={{ padding: 10 }}
-          />
-        </label>
+    <div className="mx-auto max-w-md p-4">
+      <h1 className="text-2xl font-semibold">Your profile</h1>
 
-        <button type="submit" disabled={busy} style={{ padding: 10 }}>
-          {busy ? "Saving…" : "Save"}
-        </button>
+      <div className="mt-6 flex items-center gap-4">
+        <div className="relative h-24 w-24 overflow-hidden rounded-2xl ring-1 ring-black/10 bg-neutral-100">
+          <SafeImg
+            src={photo || "/avatar-fallback.png"}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onPick}
+            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            Upload photo
+          </button>
+          {photo && (
+            <button
+              onClick={onRemovePhoto}
+              className="text-sm text-red-600 hover:underline text-left"
+            >
+              Remove photo
+            </button>
+          )}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onFile}
+          />
+        </div>
+      </div>
 
-        {err && <div style={{ color: "crimson", fontSize: 12 }}>{err}</div>}
-        {msg && <div style={{ color: "green", fontSize: 12 }}>{msg}</div>}
-      </form>
-    </main>
+      <label className="mt-6 block text-sm font-medium">Display name</label>
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="mt-2 w-full rounded-xl border px-3 py-2"
+        placeholder="Your name"
+      />
+
+      <label className="mt-4 block text-sm font-medium">Bio</label>
+      <textarea
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        className="mt-2 h-28 w-full rounded-xl border px-3 py-2"
+        placeholder="Say hi 👋"
+      />
+
+      <button
+        onClick={onSave}
+        className="mt-6 w-full rounded-xl bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-500"
+      >
+        Save
+      </button>
+
+      <p className="mt-3 text-center text-sm text-neutral-500">
+        Saved locally for MVP. We’ll swap to Firebase Storage later.
+      </p>
+    </div>
   );
 }

@@ -20,7 +20,7 @@ vi.mock('@/utils/Logger', () => ({
 // Mock Firebase services
 vi.mock('@/services', () => ({
   venueService: {
-    getVenues: vi.fn(),
+    listVenues: vi.fn(),
     getVenueById: vi.fn(),
     checkInToVenue: vi.fn(),
     checkOutFromVenue: vi.fn(),
@@ -80,7 +80,7 @@ describe('Venue Check-in Flow Integration Tests', () => {
         },
       ];
 
-      vi.mocked(services.venueService.getVenues).mockResolvedValue(mockVenues);
+      vi.mocked(services.venueService.listVenues).mockResolvedValue(mockVenues);
 
       renderWithProviders(<VenueList />);
 
@@ -94,7 +94,7 @@ describe('Venue Check-in Flow Integration Tests', () => {
     });
 
     it('should handle venue loading errors gracefully', async () => {
-      vi.mocked(services.venueService.getVenues).mockRejectedValue(
+      vi.mocked(services.venueService.listVenues).mockRejectedValue(
         new Error('Failed to load venues')
       );
 

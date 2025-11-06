@@ -1,0 +1,42 @@
+export type DemoVenue = {
+  id: string;
+  name: string;
+  location?: string;
+  description?: string;
+  photo?: string;
+  people: { id: string; name: string; photo?: string; bio?: string }[];
+};
+
+/** Simple in-memory demo set */
+const VENUES: DemoVenue[] = [
+  {
+    id: "v_synergy",
+    name: "Synergy Club",
+    location: "CBD",
+    description: "Industrial chic venue with a busy Friday lineup and great cocktails.",
+    photo: "https://images.unsplash.com/photo-1550956118-93b8742a5b3a?q=80&w=1200",
+    people: [
+      { id: "p_alex", name: "Alex", photo: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?q=80&w=600", bio: "Live music, mezcal margs." },
+      { id: "p_maya", name: "Maya", photo: "https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=600", bio: "Designer. Looking for the afters." },
+      { id: "p_liam", name: "Liam", photo: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=600", bio: "Jazz > Techno (don’t @ me)." },
+    ],
+  },
+  {
+    id: "v-orbit",
+    name: "Orbit Gallery Late",
+    location: "Fitzroy",
+    description: "Friday late viewing + DJ set among installations.",
+    photo: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=1200",
+    people: [
+      { id: "p_sam", name: "Sam", photo: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=600", bio: "Painter. Sneaker nerd." },
+      { id: "p_tara", name: "Tara", photo: "https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=600", bio: "Curator / bad dancer." },
+    ],
+  },
+];
+
+export function getVenues() {
+  return VENUES;
+}
+export function getVenue(id: string) {
+  return VENUES.find(v => v.id === id);
+}

@@ -127,7 +127,7 @@ const BrowserE2ETestRunner: React.FC = () => {
 
   const testVenueCheckIn = async () => {
     appendLog('📍 Testing venue check-in...');
-    const venues = await venueService.getVenues();
+    const venues = await venueService.listVenues();
     const testVenue = venues[0];
     if (!testVenue) throw new Error('No venues available');
 
@@ -142,7 +142,7 @@ const BrowserE2ETestRunner: React.FC = () => {
 
   const testUserDiscovery = async () => {
     appendLog('👥 Testing discovery and liking...');
-    const venues = await venueService.getVenues();
+    const venues = await venueService.listVenues();
     const testVenue = venues[0];
     const user1 = await authService.signIn(testUsers[0].email, testUsers[0].password);
 
@@ -159,7 +159,7 @@ const BrowserE2ETestRunner: React.FC = () => {
 
   const testMatchingSystem = async () => {
     appendLog('💕 Testing matching system...');
-    const venues = await venueService.getVenues();
+    const venues = await venueService.listVenues();
     const testVenue = venues[0];
     const user1 = await authService.signIn(testUsers[0].email, testUsers[0].password);
     const user2 = await authService.signIn(testUsers[1].email, testUsers[1].password);

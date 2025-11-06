@@ -1,0 +1,97 @@
+/**
+ * Lightweight like/match store using localStorage.
+ * Keys:
+ *  - mingle:likes.mine -> string[] of personIds I liked
+ *  - mingle:likes.theirs -> string[] of personIds who liked me (for demo, we seed some)
+ *  - mingle:matches -> string[] of personIds where both liked
+ */
+const K_MINE = "mingle:likes.mine";
+const K_THEIRS = "mingle:likes.theirs";
+const K_MATCHES = "mingle:matches";
+
+function readArray(key: string): string[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const val = raw ? JSON.parse(raw) : [];
+    return Array.isArray(val) ? val : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeArray(key: string, arr: string[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify(arr));
+  } catch {}
+}
+
+export function resetLikesStoreForDemo() {
+  writeArray(K_MINE, []);
+  writeArray(K_THEIRS, []);
+  writeArray(K_MATCHES, []);
+}
+
+/** Ensure initial demo data (so chat/matches can be tested immediately) */
+export function ensureDemoLikesSeed() {
+  // Seed a couple of people who "liked me" so mutual matches can happen once I like back
+  const theirs = new Set(readArray(K_THEIRS));
+  ["p_alex", "p_nina"].forEach((id) => theirs.add(id));
+  writeArray(K_THEIRS, Array.from(theirs));
+
+  // Optionally seed one existing mutual match so Matches screen isn't empty
+  const mine = new Set(readArray(K_MINE));
+  const matches = new Set(readArray(K_MATCHES));
+  mine.add("p_lee");
+  theirs.add("p_lee");
+  matches.add("p_lee");
+  writeArray(K_MINE, Array.from(mine));
+  writeArray(K_THEIRS, Array.from(theirs));
+  writeArray(K_MATCHES, Array.from(matches));
+}
+
+export function isLiked(personId: string) {
+  return readArray(K_MINE).includes(personId);
+}
+export function isLikedByThem(personId: string) {
+  return readArray(K_THEIRS).includes(personId);
+}
+export function isMatched(personId: string) {
+  return readArray(K_MATCHES).includes(personId);
+}
+
+export function listLikes(): string[] {
+  return readArray(K_MINE);
+}
+export function listTheirLikes(): string[] {
+  return readArray(K_THEIRS);
+}
+export function listMatches(): string[] {
+  return readArray(K_MATCHES);
+}
+
+/**
+ * likePerson:
+ *  - if they already liked me -> become matched
+ *  - otherwise record my like
+ * returns: { status: "matched" | "liked" }
+ */
+export function likePerson(personId: string): { status: "matched" | "liked" } {
+  const mine = new Set(readArray(K_MINE));
+  const theirs = new Set(readArray(K_THEIRS));
+  const matches = new Set(readArray(K_MATCHES));
+
+  if (matches.has(personId)) return { status: "matched" }; // already matched
+
+  if (theirs.has(personId)) {
+    // mutual -> match
+    matches.add(personId);
+    mine.add(personId);
+    writeArray(K_MATCHES, Array.from(matches));
+    writeArray(K_MINE, Array.from(mine));
+    return { status: "matched" };
+  } else {
+    mine.add(personId);
+    writeArray(K_MINE, Array.from(mine));
+    return { status: "liked" };
+  }
+}

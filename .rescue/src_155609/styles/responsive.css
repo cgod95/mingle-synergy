@@ -1,0 +1,143 @@
+
+/**
+ * Responsive styles for different device sizes
+ * Including tablet-specific optimizations
+ */
+
+/* Base mobile styles - these will apply to all devices and be overridden as needed */
+.app-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.main-content {
+  padding-bottom: 4rem; /* Space for bottom nav */
+}
+
+/* Tablet styles */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Tablet-specific styles */
+  .venue-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  
+  .match-card {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .user-profile {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+  }
+  
+  .app-container {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  
+  /* Adjust navigation for tablets */
+  .bottom-nav {
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: 9999px;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Optimize cards for tablet */
+  .card-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  /* Adjust headers and typography */
+  h1, .heading-large {
+    font-size: 28px;
+    line-height: 36px;
+  }
+  
+  /* Make buttons more substantial on tablet */
+  button, .btn {
+    min-height: 48px;
+  }
+  
+  /* Better use of space in forms */
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* Venue details page layout */
+  .venue-details {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 2rem;
+  }
+  
+  /* Modal dialogs */
+  .modal-content {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .app-container {
+    max-width: 1024px;
+    padding: 0 2rem;
+  }
+  
+  .venue-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+  
+  /* Desktop-specific navigation */
+  .bottom-nav {
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: 9999px;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Card layouts for desktop */
+  .card-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Print styles - for any printed content */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+}

@@ -1,0 +1,28 @@
+export type Venue = { id: string; name: string; image: string };
+export type Person = { id: string; name: string; photo: string; venueId: string };
+
+const venues: Venue[] = [
+  { id: "club-aurora", name: "Club Aurora", image: "/placeholder-venue.jpg" },
+];
+
+const people: Person[] = [
+  { id: "chloe", name: "Chloe", photo: "/avatar-chloe.jpg", venueId: "club-aurora" },
+  { id: "lucas", name: "Lucas", photo: "/avatar-lucas.jpg", venueId: "club-aurora" },
+  { id: "sophia", name: "Sophia", photo: "/avatar-sophia.jpg", venueId: "club-aurora" },
+];
+
+export function getVenues(): Venue[] {
+  return venues;
+}
+export function getVenue(id: string): Venue | undefined {
+  return venues.find(v => v.id === id);
+}
+export function getPeopleForVenue(venueId: string): Person[] {
+  return people.filter(p => p.venueId === venueId);
+}
+export function getPerson(personId: string): Person | undefined {
+  return people.find(p => p.id === personId);
+}
+
+// Back-compat alias expected by components
+export { getPerson as listPeopleForVenue };

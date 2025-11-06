@@ -1,0 +1,130 @@
+export type Message = { id: string; sender: "you" | "other"; text: string; ts: number };
+
+export type Match = {
+  id: string;              // unique match id
+  youId: string;           // current user (demo: "you")
+  otherId: string;         // the other user id
+  otherName: string;       // the other user's name
+  otherAvatar?: string;    // optional avatar url
+  venueId?: string;        // optional venue context
+  createdAt?: number;
+  messages?: Message[];
+};
+
+const KEY = "mingle_matches_v1";
+
+function normalizeList(list: Match[]): Match[] {
+  return (list || []).map(m => {
+    const msgs = Array.isArray(m.messages) ? m.messages : [];
+    const fixed = msgs.map((mm: any) => ({
+      id: String(mm?.id ?? Date.now()),
+      sender: coerceSender(mm?.sender),
+      text: String(mm?.text ?? ""),
+      ts: Number(mm?.ts ?? Date.now()),
+    }));
+    return { ...m, messages: fixed };
+  });
+}
+
+function coerceSender(input: any): "you" | "other" | "other-read" {
+  if (input === "you" || input === "other" || input === "other-read") return input;
+  if (input === true) return "other";
+  return "you";
+}
+
+function read(): Match[] {
+  try {
+    const raw = localStorage.getItem(KEY);
+    return raw ? (JSON.parse(raw) as Match[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function write(list: Match[]) {
+  localStorage.setItem(KEY, JSON.stringify(list));
+}
+
+export function getMatches(): Match[] {
+  return read();
+}
+
+export function getMatch(id: string): Match | undefined {
+  const m = read().find(x => x.id === id);
+  return m ? normalizeList([m])[0] : undefined;
+}
+export function getMatchCount(): number {
+  return read().length;
+}
+
+export function addMatch(m: Match) {
+  const list = read();
+  if (!list.some(x => x.id === m.id)) {
+    list.unshift({ ...m, createdAt: m.createdAt ?? Date.now(), messages: m.messages ?? [] });
+    write(list);
+  }
+}
+
+// Remove one match
+export function removeMatch(id: string) {
+  write(read().filter(x => x.id !== id));
+}
+
+// Clear all
+export function clearMatches() {
+  write([]);
+}
+
+// Alias (some pages may import this name)
+export const clearAllMatches = clearMatches;
+
+// Append a message to a match
+export function addMessage(matchId: string, sender: "you" | "other", text: string) {
+  const list = read();
+  const i = list.findIndex(m => m.id === matchId);
+  if (i === -1) return;
+  const msg: Message = { id: `msg-${Date.now()}-${Math.random().toString(36).slice(2)}`, sender, text, ts: Date.now() };
+  const msgs = Array.isArray(list[i].messages) ? list[i].messages! : [];
+  list[i] = { ...list[i], messages: [...msgs, msg] }
+}
+
+// Optional demo seeder (kept here so DebugTools can call it if needed)
+export function seedDemoMatches(n = 3) {
+  const base = read();
+  const now = Date.now();
+  const mk = (i: number): Match => ({
+    id: `demo-${now}-${i}`,
+    youId: "you",
+    otherId: `u${i}`,
+    otherName: ["Sam","Alex","Jordan","Taylor","Riley","Casey"][i % 6] + " " + (100 + i),
+    otherAvatar: `https://api.dicebear.com/7.x/thumbs/svg?seed=${i}`,
+    venueId: ["v1","v2","v3"][i % 3],
+    createdAt: now - i * 60_000,
+    messages: [
+      { id: `m${i}-1`, sender: "other", text: "Hey 👋", ts: now - i * 60_000 - 30_000 }
+    ]
+  });
+  for (let i = 0; i < n; i++) {
+    const m = mk(i);
+    if (!base.some(x => x.id === m.id)) base.unshift(m);
+  }
+  write(base);
+}
+
+export function getTotalUnread(): number {
+  return getMatches().reduce((n, m) =>
+    n + (Array.isArray(m.messages) ? m.messages.filter(msg => coerceSender((msg as any)?.sender) === 'other').length : 0)
+  , 0);
+}
+  msgs.push(safeMsg);
+  list[i] = { ...list[i], messages: msgs };
+}
+
+export function markAllRead(matchId: string) {
+  const list = read();
+  const i = list.findIndex(x => x.id === matchId);
+  if (i < 0) return;
+  const msgs = Array.isArray(list[i].messages) ? list[i].messages! : [];
+  const next = msgs.map(m => (m.sender === 'other' ? { ...m, sender: 'other-read' } : m));
+  list[i] = { ...list[i], messages: next }
+}

@@ -1,0 +1,9 @@
+.card {
+  @apply rounded-2xl border bg-white shadow-sm;
+}
+.card-body {
+  @apply p-4;
+}
+.card-img {
+  @apply h-40 w-full overflow-hidden rounded-t-2xl;
+}

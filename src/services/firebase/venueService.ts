@@ -107,7 +107,7 @@ const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): 
 class FirebaseVenueService implements VenueService {
   private venuesCollection = collection(firestore, 'venues');
 
-  async getVenues(): Promise<Venue[]> {
+  async listVenues(): Promise<Venue[]> {
     // Return mock data in demo mode
     if (config.DEMO_MODE) {
       return [...mockVenues];
@@ -280,7 +280,7 @@ class FirebaseVenueService implements VenueService {
       
       // In a production app, we'd use geofirestore or similar
       // For this implementation, we'll fetch all venues and filter client-side
-      const venues = await this.getVenues();
+      const venues = await this.listVenues();
       
       return venues.filter(venue => {
         const distance = calculateDistance(
@@ -297,7 +297,7 @@ class FirebaseVenueService implements VenueService {
   }
 
   // Helper method to get venues by array of IDs
-  async getVenuesByIds(venueIds: string[]): Promise<Venue[]> {
+  async listVenuesByIds(venueIds: string[]): Promise<Venue[]> {
     try {
       if (!venueIds.length) return [];
       
@@ -342,7 +342,7 @@ class FirebaseVenueService implements VenueService {
   
   // Add the required method for e2eTests compatibility
   async getAllVenues(): Promise<Venue[]> {
-    return this.getVenues();
+    return this.listVenues();
   }
 
   /**

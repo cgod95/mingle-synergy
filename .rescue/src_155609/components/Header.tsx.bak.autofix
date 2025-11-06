@@ -1,0 +1,94 @@
+import React, { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { getMatchCount, getTotalUnread } from "../lib/matchStore";
+export default function Header() {
+  const [unread, setUnread] = React.useState<number>(0);
+
+  useEffect(() => {
+    setUnreadCount(getTotalUnread());
+
+    setUnread(getTotalUnread());
+    const id = setInterval(() => setUnread(getTotalUnread()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const { user, logout } = useAuth();
+  const [counts, setCounts] = useState({ matches: getMatchCount(), unread: getTotalUnread() });
+
+  
+
+  const badge = (n: number) =>
+    n > 0 ? (
+      <span
+        style={{
+          marginLeft: 6,
+          fontSize: 12,
+          background: "#ef4444",
+          color: "white",
+          borderRadius: 10,
+          padding: "2px 6px",
+        }}
+      >
+        {n}
+      </span>
+    ) : null;
+
+  return (
+    <header
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 16,
+        padding: "10px 16px",
+        borderBottom: "1px solid #e5e7eb",
+        background: "white",
+        position: "sticky",
+        top: 0,
+        zIndex: 10,
+      }}
+    >
+      <NavLink to="/" style={{ fontWeight: 700, textDecoration: "none" }}>
+        mingle
+      {unreadCount > 0 && (
+        <span style={{
+          position: "absolute",
+          top: 0,
+          right: -4,
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: "#ef4444"
+        }} />
+      )}
+    </NavLink>
+
+      <nav style={{ display: "flex", gap: 12 }}>
+        <NavLink to="/venues">Venues</NavLink>
+        <NavLink to="/matches" className="relative">
+          Matches {badge(counts.matches)} {counts.unread > 0 ? <span style={{ marginLeft: 6, color: "#ef4444" }}>• {counts.unread}</span> : null}
+        </NavLink>
+        <NavLink to="/pair">Pair</NavLink>
+        <NavLink to="/feedback">Feedback</NavLink>
+      
+          <NavLink to="/checkin">Check in</NavLink>
+        </nav>
+
+      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 13, color: "#6b7280" }}>
+          {user ? user.email ?? "Signed in" : "Guest"}
+        </span>
+        {user ? (
+          <button
+            onClick={logout}
+            style={{ padding: "6px 10px", border: "1px solid #e5e7eb", borderRadius: 8, background: "white" }}
+          >
+            Logout
+          </button>
+        ) : (
+          <NavLink to="/login">Login</NavLink>
+        )}
+      </div>
+    </header>
+  );
+}

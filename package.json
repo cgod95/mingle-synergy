@@ -17,7 +17,9 @@
     "test:e2e": "playwright test",
     "ports:free": "bash scripts/free-ports.sh",
     "emulators": "firebase emulators:start --only auth,firestore",
-    "dev:full": "pnpm ports:free && concurrently -k -n EMU,WEB \"pnpm emulators\" \"pnpm dev\""
+    "dev:full": "pnpm ports:free && concurrently -k -n EMU,WEB \"pnpm emulators\" \"pnpm dev\"",
+    "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
+    "format": "prettier --write 'src/**/*.{ts,tsx,json,css,md}'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

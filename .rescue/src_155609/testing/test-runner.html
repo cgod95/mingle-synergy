@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase E2E Test Runner</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 2rem;
+            background-color: #f9f9f9;
+        }
+        button {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            background-color: #0070f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+        pre {
+            background: #222;
+            color: #0f0;
+            padding: 1rem;
+            overflow-x: auto;
+            height: 400px;
+            white-space: pre-wrap;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Firebase E2E Test Runner</h1>
+    <button id="runTestButton">Run E2E Test</button>
+    <pre id="logContainer"></pre>
+
+    <script type="module">
+        import { runBrowserE2ETest } from './browser-e2e-test.js';
+
+        const logContainer = document.getElementById('logContainer');
+        const runTestButton = document.getElementById('runTestButton');
+
+        function log(message) {
+            logContainer.textContent += message + '\n';
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        runTestButton.disabled = false;
+
+        runTestButton.addEventListener('click', async () => {
+            runTestButton.disabled = true;
+            log('Running Firebase E2E test...');
+
+            try {
+                await runBrowserE2ETest(log);
+                log('✅ Test completed successfully!');
+            } catch (error) {
+                console.error(error);
+                log(`❌ Test failed: ${error.message}`);
+            } finally {
+                runTestButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html> 

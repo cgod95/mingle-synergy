@@ -1,0 +1,55 @@
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { listThreads, seedDemoMatches } from "../lib/chatStore";
+
+export default function ChatIndex() {
+  const nav = useNavigate();
+
+  // Seed a few demo matches once (idempotent)
+  useEffect(() => {
+    seedDemoMatches([
+      { id: "vx-01-p1", name: "Maya", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop" },
+      { id: "vx-02-p2", name: "Ari", photo: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop" },
+    ]);
+  }, []);
+
+  const threads = listThreads();
+
+  if (!threads.length) {
+    return <div className="rounded-xl border bg-white p-4 text-sm text-neutral-600">No conversations yet. Likes that match will appear here.</div>;
+  }
+
+  return (
+    <section className="space-y-4">
+      <h1 className="text-xl font-semibold">Chats</h1>
+
+      <div className="divide-y rounded-2xl border bg-white shadow-sm">
+        {threads.map((t) => {
+          const last = t.lastMessage;
+          return (
+            <button
+              key={t.id}
+              onClick={() => nav(`/chat/${t.id}`)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50"
+            >
+              <img
+                src={t.photo || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop"}
+                alt={t.name || t.id}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <div className="text-sm font-medium">{t.name || "Unknown"}</div>
+                <div className="text-xs italic text-neutral-500 line-clamp-1">
+                  {last ? `${last.sender === "you" ? "You: " : ""}${last.text}` : "No messages yet"}
+                </div>
+              </div>
+              <div className="text-[10px] text-neutral-400">
+                {last ? new Date(last.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}

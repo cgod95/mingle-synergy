@@ -1,0 +1,11 @@
+export type Venue = { id: string; name: string; address?: string };
+
+export const demoVenues: Venue[] = [
+  { id: "v1", name: "The Electric Garden", address: "12 River St" },
+  { id: "v2", name: "Neon Loft", address: "88 High Rd" },
+  { id: "v3", name: "Golden Fox", address: "5 Market Sq" },
+];
+
+export function getAllVenues(): Venue[] {
+  return demoVenues;
+}

@@ -1,0 +1,89 @@
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { getTotalUnread } from "../lib/matchStore";
+import { useAuth } from "../context/AuthContext";
+
+export default function Header() {
+  const { user, logout } = useAuth();
+
+  // Only one source of truth for unreadCount
+  const [unreadCount, setUnreadCount] = useState<number>(getTotalUnread());
+  const [matchCount, setMatchCount] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUnreadCount(getTotalUnread());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <header
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "12px 24px",
+        borderBottom: "1px solid #eee",
+      }}
+    >
+      <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: "600" }}>Mingle</h1>
+      </Link>
+
+      <nav style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <Link to="/venues" style={{ textDecoration: "none", color: "#111" }}>
+          Venues
+        </Link>
+
+        <Link to="/matches" style={{ textDecoration: "none", color: "#111" }}>
+          Matches{" "}
+          {matchCount > 0 && (
+            <span
+              style={{
+                background: "#111",
+                color: "#fff",
+                borderRadius: "9999px",
+                padding: "2px 6px",
+                fontSize: "12px",
+              }}
+            >
+              {matchCount}
+            </span>
+          )}
+        </Link>
+
+        <Link to="/chat" style={{ textDecoration: "none", color: "#111" }}>
+          Chat{" "}
+          {unreadCount > 0 && (
+            <span
+              style={{
+                background: "#111",
+                color: "#fff",
+                borderRadius: "9999px",
+                padding: "2px 6px",
+                fontSize: "12px",
+              }}
+            >
+              {unreadCount}
+            </span>
+          )}
+        </Link>
+
+        {user && (
+          <button
+            onClick={logout}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "#555",
+              cursor: "pointer",
+            }}
+          >
+            Logout
+          </button>
+        )}
+      </nav>
+    </header>
+  );
+}

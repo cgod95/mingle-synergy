@@ -1,0 +1,81 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { appendMessage, ensureChat, getThread } from "../lib/chatStore";
+import SafeImg from "../components/SafeImg";
+import { getVenues } from "../lib/demoVenues";
+
+export default function ChatRoom() {
+  const { matchId } = useParams();
+  const [text, setText] = useState("");
+  const [tick, setTick] = useState(0);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  // find person name/photo from demo venues
+  const meta = useMemo(() => {
+    if (!matchId) return undefined;
+    for (const v of getVenues()) {
+      const p = v.people.find((x) => x.id === matchId);
+      if (p) return { name: p.name, photo: p.photo };
+    }
+    return { name: matchId, photo: undefined };
+  }, [matchId]);
+
+  useEffect(() => {
+    if (matchId) ensureChat(matchId, { name: meta?.name });
+    setTick((n) => n + 1);
+    // scroll to bottom after render
+    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+  }, [matchId, meta?.name]);
+
+  const thread = useMemo(() => (matchId ? getThread(matchId) : undefined), [matchId, tick]);
+  const messages = thread?.messages ?? [];
+
+  function onSend(e: React.FormEvent) {
+    e.preventDefault();
+    if (!matchId) return;
+    const msg = text.trim();
+    if (!msg) return;
+    appendMessage(matchId, { sender: "me", ts: Date.now(), text: msg });
+    setText("");
+    setTick((n) => n + 1);
+    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
+  }
+
+  return (
+    <div className="mx-auto flex h-[calc(100vh-140px)] max-w-2xl flex-col p-4 sm:p-6">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="h-10 w-10 overflow-hidden rounded-full border bg-white">
+          <SafeImg src={meta?.photo || "/avatar-fallback.svg"} className="h-full w-full" />
+        </div>
+        <div className="text-lg font-medium">{meta?.name || matchId}</div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto rounded-2xl border bg-white p-4">
+        {messages.map((m, i) => (
+          <div key={i} className={`mb-2 flex ${m.sender === "me" ? "justify-end" : "justify-start"}`}>
+            <div
+              className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                m.sender === "me" ? "bg-indigo-600 text-white" : "bg-neutral-100"
+              }`}
+            >
+              {m.text}
+            </div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+
+      <form onSubmit={onSend} className="mt-3 flex items-center gap-2">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type a message…"
+          className="flex-1 rounded-xl border px-3 py-2"
+        />
+        <button type="submit" className="rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500">
+          Send
+        </button>
+      </form>
+    </div>
+  );
+}

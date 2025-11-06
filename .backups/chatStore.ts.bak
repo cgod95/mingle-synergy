@@ -1,0 +1,141 @@
+export type ChatMessage = {
+  sender: "you" | "them";
+  ts: number;
+  text: string;
+};
+
+export type ChatThread = {
+  id: string;           // person id
+  name?: string;        // display name for list
+  messages: ChatMessage[];
+};
+
+type Store = Record<string, ChatThread>;
+
+const KEY = "mingle:chats";
+
+function load(): Store {
+  try {
+    const raw = localStorage.getItem(KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    // normalize
+    const out: Store = {};
+    for (const k of Object.keys(parsed)) {
+      const t = parsed[k] || {};
+      out[k] = {
+        id: t.id ?? k,
+        name: typeof t.name === "string" ? t.name : undefined,
+        messages: Array.isArray(t.messages) ? t.messages : [],
+      };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function save(s: Store) {
+  localStorage.setItem(KEY, JSON.stringify(s));
+}
+
+/**
+ * Ensure a thread exists for a given user id. Optionally set/refresh name.
+ */
+export function ensureChat(id: string, meta?: { name?: string }): ChatThread {
+  const all = load();
+  if (!all[id]) {
+    all[id] = { id, name: meta?.name, messages: [] };
+  } else if (meta?.name && !all[id].name) {
+    all[id].name = meta.name;
+  }
+  save(all);
+  return all[id];
+}
+
+/**
+ * Append a message to a thread (thread will be created if missing).
+ */
+export function appendMessage(id: string, msg: ChatMessage) {
+  const all = load();
+  if (!all[id]) all[id] = { id, messages: [] };
+  all[id].messages.push(msg);
+  save(all);
+}
+
+/**
+ * Seed a friendly opener if a thread is currently empty.
+ */
+export function seedHelloIfEmpty(id: string, name?: string) {
+  const t = ensureChat(id, { name });
+  if (!t.messages.length) {
+    appendMessage(id, { sender: "them", ts: Date.now(), text: `Hey ${name ?? "there"} 👋` });
+  }
+}
+
+/**
+ * Return the last message for a thread (used for chat list previews).
+ */
+export function getLastMessage(id: string): ChatMessage | undefined {
+  const all = load();
+  const t = all[id];
+  if (!t || !t.messages.length) return undefined;
+  return t.messages[t.messages.length - 1];
+}
+
+/**
+ * List threads sorted by most recent activity, for chat index.
+ */
+export function listThreads(): Array<{
+  id: string;
+  name?: string;
+  lastTs: number;
+  lastText?: string;
+}> {
+  const all = load();
+  const rows = Object.values(all).map(t => {
+    const last = t.messages[t.messages.length - 1];
+    return {
+      id: t.id,
+      name: t.name,
+      lastTs: last?.ts ?? 0,
+      lastText: last?.text,
+    };
+  });
+  rows.sort((a, b) => b.lastTs - a.lastTs);
+  return rows;
+}
+
+// -----------------------------------------------------------------------------
+// 🧩 Demo seeding utilities
+// -----------------------------------------------------------------------------
+
+/**
+ * Seed demo conversations if no chats exist yet.
+ * Used for local testing to populate ChatIndex with threads + messages.
+ */
+export function seedDemoConversations() {
+  const all = listThreads();
+  if (all.length > 0) return; // already have chats
+  const demos = [
+    { id: "ella", name: "Ella", text: "Hey! You were at the same gig?" },
+    { id: "lucas", name: "Lucas", text: "That set was insane 😎" },
+    { id: "sophia", name: "Sophia", text: "Loved the vibe tonight." },
+  ];
+  for (const d of demos) {
+    ensureChat(d.id, { name: d.name });
+    appendMessage(d.id, { sender: "them", ts: Date.now(), text: d.text });
+  }
+}
+
+/**
+ * Alias for listThreads (for compatibility with ChatIndex)
+ */
+export const listConversations = listThreads;
+
+// -----------------------------------------------------------------------------
+// 🔎 Fetch a single thread by id
+// -----------------------------------------------------------------------------
+export function getThread(id: string): ChatThread | undefined {
+  const all = load();
+  return all[id];
+}

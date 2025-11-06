@@ -1,0 +1,102 @@
+export type ChatMessage = { sender: "you" | "them"; ts: number; text: string };
+export type ChatThread = { id: string; name?: string; messages: ChatMessage[] };
+
+const KEY = "mingle_chats_v1";
+const SEED_KEY = "mingle_chats_seeded_v1";
+
+function load(): Record<string, ChatThread> {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return {};
+    const o = JSON.parse(raw);
+    return o && typeof o === "object" ? o : {};
+  } catch {
+    return {};
+  }
+}
+
+function save(all: Record<string, ChatThread>) {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(all));
+  } catch {}
+}
+
+export function ensureChat(id: string, meta?: { name?: string }): ChatThread {
+  const all = load();
+  if (!all[id]) all[id] = { id, name: meta?.name, messages: [] };
+  // set name if provided later
+  if (meta?.name && !all[id].name) all[id].name = meta.name;
+  save(all);
+  return all[id];
+}
+
+export function appendMessage(id: string, msg: ChatMessage) {
+  const all = load();
+  if (!all[id]) all[id] = { id, messages: [] };
+  all[id].messages.push(msg);
+  save(all);
+}
+
+export function getThread(id: string): ChatThread | undefined {
+  const all = load();
+  return all[id];
+}
+
+export function getLastMessage(id: string): ChatMessage | undefined {
+  const t = getThread(id);
+  if (!t || !t.messages.length) return undefined;
+  return t.messages[t.messages.length - 1];
+}
+
+export function listThreads(): Array<{
+  id: string;
+  name?: string;
+  lastTs: number;
+  lastText?: string;
+  unread: boolean; // true if last msg from "them"
+}> {
+  const all = load();
+  const rows = Object.values(all).map((t) => {
+    const last = t.messages[t.messages.length - 1];
+    return {
+      id: t.id,
+      name: t.name,
+      lastTs: last?.ts ?? 0,
+      lastText: last?.text,
+      unread: last?.sender === "them",
+    };
+  });
+  rows.sort((a, b) => b.lastTs - a.lastTs);
+  return rows;
+}
+
+// Back-compat alias for pages that import listConversations
+export const listConversations = listThreads;
+
+/** simple demo seeding (idempotent) */
+export function seedDemoConversations() {
+  const demos = [
+    { id: "chloe", name: "Chloe", text: "See you at the courtyard bar?" },
+    { id: "lucas", name: "Lucas", text: "That set was insane 😎" },
+    { id: "sophia", name: "Sophia", text: "Loved the vibe tonight." },
+  ];
+  for (const d of demos) {
+    ensureChat(d.id, { name: d.name });
+    // only seed a message if none exists
+    const t = getThread(d.id);
+    if (t && t.messages.length === 0) {
+      appendMessage(d.id, { sender: "them", ts: Date.now(), text: d.text });
+    }
+  }
+}
+
+/** one-time wrapper so main.tsx can safely call every load */
+export function ensureDemoThreadsSeed() {
+  try {
+    if (localStorage.getItem(SEED_KEY)) return;
+    seedDemoConversations();
+    localStorage.setItem(SEED_KEY, "1");
+  } catch {
+    // non-fatal in private mode
+  }
+}

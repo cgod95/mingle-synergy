@@ -119,7 +119,7 @@ class BrowserE2ETest {
     console.log('📍 Testing venue check-in flow...');
     
     // Get available venues
-    const venues = await venueService.getVenues();
+    const venues = await venueService.listVenues();
     if (venues.length === 0) {
       throw new Error('No venues available for testing');
     }
@@ -149,7 +149,7 @@ class BrowserE2ETest {
   private async testUserDiscovery() {
     console.log('👥 Testing user discovery and liking...');
     
-    const venues = await venueService.getVenues();
+    const venues = await venueService.listVenues();
     const testVenue = venues[0];
     
     // Sign in as first user
@@ -180,7 +180,7 @@ class BrowserE2ETest {
   private async testMatchingSystem() {
     console.log('💕 Testing matching system...');
     
-    const venues = await venueService.getVenues();
+    const venues = await venueService.listVenues();
     const testVenue = venues[0];
     
     const user1 = await authService.signIn(this.testUsers[0].email, this.testUsers[0].password);

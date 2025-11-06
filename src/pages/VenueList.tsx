@@ -1,41 +1,53 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { VENUES } from "../data/venues";
-import { likeVenue } from "../lib/demoStore";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { listVenues } from "../lib/demoVenues";
+import SafeImg from "../components/common/SafeImg";
 
 export default function VenueList() {
-  const [venues, setVenues] = useState([...VENUES]);
-
-  const handleLike = (v: (typeof VENUES)[number]) => {
-    likeVenue(v);
-    setVenues(prev => prev.filter(x => x.id !== v.id));
-    alert(`Liked: ${v.name}`);
-  };
-
-  const handleSkip = (vId: string) => {
-    setVenues(prev => prev.filter(x => x.id !== vId));
-  };
+  const navigate = useNavigate();
+  const venues = useMemo(() => listVenues(), []);
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Venues</h1>
-      {venues.length === 0 ? (
-        <p>No more venues. Check your <Link to="/matches">matches</Link>.</p>
-      ) : (
-        <ul style={{ display: "grid", gap: 12, listStyle: "none", padding: 0 }}>
-          {venues.map((v) => (
-            <li key={v.id} style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8 }}>
-              <div style={{ fontWeight: 600 }}>{v.name}</div>
-              {v.description && <div style={{ fontSize: 13, color: "#666" }}>{v.description}</div>}
-              <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                <Link to={`/venues/${v.id}`}>Details</Link>
-                <button onClick={() => handleLike(v)}>Like</button>
-                <button onClick={() => handleSkip(v.id)}>Skip</button>
+    <div className="mx-auto max-w-3xl p-4">
+      <h1 className="text-2xl font-semibold">Check In</h1>
+      <p className="mt-1 text-neutral-600">Pick a venue to view or check in.</p>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {venues.map((v) => (
+          <div key={v.id} className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+            <div className="relative h-40 w-full">
+              <SafeImg
+                src={v.image || "/placeholder-venue.jpg"}
+                alt={v.name}
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="flex items-center justify-between p-3">
+              <div className="min-w-0">
+                <div className="truncate font-medium">{v.name}</div>
+                <div className="truncate text-sm text-neutral-600">{v.description || "—"}</div>
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate(`/venue/${v.id}`)}
+                  className="rounded-full border px-3 py-2 text-sm"
+                >
+                  View
+                </button>
+                <button
+                  onClick={() =>
+                    navigate(`/checkin?id=${encodeURIComponent(v.id)}&name=${encodeURIComponent(v.name)}`)
+                  }
+                  className="rounded-full bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                >
+                  Check in
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

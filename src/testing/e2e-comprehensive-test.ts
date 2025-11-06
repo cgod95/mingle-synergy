@@ -344,7 +344,7 @@ class ComprehensiveE2ETest {
       }
       
       // Verify venue data
-      const venues = await services.venue.getVenues();
+      const venues = await services.venue.listVenues();
       if (venues.length > 0) {
         this.logResult('Verify Venue Data', true, 'Venue data exists in database', { count: venues.length });
       } else {

@@ -1,83 +1,42 @@
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { AuthProvider } from "./context/AuthContext";
-import { OnboardingProvider } from "./context/OnboardingContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Header from "./components/Header";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import AppShell from "./components/layout/AppShell";
 
-import LandingPage from "./pages/LandingPage";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import VenueList from "./pages/VenueList";
-import Profile from "./pages/Profile";
-import NotFoundStandalone from "./pages/NotFoundStandalone";
-import PublicVenue from "./pages/PublicVenue";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AuthRoute from "./components/AuthRoute";
+
+import CheckInPage from "./pages/CheckInPage";
 import VenueDetails from "./components/venue/VenueDetails";
-import Pair from "./pages/Pair";
-import Chat from "./pages/Chat";
+import Matches from "./pages/Matches";
+import ChatIndex from "./pages/ChatIndex";
+import ChatRoom from "./pages/ChatRoom";
+import Profile from "./pages/Profile";
+import ProfileUpload from "./pages/ProfileUpload";
+import Debug from "./pages/Debug";
+
+import { AuthProvider } from "./context/AuthContext";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <AuthProvider>
-          <OnboardingProvider>
-            <div data-testid="app-loaded" style={{ display: "none" }} />
-            <Header />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/sign-in" element={<SignIn />} />
-              <Route path="/sign-up" element={<SignUp />} />
-
-              <Route
-                path="/venues"
-                element={
-                  <ProtectedRoute>
-                    <VenueList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/venues/:id"
-                element={
-                  <ProtectedRoute>
-                    <VenueDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/pair"
-                element={
-                  <ProtectedRoute>
-                    <Pair />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chat/:id"
-                element={
-                  <ProtectedRoute>
-                    <Chat />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />              <Route path="/v/:id" element={<PublicVenue />} />
-
-
-              <Route path="/404" element={<NotFoundStandalone />} />
-              <Route path="*" element={<NotFoundStandalone />} />
-            </Routes>
-          </OnboardingProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Onboarding / auth */}
+          <Route path="/upload" element={<AuthRoute><ProfileUpload /></AuthRoute>} />
+          {/* App shell */}
+          <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+            <Route path="/" element={<Navigate to="/checkin" replace />} />
+            <Route path="/checkin" element={<CheckInPage />} />
+            <Route path="/venues/:id" element={<VenueDetails />} />
+            <Route path="/matches" element={<Matches />} />
+            <Route path="/chats" element={<ChatIndex />} />
+            <Route path="/chat/:id" element={<ChatRoom />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/debug" element={<Debug />} />
+          </Route>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/checkin" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

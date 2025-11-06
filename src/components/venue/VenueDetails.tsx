@@ -1,174 +1,116 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import {
-  getPeopleAtVenue,
-  getCheckedInVenue,
-  checkIn,
-  likePerson,
-  getMatches,
-} from "../../services/demoPresence";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import SafeImg from "../common/SafeImg";
+import { getVenue, listPeopleForVenue } from "../../lib/demoVenues";
+import { likePerson, isMatched, ensureDemoLikesSeed } from "../../lib/likesStore";
 
 export default function VenueDetails() {
-  const { id: venueIdParam } = useParams();
-  const venueId = venueIdParam || "bar-101";
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>Venue</h1>
-      <div style={{ color: "#666", marginBottom: 8 }}>ID: {venueId}</div>
+  const venue = useMemo(() => (id ? getVenue(id) : undefined), [id]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-      {import.meta.env.VITE_DEMO_MODE === "true" ? (
-        <DemoPeopleSection venueId={venueId} />
-      ) : (
-        <div>Live mode not yet implemented here.</div>
-      )}
-    </main>
-  );
-}
+  ensureDemoLikesSeed();
 
-function DemoPeopleSection({ venueId }: { venueId: string }) {
-  const { user } = useAuth();
-  const uid = user?.uid || "demo-user";
+  const people = useMemo(() => {
+    if (!venue?.id) return [];
+    return listPeopleForVenue(venue.id);
+  }, [venue?.id, refreshKey]);
 
-  const initiallyChecked =
-    getCheckedInVenue(uid) === venueId;
-
-  const [checkedIn, setCheckedIn] = React.useState(initiallyChecked);
-  const [likeNotice, setLikeNotice] = React.useState<string | null>(null);
-  const [matchNotice, setMatchNotice] = React.useState<string | null>(null);
-
-  const roster = getPeopleAtVenue(venueId);
-  const matches = getMatches(uid, venueId);
-
-  const handleCheckIn = () => {
-    checkIn(uid, venueId);
-    setCheckedIn(true);
-  };
-
-  const handleLike = (pid: string, name: string) => {
-    likePerson(uid, venueId, pid);
-    setLikeNotice(`You liked ${name}`);
-    const m = getMatches(uid, venueId).find((x) => x.id === pid);
-    if (m) setMatchNotice(`It's a match with ${name}!`);
-    setTimeout(() => {
-      setLikeNotice(null);
-      setMatchNotice(null);
-    }, 1500);
-  };
-
-  return (
-    <section style={{ marginTop: 16 }}>
-      {!checkedIn ? (
+  if (!venue) {
+    return (
+      <div className="mx-auto max-w-xl p-4">
+        <h1 className="text-xl font-semibold">Venue not found</h1>
         <button
-          onClick={handleCheckIn}
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            cursor: "pointer",
-          }}
+          onClick={() => navigate("/venues")}
+          className="mt-4 rounded-lg border px-4 py-2"
         >
-          Check in here
+          Back to list
         </button>
-      ) : (
-        <div style={{ margin: "8px 0", fontSize: 12, color: "#2a6" }}>
-          Checked in (demo)
-        </div>
-      )}
+      </div>
+    );
+  }
 
-      <h3 style={{ marginTop: 12 }}>People here (demo)</h3>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))",
-          gap: 12,
-        }}
-      >
-        {roster.map((p) => (
-          <div
-            key={p.id}
-            style={{
-              border: "1px solid #eee",
-              borderRadius: 12,
-              padding: 12,
-              background: "#fff",
-            }}
-          >
-            <img
-              src={p.photo}
-              alt={p.name}
-              style={{
-                width: "100%",
-                height: 120,
-                objectFit: "cover",
-                borderRadius: 8,
-              }}
-            />
-            <div style={{ fontWeight: 600, marginTop: 8 }}>{p.name}</div>
-            <div style={{ fontSize: 12, color: "#555" }}>{p.bio || ""}</div>
+  function handleLike(personId: string) {
+    const matched = likePerson(personId);
+    setRefreshKey((x) => x + 1);
+    if (matched) alert(`🎉 You and ${personId} matched!`);
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl p-4">
+      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+        <div className="relative aspect-[16/9] w-full">
+          <SafeImg
+            src={venue.image}
+            alt={venue.name}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
+            <div className="pointer-events-none">
+              <h1 className="text-2xl font-semibold text-white drop-shadow">
+                {venue.name}
+              </h1>
+              <p className="mt-1 max-w-2xl text-white/90 drop-shadow">
+                {venue.description || "—"}
+              </p>
+            </div>
             <button
-              onClick={() => handleLike(p.id, p.name)}
-              style={{
-                marginTop: 8,
-                width: "100%",
-                padding: "6px 10px",
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                cursor: "pointer",
-              }}
+              onClick={() =>
+                navigate(
+                  `/checkin?id=${encodeURIComponent(venue.id)}&name=${encodeURIComponent(venue.name)}`
+                )
+              }
+              className="pointer-events-auto rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-500"
             >
-              Like
+              Check in
             </button>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {matches.length ? (
-        <div
-          style={{
-            marginTop: 12,
-            padding: 10,
-            background: "#f6fff6",
-            border: "1px solid #dfe",
-            borderRadius: 8,
-          }}
-        >
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Matches (demo)</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {matches.map((m) => (
-              <div
-                key={m.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  border: "1px solid #eee",
-                  borderRadius: 8,
-                  padding: "6px 8px",
-                  background: "#fff",
-                }}
-              >
-                <img
-                  src={m.photo}
-                  alt={m.name}
-                  style={{ width: 28, height: 28, borderRadius: "50%" }}
-                />
-                <span style={{ fontSize: 13 }}>{m.name}</span>
-              </div>
-            ))}
+        <div className="p-4">
+          <h2 className="mb-3 text-lg font-semibold">People here</h2>
+          {!people.length && (
+            <div className="rounded-lg border bg-neutral-50 p-4 text-neutral-700">
+              No one is displayed here yet.
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {people.map((p) => {
+              const matched = isMatched(p.id);
+              return (
+                <div
+                  key={p.id}
+                  className="overflow-hidden rounded-xl border relative group"
+                >
+                  <SafeImg
+                    src={p.photo || "/assets/avatars/default.png"}
+                    alt={p.name}
+                    className="aspect-square w-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="p-2 text-sm font-medium flex justify-between items-center">
+                    <span>{p.name}</span>
+                    <button
+                      onClick={() => handleLike(p.id)}
+                      className={`rounded-full px-2 py-1 text-xs font-medium transition ${
+                        matched
+                          ? "bg-green-500 text-white"
+                          : "bg-indigo-600 text-white hover:bg-indigo-500"
+                      }`}
+                    >
+                      {matched ? "Matched" : "Like"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      ) : null}
-
-      {likeNotice ? (
-        <div style={{ marginTop: 8, fontSize: 12 }}>{likeNotice}</div>
-      ) : null}
-      {matchNotice ? (
-        <div style={{ marginTop: 4, fontSize: 12, color: "#2a6" }}>
-          {matchNotice}
-        </div>
-      ) : null}
-    </section>
+      </div>
+    </div>
   );
 }

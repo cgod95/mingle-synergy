@@ -1,0 +1,13 @@
+import { likePerson, isMatched } from "../../lib/likesStore";
+import { ensureChat, appendMessage } from "../../lib/chatStore";
+
+function onLike(personId: string, personName: string) {
+  const matched = likePerson(personId);
+  if (matched) {
+    ensureChat(personId, { name: personName });
+    appendMessage(personId, { sender: "system", ts: Date.now(), text: "🎉 You matched! Say hi." });
+    // optionally toast + navigate("/chat/"+personId)
+  } else {
+    // toast: "Like sent!"
+  }
+}
