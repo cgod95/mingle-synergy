@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { getActiveMatches, getRemainingSeconds, isExpired, type Match } from "../lib/matchStore";
+import { getActiveMatches, getRemainingSeconds, isExpired, type Match } from "../lib/matchesCompat";
 
 function fmt(s: number) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;

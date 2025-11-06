@@ -1,115 +1,80 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useMemo } from "react";
 import SafeImg from "../common/SafeImg";
-import { getVenue, listPeopleForVenue } from "../../lib/api";
-import { likePerson, isMatched, ensureDemoLikesSeed } from "../../lib/likesStore";
+import { useNavigate, useParams } from "react-router-dom";
+import { getVenue, listPeopleForVenue, type Person } from "../../lib/api";
 
 export default function VenueDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const venue = useMemo(() => (id ? getVenue(id) : undefined), [id]);
-  const [refreshKey, setRefreshKey] = useState(0);
+  // Try to find the venue from demo data
+  const venue = useMemo(() => getVenue(id ?? ""), [id]);
+  const people: Person[] = useMemo(() => listPeopleForVenue(id), [id]);
 
-  ensureDemoLikesSeed();
-
-  const people = useMemo(() => {
-    if (!venue?.id) return [];
-    return listPeopleForVenue(venue.id);
-  }, [venue?.id, refreshKey]);
-
+  // If the venue isn’t found, show a friendly fallback
   if (!venue) {
     return (
-      <div className="mx-auto max-w-xl p-4">
-        <h1 className="text-xl font-semibold">Venue not found</h1>
+      <div className="p-6 text-center">
+        <h2 className="text-xl font-semibold">Venue not found</h2>
         <button
-          onClick={() => navigate("/venues")}
-          className="mt-4 rounded-lg border px-4 py-2"
+          className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
+          onClick={() => navigate(-1)}
         >
-          Back to list
+          Go Back
         </button>
       </div>
     );
   }
 
-  function handleLike(personId: string) {
-    const matched = likePerson(personId);
-    setRefreshKey((x) => x + 1);
-    if (matched) alert(`🎉 You and ${personId} matched!`);
-  }
-
   return (
-    <div className="mx-auto max-w-3xl p-4">
+    <div className="flex flex-col gap-4 p-4">
+      {/* Venue header */}
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         <div className="relative aspect-[16/9] w-full">
           <SafeImg
             src={venue.image}
             alt={venue.name}
             className="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
-          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
-            <div className="pointer-events-none">
-              <h1 className="text-2xl font-semibold text-white drop-shadow">
-                {venue.name}
-              </h1>
-              <p className="mt-1 max-w-2xl text-white/90 drop-shadow">
-                {venue.description || "—"}
-              </p>
-            </div>
-            <button
-              onClick={() =>
-                navigate(
-                  `/checkin?id=${encodeURIComponent(venue.id)}&name=${encodeURIComponent(venue.name)}`
-                )
-              }
-              className="pointer-events-auto rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-500"
-            >
-              Check in
-            </button>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute bottom-4 left-4">
+            <h1 className="text-2xl font-bold text-white drop-shadow-md">
+              {venue.name}
+            </h1>
+            {venue.address && (
+              <p className="text-sm text-gray-200">{venue.address}</p>
+            )}
           </div>
         </div>
+      </div>
 
-        <div className="p-4">
-          <h2 className="mb-3 text-lg font-semibold">People here</h2>
-          {!(people?.length ?? 0) && (
-            <div className="rounded-lg border bg-neutral-50 p-4 text-neutral-700">
-              No one is displayed here yet.
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {people.map((p) => {
-              const matched = isMatched(p.id);
-              return (
-                <div
-                  key={p.id}
-                  className="overflow-hidden rounded-xl border relative group"
-                >
-                  <SafeImg
-                    src={p.photo || "/assets/avatars/default.png"}
-                    alt={p.name}
-                    className="aspect-square w-full object-cover"
-                    loading="lazy"
-                  />
-                  <div className="p-2 text-sm font-medium flex justify-between items-center">
-                    <span>{p.name}</span>
-                    <button
-                      onClick={() => handleLike(p.id)}
-                      className={`rounded-full px-2 py-1 text-xs font-medium transition ${
-                        matched
-                          ? "bg-green-500 text-white"
-                          : "bg-indigo-600 text-white hover:bg-indigo-500"
-                      }`}
-                    >
-                      {matched ? "Matched" : "Like"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+      {/* Description */}
+      <p className="text-gray-700 leading-relaxed">{venue.description}</p>
+
+      {/* Checked-in people */}
+      <div>
+        <h2 className="mb-2 text-lg font-semibold">Checked-in people</h2>
+        {people.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            No one has checked in yet. Be the first!
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            {people.map((p) => (
+              <div
+                key={p.id}
+                className="flex flex-col items-center rounded-xl border p-3 shadow-sm"
+              >
+                <SafeImg
+                  src={p.photo}
+                  alt={p.name}
+                  className="h-24 w-24 rounded-full object-cover mb-2"
+                />
+                <p className="text-sm font-medium">{p.name}</p>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
