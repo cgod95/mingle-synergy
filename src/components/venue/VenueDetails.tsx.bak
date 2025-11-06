@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import SafeImg from "../common/SafeImg";
 import { useNavigate, useParams } from "react-router-dom";
-import { getVenue, listPeopleForVenue, type Person } from "../../lib/demoVenues";
+import { getVenue, listPeopleForVenue, type Person } from "../../lib/api";
 
 export default function VenueDetails() {
   const { id } = useParams();

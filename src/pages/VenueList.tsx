@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { listVenues } from "../lib/demoVenues";
+import { listVenues } from "../lib/api";
 import SafeImg from "../components/common/SafeImg";
 
 export default function VenueList() {

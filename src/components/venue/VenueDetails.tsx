@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SafeImg from "../common/SafeImg";
-import { getVenue, listPeopleForVenue } from "../../lib/demoVenues";
+import { getVenue, listPeopleForVenue } from "../../lib/api";
 import { likePerson, isMatched, ensureDemoLikesSeed } from "../../lib/likesStore";
 
 export default function VenueDetails() {

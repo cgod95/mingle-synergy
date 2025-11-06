@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { listMatches } from "../lib/likesStore";
-import { getPerson } from "../lib/demoVenues";
+import { getPerson } from "../lib/api";
 import SafeImg from "../components/common/SafeImg";
 import { ensureChat, getThread, getLastMessage } from "../lib/chatStore";
 

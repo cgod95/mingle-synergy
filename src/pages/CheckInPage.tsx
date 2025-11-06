@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { getVenues } from "../lib/demoVenues";
+import { getVenues } from "../lib/api";
 
 const ACTIVE_KEY = "mingle_active_venue";
 

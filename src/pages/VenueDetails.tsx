@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { getVenueById } from "../lib/demoVenues";
+import { getVenueById } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { setCurrentVenue, getCurrentVenue } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import SafeImg from "../components/common/SafeImg";
-import { listVenues } from "../lib/demoVenues";
+import { listVenues } from "../lib/api";
 
 export default function VenueList() {
   const venues = listVenues();

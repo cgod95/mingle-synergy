@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { saveProfile, setCheckIn, getProfile, getCheckIn } from "../lib/profileStore";
-import { getAllVenues } from "../lib/demoVenues"; // must exist in your project
+import { getAllVenues } from "../lib/api"; // must exist in your project
 
 export default function CheckIn() {
   const venues = getAllVenues();

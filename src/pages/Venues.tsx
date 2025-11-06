@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { getAllVenues } from "../lib/demoVenues";
+import { getAllVenues } from "../lib/api";
 
 export default function Venues() {
   const venues = getAllVenues();
