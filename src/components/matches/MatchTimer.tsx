@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import services from '../../services';
+import { calculateTimeRemaining } from '../../services/firebase/matchService';
 
 interface MatchTimerProps {
   expiresAt: number;
@@ -18,9 +18,9 @@ const MatchTimer: React.FC<MatchTimerProps> = ({ expiresAt, onExpire }) => {
       return;
     }
     
-    // Calculate initial time remaining using our service utility function
+    // Calculate initial time remaining using our utility function
     const updateTimer = () => {
-      const remaining = services.match.getTimeRemaining(expiresAt);
+      const remaining = calculateTimeRemaining(expiresAt);
       setTimeRemaining(remaining);
       
       if (remaining === 'Expired') {
