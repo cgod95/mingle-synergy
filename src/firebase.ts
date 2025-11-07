@@ -1,6 +1,7 @@
 import { getApps, getApp, initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Read config from env (fallbacks keep demo mode from crashing)
 const firebaseConfig = {
@@ -18,6 +19,8 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 // Core SDKs
 const auth = getAuth(app);
 const db = getFirestore(app);
+const firestore = db; // Alias for compatibility
+const storage = getStorage(app);
 
 // Optional: connect to emulators if requested
 const useEmu = import.meta.env.VITE_USE_FIREBASE_EMULATOR === "true";
@@ -31,4 +34,4 @@ if (useEmu) {
   } catch {}
 }
 
-export { app, auth, db };
+export { app, auth, db, firestore, storage };
