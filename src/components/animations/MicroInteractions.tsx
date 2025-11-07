@@ -49,7 +49,7 @@ export const MatchAnimation: React.FC<{ isVisible: boolean; onComplete?: () => v
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          onAnimationComplete={onComplete}
+          {...(onComplete && { onAnimationComplete: onComplete })}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
         >
           <motion.div

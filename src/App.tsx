@@ -8,7 +8,6 @@ import CheckInPage from "./pages/CheckInPage";
 import VenueDetails from "./pages/VenueDetails";
 import Matches from "./pages/Matches";
 import ChatIndex from "./pages/ChatIndex";
-import ChatRoom from "./pages/ChatRoom";
 import ChatRoomGuard from "./pages/ChatRoomGuard";
 import Profile from "./pages/Profile";
 import ProfileUpload from "./pages/ProfileUpload";
