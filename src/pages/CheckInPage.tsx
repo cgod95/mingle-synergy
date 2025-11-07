@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, CheckCircle2 } from "lucide-react";
+import { MapPin, CheckCircle2, Camera } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
+import { hasRequiredPhotos, getPhotoRequirementMessage } from "../lib/photoRequirement";
+import { useToast } from "@/hooks/use-toast";
 
 const ACTIVE_KEY = "mingle_active_venue";
 
@@ -13,8 +16,22 @@ export default function CheckInPage() {
   const [params] = useSearchParams();
   const venues = useMemo(() => getVenues(), []);
   const [checked, setChecked] = useState<boolean>(() => !!localStorage.getItem(ACTIVE_KEY));
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
 
   const onCheckIn = (id: string) => {
+    // Check photo requirement per spec
+    const userPhotos = currentUser?.photos || [];
+    if (!hasRequiredPhotos(userPhotos)) {
+      toast({
+        title: "Photo Required",
+        description: getPhotoRequirementMessage(),
+        duration: 4000,
+      });
+      navigate("/profile/edit");
+      return;
+    }
+
     localStorage.setItem(ACTIVE_KEY, id);
     setChecked(true);
     navigate(`/venues/${id}`);

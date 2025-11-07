@@ -4,9 +4,13 @@ import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MapPin, CheckCircle2 } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { hasRequiredPhotos, getPhotoRequirementMessage } from "../lib/photoRequirement";
+import { useToast } from "@/hooks/use-toast";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -28,6 +32,9 @@ export default function VenueDetails() {
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState<string | null>(null);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { toast: toastHook } = useToast();
 
   useEffect(() => {
     setCheckedIn(getCheckedVenueId());
@@ -36,6 +43,18 @@ export default function VenueDetails() {
   if (!venue) return <div className="p-4">Venue not found</div>;
 
   const handleCheckIn = () => {
+    // Check photo requirement per spec
+    const userPhotos = currentUser?.photos || [];
+    if (!hasRequiredPhotos(userPhotos)) {
+      toastHook({
+        title: "Photo Required",
+        description: getPhotoRequirementMessage(),
+        duration: 4000,
+      });
+      navigate("/profile/edit");
+      return;
+    }
+
     checkInAt(venue.id);
     setCheckedIn(venue.id);
     setToast(`Checked in to ${venue.name}`);
