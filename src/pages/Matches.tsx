@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Matches: React.FC = () => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<DisplayMatch[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -78,13 +79,9 @@ const Matches: React.FC = () => {
     console.log("View profile:", userId);
   };
 
-const Matches: React.FC = () => {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const [matches, setMatches] = useState<DisplayMatch[]>([]);
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const { toast } = useToast();
+  const handleSendMessage = (matchId: string) => {
+    navigate(`/chat/${matchId}`);
+  };
 
   return (
     <ErrorBoundary>
