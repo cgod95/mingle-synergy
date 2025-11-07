@@ -14,6 +14,7 @@ export {
   ensureDemoLikesSeed,
   likePerson,
   isMatched,
+  isLiked,
   listMatches
 } from "./likesStore";
 
