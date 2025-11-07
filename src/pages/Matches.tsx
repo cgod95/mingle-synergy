@@ -89,7 +89,30 @@ const Matches: React.FC = () => {
         <h1 className="text-xl font-semibold mb-4">Your Matches</h1>
         <div className="space-y-4">
           {matches.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No matches yet. Check into a venue to meet people!</p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16 px-4"
+            >
+              <div className="max-w-sm mx-auto">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center"
+                >
+                  <Heart className="w-12 h-12 text-indigo-400" />
+                </motion.div>
+                <h3 className="text-xl font-bold text-neutral-800 mb-2">No matches yet</h3>
+                <p className="text-neutral-600 mb-6">Check into a venue to start meeting people!</p>
+                <Button
+                  onClick={() => navigate('/checkin')}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                >
+                  Find Venues
+                </Button>
+              </div>
+            </motion.div>
           ) : (
             matches.map((match) => (
               <MatchCard 

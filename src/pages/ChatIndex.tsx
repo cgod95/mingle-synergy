@@ -34,7 +34,15 @@ export default function ChatIndex() {
       <h1 className="mb-3 text-2xl font-semibold">Chats</h1>
       <div className="divide-y rounded-2xl border bg-white">
         {rows.length === 0 ? (
-          <div className="p-6 text-center text-neutral-600">No conversations yet.</div>
+          <div className="p-12 text-center">
+            <div className="max-w-sm mx-auto">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                <MessageCircle className="w-10 h-10 text-indigo-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-800 mb-2">No conversations yet</h3>
+              <p className="text-sm text-neutral-600">Start chatting with your matches!</p>
+            </div>
+          </div>
         ) : (
           rows.map((r) => (
             <button
