@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { getVenueById } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
-import { setCurrentVenue, getCurrentVenue } from "../lib/checkinStore";
+import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";
 
 function Toast({ text }: { text: string }) {
@@ -19,13 +19,13 @@ export default function VenueDetails() {
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
 
   useEffect(() => {
-    setCheckedIn(getCurrentVenue());
+    setCheckedIn(getCheckedVenueId());
   }, []);
 
   if (!venue) return <div className="p-4">Venue not found</div>;
 
   const handleCheckIn = () => {
-    setCurrentVenue(venue.id);
+    checkInAt(venue.id);
     setCheckedIn(venue.id);
     setToast(`Checked in to ${venue.name}`);
     setTimeout(() => setToast(null), 1600);
