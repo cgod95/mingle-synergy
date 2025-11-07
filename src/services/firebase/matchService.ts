@@ -120,6 +120,15 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       };
 
       const newDocRef = await addDoc(matchRef, newMatch);
+      
+      // Track match created event per spec section 9
+      try {
+        const { trackMatchCreated } = await import('../specAnalytics');
+        trackMatchCreated(newDocRef.id, user1Id, user2Id, venueId);
+      } catch (error) {
+        console.warn('Failed to track match_created event:', error);
+      }
+      
       return newDocRef.id;
     } catch (error) {
       console.error('Error creating match:', error);
@@ -191,14 +200,38 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         const venueId = updatedMatchData.venueId || 'reconnect-venue';
         const venueName = updatedMatchData.venueName || 'Reconnection';
         
+        // Track reconnect requested event per spec section 9
+        try {
+          const { trackReconnectRequested } = await import('../specAnalytics');
+          trackReconnectRequested(matchId, userId);
+        } catch (error) {
+          console.warn('Failed to track reconnect_requested event:', error);
+        }
+        
         // Create fresh match
-        await this.createMatch(user1Id, user2Id, venueId, venueName);
+        const newMatchId = await this.createMatch(user1Id, user2Id, venueId, venueName);
+        
+        // Track reconnect accepted event per spec section 9
+        try {
+          const { trackReconnectAccepted } = await import('../specAnalytics');
+          trackReconnectAccepted(newMatchId, user1Id, user2Id);
+        } catch (error) {
+          console.warn('Failed to track reconnect_accepted event:', error);
+        }
         
         // Mark old match as reconnected
         await updateDoc(matchRef, {
           reconnected: true,
           reconnectedAt: Timestamp.now()
         });
+      } else {
+        // Track reconnect requested event per spec section 9 (single user request)
+        try {
+          const { trackReconnectRequested } = await import('../specAnalytics');
+          trackReconnectRequested(matchId, userId);
+        } catch (error) {
+          console.warn('Failed to track reconnect_requested event:', error);
+        }
       }
       
       return true;

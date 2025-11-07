@@ -71,6 +71,15 @@ export default function VenueDetails() {
 
     checkInAt(venue.id);
     setCheckedIn(venue.id);
+    
+    // Track user checked in event per spec section 9
+    try {
+      const { trackUserCheckedIn } = await import("@/services/specAnalytics");
+      trackUserCheckedIn(venue.id, venue.name);
+    } catch (error) {
+      console.warn('Failed to track user_checked_in event:', error);
+    }
+    
     setToast(`Checked in to ${venue.name}`);
     setTimeout(() => setToast(null), 1600);
   };

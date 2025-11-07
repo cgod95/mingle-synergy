@@ -48,6 +48,16 @@ export default function CheckInPage() {
 
     localStorage.setItem(ACTIVE_KEY, id);
     setChecked(true);
+    
+    // Track user checked in event per spec section 9
+    try {
+      const { trackUserCheckedIn } = await import("@/services/specAnalytics");
+      const venue = venues.find(v => v.id === id);
+      trackUserCheckedIn(id, venue?.name || id);
+    } catch (error) {
+      console.warn('Failed to track user_checked_in event:', error);
+    }
+    
     navigate(`/venues/${id}`);
   };
 

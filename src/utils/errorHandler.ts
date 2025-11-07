@@ -180,20 +180,31 @@ export const getUserFriendlyErrorMessage = (error: Error | unknown): string => {
 };
 
 // Initialize error tracking with Sentry
+// Per spec section 9: Error tracking with tracesSampleRate: 0.1
 export const initErrorTracking = (): void => {
-  if (import.meta.env.PROD) {
-    Sentry.init({
-      dsn: import.meta.env.VITE_SENTRY_DSN || '', // Replace with your Sentry DSN
-      integrations: [new Sentry.BrowserTracing()],
-      tracesSampleRate: 0.5,
-      environment: import.meta.env.VITE_ENVIRONMENT || 'development',
-      enabled: import.meta.env.PROD,
-      beforeSend(event) {
-        // Filter sensitive information if needed
-        return event;
-      },
-    });
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  if (!dsn) {
+    console.warn('Sentry DSN not configured. Error tracking disabled.');
+    return;
   }
+
+  Sentry.init({
+    dsn,
+    integrations: [
+      new Sentry.BrowserTracing(),
+    ],
+    tracesSampleRate: 0.1, // Per spec section 9
+    environment: import.meta.env.VITE_ENVIRONMENT || import.meta.env.MODE || 'development',
+    enabled: import.meta.env.PROD || import.meta.env.VITE_ENABLE_SENTRY === 'true',
+    beforeSend(event) {
+      // Filter sensitive information
+      if (event.request?.headers) {
+        delete event.request.headers['Authorization'];
+        delete event.request.headers['Cookie'];
+      }
+      return event;
+    },
+  });
 };
 
 // Create a reusable error boundary component - fixed implementation without JSX

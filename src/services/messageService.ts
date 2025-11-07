@@ -107,12 +107,20 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
     throw new Error("Message limit reached");
   }
 
-  await addDoc(collection(firestore, "messages"), {
-    matchId,
-    senderId,
-    text,
-    createdAt: serverTimestamp(),
-  });
+      await addDoc(collection(firestore, "messages"), {
+        matchId,
+        senderId,
+        text,
+        createdAt: serverTimestamp(),
+      });
+      
+      // Track message sent event per spec section 9
+      try {
+        const { trackMessageSent } = await import('./specAnalytics');
+        trackMessageSent(matchId, senderId, text.length);
+      } catch (error) {
+        console.warn('Failed to track message_sent event:', error);
+      }
 };
 
 /**

@@ -35,9 +35,17 @@ export function useRealtimeMatches(): FirestoreMatch[] {
         const matchAge = Date.now() - data.timestamp;
         const isExpired = matchAge > MATCH_EXPIRY_MS;
 
-        if (isExpired) {
-          await deleteDoc(doc(db, "matches", docSnap.id));
-        } else {
+            if (isExpired) {
+              await deleteDoc(doc(db, "matches", docSnap.id));
+              
+              // Track match expired event per spec section 9
+              try {
+                const { trackMatchExpired } = await import("@/services/specAnalytics");
+                trackMatchExpired(docSnap.id, data.userId1, data.userId2);
+              } catch (error) {
+                console.warn('Failed to track match_expired event:', error);
+              }
+            } else {
           results.push({ ...data, id: docSnap.id });
         }
       }
@@ -58,9 +66,17 @@ export function useRealtimeMatches(): FirestoreMatch[] {
         const matchAge = Date.now() - data.timestamp;
         const isExpired = matchAge > MATCH_EXPIRY_MS;
 
-        if (isExpired) {
-          await deleteDoc(doc(db, "matches", docSnap.id));
-        } else {
+            if (isExpired) {
+              await deleteDoc(doc(db, "matches", docSnap.id));
+              
+              // Track match expired event per spec section 9
+              try {
+                const { trackMatchExpired } = await import("@/services/specAnalytics");
+                trackMatchExpired(docSnap.id, data.userId1, data.userId2);
+              } catch (error) {
+                console.warn('Failed to track match_expired event:', error);
+              }
+            } else {
           results.push({ ...data, id: docSnap.id });
         }
       }
