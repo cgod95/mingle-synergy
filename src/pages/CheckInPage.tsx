@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { MapPin, CheckCircle2 } from "lucide-react";
 import { getVenues } from "../lib/api";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 const ACTIVE_KEY = "mingle_active_venue";
 
@@ -19,22 +23,67 @@ export default function CheckInPage() {
   const preselect = params.get("id");
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold">Check In</h1>
-      <p className="text-neutral-600">Select your current venue.</p>
-      <div className="mt-4 space-y-3">
-        {venues.map(v => (
-          <button
-            key={v.id}
-            onClick={() => onCheckIn(v.id)}
-            className={`w-full rounded-xl border bg-white p-3 text-left shadow-sm hover:border-indigo-400 ${preselect===v.id ? "border-indigo-500" : ""}`}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4 pb-20">
+      <div className="max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <h1 className="text-3xl font-bold text-neutral-800 mb-2">Check In</h1>
+          <p className="text-neutral-600">Select your current venue to start meeting people</p>
+        </motion.div>
+
+        {checked && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center space-x-2"
           >
-            <div className="font-medium">{v.name}</div>
-            <div className="text-sm text-neutral-500">{v.id}</div>
-          </button>
-        ))}
+            <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <p className="text-sm text-green-700 font-medium">You're checked in! Browse people at your venue.</p>
+          </motion.div>
+        )}
+
+        <div className="space-y-3">
+          {venues.map((v, index) => (
+            <motion.div
+              key={v.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Card
+                className={`cursor-pointer transition-all ${
+                  preselect === v.id
+                    ? "border-2 border-indigo-500 shadow-lg bg-gradient-to-r from-indigo-50 to-purple-50"
+                    : "border border-neutral-200 hover:border-indigo-300 hover:shadow-md bg-white"
+                }`}
+                onClick={() => onCheckIn(v.id)}
+              >
+                <div className="p-4 flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-neutral-800 text-lg">{v.name}</h3>
+                    <p className="text-sm text-neutral-500 mt-0.5">{v.id}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-indigo-600"
+                  >
+                    Select →
+                  </Button>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
       </div>
-      {checked && <p className="mt-4 text-sm text-green-700">Checked in. You can browse people now.</p>}
     </div>
   );
 }
