@@ -106,30 +106,42 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const handleReconnect = async () => {
     if (!match?.id || !currentUser?.id) return;
     
+    // Check if reconnect flow is enabled via feature flag
     try {
-      // Delete the expired match
-      await matchService.deleteMatch(match.id);
+      const { FEATURE_FLAGS } = await import("@/lib/flags");
+      if (!FEATURE_FLAGS.RECONNECT_FLOW_ENABLED) {
+        toast({
+          title: "Reconnect Unavailable",
+          description: "Reconnect feature is currently disabled.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch {
+      // Feature flag check failed, continue anyway
+    }
+
+    try {
+      const { matchService } = await import("@/services");
+      const success = await matchService.requestReconnect(match.id, currentUser.id);
       
-      // Reset like state between users
-      await handleRemoveLikeBetweenUsers(currentUser.id, otherUserId);
-      
-      // Show success message and navigate to /matches
-      toast({
-        title: "Match expired",
-        description: "You can now like each other again.",
-        duration: 3000,
-      });
-      navigate('/matches');
-      onReconnectRequest?.();
+      if (success) {
+        toast({
+          title: "Reconnect Requested",
+          description: "Your reconnect request has been sent.",
+          duration: 3000,
+        });
+        onReconnectRequest?.();
+      } else {
+        throw new Error("Failed to request reconnect");
+      }
     } catch (error) {
       console.error('Error reconnecting:', error);
       toast({
         title: "Failed to reconnect",
-        description: "Please try again.",
+        description: error instanceof Error ? error.message : "Please try again later.",
         variant: "destructive",
-        duration: 3000,
       });
-      navigate('/venues');
     }
   };
   

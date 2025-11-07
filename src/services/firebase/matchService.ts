@@ -129,11 +129,18 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
   /**
    * Request reconnection with a match
+   * Per spec: Reconnect flow creates fresh match if both parties re-express interest
    */
   public async requestReconnect(matchId: string, userId: string): Promise<boolean> {
     try {
       if (!this.isFirebaseAvailable()) {
         throw new Error('Cannot request reconnect while offline');
+      }
+      
+      // Check feature flag
+      const { FEATURE_FLAGS } = await import("@/lib/flags");
+      if (!FEATURE_FLAGS.RECONNECT_FLOW_ENABLED) {
+        throw new Error('Reconnect flow is disabled');
       }
       
       const matchesCollection = this.getMatchesCollection();
@@ -151,19 +158,47 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       
       const matchData = matchSnap.data();
       
+      // Verify match is expired (per spec: reconnect only for expired matches)
+      const now = Date.now();
+      const matchTimestamp = matchData.timestamp || 0;
+      if (now - matchTimestamp < MATCH_EXPIRY_TIME) {
+        throw new Error('Match is still active. Reconnect is only available for expired matches.');
+      }
+      
       // Determine which user is requesting reconnection
-      if (matchData.user1Id === userId) {
+      if (matchData.userId1 === userId) {
         await updateDoc(matchRef, {
           userRequestedReconnect: true,
           reconnectRequestedAt: Timestamp.now()
         });
-      } else if (matchData.user2Id === userId) {
+      } else if (matchData.userId2 === userId) {
         await updateDoc(matchRef, {
           matchedUserRequestedReconnect: true,
           reconnectRequestedAt: Timestamp.now()
         });
       } else {
         throw new Error('User is not part of this match');
+      }
+      
+      // Check if both users have requested reconnection - create fresh match
+      const updatedMatchSnap = await getDoc(matchRef);
+      const updatedMatchData = updatedMatchSnap.data();
+      
+      if (updatedMatchData?.userRequestedReconnect && updatedMatchData?.matchedUserRequestedReconnect) {
+        // Both users want to reconnect - create fresh match per spec
+        const user1Id = updatedMatchData.userId1;
+        const user2Id = updatedMatchData.userId2;
+        const venueId = updatedMatchData.venueId || 'reconnect-venue';
+        const venueName = updatedMatchData.venueName || 'Reconnection';
+        
+        // Create fresh match
+        await this.createMatch(user1Id, user2Id, venueId, venueName);
+        
+        // Mark old match as reconnected
+        await updateDoc(matchRef, {
+          reconnected: true,
+          reconnectedAt: Timestamp.now()
+        });
       }
       
       return true;
