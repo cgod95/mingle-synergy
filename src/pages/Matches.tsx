@@ -1,6 +1,7 @@
 // 🧠 Purpose: Implement Matches page UI to display matched users from mock data.
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import MatchCard from "@/components/MatchCard";
 import { DisplayMatch } from "@/types/match";
 import { useEffect } from "react";
@@ -77,10 +78,13 @@ const Matches: React.FC = () => {
     console.log("View profile:", userId);
   };
 
-  const handleSendMessage = (matchId: string) => {
-    // Navigate to chat
-    window.location.href = `/chat/${matchId}`;
-  };
+const Matches: React.FC = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const [matches, setMatches] = useState<DisplayMatch[]>([]);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const { toast } = useToast();
 
   return (
     <ErrorBoundary>
