@@ -1,41 +1,51 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Heart, Users, User, MessageCircle, MapPin } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Heart, User, MessageCircle, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { subscribeToUnreadCounts, getTotalUnreadCount, UnreadCounts } from '@/features/messaging/UnreadMessageService';
 import { motion } from 'framer-motion';
 
 // BottomNav: Main navigation bar for user-facing pages
-// Only includes Venues, Likes, Matches, Messages, Profile
+// Routes match App.tsx: /checkin, /matches, /chats, /profile
 const BottomNav: React.FC = () => {
   const { currentUser } = useAuth();
-  const [unreadCounts, setUnreadCounts] = useState<UnreadCounts>({});
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Subscribe to unread message counts
+  // Optional: Subscribe to unread message counts (graceful fallback if service unavailable)
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  
   useEffect(() => {
     if (!currentUser?.uid) return;
-    const unsubscribe = subscribeToUnreadCounts(currentUser.uid, (counts) => {
-      setUnreadCounts(counts);
-      const total = getTotalUnreadCount(counts);
-      setHasUnreadMessages(total > 0);
-    });
-    return () => unsubscribe();
+    
+    // Try to subscribe to unread counts, but don't fail if service unavailable
+    import('@/features/messaging/UnreadMessageService')
+      .then((module) => {
+        if (module?.subscribeToUnreadCounts) {
+          return module.subscribeToUnreadCounts(
+            currentUser.uid,
+            (counts: Record<string, number>) => {
+              const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+              setHasUnreadMessages(total > 0);
+            }
+          );
+        }
+      })
+      .catch(() => {
+        // Service not available, continue without unread counts
+        console.debug('UnreadMessageService not available, continuing without unread counts');
+      });
   }, [currentUser?.uid]);
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
+    { path: '/checkin', icon: MapPin, label: 'Check In' },
     { path: '/matches', icon: Heart, label: 'Matches' },
-    { path: '/messages', icon: MessageCircle, label: 'Messages' },
-    { path: '/venues', icon: MapPin, label: 'Venues' },
+    { path: '/chats', icon: MessageCircle, label: 'Chats' },
     { path: '/profile', icon: User, label: 'Profile' },
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
+    if (path === '/checkin') {
+      return location.pathname === '/checkin' || location.pathname.startsWith('/venues/');
     }
     return location.pathname.startsWith(path);
   };

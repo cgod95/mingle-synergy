@@ -2,13 +2,15 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getActiveMatches } from "@/lib/matchesCompat";
 import { toast, Toaster } from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const RealChatRoom = React.lazy(() => import("./ChatRoom"));
 
 export default function ChatRoomGuard() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const userId = localStorage.getItem("userId") || "demo_user";
+  const { currentUser } = useAuth();
+  const userId = currentUser?.uid || localStorage.getItem("userId") || "demo_user";
 
   const [ready, setReady] = React.useState(false);
   const [ok, setOk] = React.useState(false);
