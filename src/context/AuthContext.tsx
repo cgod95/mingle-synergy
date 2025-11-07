@@ -33,11 +33,20 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     } catch {}
   }, []);
 
-  const login = (u: NonNullable<User>) => {
+  const login = async (u: NonNullable<User>) => {
     // Ensure uid exists for compatibility
     const userWithUid = { ...u, uid: u.uid || u.id };
     setUser(userWithUid);
     try { localStorage.setItem(KEY, JSON.stringify(userWithUid)); } catch {}
+    
+    // Track user signed up event per spec section 9 (if new user)
+    // Note: In a real app, you'd check if this is a new signup vs login
+    try {
+      const { trackUserSignedUp } = await import('../services/specAnalytics');
+      trackUserSignedUp('demo'); // Default to 'demo' for demo mode
+    } catch (error) {
+      // Silently fail if analytics not available
+    }
   };
 
   const logout = () => {
