@@ -23,10 +23,10 @@ import { FirebaseServiceBase } from './FirebaseServiceBase';
 import services from '..';
 import { FirestoreMatch } from '@/types/match';
 import { firestore } from '@/firebase';
+import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
 
-
-// Match expiry time in milliseconds (3 hours)
-const MATCH_EXPIRY_TIME = 3 * 60 * 60 * 1000;
+// Use single source of truth for match expiry
+const MATCH_EXPIRY_TIME = MATCH_EXPIRY_MS;
 
 class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
   private getMatchesCollection() {
