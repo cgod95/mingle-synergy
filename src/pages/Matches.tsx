@@ -1,16 +1,18 @@
 // 🧠 Purpose: Implement Matches page UI to display matched users from mock data.
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Heart } from "lucide-react";
 import MatchCard from "@/components/MatchCard";
 import { DisplayMatch } from "@/types/match";
-import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import BottomNav from '../components/BottomNav';
 import ErrorBoundary from '../components/ErrorBoundary';
 import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
 import { getUserMatches, mockUsers } from "@/data/mock";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 const Matches: React.FC = () => {
   const { currentUser } = useAuth();
