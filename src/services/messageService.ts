@@ -25,8 +25,11 @@ export interface Message {
   readBy?: string[]; // Array of user IDs who have read this message
 }
 
+import { FEATURE_FLAGS } from "@/lib/flags";
+
 /**
- * Send a message with validation for the 3-message limit per user per match
+ * Send a message with validation for the message limit per user per match
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
  */
 export const sendMessageWithLimit = async ({
   matchId,
@@ -38,6 +41,9 @@ export const sendMessageWithLimit = async ({
   message: string;
 }) => {
   const messagesRef = collection(firestore, "messages");
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+    : 3;
 
   const q = query(
     messagesRef,
@@ -46,8 +52,8 @@ export const sendMessageWithLimit = async ({
   );
   const snapshot = await getDocs(q);
 
-  if (snapshot.docs.length >= 3) {
-    throw new Error("Message limit reached");
+  if (snapshot.docs.length >= messageLimit) {
+    throw new Error(`Message limit reached (${messageLimit} messages)`);
   }
 
   await addDoc(messagesRef, {
@@ -59,17 +65,21 @@ export const sendMessageWithLimit = async ({
 };
 
 /**
- * Check if a user can send a message (enforce 3-message limit per user per match)
+ * Check if a user can send a message (enforce message limit per user per match)
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
  */
 export const canSendMessage = async (matchId: string, senderId: string): Promise<boolean> => {
   try {
+    const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+      ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+      : 3;
     const q = query(
       collection(firestore, "messages"),
       where("matchId", "==", matchId),
       where("senderId", "==", senderId)
     );
     const snapshot = await getDocs(q);
-    return snapshot.size < 3;
+    return snapshot.size < messageLimit;
   } catch (error) {
     console.error('Error checking message limit:', error);
     return false;
@@ -147,10 +157,13 @@ export const subscribeToMessageLimit = (
     where("senderId", "==", senderId)
   );
 
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+    : 3;
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const messageCount = snapshot.docs.length;
-    const canSend = messageCount < 3;
-    const remaining = Math.max(0, 3 - messageCount);
+    const canSend = messageCount < messageLimit;
+    const remaining = Math.max(0, messageLimit - messageCount);
     callback(canSend, remaining);
   });
 

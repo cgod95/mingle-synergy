@@ -10,8 +10,9 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { FirestoreMatch } from "@/types/match";
+import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 
-const MATCH_EXPIRATION_HOURS = 3;
+const MATCH_EXPIRATION_HOURS = 3; // Keep for compatibility, but use MATCH_EXPIRY_MS for calculations
 
 export function useRealtimeMatches(): FirestoreMatch[] {
   const { currentUser } = useAuth();
@@ -32,7 +33,7 @@ export function useRealtimeMatches(): FirestoreMatch[] {
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data() as FirestoreMatch;
         const matchAge = Date.now() - data.timestamp;
-        const isExpired = matchAge > MATCH_EXPIRATION_HOURS * 60 * 60 * 1000;
+        const isExpired = matchAge > MATCH_EXPIRY_MS;
 
         if (isExpired) {
           await deleteDoc(doc(db, "matches", docSnap.id));
@@ -55,7 +56,7 @@ export function useRealtimeMatches(): FirestoreMatch[] {
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data() as FirestoreMatch;
         const matchAge = Date.now() - data.timestamp;
-        const isExpired = matchAge > MATCH_EXPIRATION_HOURS * 60 * 60 * 1000;
+        const isExpired = matchAge > MATCH_EXPIRY_MS;
 
         if (isExpired) {
           await deleteDoc(doc(db, "matches", docSnap.id));
