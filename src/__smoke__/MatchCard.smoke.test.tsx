@@ -26,6 +26,10 @@ vi.mock('firebase/firestore', () => ({
   connectFirestoreEmulator: vi.fn(),
 }));
 
+vi.mock('firebase/storage', () => ({
+  getStorage: vi.fn(() => ({})),
+}));
+
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>

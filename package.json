@@ -87,6 +87,7 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@rollup/rollup-darwin-arm64": "^4.52.5",
     "@tailwindcss/typography": "^0.5.15",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.15.34",
     "@types/react": "^18.3.23",
