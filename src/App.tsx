@@ -29,7 +29,7 @@ export default function App() {
             <Route path="/venues/:id" element={<VenueDetails />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/chats" element={<ChatIndex />} />
-            <Route path="/chat/:id" element={<ChatRoom />} />
+            <Route path="/chat/:id" element={<ChatRoomGuard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/debug" element={<Debug />} />
           </Route>
