@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, createContext, useContext } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -11,131 +11,34 @@ import {
   Accessibility
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getAriaLabel } from './accessibility-utils';
-import { cn } from '@/lib/utils';
+import { useKeyboardNavigation, getAriaLabel } from './accessibility-utils';
 
-// Accessibility Context
-interface AccessibilityContextType {
-  announceToScreenReader: (message: string, priority?: 'polite' | 'assertive') => void;
-  setFocusTrap: (element: HTMLElement | null) => void;
-  isKeyboardUser: boolean;
-  highContrastMode: boolean;
-  reducedMotion: boolean;
-}
+// Skip to main content link
+export const SkipToMainContent: React.FC = () => (
+  <motion.a
+    href="#main-content"
+    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.2 }}
+  >
+    Skip to main content
+  </motion.a>
+);
 
-const AccessibilityContext = createContext<AccessibilityContextType | null>(null);
+// Screen reader only text
+export const ScreenReaderOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <span className="sr-only">{children}</span>
+);
 
-export const useAccessibility = () => {
-  const context = useContext(AccessibilityContext);
-  if (!context) {
-    throw new Error('useAccessibility must be used within an AccessibilityProvider');
-  }
-  return context;
-};
-
-// Accessibility Provider
-export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isKeyboardUser, setIsKeyboardUser] = useState(false);
-  const [highContrastMode, setHighContrastMode] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const liveRegionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Detect keyboard user
-    const handleKeyDown = () => setIsKeyboardUser(true);
-    const handleMouseDown = () => setIsKeyboardUser(false);
-    
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousedown', handleMouseDown);
-    
-    // Check for user preferences
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mediaQuery.matches);
-    
-    const handleMotionChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handleMotionChange);
-    
-    // Check for high contrast mode
-    const highContrastQuery = window.matchMedia('(prefers-contrast: high)');
-    setHighContrastMode(highContrastQuery.matches);
-    
-    const handleContrastChange = (e: MediaQueryListEvent) => setHighContrastMode(e.matches);
-    highContrastQuery.addEventListener('change', handleContrastChange);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handleMouseDown);
-      mediaQuery.removeEventListener('change', handleMotionChange);
-      highContrastQuery.removeEventListener('change', handleContrastChange);
-    };
-  }, []);
-
-  const announceToScreenReader = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    if (liveRegionRef.current) {
-      liveRegionRef.current.setAttribute('aria-live', priority);
-      liveRegionRef.current.textContent = message;
-      
-      // Clear the message after a short delay
-      setTimeout(() => {
-        if (liveRegionRef.current) {
-          liveRegionRef.current.textContent = '';
-        }
-      }, 1000);
-    }
-  };
-
-  const setFocusTrap = (element: HTMLElement | null) => {
-    if (element) {
-      element.focus();
-    }
-  };
-
-  return (
-    <AccessibilityContext.Provider
-      value={{
-        announceToScreenReader,
-        setFocusTrap,
-        isKeyboardUser,
-        highContrastMode,
-        reducedMotion
-      }}
-    >
-      {children}
-      {/* Live region for screen reader announcements */}
-      <div
-        ref={liveRegionRef}
-        className="sr-only"
-        aria-live="polite"
-        aria-atomic="true"
-      />
-    </AccessibilityContext.Provider>
-  );
-};
-
-// Focus Trap Component
-interface FocusTrapProps {
-  children: React.ReactNode;
-  active?: boolean;
-  onEscape?: () => void;
-  className?: string;
-}
-
-export const FocusTrap: React.FC<FocusTrapProps> = ({ 
-  children, 
-  active = true, 
-  onEscape,
-  className 
-}) => {
+// Focus trap for modals
+export const FocusTrap: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setFocusTrap } = useAccessibility();
 
   useEffect(() => {
-    if (!active) return;
-
     const container = containerRef.current;
     if (!container) return;
 
-    // Get all focusable elements
     const focusableElements = container.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
@@ -143,11 +46,6 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({
     const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onEscape) {
-        onEscape();
-        return;
-      }
-
       if (e.key === 'Tab') {
         if (e.shiftKey) {
           if (document.activeElement === firstElement) {
@@ -163,375 +61,48 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // Focus the first element
-    if (firstElement) {
-      setFocusTrap(firstElement);
-    }
+    container.addEventListener('keydown', handleKeyDown);
+    firstElement?.focus();
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener('keydown', handleKeyDown);
     };
-  }, [active, onEscape, setFocusTrap]);
+  }, []);
 
-  return (
-    <div ref={containerRef} className={className}>
-      {children}
-    </div>
-  );
+  return <div ref={containerRef}>{children}</div>;
 };
 
-// Skip Link Component
-export const SkipLink: React.FC<{ href: string; children: React.ReactNode }> = ({ 
-  href, 
-  children 
+// Accessible button with proper ARIA attributes
+export const AccessibleButton: React.FC<{
+  children: React.ReactNode;
+  onClick: () => void;
+  ariaLabel?: string;
+  ariaDescribedBy?: string;
+  ariaExpanded?: boolean;
+  ariaPressed?: boolean;
+  disabled?: boolean;
+  className?: string;
+}> = ({ 
+  children, 
+  onClick, 
+  ariaLabel, 
+  ariaDescribedBy, 
+  ariaExpanded, 
+  ariaPressed, 
+  disabled = false,
+  className = ''
 }) => (
-  <a
-    href={href}
-    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={ariaLabel}
+    aria-describedby={ariaDescribedBy}
+    aria-expanded={ariaExpanded}
+    aria-pressed={ariaPressed}
+    className={`focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${className}`}
   >
     {children}
-  </a>
-);
-
-// Screen Reader Only Text
-export const SrOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <span className="sr-only">{children}</span>
-);
-
-// Accessible Button Component
-interface AccessibleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-  description?: string;
-  loading?: boolean;
-  variant?: 'primary' | 'secondary' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-}
-
-export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
-  children,
-  description,
-  loading = false,
-  variant = 'primary',
-  size = 'md',
-  disabled,
-  className,
-  ...props
-}) => {
-  const { announceToScreenReader } = useAccessibility();
-  const [isPressed, setIsPressed] = useState(false);
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (loading || disabled) return;
-    
-    setIsPressed(true);
-    setTimeout(() => setIsPressed(false), 150);
-    
-    if (description) {
-      announceToScreenReader(description);
-    }
-    
-    props.onClick?.(e);
-  };
-
-  const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-200 hover:bg-gray-300 focus:ring-gray-500',
-    danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-  };
-
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
-  };
-
-  return (
-    <button
-      {...props}
-      disabled={disabled || loading}
-      onClick={handleClick}
-      aria-pressed={isPressed}
-      aria-describedby={description ? `${props.id || 'button'}-desc` : undefined}
-      className={cn(
-        'inline-flex items-center justify-center font-medium rounded-md transition-colors',
-        'focus:outline-none focus:ring-2 focus:ring-offset-2',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        variantClasses[variant],
-        sizeClasses[size],
-        className
-      )}
-    >
-      {loading && (
-        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
-      )}
-      {children}
-      {description && (
-        <span id={`${props.id || 'button'}-desc`} className="sr-only">
-          {description}
-        </span>
-      )}
-    </button>
-  );
-};
-
-// Accessible Modal Component
-interface AccessibleModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  description?: string;
-  className?: string;
-}
-
-export const AccessibleModal: React.FC<AccessibleModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-  description,
-  className
-}) => {
-  const { announceToScreenReader } = useAccessibility();
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      announceToScreenReader(`${title} modal opened`);
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, title, announceToScreenReader]);
-
-  if (!isOpen) return null;
-
-  return (
-    <FocusTrap active={isOpen} onEscape={onClose}>
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-          onClick={onClose}
-          role="presentation"
-        />
-        
-        {/* Modal */}
-        <div className="flex min-h-full items-center justify-center p-4">
-          <div
-            ref={modalRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-            aria-describedby={description ? "modal-description" : undefined}
-            className={cn(
-              "relative bg-white rounded-lg shadow-xl max-w-md w-full p-6",
-              className
-            )}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 id="modal-title" className="text-lg font-semibold text-gray-900">
-                {title}
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600"
-                aria-label="Close modal"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Description */}
-            {description && (
-              <p id="modal-description" className="text-sm text-gray-600 mb-4">
-                {description}
-              </p>
-            )}
-
-            {/* Content */}
-            <div>{children}</div>
-          </div>
-        </div>
-      </div>
-    </FocusTrap>
-  );
-};
-
-// Accessible Form Field Component
-interface AccessibleFormFieldProps {
-  label: string;
-  id: string;
-  error?: string;
-  required?: boolean;
-  children: React.ReactNode;
-  description?: string;
-  className?: string;
-}
-
-export const AccessibleFormField: React.FC<AccessibleFormFieldProps> = ({
-  label,
-  id,
-  error,
-  required = false,
-  children,
-  description,
-  className
-}) => {
-  const errorId = `${id}-error`;
-  const descriptionId = description ? `${id}-description` : undefined;
-
-  return (
-    <div className={cn('space-y-2', className)}>
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-foreground"
-      >
-        {label}
-        {required && <span className="text-destructive ml-1" aria-label="required">*</span>}
-      </label>
-      
-      {description && (
-        <p id={descriptionId} className="text-sm text-gray-500">
-          {description}
-        </p>
-      )}
-      
-      {React.cloneElement(children as React.ReactElement, {
-        id,
-        'aria-invalid': error ? 'true' : 'false',
-        'aria-describedby': [descriptionId, errorId].filter(Boolean).join(' ') || undefined,
-        required
-      })}
-      
-      {error && (
-        <div 
-          id={errorId} 
-          className="text-sm text-destructive" 
-          role="alert"
-          aria-live="polite"
-        >
-          {error}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Keyboard Navigation Hook
-export const useKeyboardNavigation = (items: unknown[], onSelect: (index: number) => void) => {
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setFocusedIndex(prev => (prev + 1) % items.length);
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setFocusedIndex(prev => (prev - 1 + items.length) % items.length);
-        break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        if (focusedIndex >= 0) {
-          onSelect(focusedIndex);
-        }
-        break;
-      case 'Escape':
-        setFocusedIndex(-1);
-        break;
-    }
-  };
-
-  return { focusedIndex, handleKeyDown, setFocusedIndex };
-};
-
-// High Contrast Mode Hook
-export const useHighContrastMode = () => {
-  const [isHighContrast, setIsHighContrast] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-contrast: high)');
-    setIsHighContrast(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => setIsHighContrast(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  return isHighContrast;
-};
-
-// Reduced Motion Hook
-export const useReducedMotion = () => {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  return prefersReducedMotion;
-};
-
-// Focus Management Hook
-export const useFocusManagement = () => {
-  const focusStack = useRef<HTMLElement[]>([]);
-
-  const pushFocus = (element: HTMLElement) => {
-    focusStack.current.push(element);
-  };
-
-  const popFocus = () => {
-    const element = focusStack.current.pop();
-    if (element) {
-      element.focus();
-    }
-  };
-
-  const returnFocus = () => {
-    const element = focusStack.current[focusStack.current.length - 1];
-    if (element) {
-      element.focus();
-    }
-  };
-
-  return { pushFocus, popFocus, returnFocus };
-};
-
-export default AccessibilityProvider;
-
-// Skip to main content link
-export const SkipToMainContent: React.FC = () => (
-  <motion.a
-    href="#main-content"
-    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
-    initial={{ opacity: 0, y: -10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.2 }}
-  >
-    Skip to main content
-  </motion.a>
+  </button>
 );
 
 // Accessible image with proper alt text
@@ -552,9 +123,14 @@ export const AccessibleImage: React.FC<{
 // Live region for announcements
 export const LiveRegion: React.FC<{ 
   children: React.ReactNode;
-  ariaLive?: 'polite' | 'assertive' | 'off';
-}> = ({ children, ariaLive = 'polite' }) => (
-  <div aria-live={ariaLive} aria-atomic="true" className="sr-only">
+  'aria-live'?: 'polite' | 'assertive';
+  'aria-atomic'?: boolean;
+}> = ({ children, 'aria-live': ariaLive = 'polite', 'aria-atomic': ariaAtomic = true }) => (
+  <div
+    aria-live={ariaLive}
+    aria-atomic={ariaAtomic}
+    className="sr-only"
+  >
     {children}
   </div>
 );
@@ -749,7 +325,7 @@ export const KeyboardShortcuts: React.FC = () => {
 
 // ARIA landmarks
 export const MainLandmark: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <main role="main" aria-label="Main content" tabIndex={-1}>
+  <main role="main" aria-label="Main content">
     {children}
   </main>
 );
@@ -758,7 +334,7 @@ export const NavigationLandmark: React.FC<{
   children: React.ReactNode;
   label?: string;
 }> = ({ children, label = "Main navigation" }) => (
-  <nav role="navigation" aria-label={label} tabIndex={-1}>
+  <nav role="navigation" aria-label={label}>
     {children}
   </nav>
 );
@@ -781,6 +357,31 @@ export const ContentInfoLandmark: React.FC<{ children: React.ReactNode }> = ({ c
   </footer>
 );
 
+// Accessible form field
+export const AccessibleFormField: React.FC<{
+  label: string;
+  id: string;
+  error?: string;
+  required?: boolean;
+  children: React.ReactNode;
+}> = ({ label, id, error, required = false, children }) => (
+  <div className="space-y-2">
+    <label 
+      htmlFor={id} 
+      className="block text-sm font-medium text-gray-700"
+    >
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+    {children}
+    {error && (
+      <p id={`${id}-error`} className="text-sm text-red-600" role="alert">
+        {error}
+      </p>
+    )}
+  </div>
+);
+
 // Accessible loading indicator
 export const AccessibleLoadingIndicator: React.FC<{
   isLoading: boolean;
@@ -798,6 +399,9 @@ export const AccessibleLoadingIndicator: React.FC<{
     )}
   </div>
 );
+
+// Re-export for convenience
+export { useKeyboardNavigation, getAriaLabel };
 
 // High contrast mode support
 export const HighContrastMode: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -864,4 +468,15 @@ export const KeyboardShortcut: React.FC<{
       ))}
     </div>
   </div>
-); 
+);
+
+// Accessibility provider for global settings
+export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <FocusVisible>
+      <ReducedMotion>
+        {children}
+      </ReducedMotion>
+    </FocusVisible>
+  );
+}; 

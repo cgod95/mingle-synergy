@@ -11,7 +11,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 import { getUserMatches } from '@/data/mock/matches';
 import { mockUsers } from '@/data/mock/users';
 import { Match, User } from '@/types';
-import PrivateLayout from '@/components/PrivateLayout';
+import Layout from '@/components/Layout';
 import { Heart, MessageCircle, Clock, MapPin } from 'lucide-react';
 
 interface DisplayMatchWithExpiry extends DisplayMatch {
@@ -19,7 +19,7 @@ interface DisplayMatchWithExpiry extends DisplayMatch {
   matchedAt: number;
 }
 
-export default function MatchesPage() {
+const MatchesPage = () => {
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [matchedUsers, setMatchedUsers] = useState<User[]>([]);
@@ -69,7 +69,7 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <PrivateLayout>
+      <Layout>
         <div className="space-y-8 pb-24">
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-neutral-900">Matches</h1>
@@ -78,13 +78,13 @@ export default function MatchesPage() {
           <ListSkeleton count={6} />
         </div>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <PrivateLayout>
+      <Layout>
         <div className="flex items-center justify-center min-h-[80vh] pb-24">
           <div className="text-center space-y-4">
             <p className="text-neutral-600">{error}</p>
@@ -94,12 +94,12 @@ export default function MatchesPage() {
           </div>
         </div>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   return (
-    <PrivateLayout>
+    <Layout>
       <div className="space-y-8 pb-24">
         <div className="space-y-4">
           <h1 className="text-2xl font-bold text-neutral-900">Matches</h1>
@@ -182,6 +182,8 @@ export default function MatchesPage() {
         )}
       </div>
       <BottomNav />
-    </PrivateLayout>
+    </Layout>
   );
-} 
+};
+
+export default MatchesPage; 

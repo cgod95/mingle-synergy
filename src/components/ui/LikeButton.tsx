@@ -24,10 +24,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({ isLiked, onToggle }) => {
     <button
       onClick={handleClick}
       disabled={loading}
-      className="focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded-full p-1 transition-colors"
+      className="focus:outline-none"
       aria-label={isLiked ? 'Unlike' : 'Like'}
-      aria-pressed={isLiked}
-      aria-busy={loading}
     >
       {isLiked ? (
         <Heart className="text-red-500 w-6 h-6 fill-current" />

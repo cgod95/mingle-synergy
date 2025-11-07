@@ -9,7 +9,7 @@ import MessageList from "@/components/MessageList";
 import { mockMatches } from "@/data/mock";
 import { mockUsers } from "@/data/mock";
 import { mockMessages } from "@/data/mock";
-import PrivateLayout from '@/components/PrivateLayout';
+import Layout from "@/components/Layout";
 
 export default function ChatThreadPage() {
   const { matchId } = useParams();
@@ -76,19 +76,19 @@ export default function ChatThreadPage() {
 
   if (loading) {
     return (
-      <PrivateLayout>
+      <Layout>
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center pb-20">
           <SmallLoadingSpinner />
           <p className="mt-2 text-muted-foreground">Loading chat...</p>
         </div>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   if (!match || !partner) {
     return (
-      <PrivateLayout>
+      <Layout>
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center pb-20">
           <div className="text-center">
             <h3 className="text-lg font-medium text-gray-900 mb-2">Chat not found</h3>
@@ -98,12 +98,12 @@ export default function ChatThreadPage() {
           </div>
         </div>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   return (
-    <PrivateLayout>
+    <Layout>
       <div className="min-h-screen bg-gray-50 flex flex-col pb-20">
         {/* Header */}
         <div className="bg-white border-b px-4 py-3 flex items-center gap-3">
@@ -135,6 +135,6 @@ export default function ChatThreadPage() {
         <MessageInput matchId={matchId!} onMessageSent={handleMessageSent} />
       </div>
       <BottomNav />
-    </PrivateLayout>
+    </Layout>
   );
 } 

@@ -1,105 +1,373 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import { addMatch } from "../lib/matchStore";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  MapPin, 
+  Clock, 
+  Users, 
+  Heart, 
+  MessageCircle, 
+  Zap,
+  Coffee,
+  Music,
+  Dumbbell,
+  Palette,
+  BookOpen,
+  TrendingUp,
+  Activity,
+  Star
+} from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
+import { mockVenues } from '@/data/mock';
+import { mockUsers } from '@/data/mock';
+import { notificationService } from '@/services/notificationService';
+import CheckInButton from '@/components/CheckInButton';
+import VenueUserGrid from '@/components/venue/VenueUserGrid';
+import VenueDetails from '@/components/venue/VenueDetails';
+import Layout from '@/components/Layout';
+import BottomNav from '@/components/BottomNav';
 
-type UserProfile = {
+interface VenueActivity {
   id: string;
-  name: string;
-  photoURL?: string;
-  checkedInVenueId?: string;
-};
-
-const demoPeople: UserProfile[] = [
-  { id: "u1", name: "Sam 101", photoURL: "https://api.dicebear.com/7.x/thumbs/svg?seed=1" },
-  { id: "u2", name: "Alex 102", photoURL: "https://api.dicebear.com/7.x/thumbs/svg?seed=2" },
-  { id: "u3", name: "Jordan 103", photoURL: "https://api.dicebear.com/7.x/thumbs/svg?seed=3" }
-];
+  type: 'checkin' | 'match' | 'message' | 'like';
+  description: string;
+  timestamp: number;
+  userCount?: number;
+}
 
 export default function ActiveVenue() {
-  const { id } = useParams();
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const db = getFirestore();
-  const demo = import.meta.env.VITE_DEMO_MODE === "true";
+  const { venueId } = useParams<{ venueId: string }>();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+  
+  const [venue, setVenue] = useState(mockVenues.find(v => v.id === venueId));
+  const [venueActivity, setVenueActivity] = useState<VenueActivity[]>([]);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+
+  const simulateVenueActivity = useCallback(() => {
+    const activityTypes: VenueActivity['type'][] = ['checkin', 'match', 'message', 'like'];
+    const type = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+    
+    let description = '';
+    switch (type) {
+      case 'checkin':
+        description = 'Someone new checked in';
+        break;
+      case 'match':
+        description = 'A new match was made here';
+        break;
+      case 'message':
+        description = 'Messages were exchanged';
+        break;
+      case 'like':
+        description = 'Someone liked a profile';
+        break;
+    }
+
+    const newActivity: VenueActivity = {
+      id: `activity_${Date.now()}`,
+      type,
+      description,
+      timestamp: Date.now(),
+      userCount: Math.floor(Math.random() * 3) + 1
+    };
+
+    setVenueActivity(prev => [newActivity, ...prev.slice(0, 9)]);
+
+    // Send venue activity notification
+    notificationService.notifyVenueActivity({
+      venueName: venue?.name || '',
+      venueId: venueId || '',
+      activity: description
+    });
+  }, [venue?.name, venueId]);
 
   useEffect(() => {
-    let ignore = false;
-    const load = async () => {
-      setLoading(true);
-      try {
-        if (!id) { setUsers([]); return; }
-        const q = query(collection(db, "users"), where("checkedInVenueId", "==", id));
-        const snap = await getDocs(q);
-        if (ignore) return;
-        const list: UserProfile[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
-        if (list.length === 0 && demo) {
-          // Fallback to demo people in demo mode
-          setUsers(demoPeople.map(p => ({ ...p, checkedInVenueId: id })));
-        } else {
-          setUsers(list);
-        }
-      } catch (e) {
-        console.error("Failed to load users for venue", id, e);
-        setUsers(demo ? demoPeople.map(p => ({ ...p, checkedInVenueId: id })) : []);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    };
-    load();
-    return () => { ignore = true; };
-  }, [db, id, demo]);
+    if (!venueId || !venue) {
+      navigate('/venues');
+      return;
+    }
 
-  const likeUser = (u: UserProfile) => {
-    addMatch({
-      id: `m-${Date.now()}-${u.id}`,
-      youId: "you",
-      otherId: u.id,
-      otherName: u.name || "Guest",
-      otherAvatar: u.photoURL,
-      venueId: id,
-      createdAt: Date.now(),
-      messages: []
-    });
-    alert(`You liked ${u.name || "this person"} (saved to Matches)`);
+    // Check if user is already checked in
+    const userCheckIns = JSON.parse(localStorage.getItem(`checkIns_${currentUser?.uid}`) || '[]');
+    const isUserCheckedIn = userCheckIns.some((ci: { venueName: string; expiresAt: number }) => 
+      ci.venueName === venue.name && ci.expiresAt && Date.now() < ci.expiresAt
+    );
+    setIsCheckedIn(isUserCheckedIn);
+
+    // Generate venue activity
+    generateVenueActivity();
+
+    // Set up real-time activity simulation
+    const activityInterval = setInterval(() => {
+      simulateVenueActivity();
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(activityInterval);
+  }, [venueId, venue, currentUser?.uid, navigate, simulateVenueActivity]);
+
+  const generateVenueActivity = () => {
+    const activities: VenueActivity[] = [];
+    const now = Date.now();
+    
+    // Generate recent activity
+    for (let i = 0; i < 10; i++) {
+      const activityTypes: VenueActivity['type'][] = ['checkin', 'match', 'message', 'like'];
+      const type = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+      
+      let description = '';
+      switch (type) {
+        case 'checkin':
+          description = 'Someone new checked in';
+          break;
+        case 'match':
+          description = 'A new match was made here';
+          break;
+        case 'message':
+          description = 'Messages were exchanged';
+          break;
+        case 'like':
+          description = 'Someone liked a profile';
+          break;
+      }
+
+      activities.push({
+        id: `activity_${i}`,
+        type,
+        description,
+        timestamp: now - (Math.random() * 3600000), // Last hour
+        userCount: Math.floor(Math.random() * 5) + 1
+      });
+    }
+
+    setVenueActivity(activities.sort((a, b) => b.timestamp - a.timestamp));
   };
 
+  const handleCheckIn = () => {
+    setIsCheckedIn(true);
+    
+    // Send check-in notification
+    const peopleCount = mockUsers.filter(u => 
+      u.currentVenue === venueId && u.isCheckedIn
+    ).length;
+
+    notificationService.notifyVenueCheckIn({
+      venueName: venue?.name || '',
+      venueId: venueId || '',
+      peopleCount
+    });
+  };
+
+  const getVenueIcon = (venueType: string) => {
+    switch (venueType.toLowerCase()) {
+      case 'cafe':
+      case 'coffee shop':
+        return <Coffee className="w-6 h-6" />;
+      case 'bar':
+      case 'pub':
+      case 'club':
+        return <Music className="w-6 h-6" />;
+      case 'gym':
+      case 'fitness':
+        return <Dumbbell className="w-6 h-6" />;
+      case 'gallery':
+      case 'museum':
+        return <Palette className="w-6 h-6" />;
+      case 'library':
+      case 'bookstore':
+        return <BookOpen className="w-6 h-6" />;
+      default:
+        return <MapPin className="w-6 h-6" />;
+    }
+  };
+
+  const getActivityIcon = (type: VenueActivity['type']) => {
+    switch (type) {
+      case 'checkin':
+        return <MapPin className="w-4 h-4 text-green-500" />;
+      case 'match':
+        return <Heart className="w-4 h-4 text-red-500" />;
+      case 'message':
+        return <MessageCircle className="w-4 h-4 text-blue-500" />;
+      case 'like':
+        return <Heart className="w-4 h-4 text-pink-500" />;
+    }
+  };
+
+  const getTimeAgo = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return 'Today';
+  };
+
+  if (!venue) {
+    return (
+      <Layout>
+        <div className="text-center py-8">
+          <p>Venue not found</p>
+        </div>
+        <BottomNav />
+      </Layout>
+    );
+  }
+
+  const peopleAtVenue = mockUsers.filter(u => 
+    u.currentVenue === venueId && u.isCheckedIn
+  ).length;
+
   return (
-    <main style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>People at this venue</h1>
-      {loading ? (
-        <div>Loading…</div>
-      ) : users.length === 0 ? (
-        <div style={{ color: "#666" }}>No one is currently checked in.</div>
-      ) : (
-        <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
-          {users.map(u => (
-            <li key={u.id} style={{ padding: 16, border: "1px solid #eee", borderRadius: 12, background: "#fff" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                <img
-                  src={u.photoURL || "https://api.dicebear.com/7.x/thumbs/svg?seed=anon"}
-                  alt={u.name || "Guest"}
-                  style={{ width: 48, height: 48, borderRadius: "50%" }}
-                />
-                <div style={{ fontWeight: 600 }}>{u.name || "Guest"}</div>
+    <Layout>
+      <div className="space-y-6 pb-20">
+        {/* Venue Header */}
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  {getVenueIcon(venue.type)}
+                </div>
+                <div>
+                  <CardTitle className="text-xl">{venue.name}</CardTitle>
+                  <p className="text-sm text-gray-600">{venue.address}</p>
+                  <div className="flex items-center mt-1">
+                    <Badge variant="secondary" className="mr-2">
+                      {venue.type}
+                    </Badge>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Users className="w-4 h-4 mr-1" />
+                      {peopleAtVenue} people here
+                    </div>
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={() => likeUser(u)}
-                style={{
-                  background: "#2563eb",
-                  color: "#fff",
-                  border: "none",
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  cursor: "pointer"
-                }}
-              >
-                Like
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+              <div className="text-right">
+                <div className="flex items-center text-sm text-gray-500">
+                  <Star className="w-4 h-4 mr-1 text-yellow-500" />
+                  Popular venue
+                </div>
+                <div className="flex items-center text-sm text-gray-500 mt-1">
+                  <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
+                  Active today
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Check-in Section */}
+        <CheckInButton 
+          venueId={venueId!}
+          venueName={venue.name}
+          onCheckIn={handleCheckIn}
+          className="mb-6"
+        />
+
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="people">People</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <VenueDetails 
+              venue={{
+                ...venue,
+                userCount: peopleAtVenue
+              }}
+              expiryTime="12 hours"
+              onCheckOut={() => {
+                // Handle check out logic
+                toast({
+                  title: "Checked out",
+                  description: "You're no longer visible at this venue",
+                });
+              }}
+            />
+            
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Venue Stats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{peopleAtVenue}</div>
+                    <div className="text-sm text-blue-600">People here</div>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {Math.floor(Math.random() * 20) + 5}
+                    </div>
+                    <div className="text-sm text-green-600">Matches today</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="people" className="space-y-4">
+            <VenueUserGrid 
+              venueId={venueId!}
+              venueName={venue.name}
+              onUserLike={(userId) => {
+                toast({
+                  title: "Like sent! ❤️",
+                  description: "They'll be notified of your interest",
+                });
+              }}
+              onUserView={(userId) => {
+                navigate(`/profile/${userId}`);
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="activity" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Activity className="w-5 h-5 mr-2" />
+                  Live Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {venueActivity.map((activity) => (
+                    <div key={activity.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-shrink-0">
+                        {getActivityIcon(activity.type)}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{activity.description}</p>
+                        <p className="text-xs text-gray-500">
+                          {getTimeAgo(activity.timestamp)}
+                          {activity.userCount && ` • ${activity.userCount} people involved`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      <BottomNav />
+    </Layout>
   );
 }

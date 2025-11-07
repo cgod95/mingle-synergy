@@ -1,105 +1,74 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+// 🧠 Purpose: Implement ProfileEdit page to allow user to edit their name and bio.
+// --- File: /src/pages/ProfileEdit.tsx ---
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { useNotification } from "@/context/NotificationContext";
-import PageTransition from '@/components/ui/PageTransition';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import userService from "@/services/firebase/userService";
+import { useAuth } from "@/context/AuthContext";
+import Layout from "@/components/Layout";
 
-const ProfileEdit = () => {
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const { showNotification } = useNotification();
+export default function ProfileEdit() {
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const { currentUser } = useAuth();
+
+  const handleSave = async () => {
+    if (!currentUser) return;
     
+    setSaving(true);
     try {
-      // Save profile logic will go here
-      
-      // Mark profile as complete
-      localStorage.setItem('profileComplete', 'true');
-      
-      toast({
-        title: "Profile saved!",
-        description: "Your profile has been updated.",
-        variant: "default"
+      await userService.updateUserProfile(currentUser.uid, {
+        name,
+        bio
       });
-      
-      // Show notification
-      showNotification('success', 'Profile saved successfully!');
-      
-      navigate('/venues');
+      navigate("/profile");
     } catch (error) {
-      console.error('Profile save error:', error);
-      toast({
-        title: "Failed to save profile",
-        description: "Please try again.",
-        variant: "destructive"
-      });
-      
-      // Show error notification
-      showNotification('error', 'Failed to save profile. Please try again.');
+      console.error('Error updating profile:', error);
     } finally {
-      setIsLoading(false);
+      setSaving(false);
     }
   };
-  
+
   return (
-    <PageTransition>
-      <div className="min-h-screen bg-bg-primary p-4">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-2xl font-bold mb-6 text-text-primary">Complete Your Profile</h1>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <Layout>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle>Edit Profile</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-text-primary">Name</label>
+              <label className="block text-sm font-medium text-neutral-900">Name</label>
               <Input
-                id="name"
+                type="text"
+                placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
               />
             </div>
-            
             <div className="space-y-2">
-              <label htmlFor="bio" className="text-sm font-medium text-text-primary">Bio</label>
-              <Textarea
-                id="bio"
+              <label className="block text-sm font-medium text-neutral-900">Bio</label>
+              <Input
+                type="text"
+                placeholder="Short bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell us a bit about yourself"
-                rows={4}
               />
             </div>
-            
             <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading}
+              className="w-full" 
+              onClick={handleSave}
+              disabled={saving || !name.trim() || !bio.trim()}
             >
-              {isLoading ? 'Saving...' : 'Save Profile'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={() => showNotification('info', 'This is a test notification', 8000)}
-            >
-              Test Notification
-            </Button>
-          </form>
-        </div>
+          </CardContent>
+        </Card>
       </div>
-    </PageTransition>
+    </Layout>
   );
-};
-
-export default ProfileEdit;
+}

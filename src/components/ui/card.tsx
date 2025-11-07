@@ -1,17 +1,25 @@
-import React from "react"
+import * as React from "react"
+import { motion, HTMLMotionProps } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
+  Omit<HTMLMotionProps<"div">, "ref"> & {
+    hover?: boolean
+    delay?: number
+  }
+>(({ className, hover = false, delay = 0, ...props }, ref) => (
+  <motion.div
     ref={ref}
     className={cn(
       "rounded-lg border bg-card text-card-foreground shadow-sm",
       className
     )}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3, delay }}
+    whileHover={hover ? { y: -2, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" } : undefined}
     {...props}
   />
 ))
@@ -76,4 +84,17 @@ const CardFooter = React.forwardRef<
 ))
 CardFooter.displayName = "CardFooter"
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+// New component for card dividers
+const CardDivider = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("border-t border-neutral-200 my-4", className)}
+    {...props}
+  />
+))
+CardDivider.displayName = "CardDivider"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardDivider }

@@ -1,81 +1,155 @@
-import React, { useMemo } from "react";
-import SafeImg from "../common/SafeImg";
-import { useNavigate, useParams } from "react-router-dom";
-import { getVenue, listPeopleForVenue, type Person } from "../../lib/api";
+import { useNavigate } from 'react-router-dom';  // Import this if you are using React Router
+import React, { useEffect, useState } from 'react';
+import { Users } from 'lucide-react';
+import ToggleButton from '../ToggleButton';
+import { getDocs, collection, query, where } from 'firebase/firestore';
+import { firestore } from '../../firebase/config';
 
-export default function VenueDetails() {
-  const { id } = useParams();
+interface VenueDetailsProps {
+  venue: {
+    name: string;
+    address?: string;
+    city?: string;
+    userCount: number;
+    id: string;
+    specials?: Array<{
+      title: string;
+      description: string;
+    }>;
+  };
+  expiryTime: string;
+  onCheckOut: () => void;
+  isVisible?: boolean;
+  onToggleVisibility?: () => void;
+}
+
+const VenueDetails: React.FC<VenueDetailsProps> = ({ 
+  venue, 
+  expiryTime, 
+  onCheckOut,
+  isVisible = true,
+  onToggleVisibility
+}) => {
+  const [userCount, setUserCount] = useState<number>(venue.userCount);
+
+  // Check if profile exists, if not, redirect to profile creation page
+  const profileExists = localStorage.getItem('profile');  // or your profile checking logic
   const navigate = useNavigate();
+  useEffect(() => {
+    if (!profileExists) {
+      navigate('/create-profile');
+    }
+  }, [profileExists, navigate]);
 
-  // Try to find the venue from demo data
-  const venue = useMemo(() => getVenue(id ?? ""), [id]);
-  const people: Person[] = useMemo(() => listPeopleForVenue(id), [id]);
+  useEffect(() => {
+    // Debug user fields to verify correct field names
+    const debugUserFields = async () => {
+      try {
+        // Get a sample user to check field names
+        const sampleUserSnapshot = await getDocs(collection(firestore, 'users'));
+        if (!sampleUserSnapshot.empty) {
+          console.log('Sample user fields:', Object.keys(sampleUserSnapshot.docs[0].data()));
+        }
+      } catch (error) {
+        console.error('Debug error:', error);
+      }
+    };
+    
+    // Load users at venue
+    const loadUsersAtVenue = async (venueId: string) => {
+      try {
+        const usersQuery = query(
+          collection(firestore, 'users'),
+          where('currentVenue', '==', venueId),
+          where('isVisible', '==', true)
+        );
 
-  // If the venue isn’t found, show a friendly fallback
-  if (!venue) {
-    return (
-      <div className="p-6 text-center">
-        <h2 className="text-xl font-semibold">Venue not found</h2>
-        <button
-          className="mt-4 rounded-lg bg-black px-4 py-2 text-white"
-          onClick={() => navigate(-1)}
-        >
-          Go Back
-        </button>
-      </div>
-    );
-  }
+        const usersSnapshot = await getDocs(usersQuery);
+        setUserCount(usersSnapshot.size);
+
+        return usersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
+      }
+    };
+
+    debugUserFields();
+    if (venue.id) {
+      loadUsersAtVenue(venue.id);
+    }
+  }, [venue.id]);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      {/* Venue header */}
-      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-        <div className="relative aspect-[16/9] w-full">
-          <SafeImg
-            src={venue.image}
-            alt={venue.name}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-          <div className="absolute bottom-4 left-4">
-            <h1 className="text-2xl font-bold text-white drop-shadow-md">
-              {venue.name}
-            </h1>
-            {venue.address && (
-              <p className="text-sm text-gray-200">{venue.address}</p>
-            )}
+    <div className="mb-6">
+      {/* Existing JSX logic here */}
+      <div className="flex items-start justify-between mb-2">
+        <div>
+          <h1 className="text-xl font-bold">{venue.name}</h1>
+          <p className="text-gray-600 text-sm">
+            {venue.address || venue.city || ''}
+          </p>
+          <div className="flex items-center text-sm text-gray-500 mt-1">
+            <Users className="w-4 h-4 mr-1" />
+            {userCount} people here now
           </div>
         </div>
+        <div className="text-right">
+          <div className="text-sm text-gray-600">Expires at {expiryTime}</div>
+          <button 
+            onClick={onCheckOut}
+            className="text-red-500 text-sm font-medium mt-1"
+          >
+            Check Out
+          </button>
+        </div>
       </div>
-
-      {/* Description */}
-      <p className="text-gray-700 leading-relaxed">{venue.description}</p>
-
-      {/* Checked-in people */}
-      <div>
-        <h2 className="mb-2 text-lg font-semibold">Checked-in people</h2>
-        {people.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No one has checked in yet. Be the first!
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-            {people.map((p) => (
-              <div
-                key={p.id}
-                className="flex flex-col items-center rounded-xl border p-3 shadow-sm"
-              >
-                <SafeImg
-                  src={p.photo}
-                  alt={p.name}
-                  className="h-24 w-24 rounded-full object-cover mb-2"
-                />
-                <p className="text-sm font-medium">{p.name}</p>
+      
+      {/* Prominent Check-out Box */}
+      <div className="bg-white shadow-md rounded-lg p-4 mb-4 flex justify-between items-center border-l-4 border-coral-500">
+        <div>
+          <span className="text-coral-700 font-medium">You are checked in</span>
+          <p className="text-xs text-gray-600">Other users can see you here</p>
+        </div>
+        <button 
+          onClick={onCheckOut}
+          className="px-4 py-2 bg-coral-500 text-white rounded-lg shadow-sm hover:bg-coral-600 transition-colors"
+        >
+          Check Out
+        </button>
+      </div>
+      
+      {/* Specials & Offers Section */}
+      <div className="mt-2 mb-3">
+        <h3 className="text-sm font-medium text-gray-700 mb-1">Specials & Offers</h3>
+        {venue.specials && venue.specials.length > 0 ? (
+          <div className="bg-coral-50 p-2 rounded border border-coral-100 text-sm">
+            {venue.specials.map((special, index) => (
+              <div key={index} className={index > 0 ? "mt-1 pt-1 border-t border-coral-100" : ""}>
+                <p className="font-medium text-coral-700">{special.title}</p>
+                <p className="text-xs text-gray-600">{special.description}</p>
               </div>
             ))}
           </div>
+        ) : (
+          <p className="text-xs text-gray-500 italic">No current specials</p>
         )}
       </div>
+      
+      {onToggleVisibility && (
+        <div className="mt-4">
+          <ToggleButton 
+            isVisible={isVisible}
+            onToggle={onToggleVisibility}
+            className="w-full"
+          />
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default VenueDetails;

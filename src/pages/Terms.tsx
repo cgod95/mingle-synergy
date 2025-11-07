@@ -4,13 +4,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import PublicLayout from '@/components/PublicLayout';
+import Layout from '@/components/Layout';
 
 const Terms: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <PublicLayout>
+    <Layout>
       <div className="flex flex-col items-center justify-center min-h-[80vh]">
         <Card className="max-w-xl w-full">
           <CardHeader className="text-center space-y-2">
@@ -39,7 +39,7 @@ const Terms: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </PublicLayout>
+    </Layout>
   );
 };
 

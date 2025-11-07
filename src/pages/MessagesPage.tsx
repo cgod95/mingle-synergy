@@ -6,7 +6,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 import { getUserMatches } from '@/data/mock/matches';
 import { mockUsers } from '@/data/mock/users';
 import { Match, User } from '@/types';
-import PrivateLayout from '@/components/PrivateLayout';
+import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 import { MessageCircle, Clock, MapPin } from 'lucide-react';
 
@@ -59,7 +59,7 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <PrivateLayout>
+      <Layout>
         <div className="space-y-8 pb-24">
           <div className="space-y-4">
             <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
@@ -68,13 +68,13 @@ export default function MessagesPage() {
           <ListSkeleton count={6} />
         </div>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <PrivateLayout>
+      <Layout>
         <div className="flex items-center justify-center min-h-[80vh] pb-24">
           <div className="text-center space-y-4">
             <p className="text-neutral-600">{error}</p>
@@ -84,12 +84,12 @@ export default function MessagesPage() {
           </div>
         </div>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   return (
-    <PrivateLayout>
+    <Layout>
       <div className="space-y-8 pb-24">
         <div className="space-y-4">
           <h1 className="text-2xl font-bold text-neutral-900">Messages</h1>
@@ -165,6 +165,6 @@ export default function MessagesPage() {
         )}
       </div>
       <BottomNav />
-    </PrivateLayout>
+    </Layout>
   );
 } 

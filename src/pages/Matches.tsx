@@ -1,55 +1,101 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { getActiveMatches, getRemainingSeconds, isExpired, type Match } from "../lib/matchesCompat";
+// 🧠 Purpose: Implement Matches page UI to display matched users from mock data.
 
-function fmt(s: number) {
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${sec}s`;
-  return `${sec}s`;
-}
+import React, { useState } from "react";
+import MatchCard from "@/components/MatchCard";
+import { DisplayMatch } from "@/types/match";
+import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import BottomNav from '../components/BottomNav';
+import ErrorBoundary from '../components/ErrorBoundary';
+import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
+import { getUserMatches, mockUsers } from "@/data/mock";
+import { useToast } from "@/hooks/use-toast";
 
-export default function Matches() {
-  const [tick, setTick] = useState(0);
-  useEffect(() => { const t = setInterval(() => setTick(x=>x+1), 1000); return () => clearInterval(t); }, []);
-  const matches: Match[] = useMemo(() => getActiveMatches(), [tick]);
+const Matches: React.FC = () => {
+  const { currentUser } = useAuth();
+  const [matches, setMatches] = useState<DisplayMatch[]>([]);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      if (!currentUser) return;
+      try {
+        // Use mock data instead of Firebase
+        const currentUserId = currentUser.uid || 'u1'; // Default to u1 for demo
+        const userMatches = getUserMatches(currentUserId);
+        
+        const displayMatches: DisplayMatch[] = userMatches.map((match) => {
+          const matchedUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
+          const matchedUser = mockUsers.find(user => user.id === matchedUserId);
+          
+          return {
+            id: match.id,
+            name: matchedUser?.name || "Unknown",
+            age: matchedUser?.age || 0,
+            bio: matchedUser?.bio || "",
+            photoUrl: matchedUser?.photos?.[0] || "",
+          };
+        });
+
+        setMatches(displayMatches);
+      } catch (error) {
+        console.error('Error fetching matches:', error);
+      }
+    };
+
+    fetchMatches();
+  }, [currentUser]);
+
+  const handleWeMetClick = (matchId: string) => {
+    setSelectedMatchId(matchId);
+    setShowConfirmation(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!currentUser || !selectedMatchId) return;
+    
+    // Show success toast
+    toast({
+      title: "We Met! 🎉",
+      description: "Thanks for confirming! Your match has been updated.",
+      duration: 3000,
+    });
+    
+    setShowConfirmation(false);
+    setSelectedMatchId(null);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmation(false);
+    setSelectedMatchId(null);
+  };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
-      <h1 className="mb-4 text-xl font-semibold text-slate-900">Your Matches</h1>
+    <ErrorBoundary>
+      <div className="pb-16 p-4">
+        <h1 className="text-xl font-semibold mb-4">Your Matches</h1>
+        <div className="space-y-4">
+          {matches.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No matches yet. Check into a venue to meet people!</p>
+          ) : (
+            matches.map((match) => (
+              <MatchCard key={match.id} match={match} onWeMetClick={handleWeMetClick} />
+            ))
+          )}
+        </div>
+      </div>
+      <BottomNav />
 
-      {matches.length === 0 ? (
-        <div className="card p-6 text-sm text-slate-600">No active matches yet. Visit a venue and like someone to start a chat.</div>
-      ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {matches.map(m => {
-            const remain = getRemainingSeconds(m);
-            const expired = isExpired(m);
-            const last = m.messages?.[m.messages.length-1];
-            return (
-              <li key={m.id} className="card p-4">
-                <div className="flex items-center gap-3">
-                  <img src={m.otherAvatar} alt={m.otherName} className="h-10 w-10 rounded-full ring-1 ring-slate-200 object-cover"/>
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-slate-900">{m.otherName}</div>
-                    <div className="truncate text-xs text-slate-500">{last?.text ?? "—"}</div>
-                  </div>
-                  <div className="ml-auto text-xs">
-                    {expired ? (
-                      <span className="badge bg-slate-200 text-slate-700">Expired</span>
-                    ) : (
-                      <span className="badge">Expires in {fmt(remain)}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <Link to={"/chat/"+m.id} className="btn-primary">Open chat</Link>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </main>
+      {/* Confirmation Modal */}
+      <WeMetConfirmationModal
+        open={showConfirmation}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+    </ErrorBoundary>
   );
-}
+};
+
+export default Matches;

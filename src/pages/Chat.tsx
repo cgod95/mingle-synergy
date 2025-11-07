@@ -1,185 +1,204 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { getMatches } from "../lib/matchStore";
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import matchService, { confirmWeMet } from '@/services/firebase/matchService';
+import userService from '@/services/firebase/userService';
+import { FirestoreMatch } from '@/types/match';
+import { UserProfile } from '@/types/UserProfile';
+import ExpiredMatchNotice from '@/components/ExpiredMatchNotice';
+import MessageLimitNotice from '@/components/Notices/MessageLimitNotice';
+import ReconnectionPrompt from '@/components/ReconnectionPrompt';
+import { LoadingSpinner, PageError } from '@/components/StatusFallbacks';
+import { ErrorAlert } from '@/components/FeedbackUtils';
+import WeMetConfirmationModal from '@/components/WeMetConfirmationModal';
+import { Button } from '@/components/ui/button';
 
-type ChatMsg = { id: string; text: string; at: number; who: "me" | "them" };
-
-const MSG_LIMIT = 20;
-const WINDOW_MS = 24 * 60 * 60 * 1000; // 24h
-
-export default function Chat() {
-  // Demo chat limits (idempotent)
-  const messageLimit = 3;
-  const expiryHours = 3;
-  const [timeLeft, setTimeLeft] = useState(expiryHours * 60 * 60 * 1000);
-
-  useEffect(() => {
-    const id = setInterval(() => setTimeLeft(t => Math.max(0, t - 1000)), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [text, setText] = useState("");
-  const [msgs, setMsgs] = useState<ChatMsg[]>([]);
-  const [startedAt, setStartedAt] = useState<number>(() => Date.now());
-  const endRef = useRef<HTMLDivElement | null>(null);
-
-  const match = useMemo(() => getMatches().find(m => m.id === id), [id]);
-
-  // storage keys
-  const keyBase = useMemo(() => `chat:${id}`, [id]);
-  const keyMsgs = `${keyBase}:messages`;
-  const keyStart = `${keyBase}:startedAt`;
+const Chat: React.FC = () => {
+  const { matchId } = useParams<{ matchId: string }>();
+  const { currentUser } = useAuth();
+  const [match, setMatch] = useState<FirestoreMatch | null>(null);
+  const [otherUser, setOtherUser] = useState<UserProfile | null>(null);
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [showWeMetModal, setShowWeMetModal] = useState(false);
+  const [weMetStatus, setWeMetStatus] = useState<"idle" | "confirming" | "confirmed" | "error">("idle");
 
   useEffect(() => {
-    if (!id) return;
-    try {
-      const a = localStorage.getItem(keyStart);
-      if (a) setStartedAt(parseInt(a, 10));
-      else {
-        const now = Date.now();
-        localStorage.setItem(keyStart, String(now));
-        setStartedAt(now);
+    const fetchMatch = async () => {
+      if (!matchId || !currentUser?.uid) return;
+      setLoading(true);
+      try {
+        const matchData = await matchService.getMatchById(matchId);
+        if (!matchData) {
+          setError('Match not found.');
+          return;
+        }
+        setMatch(matchData);
+        
+        // Fetch the other user's profile
+        const otherUserId = matchData.userId1 === currentUser.uid ? matchData.userId2 : matchData.userId1;
+        try {
+          const userProfile = await userService.getUserProfile(otherUserId);
+          setOtherUser(userProfile);
+        } catch (error) {
+          console.error('Error fetching other user profile:', error);
+        }
+      } catch (err) {
+        setError('Failed to load match.');
+        console.error('Error fetching match:', err);
+      } finally {
+        setLoading(false);
       }
-      const m = localStorage.getItem(keyMsgs);
-      if (m) setMsgs(JSON.parse(m));
-    } catch {}
-  }, [id]);
+    };
+    fetchMatch();
+  }, [matchId, currentUser]);
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs.length]);
-
-  const remainingMs = Math.max(0, startedAt + WINDOW_MS - Date.now());
-  const expired = remainingMs <= 0;
-
-  const remaining = useMemo(() => {
-    const s = Math.floor(remainingMs / 1000);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    return `${h}h ${m}m ${sec}s`;
-  }, [remainingMs]);
-
-  useEffect(() => {
-    if (expired) return;
-    const t = setInterval(() => {
-      // force re-render each second
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      setText(t => t);
-    }, 1000);
-    return () => clearInterval(t);
-  }, [expired]);
-
-  const save = (list: ChatMsg[]) => {
-    setMsgs(list);
-    try { localStorage.setItem(keyMsgs, JSON.stringify(list)); } catch {}
+  const handleSend = async () => {
+    if (!message.trim() || !match || !currentUser?.uid) return;
+    setSending(true);
+    setError('');
+    
+    try {
+      await matchService.sendMessage(match.id, currentUser.uid, message.trim());
+      setMessage('');
+      
+      // Refresh match data to get updated messages
+      const updated = await matchService.getMatchById(match.id);
+      setMatch(updated);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send message.';
+      setError(errorMessage);
+      console.error('Error sending message:', err);
+    } finally {
+      setSending(false);
+    }
   };
 
-  const send = () => {
-    if (!text.trim() || expired) return;
-    const next = msgs.slice(-MSG_LIMIT + 1).concat({
-      id: crypto.randomUUID(),
-      text: text.trim(),
-      at: Date.now(),
-      who: "me",
-    });
-    save(next);
-    setText("");
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
-  if (!match) {
-    return (
-      <main style={{ padding: 24 }}>
-        <h2>Chat</h2>
-        <p>Match not found.</p>
-        <button onClick={() => navigate("/matches")}>Back to matches</button>
-      </main>
-    );
+  const handleWeMetConfirm = async () => {
+    if (!currentUser || !matchId) return;
+    setWeMetStatus("confirming");
+    
+    try {
+      await confirmWeMet(matchId, currentUser.uid);
+      setWeMetStatus("confirmed");
+      setShowWeMetModal(false);
+      // You could add a success toast here
+      setTimeout(() => setWeMetStatus("idle"), 2000);
+    } catch (err) {
+      console.error("Error confirming we met:", err);
+      setWeMetStatus("error");
+    }
+  };
+
+  const isExpired = match && Date.now() - match.timestamp > 3 * 60 * 60 * 1000;
+  const myMessages = match?.messages?.filter(m => m.senderId === currentUser?.uid) ?? [];
+  const canSend = !isExpired && myMessages.length < 3;
+
+  if (!matchId) {
+    return <PageError error="Invalid match ID." />;
+  }
+
+  if (loading) {
+    return <LoadingSpinner />;
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <img
-          src={match.photoUrl}
-          alt={match.name}
-          width={48}
-          height={48}
-          style={{ borderRadius: 8, objectFit: "cover" }}
-        />
-        <div>
-          <h2 style={{ margin: 0 }}>{match.name}</h2>
-          <div style={{ fontSize: 12, color: "#666" }}>
-            {expired ? "Chat expired" : `Closes in ${remaining}`}
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: 16,
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          padding: 12,
-          minHeight: 280,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-        }}
-      >
-        {msgs.length === 0 ? (
-          <div style={{ color: "#777" }}>No messages yet.</div>
-        ) : (
-          msgs.map(m => (
-            <div
-              key={m.id}
-              style={{
-                alignSelf: m.who === "me" ? "flex-end" : "flex-start",
-                background: m.who === "me" ? "#e7f3ff" : "#f4f4f4",
-                padding: "8px 10px",
-                borderRadius: 10,
-                maxWidth: "80%",
-              }}
+    <>
+      <div className="max-w-xl mx-auto p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Chat</h2>
+          {!isExpired && otherUser && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowWeMetModal(true)}
+              disabled={weMetStatus === "confirming" || weMetStatus === "confirmed"}
+              className="text-green-600 border-green-300 hover:bg-green-50"
             >
-              {m.text}
-              <div style={{ fontSize: 10, color: "#777", marginTop: 2 }}>
-                {new Date(m.at).toLocaleTimeString()}
-              </div>
-            </div>
-          ))
+              {weMetStatus === "confirming" 
+                ? "Confirming..." 
+                : weMetStatus === "confirmed" 
+                ? "Confirmed!" 
+                : "We Met"}
+            </Button>
+          )}
+        </div>
+
+        {error && <ErrorAlert message={error} />}
+        
+        {weMetStatus === "error" && (
+          <ErrorAlert message="Error confirming we met. Please try again." />
         )}
-        <div ref={endRef} />
+
+        {match ? (
+          <>
+            {isExpired && otherUser && (
+              <ExpiredMatchNotice name={otherUser.name || 'your match'} />
+            )}
+
+            <div className="bg-white rounded-lg border p-4 h-96 overflow-y-auto mb-4">
+              {match.messages.length === 0 && (
+                <p className="text-gray-400 italic">No messages yet</p>
+              )}
+              {match.messages.map((msg, i) => (
+                <div key={i} className={`mb-3 ${msg.senderId === currentUser?.uid ? 'text-right' : 'text-left'}`}>
+                  <div className={`inline-block px-4 py-2 rounded-lg ${
+                    msg.senderId === currentUser?.uid 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {isExpired ? (
+              <ReconnectionPrompt name={otherUser?.name || 'your match'} />
+            ) : !canSend ? (
+              <MessageLimitNotice />
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 border rounded px-3 py-2"
+                  placeholder={`Type your message... (${3 - myMessages.length} left)`}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={sending}
+                />
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+                  onClick={handleSend}
+                  disabled={sending || !message.trim()}
+                >
+                  {sending ? 'Sending...' : 'Send'}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <PageError error="Match not found." />
+        )}
       </div>
 
-      <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-        <input
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder={expired ? "Chat closed" : "Type a message…"}
-          disabled={expired}
-          style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid #ccc" }}
-        />
-        <button
-          onClick={send}
-          disabled={expired || !text.trim()}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 8,
-            border: "none",
-            background: expired ? "#aaa" : "#2563eb",
-            color: "white",
-            cursor: expired ? "not-allowed" : "pointer",
-          }}
-        >
-          Send
-        </button>
-      </div>
-
-      <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
-        Messages are capped at {MSG_LIMIT}. Oldest messages will roll off.
-      </div>
-    </main>
+      <WeMetConfirmationModal
+        open={showWeMetModal}
+        onConfirm={handleWeMetConfirm}
+        onCancel={() => setShowWeMetModal(false)}
+      />
+    </>
   );
-}
+};
+
+export default Chat; 

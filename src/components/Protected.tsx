@@ -7,10 +7,10 @@ interface ProtectedProps {
 }
 
 const Protected: React.FC<ProtectedProps> = ({ children }) => {
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser, loading } = useAuth();
   
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

@@ -11,7 +11,6 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { ArrowLeft, User as UserIcon, Calendar, MapPin } from 'lucide-react';
 import { mockUsers } from '@/data/mock';
 import Layout from '@/components/Layout';
-import PrivateLayout from '@/components/PrivateLayout';
 
 const UserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -48,7 +47,7 @@ const UserProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <PrivateLayout>
+      <Layout>
         <ErrorBoundary>
           <div className="pb-16 p-4">
             <div className="flex justify-center py-8">
@@ -57,13 +56,13 @@ const UserProfilePage: React.FC = () => {
           </div>
         </ErrorBoundary>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   if (error || !profile) {
     return (
-      <PrivateLayout>
+      <Layout>
         <ErrorBoundary>
           <div className="pb-16 p-4">
             <div className="flex items-center mb-4">
@@ -76,12 +75,12 @@ const UserProfilePage: React.FC = () => {
           </div>
         </ErrorBoundary>
         <BottomNav />
-      </PrivateLayout>
+      </Layout>
     );
   }
 
   return (
-    <PrivateLayout>
+    <Layout>
       <ErrorBoundary>
         <div className="pb-16 p-4">
           <div className="flex items-center mb-4">
@@ -194,7 +193,7 @@ const UserProfilePage: React.FC = () => {
         </div>
       </ErrorBoundary>
       <BottomNav />
-    </PrivateLayout>
+    </Layout>
   );
 };
 

@@ -1,29 +1,69 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+// 🧠 Purpose: Create the SignIn page to allow existing users to log in. This completes the /signin route and uses Firebase Auth for authentication.
+
+import { useState } from 'react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/firebase';
+import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Layout from '@/components/Layout';
 
 export default function SignIn() {
-  const nav = useNavigate();
-  const loc = useLocation() as unknown as { state?: { from?: string } };
-  const { login } = useAuth();
-  const from = loc.state?.from || "/venues";
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  function onContinue() {
-    login({ id: "demo", name: "Demo User", email: "demo@example.com" });
-    nav(from, { replace: true });
-  }
+  const handleSignIn = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate('/venues');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-neutral-50 p-6">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
-        <h1 className="text-xl font-semibold">Welcome back</h1>
-        <p className="mt-1 text-sm text-neutral-600">This is a demo sign-in. Click continue.</p>
-        <button
-          onClick={onContinue}
-          className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-indigo-600 px-5 py-2 font-medium text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        >
-          Continue
-        </button>
+    <Layout>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle>Welcome back</CardTitle>
+            <p className="text-sm text-neutral-600">Sign in to continue</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-neutral-900">Email</label>
+              <Input 
+                placeholder="Enter your email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-neutral-900">Password</label>
+              <Input 
+                type="password" 
+                placeholder="Enter your password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+              />
+            </div>
+            {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+            <Button 
+              onClick={handleSignIn} 
+              className="w-full" 
+              disabled={!email.trim() || !password.trim()}
+            >
+              Sign In
+            </Button>
+            <p className="text-xs text-center text-neutral-600">
+              Don't have an account? <a className="underline text-neutral-900" href="/onboarding">Sign up</a>
+            </p>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 }

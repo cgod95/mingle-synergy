@@ -3,7 +3,7 @@ import { X, Check, Star, Zap, Heart, Eye, MessageCircle, Filter, Headphones, Rot
 import { Button } from './button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
-import subscriptionService, { SubscriptionPlan } from '@/services/subscriptionService';
+import { subscriptionService, type SubscriptionPlan } from '@/services/subscriptionService';
 
 interface PremiumUpgradeModalProps {
   isOpen: boolean;

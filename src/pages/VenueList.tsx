@@ -1,40 +1,121 @@
-import { Link } from "react-router-dom";
-import SafeImg from "../components/common/SafeImg";
-import { listVenues } from "../lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { mockVenues } from '@/data/mock';
+import ErrorBoundary from '../components/ErrorBoundary';
+import BottomNav from '../components/BottomNav';
+import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
+import { GridSkeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { MapPin, Users, Clock } from 'lucide-react';
+import VenueCard from '@/components/VenueCard';
 
 export default function VenueList() {
-  const venues = listVenues();
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        setLoading(true);
+        // Use mock data directly in demo mode
+        setVenues(mockVenues);
+      } catch (err) {
+        console.error('Error fetching venues:', err);
+        setError('Failed to load venues');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVenues();
+  }, []);
+
+  const handleCheckIn = async (venueId: string) => {
+    try {
+      setLoading(true);
+      // await venueService.checkIn(venueId); // REMOVE this line for demo
+      // Show success toast
+      toast({
+        title: "Checked in! 🎉",
+        description: "You're now visible to others at this venue.",
+        duration: 3000,
+      });
+      navigate(`/venue/${venueId}`);
+    } catch (error) {
+      console.error('Check-in failed:', error);
+      // Show error toast
+      toast({
+        title: "Check-in failed",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="space-y-8 pb-24">
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-neutral-900">Venues</h1>
+            <p className="text-neutral-600">Find your next connection</p>
+          </div>
+          <GridSkeleton cols={1} rows={6} />
+        </div>
+        <BottomNav />
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[80vh] pb-24">
+          <div className="text-center space-y-4">
+            <p className="text-neutral-600">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </div>
+        </div>
+        <BottomNav />
+      </Layout>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-3xl p-4">
-      <h1 className="mb-4 text-2xl font-semibold">Check In</h1>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {venues.map((v) => (
-          <Link
-            key={v.id}
-            to={`/venues/${v.id}`}
-            className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-md"
-          >
-            <div className="relative h-40 w-full overflow-hidden">
-              <img
-                src={v.image}
-                alt={v.name}
-                loading="lazy"
-                className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+    <ErrorBoundary>
+      <Layout>
+        <div className="space-y-8 pb-24">
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-neutral-900">Venues</h1>
+            <p className="text-neutral-600">Find your next connection</p>
+          </div>
+          
+          <div className="space-y-4">
+            {venues.map((venue, idx) => (
+              <VenueCard
+                key={venue.id}
+                venue={venue}
+                onSelect={(id) => navigate(`/simple-venue/${id}`)}
+                onCheckIn={(id) => handleCheckIn(id)}
+                isCheckedIn={false} // TODO: wire up real check-in state
+                userCount={venue.checkInCount || 0}
+                index={idx}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3 text-white">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold drop-shadow">{v.name}</h3>
-                  <span className="rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-neutral-900">
-                    {v.checkedInIds.length} here
-                  </span>
-                </div>
-                <p className="mt-1 line-clamp-1 text-sm opacity-90">{v.blurb}</p>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
+            ))}
+          </div>
+        </div>
+      </Layout>
+      <BottomNav />
+    </ErrorBoundary>
   );
 }

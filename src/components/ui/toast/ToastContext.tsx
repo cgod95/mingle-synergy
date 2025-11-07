@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useContext } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ToastContext } from './toast-context';
+import { ToastContext, useToast } from './toast-context';
 
 // Define ToastType and Toast locally for use in this file
 export type ToastType = 'success' | 'error' | 'info';
@@ -62,12 +62,4 @@ export const ToastProvider: React.FC<{children: React.ReactNode}> = ({ children 
       </div>
     </ToastContext.Provider>
   );
-};
-
-export const useToastContext = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToastContext must be used within a ToastProvider');
-  }
-  return context;
 };

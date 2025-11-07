@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="max-w-3xl mx-auto px-4 py-12">
@@ -36,10 +36,12 @@ const PrivacyPolicy: React.FC = () => (
 );
 
 const LegalPages: React.FC = () => (
-  <Routes>
-    <Route path="/terms" element={<TermsOfService />} />
-    <Route path="/privacy" element={<PrivacyPolicy />} />
-  </Routes>
+  <Router>
+    <Routes>
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+    </Routes>
+  </Router>
 );
 
 export default LegalPages; 
