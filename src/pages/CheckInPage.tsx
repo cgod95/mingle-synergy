@@ -19,9 +19,23 @@ export default function CheckInPage() {
   const { currentUser } = useAuth();
   const { toast } = useToast();
 
-  const onCheckIn = (id: string) => {
+  const onCheckIn = async (id: string) => {
     // Check photo requirement per spec
-    const userPhotos = currentUser?.photos || [];
+    // Try to get user profile photos (may need to fetch from service)
+    let userPhotos: string[] = [];
+    
+    if (currentUser?.uid) {
+      try {
+        // Try to get photos from userService if available
+        const { userService } = await import("@/services");
+        const profile = await userService.getUserProfile(currentUser.uid);
+        userPhotos = profile?.photos || [];
+      } catch {
+        // Fallback: check if photos exist in currentUser
+        userPhotos = (currentUser as any)?.photos || [];
+      }
+    }
+    
     if (!hasRequiredPhotos(userPhotos)) {
       toast({
         title: "Photo Required",

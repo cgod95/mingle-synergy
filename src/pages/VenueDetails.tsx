@@ -42,9 +42,23 @@ export default function VenueDetails() {
 
   if (!venue) return <div className="p-4">Venue not found</div>;
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     // Check photo requirement per spec
-    const userPhotos = currentUser?.photos || [];
+    // Try to get user profile photos (may need to fetch from service)
+    let userPhotos: string[] = [];
+    
+    if (currentUser?.uid) {
+      try {
+        // Try to get photos from userService if available
+        const { userService } = await import("@/services");
+        const profile = await userService.getUserProfile(currentUser.uid);
+        userPhotos = profile?.photos || [];
+      } catch {
+        // Fallback: check if photos exist in currentUser
+        userPhotos = (currentUser as any)?.photos || [];
+      }
+    }
+    
     if (!hasRequiredPhotos(userPhotos)) {
       toastHook({
         title: "Photo Required",
