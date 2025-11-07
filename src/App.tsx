@@ -39,10 +39,10 @@ export default function App() {
           </Route>
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/checkin" replace />} />
-        </Routes>
-      </BrowserRouter>
-      </UserProvider>
-    </AuthProvider>
+            </Routes>
+          </BrowserRouter>
+        </UserProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

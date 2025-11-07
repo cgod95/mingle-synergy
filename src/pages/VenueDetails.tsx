@@ -27,6 +27,7 @@ export default function VenueDetails() {
   const people = useMemo(() => id ? getPeople(id) : [], [id]);
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
+  const [isLiking, setIsLiking] = useState<string | null>(null);
 
   useEffect(() => {
     setCheckedIn(getCheckedVenueId());
@@ -41,14 +42,21 @@ export default function VenueDetails() {
     setTimeout(() => setToast(null), 1600);
   };
 
-  const handleLike = (personId: string, personName: string) => {
+  const handleLike = async (personId: string, personName: string) => {
+    if (isLiking === personId) return;
+    setIsLiking(personId);
+    
+    // Simulate API delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     const matched = likePerson(personId);
     if (matched) {
       setToast(`Matched with ${personName} 🎉`);
     } else {
       setToast(`Like sent to ${personName}`);
     }
-    setTimeout(() => setToast(null), 1600);
+    setIsLiking(null);
+    setTimeout(() => setToast(null), 2000);
   };
 
   return (
@@ -143,15 +151,21 @@ export default function VenueDetails() {
                     <Button
                       onClick={() => handleLike(p.id, p.name)}
                       size="sm"
-                      className={`rounded-full text-xs h-7 px-3 ${
+                      className={`rounded-full text-xs h-7 px-3 transition-all ${
                         isLiked(p.id) || isMatched(p.id)
                           ? "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
                           : "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
                       }`}
-                      disabled={isLiked(p.id) || isMatched(p.id)}
+                      disabled={isLiked(p.id) || isMatched(p.id) || isLiking === p.id}
                     >
-                      <Heart className={`w-3 h-3 mr-1 ${isLiked(p.id) || isMatched(p.id) ? "fill-current" : ""}`} />
-                      {isMatched(p.id) ? "Matched" : isLiked(p.id) ? "Liked" : "Like"}
+                      <motion.div
+                        animate={isLiking === p.id ? { rotate: 360 } : {}}
+                        transition={{ duration: 0.5, repeat: isLiking === p.id ? Infinity : 0 }}
+                        className="inline-flex items-center"
+                      >
+                        <Heart className={`w-3 h-3 mr-1 ${isLiked(p.id) || isMatched(p.id) ? "fill-current" : ""}`} />
+                      </motion.div>
+                      {isLiking === p.id ? "Liking..." : isMatched(p.id) ? "Matched" : isLiked(p.id) ? "Liked" : "Like"}
                     </Button>
                   </div>
                 </div>

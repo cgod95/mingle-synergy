@@ -6,6 +6,7 @@ import { listConversations } from "../lib/chatStore";
 import { timeAgo } from "../lib/timeago";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { ChatListSkeleton } from "@/components/ui/LoadingStates";
 
 type Row = {
   id: string;
@@ -17,19 +18,26 @@ type Row = {
 export default function ChatIndex() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     try {
-      const list = listConversations().map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        lastText: r.lastText,
-        lastTs: r.lastTs ?? 0,
-      }));
-      list.sort((a, b) => (b.lastTs ?? 0) - (a.lastTs ?? 0));
-      setRows(list);
+      // Simulate loading delay
+      setTimeout(() => {
+        const list = listConversations().map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          lastText: r.lastText,
+          lastTs: r.lastTs ?? 0,
+        }));
+        list.sort((a, b) => (b.lastTs ?? 0) - (a.lastTs ?? 0));
+        setRows(list);
+        setIsLoading(false);
+      }, 200);
     } catch {
       setRows([]);
+      setIsLoading(false);
     }
   }, []);
 
@@ -45,7 +53,9 @@ export default function ChatIndex() {
           <p className="text-neutral-600">Your conversations</p>
         </motion.div>
 
-        {rows.length === 0 ? (
+        {isLoading ? (
+          <ChatListSkeleton />
+        ) : rows.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

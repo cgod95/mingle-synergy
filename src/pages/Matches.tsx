@@ -13,19 +13,28 @@ import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
 import { getUserMatches, mockUsers } from "@/data/mock";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { MatchListSkeleton } from "@/components/ui/LoadingStates";
 
 const Matches: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [matches, setMatches] = useState<DisplayMatch[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchMatches = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
       try {
+        // Simulate loading delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         // Use mock data instead of Firebase
         const currentUserId = currentUser.uid || 'u1'; // Default to u1 for demo
         const userMatches = getUserMatches(currentUserId);
@@ -46,11 +55,18 @@ const Matches: React.FC = () => {
         setMatches(displayMatches);
       } catch (error) {
         console.error('Error fetching matches:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load matches. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchMatches();
-  }, [currentUser]);
+  }, [currentUser, toast]);
 
   const handleWeMetClick = (matchId: string) => {
     setSelectedMatchId(matchId);
@@ -97,7 +113,9 @@ const Matches: React.FC = () => {
           <p className="text-neutral-600">People you've connected with</p>
         </motion.div>
         <div className="space-y-4">
-          {matches.length === 0 ? (
+          {isLoading ? (
+            <MatchListSkeleton />
+          ) : matches.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -133,7 +151,6 @@ const Matches: React.FC = () => {
               />
             ))
           )}
-          </div>
         </div>
       </div>
       <BottomNav />
