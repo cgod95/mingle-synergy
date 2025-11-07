@@ -15,7 +15,7 @@ import ProfileUpload from "./pages/ProfileUpload";
 import Debug from "./pages/Debug";
 
 import { AuthProvider } from "./context/AuthContext";
-import { UserProvider } from "./context/UserContext";
+import { UserProvider } from "./context/UserContext.tsx";
 
 export default function App() {
   return (
