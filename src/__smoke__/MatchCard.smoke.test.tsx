@@ -5,6 +5,27 @@ import { AuthProvider } from '@/context/AuthContext';
 import MatchCard from '@/components/MatchCard';
 import { DisplayMatch } from '@/types/match';
 
+// Mock Firebase
+vi.mock('firebase/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('firebase/app')>();
+  return {
+    ...actual,
+    getApps: vi.fn(() => []),
+    getApp: vi.fn(),
+    initializeApp: vi.fn(() => ({})),
+  };
+});
+
+vi.mock('firebase/auth', () => ({
+  getAuth: vi.fn(() => ({})),
+  connectAuthEmulator: vi.fn(),
+}));
+
+vi.mock('firebase/firestore', () => ({
+  getFirestore: vi.fn(() => ({})),
+  connectFirestoreEmulator: vi.fn(),
+}));
+
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>

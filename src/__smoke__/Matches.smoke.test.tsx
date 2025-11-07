@@ -4,6 +4,31 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import Matches from '@/pages/Matches';
 
+// Mock Firebase
+vi.mock('firebase/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('firebase/app')>();
+  return {
+    ...actual,
+    getApps: vi.fn(() => []),
+    getApp: vi.fn(),
+    initializeApp: vi.fn(() => ({})),
+  };
+});
+
+vi.mock('firebase/auth', () => ({
+  getAuth: vi.fn(() => ({})),
+  connectAuthEmulator: vi.fn(),
+}));
+
+vi.mock('firebase/firestore', () => ({
+  getFirestore: vi.fn(() => ({})),
+  connectFirestoreEmulator: vi.fn(),
+}));
+
+vi.mock('firebase/storage', () => ({
+  getStorage: vi.fn(() => ({})),
+}));
+
 // Mock the toast hook
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
