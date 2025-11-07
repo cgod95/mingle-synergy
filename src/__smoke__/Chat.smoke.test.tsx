@@ -1,16 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import ChatInput from '@/components/ChatInput';
 
 // Mock services if needed
-vi.mock('@/services', () => ({
-  default: {
-    message: {
-      sendMessage: vi.fn(),
-    },
-  },
+vi.mock('@/services/messageService', () => ({
+  canSendMessage: vi.fn().mockResolvedValue(true),
+  sendMessage: vi.fn().mockResolvedValue(undefined),
+  subscribeToMessageLimit: vi.fn(() => () => {}), // Returns unsubscribe function
 }));
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -28,9 +26,10 @@ describe('Chat Components - UI Smoke Tests', () => {
     const mockOnSend = vi.fn();
     renderWithProviders(
       <ChatInput 
+        matchId="test-match-1"
+        userId="test-user-1"
         onSend={mockOnSend}
         disabled={false}
-        messagesLeft={3}
       />
     );
     
@@ -47,9 +46,10 @@ describe('Chat Components - UI Smoke Tests', () => {
     const mockOnSend = vi.fn();
     renderWithProviders(
       <ChatInput 
+        matchId="test-match-1"
+        userId="test-user-1"
         onSend={mockOnSend}
         disabled={true}
-        messagesLeft={0}
       />
     );
     
