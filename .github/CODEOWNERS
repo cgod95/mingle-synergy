@@ -1,0 +1,18 @@
+# Protect UI from accidental overwrites
+
+/public/**              @callum
+
+/src/assets/**          @callum
+
+/src/styles/**          @callum
+
+/src/index.css          @callum
+
+/tailwind.config.*      @callum
+
+/postcss.config.*       @callum
+
+/src/components/**      @callum
+
+/src/pages/**           @callum
+
