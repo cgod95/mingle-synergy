@@ -72,6 +72,16 @@ const Matches: React.FC = () => {
     setSelectedMatchId(null);
   };
 
+  const handleViewProfile = (userId: string) => {
+    // Navigate to profile view - placeholder for now
+    console.log("View profile:", userId);
+  };
+
+  const handleSendMessage = (matchId: string) => {
+    // Navigate to chat
+    window.location.href = `/chat/${matchId}`;
+  };
+
   return (
     <ErrorBoundary>
       <div className="pb-16 p-4">
@@ -81,7 +91,13 @@ const Matches: React.FC = () => {
             <p className="text-gray-500 text-center py-8">No matches yet. Check into a venue to meet people!</p>
           ) : (
             matches.map((match) => (
-              <MatchCard key={match.id} match={match} onWeMetClick={handleWeMetClick} />
+              <MatchCard 
+                key={match.id} 
+                match={match} 
+                onWeMetClick={handleWeMetClick}
+                onViewProfile={handleViewProfile}
+                onSendMessage={handleSendMessage}
+              />
             ))
           )}
         </div>
