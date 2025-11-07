@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { getVenueById } from "../lib/api";
+import { getVenue, getPeople } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";
@@ -14,7 +14,8 @@ function Toast({ text }: { text: string }) {
 
 export default function VenueDetails() {
   const { id } = useParams<{ id: string }>();
-  const venue = useMemo(() => getVenueById(id || ""), [id]);
+  const venue = useMemo(() => getVenue(id || ""), [id]);
+  const people = useMemo(() => id ? getPeople(id) : [], [id]);
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
 
@@ -45,7 +46,7 @@ export default function VenueDetails() {
     <div className="mb-20">
       <div className="relative">
         <img
-          src={venue.photo || "/default.jpg"}
+          src={venue.image || "/default.jpg"}
           alt={venue.name}
           className="h-56 w-full object-cover"
           loading="lazy"
@@ -54,7 +55,7 @@ export default function VenueDetails() {
         <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
           <div>
             <h1 className="text-white text-2xl font-semibold drop-shadow">{venue.name}</h1>
-            <p className="text-white/90 text-sm">{venue.location}</p>
+            <p className="text-white/90 text-sm">{venue.address || ""}</p>
           </div>
           <button
             onClick={handleCheckIn}
@@ -66,11 +67,14 @@ export default function VenueDetails() {
       </div>
 
       <div className="p-4">
-        {venue.about && <p className="text-sm text-neutral-700 mb-4">{venue.about}</p>}
-
         <h2 className="font-medium mb-3">People here now</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {venue.people.map((p) => (
+          {people.length === 0 ? (
+            <div className="col-span-full text-center text-neutral-500 py-8">
+              No one here yet. Be the first to check in!
+            </div>
+          ) : (
+            people.map((p) => (
             <div key={p.id} className="bg-white rounded-xl border overflow-hidden">
               <div className="aspect-[4/3] overflow-hidden">
                 <img
@@ -82,7 +86,6 @@ export default function VenueDetails() {
               </div>
               <div className="p-2">
                 <div className="text-sm font-medium">{p.name}</div>
-                {p.bio && <div className="text-xs text-neutral-500 mt-0.5 line-clamp-1">{p.bio}</div>}
 
                 <div className="mt-2 flex items-center justify-between">
                   {isMatched(p.id) ? (
@@ -101,7 +104,8 @@ export default function VenueDetails() {
                 </div>
               </div>
             </div>
-          ))}
+          ))
+          )}
         </div>
       </div>
 
