@@ -12,7 +12,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { firestore, storage } from '../../firebase/index';
+import { firestore, storage } from '../../firebase';
 import { UserProfile, UserService } from '@/types/services';
 
 type PartialUserProfile = Partial<UserProfile>;
@@ -49,14 +49,10 @@ class FirebaseUserService implements UserService {
     }
   }
 
-  async createUserProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
+  async createUserProfile(userId: string, data: UserProfile): Promise<void> {
     try {
       const userRef = doc(firestore, 'users', userId);
-      await setDoc(userRef, {
-        ...data,
-        isOnboardingComplete: false, // 🔒 prevent routing to /venues prematurely
-        createdAt: Date.now(),
-      });
+      await setDoc(userRef, data);
     } catch (error) {
       console.error('Error creating user profile:', error);
       throw new Error('Failed to create profile. Please try again.');
@@ -191,35 +187,6 @@ class FirebaseUserService implements UserService {
       console.error('Error uploading profile photo:', error);
       throw error;
     }
-  }
-
-  // 🧠 Purpose: Mark onboarding as complete after preferences are saved
-  async completeOnboarding(userId: string): Promise<void> {
-    try {
-      const userRef = doc(firestore, 'users', userId);
-      await updateDoc(userRef, {
-        isOnboardingComplete: true,
-      });
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      throw new Error('Failed to complete onboarding. Please try again.');
-    }
-  }
-
-  // 🧠 Purpose: Check if user has completed onboarding
-  async isOnboardingComplete(userId: string): Promise<boolean> {
-    try {
-      const userProfile = await this.getUserProfile(userId);
-      return userProfile?.isOnboardingComplete || false;
-    } catch (error) {
-      console.error('Error checking onboarding status:', error);
-      return false;
-    }
-  }
-
-  // 🧠 Purpose: Mark onboarding as complete
-  async markOnboardingComplete(userId: string): Promise<void> {
-    return this.completeOnboarding(userId);
   }
 }
 

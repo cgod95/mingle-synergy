@@ -1,261 +1,77 @@
-// 🧠 Purpose: Reconnect service for handling expired match reconnections
-import { firestore } from '@/firebase/config';
-import { doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
-import logger from '@/utils/Logger';
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { firestore } from "@/firebase";
 
-export interface ReconnectRequest {
-  id: string;
-  matchId: string;
-  requesterId: string;
-  recipientId: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: Date;
-  expiresAt: Date;
-  message?: string;
-}
+/**
+ * Checks if a reconnect is allowed between two users.
+ * Reconnects are only allowed if:
+ * - A match exists
+ * - The match is expired
+ * - The match has not already been reconnected
+ */
+export const canReconnect = async (currentUid: string, targetUid: string): Promise<boolean> => {
+  const matchDocId = [currentUid, targetUid].sort().join("_");
+  const matchRef = doc(firestore, "matches", matchDocId);
+  const matchSnap = await getDoc(matchRef);
 
-export interface ReconnectService {
-  sendReconnectRequest(matchId: string, requesterId: string, recipientId: string, message?: string): Promise<string>;
-  acceptReconnectRequest(requestId: string): Promise<void>;
-  rejectReconnectRequest(requestId: string): Promise<void>;
-  getPendingRequests(userId: string): Promise<ReconnectRequest[]>;
-  getReconnectRequest(requestId: string): Promise<ReconnectRequest | null>;
-}
+  if (!matchSnap.exists()) return false;
 
-class FirebaseReconnectService implements ReconnectService {
-  private readonly COLLECTION = 'reconnectRequests';
+  const data = matchSnap.data();
+  return data.expired === true && data.reconnected !== true;
+};
 
-  async sendReconnectRequest(
-    matchId: string, 
-    requesterId: string, 
-    recipientId: string, 
-    message?: string
-  ): Promise<string> {
-    try {
-      // Validate that the original match exists
-      const matchDoc = await getDoc(doc(firestore, 'matches', matchId));
-      if (!matchDoc.exists()) {
-        throw new Error('Original match not found');
-      }
-
-      // Check if a request already exists
-      const existingQuery = query(
-        collection(firestore, this.COLLECTION),
-        where('matchId', '==', matchId),
-        where('requesterId', '==', requesterId),
-        where('status', '==', 'pending')
-      );
-      
-      const existingRequests = await getDocs(existingQuery);
-      if (!existingRequests.empty) {
-        throw new Error('Reconnect request already exists');
-      }
-
-      // Create new reconnect request
-      const requestData = {
-        matchId,
-        requesterId,
-        recipientId,
-        status: 'pending' as const,
-        createdAt: serverTimestamp(),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        message: message || '',
-      };
-
-      const docRef = await addDoc(collection(firestore, this.COLLECTION), requestData);
-      
-      logger.info('Reconnect request sent', { requestId: docRef.id, matchId, requesterId });
-      
-      return docRef.id;
-    } catch (error) {
-      logger.error('Failed to send reconnect request', error, { matchId, requesterId });
-      throw error;
-    }
+/**
+ * Handles sending a reconnect request between two users.
+ * This will fail if the match is not expired or already reconnected.
+ */
+export const handleReconnectRequest = async (currentUid: string, targetUid: string): Promise<void> => {
+  const eligible = await canReconnect(currentUid, targetUid);
+  if (!eligible) {
+    throw new Error("Reconnect not allowed or already handled.");
   }
 
-  async acceptReconnectRequest(requestId: string): Promise<void> {
-    try {
-      const requestRef = doc(firestore, this.COLLECTION, requestId);
-      const requestDoc = await getDoc(requestRef);
-      
-      if (!requestDoc.exists()) {
-        throw new Error('Reconnect request not found');
-      }
+  const matchDocId = [currentUid, targetUid].sort().join("_");
+  const matchRef = doc(firestore, "matches", matchDocId);
 
-      const requestData = requestDoc.data() as ReconnectRequest;
-      
-      if (requestData.status !== 'pending') {
-        throw new Error('Request is no longer pending');
-      }
+  await updateDoc(matchRef, {
+    reconnectRequestedBy: currentUid,
+    reconnectRequestedAt: serverTimestamp(),
+    expired: false // Clear expiration once reconnected
+  });
+};
 
-      // Update request status
-      await updateDoc(requestRef, {
-        status: 'accepted',
-        acceptedAt: serverTimestamp(),
-      });
+/**
+ * Accepts a reconnect request between two users.
+ * This confirms the mutual intent and reactivates the match.
+ */
+export const acceptReconnectRequest = async (currentUid: string, targetUid: string): Promise<void> => {
+  const matchDocId = [currentUid, targetUid].sort().join("_");
+  const matchRef = doc(firestore, "matches", matchDocId);
+  const matchSnap = await getDoc(matchRef);
 
-      // Create new match from the original match data
-      const originalMatchDoc = await getDoc(doc(firestore, 'matches', requestData.matchId));
-      if (originalMatchDoc.exists()) {
-        const originalMatch = originalMatchDoc.data();
-        
-        // Create new match with reconnected status
-        await addDoc(collection(firestore, 'matches'), {
-          userId1: requestData.requesterId,
-          userId2: requestData.recipientId,
-          timestamp: serverTimestamp(),
-          status: 'reconnected',
-          originalMatchId: requestData.matchId,
-          reconnectedAt: serverTimestamp(),
-        });
-      }
+  if (!matchSnap.exists()) throw new Error("Match not found.");
 
-      logger.info('Reconnect request accepted', { requestId });
-    } catch (error) {
-      logger.error('Failed to accept reconnect request', error, { requestId });
-      throw error;
-    }
+  const data = matchSnap.data();
+  if (data.reconnectRequestedBy !== targetUid) {
+    throw new Error("No reconnect request from this user.");
   }
 
-  async rejectReconnectRequest(requestId: string): Promise<void> {
-    try {
-      const requestRef = doc(firestore, this.COLLECTION, requestId);
-      const requestDoc = await getDoc(requestRef);
-      
-      if (!requestDoc.exists()) {
-        throw new Error('Reconnect request not found');
-      }
+  await updateDoc(matchRef, {
+    reconnected: true,
+    expired: false,
+    reconnectAcceptedAt: serverTimestamp()
+  });
+};
 
-      await updateDoc(requestRef, {
-        status: 'rejected',
-        rejectedAt: serverTimestamp(),
-      });
-
-      logger.info('Reconnect request rejected', { requestId });
-    } catch (error) {
-      logger.error('Failed to reject reconnect request', error, { requestId });
-      throw error;
-    }
-  }
-
-  async getPendingRequests(userId: string): Promise<ReconnectRequest[]> {
-    try {
-      const requestsQuery = query(
-        collection(firestore, this.COLLECTION),
-        where('recipientId', '==', userId),
-        where('status', '==', 'pending')
-      );
-      
-      const snapshot = await getDocs(requestsQuery);
-      const requests: ReconnectRequest[] = [];
-      
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        requests.push({
-          id: doc.id,
-          matchId: data.matchId,
-          requesterId: data.requesterId,
-          recipientId: data.recipientId,
-          status: data.status,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          expiresAt: data.expiresAt?.toDate() || new Date(),
-          message: data.message,
-        });
-      });
-      
-      return requests;
-    } catch (error) {
-      logger.error('Failed to get pending requests', error, { userId });
-      throw error;
-    }
-  }
-
-  async getReconnectRequest(requestId: string): Promise<ReconnectRequest | null> {
-    try {
-      const requestDoc = await getDoc(doc(firestore, this.COLLECTION, requestId));
-      
-      if (!requestDoc.exists()) {
-        return null;
-      }
-
-      const data = requestDoc.data();
-      return {
-        id: requestDoc.id,
-        matchId: data.matchId,
-        requesterId: data.requesterId,
-        recipientId: data.recipientId,
-        status: data.status,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        expiresAt: data.expiresAt?.toDate() || new Date(),
-        message: data.message,
-      };
-    } catch (error) {
-      logger.error('Failed to get reconnect request', error, { requestId });
-      throw error;
-    }
-  }
-}
-
-// Mock implementation for development
-class MockReconnectService implements ReconnectService {
-  private requests: Map<string, ReconnectRequest> = new Map();
-
-  async sendReconnectRequest(
-    matchId: string, 
-    requesterId: string, 
-    recipientId: string, 
-    message?: string
-  ): Promise<string> {
-    const requestId = `reconnect_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const request: ReconnectRequest = {
-      id: requestId,
-      matchId,
-      requesterId,
-      recipientId,
-      status: 'pending',
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      message: message || '',
-    };
-    
-    this.requests.set(requestId, request);
-    logger.info('Mock reconnect request sent', { requestId, matchId });
-    
-    return requestId;
-  }
-
-  async acceptReconnectRequest(requestId: string): Promise<void> {
-    const request = this.requests.get(requestId);
-    if (!request) {
-      throw new Error('Reconnect request not found');
-    }
-    
-    request.status = 'accepted';
-    this.requests.set(requestId, request);
-    logger.info('Mock reconnect request accepted', { requestId });
-  }
-
-  async rejectReconnectRequest(requestId: string): Promise<void> {
-    const request = this.requests.get(requestId);
-    if (!request) {
-      throw new Error('Reconnect request not found');
-    }
-    
-    request.status = 'rejected';
-    this.requests.set(requestId, request);
-    logger.info('Mock reconnect request rejected', { requestId });
-  }
-
-  async getPendingRequests(userId: string): Promise<ReconnectRequest[]> {
-    return Array.from(this.requests.values()).filter(
-      request => request.recipientId === userId && request.status === 'pending'
-    );
-  }
-
-  async getReconnectRequest(requestId: string): Promise<ReconnectRequest | null> {
-    return this.requests.get(requestId) || null;
-  }
-}
-
-export default FirebaseReconnectService;
-export { MockReconnectService }; 
+/**
+ * Gets all pending reconnect requests for a user.
+ * Returns an array of user IDs who have requested to reconnect.
+ */
+export const getPendingReconnectRequests = async (currentUid: string): Promise<string[]> => {
+  // This would need to query matches where reconnectRequestedBy is set
+  // For now, we'll use the existing user service approach
+  // In a full implementation, you might want to query the matches collection directly
+  
+  // Import userService dynamically to avoid circular dependencies
+  const userService = (await import('./firebase/userService')).default;
+  return userService.getReconnectRequests(currentUid);
+}; 

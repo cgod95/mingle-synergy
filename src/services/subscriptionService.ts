@@ -67,12 +67,8 @@ export interface PaymentMethod {
   isDefault: boolean;
 }
 
-export class SubscriptionService {
-  private stripe: {
-    createToken: (element: HTMLElement) => Promise<{ token?: { id: string }; error?: { message: string } }>;
-    createPaymentMethod: (params: { type: string; card: HTMLElement }) => Promise<{ paymentMethod?: { id: string }; error?: { message: string } }>;
-    confirmCardPayment: (clientSecret: string, params: { payment_method: string }) => Promise<{ paymentIntent?: { status: string }; error?: { message: string } }>;
-  } | null = null;
+class SubscriptionService {
+  private stripe: any | null = null;
   private readonly tiers: SubscriptionTier[] = [
     {
       id: 'free',
@@ -454,5 +450,4 @@ export class SubscriptionService {
   }
 }
 
-export const subscriptionService = new SubscriptionService();
 export default SubscriptionService; 

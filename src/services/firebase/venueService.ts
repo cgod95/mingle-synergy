@@ -1,26 +1,11 @@
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  writeBatch, 
-  serverTimestamp, 
-  increment, 
-  arrayUnion, 
-  arrayRemove, 
-  query, 
-  where, 
-  DocumentData 
-} from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 import { firestore } from '@/firebase/config';
 import { VenueService, Venue, UserProfile } from '@/types/services';
+import { doc, getDoc, getDocs, collection, query, where, updateDoc, arrayUnion, arrayRemove, writeBatch, serverTimestamp, DocumentData, QueryDocumentSnapshot, increment } from 'firebase/firestore';
 import { calculateDistance } from '@/utils/locationUtils';
 import { saveToStorage, getFromStorage } from '@/utils/localStorageUtils';
 import { isOnline } from '@/utils/networkMonitor';
+import { getAuth } from 'firebase/auth';
 import config from '@/config';
-import logger from '@/utils/Logger';
 
 // Cache key constants
 const CACHE_KEYS = {
@@ -70,7 +55,7 @@ const mockVenues: Venue[] = [
     id: '3',
     name: 'Coffee Corner',
     type: 'cafe',
-    address: '789 Coffee Lane',
+    address: '789 Brew Street',
     city: 'Melbourne',
     latitude: -37.8136,
     longitude: 144.9631,
@@ -80,43 +65,44 @@ const mockVenues: Venue[] = [
     zones: ['indoor', 'outdoor'],
     checkedInUsers: [],
     specials: [
-      { title: 'Morning Special', description: 'Before 10am' },
-      { title: 'Lunch Deal', description: '12-2pm' }
+      { title: 'Free WiFi', description: 'Available' },
+      { title: 'Artisan Coffee', description: 'Premium beans' }
     ],
-  }
+  },
 ];
 
+// Helper function to transform Firestore data
 const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): Venue => {
   return {
     id: venueId,
-    name: firestoreData.name || 'Unknown Venue',
-    type: firestoreData.type || 'venue',
-    address: firestoreData.address || '',
-    city: firestoreData.city || '',
-    latitude: firestoreData.latitude || 0,
-    longitude: firestoreData.longitude || 0,
-    image: firestoreData.image || '',
-    checkInCount: firestoreData.checkInCount || 0,
-    expiryTime: firestoreData.expiryTime || 120,
-    zones: firestoreData.zones || [],
-    checkedInUsers: firestoreData.checkedInUsers || [],
-    specials: firestoreData.specials || [],
+    name: firestoreData?.name || '',
+    type: firestoreData?.type || 'other',
+    address: firestoreData?.address || '',
+    city: firestoreData?.city || '',
+    image: firestoreData?.image || '',
+    checkInCount: firestoreData?.checkInCount || 0,
+    expiryTime: firestoreData?.expiryTime || 120, // Default 2 hours in minutes
+    zones: firestoreData?.zones || [],
+    latitude: firestoreData?.latitude || 0,
+    longitude: firestoreData?.longitude || 0,
+    checkedInUsers: firestoreData?.checkedInUsers || [],
+    specials: firestoreData?.specials || [],
   };
 };
 
 class FirebaseVenueService implements VenueService {
   private venuesCollection = collection(firestore, 'venues');
-
-  async listVenues(): Promise<Venue[]> {
+  
+  async getVenues(): Promise<Venue[]> {
     // Return mock data in demo mode
     if (config.DEMO_MODE) {
-      return [...mockVenues];
+      return mockVenues;
     }
 
     try {
       // Check network status first
       if (!isOnline()) {
-        logger.debug('Offline: returning cached venues');
+        console.log('Offline: returning cached venues');
         const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
         if (cachedVenues.length > 0) {
           return cachedVenues;
@@ -135,7 +121,7 @@ class FirebaseVenueService implements VenueService {
       
       return venues;
     } catch (error) {
-      logger.error('Error fetching venues', error);
+      console.error('Error fetching venues:', error);
       
       // Fallback to cached data if available
       const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
@@ -157,7 +143,7 @@ class FirebaseVenueService implements VenueService {
     try {
       // Check network status first
       if (!isOnline()) {
-        logger.debug('Offline: checking for cached venue', { venueId: id });
+        console.log('Offline: checking for cached venue');
         const cachedVenue = getFromStorage<Venue | null>(`${CACHE_KEYS.VENUE_PREFIX}${id}`, null);
         if (cachedVenue) {
           return cachedVenue;
@@ -168,7 +154,7 @@ class FirebaseVenueService implements VenueService {
       const venueDoc = await getDoc(venueDocRef);
       
       if (!venueDoc.exists()) {
-        logger.debug('No venue found', { venueId: id });
+        console.log(`No venue found with id: ${id}`);
         return null;
       }
       
@@ -179,7 +165,7 @@ class FirebaseVenueService implements VenueService {
       
       return venue;
     } catch (error) {
-      logger.error('Error fetching venue by ID', error, { venueId: id });
+      console.error('Error fetching venue by ID:', error);
       
       // Fallback to cached data
       const cachedVenue = getFromStorage<Venue | null>(`${CACHE_KEYS.VENUE_PREFIX}${id}`, null);
@@ -210,10 +196,10 @@ class FirebaseVenueService implements VenueService {
       });
       
       await batch.commit();
-      logger.info('User checked in to venue', { userId, venueId });
+      console.log(`User ${userId} checked in to venue ${venueId}`);
     } catch (error) {
-      logger.error('Error checking in to venue', error, { userId, venueId });
-      throw error;
+      console.error('Error checking in to venue:', error);
+      throw new Error('Failed to check in to venue');
     }
   }
 
@@ -253,9 +239,9 @@ class FirebaseVenueService implements VenueService {
       });
       
       await batch.commit();
-      logger.info(`User ${userId} checked out from venue ${currentVenue}`);
+      console.log(`User ${userId} checked out from venue ${currentVenue}`);
     } catch (error) {
-      logger.error('Error checking out from venue', error);
+      console.error('Error checking out from venue:', error);
       throw new Error('Failed to check out from venue');
     }
   }
@@ -280,7 +266,7 @@ class FirebaseVenueService implements VenueService {
       
       // In a production app, we'd use geofirestore or similar
       // For this implementation, we'll fetch all venues and filter client-side
-      const venues = await this.listVenues();
+      const venues = await this.getVenues();
       
       return venues.filter(venue => {
         const distance = calculateDistance(
@@ -291,13 +277,13 @@ class FirebaseVenueService implements VenueService {
         return distance <= radiusKm;
       });
     } catch (error) {
-      logger.error('Error fetching nearby venues', error);
+      console.error('Error fetching nearby venues:', error);
       return [];
     }
   }
 
   // Helper method to get venues by array of IDs
-  async listVenuesByIds(venueIds: string[]): Promise<Venue[]> {
+  async getVenuesByIds(venueIds: string[]): Promise<Venue[]> {
     try {
       if (!venueIds.length) return [];
       
@@ -326,7 +312,7 @@ class FirebaseVenueService implements VenueService {
       // Flatten results
       return chunkedResults.flat();
     } catch (error) {
-      logger.error('Error fetching venues by IDs', error);
+      console.error('Error fetching venues by IDs:', error);
       return [];
     }
   }
@@ -342,7 +328,7 @@ class FirebaseVenueService implements VenueService {
   
   // Add the required method for e2eTests compatibility
   async getAllVenues(): Promise<Venue[]> {
-    return this.listVenues();
+    return this.getVenues();
   }
 
   /**
@@ -359,7 +345,7 @@ class FirebaseVenueService implements VenueService {
         ...doc.data()
       } as UserProfile));
     } catch (error) {
-      logger.error('Error fetching users at venue', error);
+      console.error('Error fetching users at venue:', error);
       return [];
     }
   }

@@ -17,7 +17,6 @@ import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
 import { InterestService } from '@/types/services';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
 import services from '..';
-import logger from '@/utils/Logger';
 
 class FirebaseInterestService extends FirebaseServiceBase implements InterestService {
   private getInterestsCollection() {
@@ -93,7 +92,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
       
       return true;
     } catch (error) {
-      logger.error('Error expressing interest', error, { userId, targetUserId, venueId });
+      console.error('Error expressing interest:', error);
       throw error;
     }
   }

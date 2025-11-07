@@ -5,7 +5,7 @@ import { users } from '@/data/mockData';
 
 class MockVenueService implements VenueService {
   // Mock implementations to provide data for testing and development
-  async listVenues(): Promise<Venue[]> {
+  async getVenues(): Promise<Venue[]> {
     return venues.map(venue => this.transformToServiceVenue(venue));
   }
 
@@ -36,7 +36,7 @@ class MockVenueService implements VenueService {
       });
   }
 
-  async listVenuesByIds(venueIds: string[]): Promise<Venue[]> {
+  async getVenuesByIds(venueIds: string[]): Promise<Venue[]> {
     return venues
       .filter(venue => venueIds.includes(venue.id))
       .map(venue => this.transformToServiceVenue(venue));
@@ -44,7 +44,7 @@ class MockVenueService implements VenueService {
 
   // Implement the required method for e2eTests compatibility
   async getAllVenues(): Promise<Venue[]> {
-    return this.listVenues();
+    return this.getVenues();
   }
 
   /**

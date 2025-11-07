@@ -71,12 +71,6 @@ class NotificationService {
 
   // Initialize push notifications
   private async initializePushNotifications(): Promise<void> {
-    // 🧠 Purpose: Prevent push registration in development mode
-    if (import.meta.env.MODE === 'development') {
-      console.log('Push notifications disabled in development mode');
-      return;
-    }
-
     if (!this.isSupported) {
       console.warn('Push notifications not supported');
       return;
@@ -278,15 +272,15 @@ class NotificationService {
     venueName: string;
     userCount: number;
   }): Promise<void> {
-    const notification: NotificationData = {
+    const notification: Notification = {
       id: `venue_${venueData.venueId}`,
-      type: 'venue_activity',
+      type: 'venue',
       title: 'Venue Update',
-      body: `${venueData.userCount} people are now at ${venueData.venueName}`,
+      message: `${venueData.userCount} people are now at ${venueData.venueName}`,
       data: venueData,
-      priority: 'normal',
       timestamp: Date.now(),
-      read: false
+      read: false,
+      actionUrl: `/venue/${venueData.venueId}`
     };
 
     this.addNotification(notification);
@@ -323,48 +317,12 @@ class NotificationService {
 
   // Get all notifications
   getNotifications(): Notification[] {
-    return this.notifications.map((item: NotificationData) => ({
-      id: item.id,
-      type: this.mapNotificationType(item.type),
-      title: item.title,
-      message: item.body, // ✅ Add missing 'message' from 'body'
-      data: item.data,
-      timestamp: item.timestamp,
-      read: item.read,
-    }));
-  }
-
-  // Map NotificationData type to Notification type
-  private mapNotificationType(dataType: NotificationData['type']): Notification['type'] {
-    switch (dataType) {
-      case 'match':
-      case 'message':
-        return dataType;
-      case 'venue_checkin':
-      case 'venue_activity':
-        return 'venue';
-      case 'proximity_alert':
-      case 'match_expiring':
-      case 'reconnect_request':
-        return 'system';
-      default:
-        return 'system';
-    }
+    return [...this.notifications];
   }
 
   // Get unread notifications
   getUnreadNotifications(): Notification[] {
-    return this.notifications
-      .filter(n => !n.read)
-      .map((item: NotificationData) => ({
-        id: item.id,
-        type: this.mapNotificationType(item.type),
-        title: item.title,
-        message: item.body, // ✅ Add missing 'message' from 'body'
-        data: item.data,
-        timestamp: item.timestamp,
-        read: item.read,
-      }));
+    return this.notifications.filter(n => !n.read);
   }
 
   // Mark notification as read
@@ -431,17 +389,7 @@ class NotificationService {
   getPermissionStatus(): NotificationPermission {
     return this.permission;
   }
-
-  public notifyVenueCheckIn(payload: Record<string, unknown>) {
-    console.warn('[notificationService] notifyVenueCheckIn is a stub. Payload:', payload);
-    // TODO: Implement real notification logic
-  }
-
-  public notifyVenueActivity(payload: Record<string, unknown>) {
-    console.warn('[notificationService] notifyVenueActivity is a stub. Payload:', payload);
-    // TODO: Implement real notification logic
-  }
 }
 
-const notificationService = new NotificationService();
-export { notificationService };
+export const notificationService = new NotificationService();
+export default notificationService;

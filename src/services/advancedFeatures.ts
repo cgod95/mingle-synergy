@@ -1,5 +1,4 @@
 // Comprehensive advanced features service
-import logger from '@/utils/Logger';
 
 export interface PushNotification {
   id: string;
@@ -103,26 +102,29 @@ class AdvancedFeaturesService {
     this.initializeRealTimeUpdates();
   }
 
+  // Push Notifications
   private async initializeNotifications(): Promise<void> {
     if (!this.pushSupported) {
-      logger.warn('Push notifications not supported');
+      console.warn('Push notifications not supported');
       return;
     }
 
-    try {
-      this.notificationPermission = await this.requestNotificationPermission();
-    } catch (error) {
-      logger.error('Failed to initialize notifications', error);
+    this.notificationPermission = await this.requestNotificationPermission();
+    
+    if (this.notificationPermission === 'granted') {
+      await this.registerServiceWorker();
     }
   }
 
   async requestNotificationPermission(): Promise<NotificationPermission> {
+    if (!this.pushSupported) return 'denied';
+
     try {
       const permission = await Notification.requestPermission();
       this.notificationPermission = permission;
       return permission;
     } catch (error) {
-      logger.error('Failed to request notification permission', error);
+      console.error('Failed to request notification permission:', error);
       return 'denied';
     }
   }
@@ -130,50 +132,43 @@ class AdvancedFeaturesService {
   private async registerServiceWorker(): Promise<void> {
     try {
       const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!vapidKey) {
-        logger.warn('VAPID public key is not set. Push notifications will be disabled.');
-        return;
-      }
-
       const registration = await navigator.serviceWorker.register('/service-worker.js');
-      logger.debug('Service worker registered', { registration });
+      if (!vapidKey) {
+        console.warn('VAPID public key is not set. Push notifications will be disabled.');
+      }
     } catch (error) {
-      logger.error('Failed to register service worker', error);
+      console.error('Failed to register service worker:', error);
     }
   }
 
   async subscribeToPushNotifications(): Promise<PushSubscription | null> {
+    if (!this.pushSupported || this.notificationPermission !== 'granted') {
+      return null;
+    }
+
     try {
-      // Skip in development mode
-      if (import.meta.env.DEV) {
-        logger.warn('Skipping push subscription in development mode');
-        return null;
-      }
-
       const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!vapidKey) {
-        logger.warn('VAPID public key is missing or invalid. Push notifications will be disabled.');
+      // Defensive: check for missing, empty, or obviously invalid VAPID key
+      if (!vapidKey || typeof vapidKey !== 'string' || vapidKey.trim().length < 10) {
+        console.warn('VAPID public key is missing or invalid. Push notifications will be disabled.');
         return null;
       }
-
-      let vapidKeyArray: Uint8Array;
-      try {
-        vapidKeyArray = this.urlBase64ToUint8Array(vapidKey);
-      } catch (err) {
-        logger.warn('Failed to convert VAPID key to Uint8Array', err);
-        return null;
-      }
-
       const registration = await navigator.serviceWorker.ready;
+      let applicationServerKey;
+      try {
+        applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
+      } catch (err) {
+        console.warn('Failed to convert VAPID key to Uint8Array:', err);
+        return null;
+      }
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: vapidKeyArray
+        applicationServerKey
       });
-
-      logger.info('Push subscription created', { subscription });
+      console.log('Push subscription created:', subscription);
       return subscription;
     } catch (error) {
-      logger.error('Failed to subscribe to push notifications', error);
+      console.error('Failed to subscribe to push notifications:', error);
       return null;
     }
   }
@@ -189,17 +184,17 @@ class AdvancedFeaturesService {
         
         if (subscription) {
           await subscription.unsubscribe();
-          logger.info('Push subscription removed');
+          console.log('Push subscription removed');
           return true;
         }
         
         return false;
       } else {
-        logger.warn('VAPID public key is not set. Push notifications will be disabled.');
+        console.warn('VAPID public key is not set. Push notifications will be disabled.');
         return false;
       }
     } catch (error) {
-      logger.error('Failed to unsubscribe from push notifications', error);
+      console.error('Failed to unsubscribe from push notifications:', error);
       return false;
     }
   }
@@ -239,11 +234,11 @@ class AdvancedFeaturesService {
 
         return id;
       } else {
-        logger.warn('VAPID public key is not set. Push notifications will be disabled.');
+        console.warn('VAPID public key is not set. Push notifications will be disabled.');
         return '';
       }
     } catch (error) {
-      logger.error('Failed to send local notification', error);
+      console.error('Failed to send local notification:', error);
       return '';
     }
   }
@@ -276,14 +271,14 @@ class AdvancedFeaturesService {
 
     const wsUrlEnv = import.meta.env.VITE_WS_URL;
     if (!wsUrlEnv) {
-      logger.warn('VITE_WS_URL is not set. Real-time features will be disabled.');
+      console.warn('VITE_WS_URL is not set. Real-time features will be disabled.');
       return;
     }
     const wsUrl = `${wsUrlEnv}/realtime/${type}`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      logger.debug(`Real-time connection established for ${type}`);
+      console.log(`Real-time connection established for ${type}`);
     };
 
     ws.onmessage = (event) => {
@@ -291,12 +286,12 @@ class AdvancedFeaturesService {
         const update: RealTimeUpdate = JSON.parse(event.data);
         this.handleRealTimeUpdate(update);
       } catch (error) {
-        logger.error('Failed to parse real-time update', error);
+        console.error('Failed to parse real-time update:', error);
       }
     };
 
     ws.onclose = () => {
-      logger.debug(`Real-time connection closed for ${type}`);
+      console.log(`Real-time connection closed for ${type}`);
       this.realTimeConnections.delete(type);
       
       // Attempt to reconnect after a delay
@@ -306,7 +301,7 @@ class AdvancedFeaturesService {
     };
 
     ws.onerror = (error) => {
-      logger.error(`Real-time connection error for ${type}:`, error);
+      console.error(`Real-time connection error for ${type}:`, error);
     };
 
     this.realTimeConnections.set(type, ws);
@@ -319,7 +314,7 @@ class AdvancedFeaturesService {
       try {
         callback(update);
       } catch (error) {
-        logger.error('Error in real-time update callback', error);
+        console.error('Error in real-time update callback:', error);
       }
     });
   }
@@ -345,7 +340,7 @@ class AdvancedFeaturesService {
   async buildSearchIndex(): Promise<void> {
     // In a real app, this would fetch data from your backend
     // and build a search index (e.g., using Elasticsearch or similar)
-    logger.debug('Building search index...');
+    console.log('Building search index...');
     
     // Simulate building index
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -579,7 +574,7 @@ class AdvancedFeaturesService {
       this.webSocket = new WebSocket(url);
       
       this.webSocket.onopen = () => {
-        logger.debug('WebSocket connected');
+        console.log('WebSocket connected');
         this.reconnectAttempts = 0;
       };
 
@@ -588,21 +583,21 @@ class AdvancedFeaturesService {
           const message: WebSocketMessage = JSON.parse(event.data);
           this.handleWebSocketMessage(message);
         } catch (error) {
-          logger.error('Failed to parse WebSocket message', error);
+          console.error('Failed to parse WebSocket message:', error);
         }
       };
 
       this.webSocket.onclose = () => {
-        logger.debug('WebSocket disconnected');
+        console.log('WebSocket disconnected');
         this.attemptReconnect(url);
       };
 
       this.webSocket.onerror = (error) => {
-        logger.error('WebSocket error:', error);
+        console.error('WebSocket error:', error);
       };
 
     } catch (error) {
-      logger.error('Failed to connect WebSocket', error);
+      console.error('Failed to connect WebSocket:', error);
     }
   }
 
@@ -622,7 +617,7 @@ class AdvancedFeaturesService {
       };
       this.webSocket.send(JSON.stringify(message));
     } else {
-      logger.warn('WebSocket not connected');
+      console.warn('WebSocket not connected');
     }
   }
 
@@ -719,7 +714,7 @@ class AdvancedFeaturesService {
 
   private attemptReconnect(url: string): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      logger.error('Max reconnection attempts reached');
+      console.error('Max reconnection attempts reached');
       return;
     }
 
@@ -727,7 +722,7 @@ class AdvancedFeaturesService {
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // Exponential backoff
 
     setTimeout(() => {
-      logger.debug(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
       this.connectWebSocket(url);
     }, delay);
   }

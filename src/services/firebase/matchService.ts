@@ -1,82 +1,73 @@
 import { 
-  collection, 
   doc, 
   getDoc, 
   getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  setDoc,
   query, 
   where, 
-  orderBy, 
-  limit, 
-  arrayUnion, 
-  arrayRemove, 
+  addDoc,
+  updateDoc,
   Timestamp,
-  DocumentData 
+  orderBy,
+  collection,
+  serverTimestamp,
+  DocumentData,
+  deleteDoc,
+  arrayUnion,
+  setDoc,
+  writeBatch
 } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
-import { MatchService } from '@/types/services';
-import { FirestoreMatch } from '@/types/match';
+import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
+import { Match, MatchService } from '@/types/services';
+import { localStorageUtils } from '@/utils/localStorageUtils';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
-import logger from '@/utils/Logger';
+import services from '..';
+import { FirestoreMatch } from '@/types/match';
+import { firestore } from '@/firebase';
 
-const MATCH_EXPIRY_TIME = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
+// Match expiry time in milliseconds (3 hours)
+const MATCH_EXPIRY_TIME = 3 * 60 * 60 * 1000;
 
 class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
   private getMatchesCollection() {
-    return this.getCollection('matches');
+    const db = getDB();
+    if (!db) return null;
+    return collection(db, 'matches');
   }
-
+  
+  /**
+   * Get all active matches for a user
+   */
   public async getMatches(userId: string): Promise<FirestoreMatch[]> {
-    try {
-      if (!this.isFirebaseAvailable()) {
-        return [];
-      }
-      
-      const matchesCollection = this.getMatchesCollection();
-      if (!matchesCollection) {
-        return [];
-      }
-      
-      const q = query(
-        matchesCollection,
-        where('user1Id', '==', userId),
-        orderBy('timestamp', 'desc')
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const matches: FirestoreMatch[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        matches.push({
-          id: doc.id,
-          ...doc.data()
-        } as FirestoreMatch);
-      });
-      
-      // Also get matches where user is user2Id
-      const q2 = query(
-        matchesCollection,
-        where('user2Id', '==', userId),
-        orderBy('timestamp', 'desc')
-      );
-      
-      const querySnapshot2 = await getDocs(q2);
-      querySnapshot2.forEach((doc) => {
-        matches.push({
-          id: doc.id,
-          ...doc.data()
-        } as FirestoreMatch);
-      });
-      
-      return matches;
-    } catch (error) {
-      this.handleError(error, 'getMatches');
-    }
-  }
+    const matchesRef = collection(firestore, "matches");
+    const now = Date.now();
 
+    // Query for matches where user is userId1
+    const q1 = query(matchesRef, where("userId1", "==", userId));
+    const snapshot1 = await getDocs(q1);
+    
+    // Query for matches where user is userId2
+    const q2 = query(matchesRef, where("userId2", "==", userId));
+    const snapshot2 = await getDocs(q2);
+
+    const allMatches = [
+      ...snapshot1.docs.map((doc) => ({ id: doc.id, ...doc.data() } as FirestoreMatch)),
+      ...snapshot2.docs.map((doc) => ({ id: doc.id, ...doc.data() } as FirestoreMatch))
+    ];
+
+    const activeMatches = allMatches.filter(
+      (match: FirestoreMatch) =>
+        match.timestamp &&
+        typeof match.timestamp === "number" &&
+        now - match.timestamp < 3 * 60 * 60 * 1000 // 3 hours
+    );
+
+    return activeMatches.sort((a, b) => b.timestamp - a.timestamp);
+  }
+  
+  /**
+   * Create a new match between two users
+   */
   public async createMatch(
     user1Id: string, 
     user2Id: string, 
@@ -88,30 +79,50 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         throw new Error('Cannot create match while offline');
       }
       
-      const matchesCollection = this.getMatchesCollection();
-      if (!matchesCollection) {
-        throw new Error('Matches collection not available');
+      const matchRef = collection(firestore, 'matches');
+      const q = query(
+        matchRef,
+        where('userId1', 'in', [user1Id, user2Id]),
+        where('userId2', 'in', [user1Id, user2Id])
+      );
+
+      const snapshot = await getDocs(q);
+      const now = Date.now();
+
+      for (const docSnap of snapshot.docs) {
+        const match = docSnap.data() as FirestoreMatch;
+
+        const isMatch = (
+          (match.userId1 === user1Id && match.userId2 === user2Id) ||
+          (match.userId1 === user2Id && match.userId2 === user1Id)
+        );
+
+        if (isMatch) {
+          const isExpired = now - match.timestamp > MATCH_EXPIRY_TIME;
+
+          if (isExpired) {
+            await deleteDoc(doc(firestore, 'matches', docSnap.id));
+            break;
+          } else {
+            // Active match already exists
+            return docSnap.id;
+          }
+        }
       }
-      
+
       const newMatch = {
-        user1Id,
-        user2Id,
+        userId1: user1Id,
+        userId2: user2Id,
         venueId,
         venueName,
         timestamp: Date.now(),
         messages: [],
-        isExpired: false,
-        userRequestedReconnect: false,
-        matchedUserRequestedReconnect: false,
-        reconnectRequestedAt: null,
-        userConfirmedWeMet: false,
-        matchedUserConfirmedWeMet: false
       };
 
-      const newDocRef = await addDoc(matchesCollection, newMatch);
+      const newDocRef = await addDoc(matchRef, newMatch);
       return newDocRef.id;
     } catch (error) {
-      logger.error('Error creating match', error, { user1Id, user2Id, venueId });
+      console.error('Error creating match:', error);
       throw error;
     }
   }
@@ -157,7 +168,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       
       return true;
     } catch (error) {
-      logger.error('Error requesting reconnect', error, { matchId, userId });
+      console.error('Error requesting reconnect:', error);
       throw error;
     }
   }
@@ -246,7 +257,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       const matchRef = doc(firestore, 'matches', matchId);
       await deleteDoc(matchRef);
     } catch (error) {
-      logger.error('Error deleting match', error, { matchId });
+      console.error('Error deleting match:', error);
       throw error;
     }
   }
@@ -289,7 +300,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         await this.createMatch(currentUserId, targetUserId, venueId, venue);
       }
     } catch (error) {
-      logger.error('Error liking user', error, { currentUserId, targetUserId, venueId });
+      console.error('Error liking user:', error);
       throw error;
     }
   }
@@ -306,7 +317,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       }
       return 'Unknown Venue';
     } catch (error) {
-      logger.error('Error getting venue name', error, { venueId });
+      console.error('Error getting venue name:', error);
       return 'Unknown Venue';
     }
   }
@@ -343,12 +354,12 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       const docRef = await addDoc(matchRef, {
         ...newMatch,
-        timestamp: Timestamp.now(),
+        timestamp: serverTimestamp(),
       });
 
       return docRef.id;
     } catch (error) {
-      logger.error('Error creating mutual match', error, { userId1, userId2, venueId });
+      console.error('Error creating mutual match:', error);
       throw error;
     }
   }
@@ -371,7 +382,7 @@ export const createMatchIfMutual = async (userId1: string, userId2: string, venu
 // Export mutual like detection function
 export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: string, venueId: string): Promise<void> => {
   try {
-    if (!this.isFirebaseAvailable()) {
+    if (!isFirebaseAvailable()) {
       throw new Error('Cannot like user while offline');
     }
 
@@ -400,7 +411,7 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
       }
     }
   } catch (error) {
-    logger.error('Error in mutual like detection', error, { fromUserId, toUserId, venueId });
+    console.error('Error in mutual like detection:', error);
     throw error;
   }
 };
@@ -551,7 +562,7 @@ export const canRematch = async (uid1: string, uid2: string): Promise<boolean> =
 
 export const createRematch = async (uid1: string, uid2: string, venueId: string): Promise<string | null> => {
   try {
-    if (!this.isFirebaseAvailable()) {
+    if (!isFirebaseAvailable()) {
       throw new Error('Cannot create rematch while offline');
     }
 
@@ -578,7 +589,7 @@ export const createRematch = async (uid1: string, uid2: string, venueId: string)
     const newDocRef = await addDoc(matchRef, newMatch);
     return newDocRef.id;
   } catch (error) {
-    logger.error('Error creating rematch', error, { uid1, uid2, venueId });
+    console.error('Error creating rematch:', error);
     throw error;
   }
 };
@@ -646,7 +657,7 @@ export const getActiveMatchesForUser = async (userId: string) => {
 export async function expireMatch(matchId: string) {
   const matchRef = doc(firestore, 'matches', matchId);
   await updateDoc(matchRef, {
-    expiredAt: Timestamp.now(),
+    expiredAt: serverTimestamp(),
     matchExpired: true, // ✅ add explicit flag for frontend
   });
 }
@@ -669,7 +680,7 @@ export async function rematchUser(currentUserId: string, otherUserId: string) {
  */
 export async function confirmWeMet(matchId: string, userId: string): Promise<void> {
   try {
-    if (!this.isFirebaseAvailable()) {
+    if (!isFirebaseAvailable()) {
       throw new Error('Cannot confirm we met while offline');
     }
 
@@ -694,14 +705,14 @@ export async function confirmWeMet(matchId: string, userId: string): Promise<voi
       // Keep the old fields for backward compatibility
       weMetConfirmed: true,
       weMetConfirmedBy: userId,
-      weMetConfirmedAt: Timestamp.now(),
+      weMetConfirmedAt: serverTimestamp(),
     });
 
     // You could also update user profiles or send notifications here
     // For example, increment a "successful meets" counter on user profiles
     
   } catch (error) {
-    logger.error('Error confirming we met', error, { matchId, userId });
+    console.error('Error confirming we met:', error);
     throw error;
   }
 }
