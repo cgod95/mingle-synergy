@@ -87,8 +87,15 @@ const Matches: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="pb-16 p-4">
-        <h1 className="text-xl font-semibold mb-4">Your Matches</h1>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-16 p-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <h1 className="text-3xl font-bold text-neutral-800 mb-2">Your Matches</h1>
+          <p className="text-neutral-600">People you've connected with</p>
+        </motion.div>
         <div className="space-y-4">
           {matches.length === 0 ? (
             <motion.div
