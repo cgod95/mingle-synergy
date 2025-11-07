@@ -9,7 +9,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageCircle, MapPin, Clock, Sparkles } from 'lucide-react';
+import { MessageCircle, MapPin, Clock, Sparkles, MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { BlockReportDialog } from '@/components/BlockReportDialog';
 
 type MatchCardProps = {
   match: DisplayMatch;
@@ -31,6 +38,12 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const { currentUser } = useAuth();
   const [showWeMetModal, setShowWeMetModal] = useState(false);
   const [weMetStatus, setWeMetStatus] = useState<"idle" | "confirming" | "confirmed" | "error">("idle");
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+
+  // Get other user ID for block/report (match.id is the match ID, need to extract user ID)
+  // In a real implementation, match would have userId or partnerId
+  const otherUserId = match.id; // Placeholder - would need to fetch from match data
 
   const handleWeMetConfirm = async () => {
     if (!currentUser) return;
@@ -120,6 +133,22 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 </div>
               )}
             </div>
+            {/* Block/Report Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <MoreVertical className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowBlockDialog(true)}>
+                  <span className="text-red-600">Block User</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                  <span>Report User</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
 
@@ -219,6 +248,26 @@ const MatchCard: React.FC<MatchCardProps> = ({
         onConfirm={handleWeMetConfirm}
         onCancel={() => setShowWeMetModal(false)}
       />
+
+      {/* Block/Report Dialogs */}
+      {otherUserId && (
+        <>
+          <BlockReportDialog
+            userId={otherUserId}
+            userName={match.name}
+            open={showBlockDialog}
+            onClose={() => setShowBlockDialog(false)}
+            type="block"
+          />
+          <BlockReportDialog
+            userId={otherUserId}
+            userName={match.name}
+            open={showReportDialog}
+            onClose={() => setShowReportDialog(false)}
+            type="report"
+          />
+        </>
+      )}
     </motion.div>
   );
 };

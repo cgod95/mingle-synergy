@@ -1,10 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { BlockReportDialog } from "@/components/BlockReportDialog";
 
 // Optional demo match lookup (if present in your repo); safe-optional import.
 let getMatch: undefined | ((id: string) => any);
@@ -50,11 +57,20 @@ export default function ChatRoom() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const endRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   const header = useMemo(() => {
     if (!matchId) return "Chat";
     const m = getMatch ? getMatch(matchId) : null;
     return m?.name ?? "Chat";
+  }, [matchId]);
+
+  // Get other user ID from match (for block/report)
+  const otherUserId = useMemo(() => {
+    // In a real implementation, fetch match data to get otherUserId
+    // For now, use matchId as placeholder
+    return matchId || "";
   }, [matchId]);
 
   useEffect(() => {
@@ -117,6 +133,24 @@ export default function ChatRoom() {
           <h2 className="font-semibold text-neutral-800 truncate">{header}</h2>
           <p className="text-xs text-neutral-500">Active now</p>
         </div>
+        {/* Block/Report Menu */}
+        {otherUserId && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowBlockDialog(true)}>
+                <span className="text-red-600">Block User</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+                <span>Report User</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Messages */}
@@ -169,6 +203,26 @@ export default function ChatRoom() {
           </Button>
         </form>
       </div>
+
+      {/* Block/Report Dialogs */}
+      {otherUserId && (
+        <>
+          <BlockReportDialog
+            userId={otherUserId}
+            userName={header}
+            open={showBlockDialog}
+            onClose={() => setShowBlockDialog(false)}
+            type="block"
+          />
+          <BlockReportDialog
+            userId={otherUserId}
+            userName={header}
+            open={showReportDialog}
+            onClose={() => setShowReportDialog(false)}
+            type="report"
+          />
+        </>
+      )}
     </div>
   );
 }

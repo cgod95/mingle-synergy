@@ -38,6 +38,7 @@ import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 
 const SettingsPage: React.FC = () => {
+  const { currentUser } = useAuth();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -47,6 +48,7 @@ const SettingsPage: React.FC = () => {
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [currentPlan, setCurrentPlan] = useState(subscriptionService.getCurrentPlan());
   const [userSubscription, setUserSubscription] = useState(subscriptionService.getUserSubscription());
+  const [isVisible, setIsVisible] = useState(true); // Visibility toggle per spec
 
   useEffect(() => {
     // Load user preferences from localStorage
@@ -58,6 +60,7 @@ const SettingsPage: React.FC = () => {
       setLocationSharing(preferences.locationSharing ?? true);
       setAnalyticsEnabled(preferences.analytics ?? true);
       setRealtimeEnabled(preferences.realtime ?? true);
+      setIsVisible(preferences.isVisible ?? true);
     }
 
     // Track page view
@@ -70,9 +73,23 @@ const SettingsPage: React.FC = () => {
       darkMode,
       locationSharing,
       analytics: analyticsEnabled,
-      realtime: realtimeEnabled
+      realtime: realtimeEnabled,
+      isVisible,
     };
     localStorage.setItem('user_preferences', JSON.stringify(preferences));
+    
+    // Sync visibility with userService
+    const syncVisibility = async () => {
+      try {
+        if (currentUser?.uid) {
+          const { userService } = await import('@/services');
+          await userService.updateUserProfile(currentUser.uid, { isVisible });
+        }
+      } catch (error) {
+        console.error('Error syncing visibility:', error);
+      }
+    };
+    syncVisibility();
   };
 
   const handleNotificationToggle = (enabled: boolean) => {
@@ -229,8 +246,13 @@ const SettingsPage: React.FC = () => {
         {
           label: 'Profile Visibility',
           description: 'Control who can see your profile',
-          action: () => {},
-          icon: Eye
+          action: () => setIsVisible(!isVisible),
+          icon: isVisible ? Eye : EyeOff,
+          toggle: isVisible,
+          onToggle: (enabled: boolean) => {
+            setIsVisible(enabled);
+            savePreferences();
+          }
         },
         {
           label: 'Data Collection',
