@@ -16,6 +16,8 @@ import {
 import { firestore } from '@/firebase/config';
 import { UserProfile } from "@/types/services";
 import { FirestoreMatch } from "@/types/match";
+import { FEATURE_FLAGS } from "@/lib/flags";
+import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 
 export interface Message {
   id: string;
@@ -24,8 +26,6 @@ export interface Message {
   createdAt: Date;
   readBy?: string[]; // Array of user IDs who have read this message
 }
-
-import { FEATURE_FLAGS } from "@/lib/flags";
 
 /**
  * Send a message with validation for the message limit per user per match
@@ -96,9 +96,8 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
   const matchData = matchDoc.data();
   const createdAt = typeof matchData.timestamp === 'number' ? matchData.timestamp : 0;
   const now = Date.now();
-  const threeHours = 3 * 60 * 60 * 1000;
 
-  if (now - createdAt > threeHours) {
+  if (now - createdAt > MATCH_EXPIRY_MS) {
     throw new Error("Match has expired. Please reconnect by checking in again.");
   }
 
@@ -138,8 +137,11 @@ export const getMessageCount = async (matchId: string, senderId: string): Promis
  * Get remaining messages for a user in a specific match
  */
 export const getRemainingMessages = async (matchId: string, senderId: string): Promise<number> => {
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+    : 3;
   const count = await getMessageCount(matchId, senderId);
-  return Math.max(0, 3 - count);
+  return Math.max(0, messageLimit - count);
 };
 
 /**
@@ -212,11 +214,11 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
       ...snapshot2.docs.map(doc => ({ id: doc.id, ...doc.data() } as FirestoreMatch))
     ];
 
-    // Filter out expired matches (older than 3 hours)
+    // Filter out expired matches using single source of truth
     const now = Date.now();
     const activeMatches = allMatches.filter(match => {
       const matchTimestamp = match.timestamp || 0;
-      return now - matchTimestamp < 3 * 60 * 60 * 1000; // 3 hours
+      return now - matchTimestamp < MATCH_EXPIRY_MS;
     });
 
     const chatPreviews: ChatPreview[] = [];
