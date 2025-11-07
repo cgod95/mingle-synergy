@@ -16,12 +16,14 @@ import Debug from "./pages/Debug";
 
 import { AuthProvider } from "./context/AuthContext";
 import { UserProvider } from "./context/UserContext.tsx";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <UserProvider>
-        <BrowserRouter>
+    <ErrorBoundary>
+      <AuthProvider>
+        <UserProvider>
+          <BrowserRouter>
         <Routes>
           {/* Onboarding / auth */}
           <Route path="/upload" element={<AuthRoute><ProfileUpload /></AuthRoute>} />
@@ -42,5 +44,6 @@ export default function App() {
       </BrowserRouter>
       </UserProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }
