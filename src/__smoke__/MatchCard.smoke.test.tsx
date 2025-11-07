@@ -1,16 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import MatchCard from '@/components/MatchCard';
 import { DisplayMatch } from '@/types/match';
-
-// Mock toast
-vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({
-    toast: vi.fn(),
-  }),
-}));
 
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
@@ -31,8 +24,19 @@ describe('MatchCard Component - UI Smoke Tests', () => {
     photoUrl: '/test.jpg',
   };
 
+  const mockHandlers = {
+    onViewProfile: vi.fn(),
+    onSendMessage: vi.fn(),
+  };
+
   it('renders match card with avatar and CTA', () => {
-    renderWithProviders(<MatchCard match={mockMatch} />);
+    renderWithProviders(
+      <MatchCard 
+        match={mockMatch} 
+        onViewProfile={mockHandlers.onViewProfile}
+        onSendMessage={mockHandlers.onSendMessage}
+      />
+    );
     
     // Check that avatar/image area exists
     const images = document.querySelectorAll('img');
@@ -43,7 +47,13 @@ describe('MatchCard Component - UI Smoke Tests', () => {
   });
 
   it('displays match name when provided', () => {
-    renderWithProviders(<MatchCard match={mockMatch} />);
+    renderWithProviders(
+      <MatchCard 
+        match={mockMatch}
+        onViewProfile={mockHandlers.onViewProfile}
+        onSendMessage={mockHandlers.onSendMessage}
+      />
+    );
     
     // Name should be present (may be in various formats)
     expect(document.body.textContent).toContain('Test User');
