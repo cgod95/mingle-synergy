@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { trackContactShared } from '@/services/appAnalytics';
 import matchService, { removeLikeBetweenUsers } from '@/services/firebase/matchService';
-import { useToast } from '@/components/ui/toast/ToastContext';
+import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { FirestoreMatch } from '@/types/match';
 import { useNavigate } from 'react-router-dom';
@@ -56,7 +56,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   onReconnectRequest,
   onWeMetClick
 }) => {
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const { currentUser } = useUser();
   const navigate = useNavigate();
   const [contactType, setContactType] = useState<'phone' | 'instagram' | 'snapchat' | 'custom'>('phone');
@@ -114,12 +114,21 @@ const MatchCard: React.FC<MatchCardProps> = ({
       await handleRemoveLikeBetweenUsers(currentUser.id, otherUserId);
       
       // Show success message and navigate to /matches
-      showToast("Match expired. You can now like each other again.", "success");
+      toast({
+        title: "Match expired",
+        description: "You can now like each other again.",
+        duration: 3000,
+      });
       navigate('/matches');
       onReconnectRequest?.();
     } catch (error) {
       console.error('Error reconnecting:', error);
-      showToast("Failed to reconnect. Please try again.", "error");
+      toast({
+        title: "Failed to reconnect",
+        description: "Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
       navigate('/venues');
     }
   };

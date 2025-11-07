@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { purgeExpired, read, write } from "../lib/matchStore";
+import { clearMatchStore, getMatches } from "../lib/matchStore";
 
 export default function DebugPanel() {
   const [open, setOpen] = useState(false);
@@ -14,17 +14,17 @@ export default function DebugPanel() {
   }, []);
 
   const clearAll = () => {
+    clearMatchStore();
     localStorage.removeItem("mingle_matches_v1");
+    localStorage.removeItem("mingle_likes_v1");
     setInfo("✅ Cleared demo data.");
     setTimeout(() => setInfo(""), 2000);
   };
 
   const expireNow = () => {
-    const matches = read();
-    for (const m of matches) m.createdAt = Date.now() - 4 * 60 * 60 * 1000;
-    write(matches);
-    purgeExpired();
-    setInfo("⚠️ All matches marked expired.");
+    // Clear matches to simulate expiry
+    clearMatchStore();
+    setInfo("⚠️ All matches cleared (simulated expiry).");
     setTimeout(() => setInfo(""), 2000);
   };
 

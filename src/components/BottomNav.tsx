@@ -17,11 +17,13 @@ const BottomNav: React.FC = () => {
   useEffect(() => {
     if (!currentUser?.uid) return;
     
+    let unsubscribe: (() => void) | undefined;
+    
     // Try to subscribe to unread counts, but don't fail if service unavailable
     import('@/features/messaging/UnreadMessageService')
       .then((module) => {
         if (module?.subscribeToUnreadCounts) {
-          return module.subscribeToUnreadCounts(
+          unsubscribe = module.subscribeToUnreadCounts(
             currentUser.uid,
             (counts: Record<string, number>) => {
               const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
@@ -34,6 +36,10 @@ const BottomNav: React.FC = () => {
         // Service not available, continue without unread counts
         console.debug('UnreadMessageService not available, continuing without unread counts');
       });
+    
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [currentUser?.uid]);
 
   const navItems = [
