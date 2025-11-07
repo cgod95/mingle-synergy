@@ -36,6 +36,7 @@ import { realtimeService } from '@/services/realtimeService';
 import PremiumUpgradeModal from '@/components/ui/PremiumUpgradeModal';
 import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
+import { useAuth } from '@/context/AuthContext';
 
 const SettingsPage: React.FC = () => {
   const { currentUser } = useAuth();
