@@ -1,0 +1,10 @@
+# Golden UI assets/components/pages are protected; keep OUR version on merges
+public/**                     merge=ours
+src/assets/**                merge=ours
+src/styles/**                merge=ours
+src/index.css                merge=ours
+tailwind.config.*            merge=ours
+postcss.config.*             merge=ours
+src/components/**            merge=ours
+src/pages/**                 merge=ours
+# Allow exceptions for specific logic files if needed by removing/overriding here later
