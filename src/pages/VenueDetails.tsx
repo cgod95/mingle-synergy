@@ -33,8 +33,8 @@ export default function VenueDetails() {
   };
 
   const handleLike = (personId: string, personName: string) => {
-    const result = likePerson(personId);
-    if (result.status === "matched") {
+    const matched = likePerson(personId);
+    if (matched) {
       setToast(`Matched with ${personName} 🎉`);
     } else {
       setToast(`Like sent to ${personName}`);

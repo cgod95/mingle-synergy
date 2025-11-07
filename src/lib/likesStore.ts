@@ -46,6 +46,11 @@ export function likePerson(id: string): boolean {
 export function isMatched(id: string): boolean {
   return load().matches.includes(id);
 }
+
+export function isLiked(id: string): boolean {
+  return load().mine.includes(id);
+}
+
 export function listMatches(): string[] {
   return load().matches;
 }
