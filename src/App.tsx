@@ -15,11 +15,13 @@ import ProfileUpload from "./pages/ProfileUpload";
 import Debug from "./pages/Debug";
 
 import { AuthProvider } from "./context/AuthContext";
+import { UserProvider } from "./context/UserContext";
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <UserProvider>
+        <BrowserRouter>
         <Routes>
           {/* Onboarding / auth */}
           <Route path="/upload" element={<AuthRoute><ProfileUpload /></AuthRoute>} />
@@ -38,6 +40,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/checkin" replace />} />
         </Routes>
       </BrowserRouter>
+      </UserProvider>
     </AuthProvider>
   );
 }
