@@ -1,12 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { useState, ReactNode } from 'react';
 import config from '../config';
 import { User } from '../types';
 import { UserContext } from './UserContext';
-
-interface UserContextType {
-  currentUser: User | null;
-  setCurrentUser: (user: User | null) => void;
-}
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(

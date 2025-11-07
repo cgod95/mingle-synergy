@@ -5,7 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
 
 import CheckInPage from "./pages/CheckInPage";
-import VenueDetails from "./components/venue/VenueDetails";
+import VenueDetails from "./pages/VenueDetails";
 import Matches from "./pages/Matches";
 import ChatIndex from "./pages/ChatIndex";
 import ChatRoom from "./pages/ChatRoom";
@@ -15,7 +15,7 @@ import ProfileUpload from "./pages/ProfileUpload";
 import Debug from "./pages/Debug";
 
 import { AuthProvider } from "./context/AuthContext";
-import { UserProvider } from "./context/UserContext";
+import { UserProvider } from "./context/UserContext.tsx";
 
 export default function App() {
   return (
