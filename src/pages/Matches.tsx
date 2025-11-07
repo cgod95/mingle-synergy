@@ -126,6 +126,7 @@ const Matches: React.FC = () => {
               />
             ))
           )}
+          </div>
         </div>
       </div>
       <BottomNav />
