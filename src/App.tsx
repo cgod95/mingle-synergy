@@ -16,6 +16,7 @@ import Debug from "./pages/Debug";
 import { AuthProvider } from "./context/AuthContext";
 import { UserProvider } from "./context/UserContext.tsx";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
+import { Toaster } from "./components/ui/toaster";
 
 export default function App() {
   return (
@@ -23,24 +24,25 @@ export default function App() {
       <AuthProvider>
         <UserProvider>
           <BrowserRouter>
-        <Routes>
-          {/* Onboarding / auth */}
-          <Route path="/upload" element={<AuthRoute><ProfileUpload /></AuthRoute>} />
-          {/* App shell */}
-          <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
-            <Route path="/" element={<Navigate to="/checkin" replace />} />
-            <Route path="/checkin" element={<CheckInPage />} />
-            <Route path="/venues/:id" element={<VenueDetails />} />
-            <Route path="/matches" element={<Matches />} />
-            <Route path="/chats" element={<ChatIndex />} />
-            <Route path="/chat/:id" element={<ChatRoomGuard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/debug" element={<Debug />} />
-          </Route>
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/checkin" replace />} />
+            <Routes>
+              {/* Onboarding / auth */}
+              <Route path="/upload" element={<AuthRoute><ProfileUpload /></AuthRoute>} />
+              {/* App shell */}
+              <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+                <Route path="/" element={<Navigate to="/checkin" replace />} />
+                <Route path="/checkin" element={<CheckInPage />} />
+                <Route path="/venues/:id" element={<VenueDetails />} />
+                <Route path="/matches" element={<Matches />} />
+                <Route path="/chats" element={<ChatIndex />} />
+                <Route path="/chat/:id" element={<ChatRoomGuard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/debug" element={<Debug />} />
+              </Route>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/checkin" replace />} />
             </Routes>
           </BrowserRouter>
+          <Toaster />
         </UserProvider>
       </AuthProvider>
     </ErrorBoundary>
