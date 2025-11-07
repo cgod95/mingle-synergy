@@ -9,6 +9,7 @@ import VenueDetails from "./components/venue/VenueDetails";
 import Matches from "./pages/Matches";
 import ChatIndex from "./pages/ChatIndex";
 import ChatRoom from "./pages/ChatRoom";
+import ChatRoomGuard from "./pages/ChatRoomGuard";
 import Profile from "./pages/Profile";
 import ProfileUpload from "./pages/ProfileUpload";
 import Debug from "./pages/Debug";
