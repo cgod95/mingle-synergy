@@ -46,17 +46,29 @@
 
 ## ⚠️ Areas Needing Attention
 
-### 1. Branding/Theme Consistency
+### 1. Critical Missing Features
+- **Push Notifications:** Not implemented - users miss matches/messages
+- **Location Permission Handling:** Needs graceful degradation when denied
+- **Offline Support:** Service worker exists but needs verification
+- **Photo Verification:** Mentioned in spec, not implemented
+- **Reconnect Flow (Non-Co-Located):** Only co-located reconnect exists
+
+### 2. Beta Operations
+- **Status:** ✅ Beta tester guide created, ✅ Feedback system enhanced
+- **Missing:** Feedback collection channel setup, Sentry alerts configuration
+- **Action:** Set up operations before beta launch
+
+### 3. Branding/Theme Consistency
 - **Status:** Pages use indigo-purple gradients consistently
 - **Issue:** Multiple theme definitions exist (coral, Hinge red-orange in config files)
 - **Action:** Consolidate theme tokens (not blocking, but should be done)
 
-### 2. Post-Expiry Gating
+### 4. Post-Expiry Gating
 - **Status:** Free access window system exists
 - **Missing:** Upgrade modal when free access expires
 - **Action:** Implement post-expiry gating (can be done post-beta)
 
-### 3. Test Coverage
+### 5. Test Coverage
 - **Status:** Core tests in place
 - **Missing:** Full integration/E2E coverage
 - **Action:** Incremental testing (not blocking for beta)
@@ -166,9 +178,15 @@
 - Some polish items can be done incrementally
 
 **Next Steps:**
-1. Complete environment variable documentation
-2. Run final manual testing pass
-3. Set up beta tester onboarding
-4. Launch closed beta
-5. Monitor and iterate
+1. ✅ Enhanced feedback system (Settings → Send Feedback)
+2. ✅ Created beta tester guide (`BETA_TESTER_GUIDE.md`)
+3. ✅ Created beta launch checklist (`BETA_LAUNCH_CHECKLIST.md`)
+4. Complete environment variable documentation
+5. Verify venue loading (check console logs)
+6. Run final manual testing pass
+7. Set up beta operations (feedback channel, alerts)
+8. Launch closed beta
+9. Monitor and iterate
+
+**See `ROADMAP_TO_BETA.md` for detailed plan**
 

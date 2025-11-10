@@ -8,10 +8,10 @@ When context window is full (75%+), use this guide to transfer seamlessly.
 
 ```
 I'm continuing work on the Mingle app. Please read these files first:
-1. CONTEXT_CONTINUITY.md - Current status and context
-2. SESSION_SUMMARY_JAN_2025.md - Last session summary  
-3. NEXT_STEPS_JAN_2025.md - Immediate next steps
-4. DEMO_MODE_PROGRESS.md - Demo mode implementation status
+1. HANDOVER_STREAMLINED.md ⭐ START HERE - Quick overview
+2. ROADMAP_TO_BETA.md - Complete roadmap and plan
+3. BETA_LAUNCH_CHECKLIST.md - Actionable checklist
+4. BETA_TESTER_GUIDE.md - Beta tester onboarding guide
 
 Current branch: feature/backend-parity-merge
 Latest commit: 884aa39 (Fixed Select component empty value error)

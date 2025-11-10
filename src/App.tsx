@@ -26,6 +26,7 @@ import Help from "./pages/Help";
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Debug from "./pages/Debug";
+import Feedback from "./pages/Feedback";
 
 import { AuthProvider } from "./context/AuthContext";
 import { UserProvider } from "./context/UserContext.tsx";
@@ -65,6 +66,7 @@ function AppRoutes() {
                 <Route path="/billing" element={<Billing />} />
                 <Route path="/usage" element={<UsageStats />} />
                 <Route path="/help" element={<Help />} />
+                <Route path="/feedback" element={<Feedback />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/debug" element={<Debug />} />

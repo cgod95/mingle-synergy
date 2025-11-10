@@ -400,6 +400,12 @@ const SettingsPage: React.FC = () => {
           icon: HelpCircle
         },
         {
+          label: 'Send Feedback',
+          description: 'Share your thoughts and suggestions',
+          action: () => navigate('/feedback'),
+          icon: ChevronRight
+        },
+        {
           label: 'Contact Support',
           description: 'Reach out to our support team',
           action: () => navigate('/contact'),

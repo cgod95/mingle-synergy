@@ -136,10 +136,10 @@
 ### When Starting a New Chat (Context Window Full):
 
 **STEP 1: Read These Files in Order**
-1. `CONTEXT_CONTINUITY.md` (this file) - Current status and context
-2. `DEMO_MODE_PROGRESS.md` - Latest demo mode implementation status
-3. `SESSION_SUMMARY_JAN_2025.md` - Last session summary
-4. `NEXT_STEPS_JAN_2025.md` - Immediate next steps
+1. **`HANDOVER_STREAMLINED.md`** ⭐ START HERE - Quick 30-second overview
+2. `ROADMAP_TO_BETA.md` - Complete roadmap and plan
+3. `BETA_LAUNCH_CHECKLIST.md` - Actionable checklist
+4. `CONTEXT_CONTINUITY.md` (this file) - Detailed context if needed
 
 **STEP 2: Check Recent Work**
 ```bash

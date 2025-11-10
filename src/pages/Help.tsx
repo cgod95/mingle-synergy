@@ -137,7 +137,7 @@ const Help: React.FC = () => {
               <CardTitle>Still Need Help?</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <Mail className="w-12 h-12 mx-auto mb-4 text-blue-600" />
                   <h3 className="font-semibold mb-2">Email Support</h3>
@@ -148,10 +148,18 @@ const Help: React.FC = () => {
                 </div>
                 <div className="text-center">
                   <MessageCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
-                  <h3 className="font-semibold mb-2">Live Chat</h3>
-                  <p className="text-gray-600 mb-4">Chat with our support team</p>
+                  <h3 className="font-semibold mb-2">Send Feedback</h3>
+                  <p className="text-gray-600 mb-4">Share your thoughts and suggestions</p>
+                  <Button variant="outline" onClick={() => navigate('/feedback')}>
+                    Give Feedback
+                  </Button>
+                </div>
+                <div className="text-center">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+                  <h3 className="font-semibold mb-2">Contact Support</h3>
+                  <p className="text-gray-600 mb-4">Reach out to our support team</p>
                   <Button variant="outline" onClick={() => navigate('/contact')}>
-                    Start Chat
+                    Contact Us
                   </Button>
                 </div>
               </div>
