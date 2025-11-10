@@ -43,6 +43,7 @@ import { UserProvider } from "./context/UserContext.tsx";
 import { OnboardingProvider } from "./context/OnboardingContext";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { Toaster } from "./components/ui/toaster";
+import { NetworkErrorBanner } from "./components/ui/NetworkErrorBanner";
 import analytics from "./services/appAnalytics";
 
 function AppRoutes() {
@@ -101,6 +102,8 @@ export default function App() {
               <AppRoutes />
             </BrowserRouter>
             <Toaster />
+            {/* Global network error banner - shows when offline or network errors occur */}
+            <NetworkErrorBanner />
           </OnboardingProvider>
         </UserProvider>
       </AuthProvider>
