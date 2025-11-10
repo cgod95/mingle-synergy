@@ -7,7 +7,12 @@
 **Status:** FIXED
 **Fix:** Added `const [isVisible, setIsVisible] = useState(true);` to SettingsPage.tsx
 
-### 2. ⚠️ Some Venues Not Working
+### 2. ✅ Select Component Error
+**Problem:** SelectItem with empty string value causing Radix UI error
+**Status:** FIXED
+**Fix:** Changed empty string value to "none" and updated handling logic in VenueDetails.tsx
+
+### 3. ⚠️ Some Venues Not Working
 **Potential Issues:**
 - Venue IDs mismatch between `venueService` mock data and `demoVenues`
 - Async loading issues in `getVenue()` function

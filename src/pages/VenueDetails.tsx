@@ -164,11 +164,18 @@ export default function VenueDetails() {
                 <span className="text-sm font-medium text-neutral-700">Your zone</span>
               </div>
               <Select
-                value={selectedZone}
+                value={selectedZone || undefined}
                 onValueChange={(value) => {
-                  setSelectedZone(value);
-                  setCurrentZone(venue.id, value);
-                  setToast(`Updated to ${value}`);
+                  // Handle "none" as clearing the zone
+                  if (value === "none") {
+                    setSelectedZone("");
+                    setCurrentZone(venue.id, "");
+                    setToast("Zone cleared");
+                  } else {
+                    setSelectedZone(value);
+                    setCurrentZone(venue.id, value);
+                    setToast(`Updated to ${value}`);
+                  }
                   setTimeout(() => setToast(null), 1600);
                 }}
               >
@@ -176,7 +183,7 @@ export default function VenueDetails() {
                   <SelectValue placeholder="Select your zone (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No zone selected</SelectItem>
+                  <SelectItem value="none">No zone selected</SelectItem>
                   {venue.zones.map((zone) => (
                     <SelectItem key={zone} value={zone}>
                       {zone}
