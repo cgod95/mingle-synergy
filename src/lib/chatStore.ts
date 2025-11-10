@@ -85,26 +85,3 @@ export function ensureDemoThreadsSeed() {
     }
   });
 }
-
-    return {
-      id: person.id,
-      name: person.name,
-      venueId: venues[index % venues.length],
-      venueType,
-      expiresAt,
-      createdAt: now - (Math.random() * 3600000), // Created 0-1 hour ago
-    };
-  });
-
-  matchSeeds.forEach((seed, index) => {
-    ensureChat(seed.id, { name: seed.name });
-    const t = getThread(seed.id);
-    if (t && !t.messages.length) {
-      // Generate realistic conversation
-      const conversation = generateRealisticConversation(seed.id, seed.venueType);
-      conversation.forEach(msg => {
-        appendMessage(seed.id, msg);
-      });
-    }
-  });
-}

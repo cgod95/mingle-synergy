@@ -57,6 +57,3 @@ export function isLiked(id: string): boolean {
 export function listMatches(): string[] {
   return load().matches;
 }
-
-  return load().matches;
-}
