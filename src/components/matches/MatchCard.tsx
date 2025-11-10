@@ -106,6 +106,29 @@ const MatchCard: React.FC<MatchCardProps> = ({
   const handleReconnect = async () => {
     if (!match?.id || !currentUser?.id) return;
     
+    // Check rematch limit
+    const { hasRematched } = await import("@/utils/rematchTracking");
+    if (hasRematched(match.id)) {
+      toast({
+        title: "Already Rematched",
+        description: "You have already rematched with this person. Reconnect is only available once per match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if user is checked into a venue
+    const { getCheckedVenueId } = await import("@/lib/checkinStore");
+    const checkedInVenueId = getCheckedVenueId();
+    if (!checkedInVenueId) {
+      toast({
+        title: "Check In Required",
+        description: "You must be checked into a venue to reconnect. Check in to a venue first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Check if reconnect flow is enabled via feature flag
     try {
       const { FEATURE_FLAGS } = await import("@/lib/flags");
@@ -230,12 +253,30 @@ const MatchCard: React.FC<MatchCardProps> = ({
               Match expires in {Math.floor(remaining / 60000)} min
             </p>
           ) : (
-            <button
-              className="text-sm text-blue-600 underline mb-3"
-              onClick={handleReconnect}
-            >
-              Reconnect
-            </button>
+            <div className="mb-3">
+              {(() => {
+                // Check rematch status
+                const { hasRematched } = require("@/utils/rematchTracking");
+                const alreadyRematched = hasRematched(match.id);
+                
+                if (alreadyRematched) {
+                  return (
+                    <p className="text-xs text-gray-500 italic">
+                      Already rematched - reconnect unavailable
+                    </p>
+                  );
+                }
+                
+                return (
+                  <button
+                    className="text-sm text-blue-600 underline hover:text-blue-700"
+                    onClick={handleReconnect}
+                  >
+                    Reconnect (check in required)
+                  </button>
+                );
+              })()}
+            </div>
           )
         )}
         

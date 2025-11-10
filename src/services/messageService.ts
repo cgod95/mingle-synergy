@@ -40,24 +40,43 @@ export const sendMessageWithLimit = async ({
   senderId: string;
   message: string;
 }) => {
-  // In demo mode, skip message limit checks
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  // Check if user is premium (premium users get unlimited messages)
+  // Note: Premium is NOT available in beta, but logic is here for future
+  let isPremium = false;
+  try {
+    const { subscriptionService } = await import("@/services");
+    if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+      const subscription = subscriptionService.getUserSubscription(senderId);
+      isPremium = subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+    }
+  } catch {
+    // Ignore errors - assume not premium
+  }
   
-  if (!isDemoMode) {
-    const messagesRef = collection(firestore, "messages");
-    const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
-      ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-      : 3;
+  // Premium users bypass message limits (but match still expires)
+  if (isPremium) {
+    // Premium users can send unlimited messages
+    // Continue to send message without limit check
+  } else {
+    // In demo mode, skip message limit checks
+    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+    
+    if (!isDemoMode) {
+      const messagesRef = collection(firestore, "messages");
+      const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+        ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+        : 3;
 
-    const q = query(
-      messagesRef,
-      where("matchId", "==", matchId),
-      where("senderId", "==", senderId)
-    );
-    const snapshot = await getDocs(q);
+      const q = query(
+        messagesRef,
+        where("matchId", "==", matchId),
+        where("senderId", "==", senderId)
+      );
+      const snapshot = await getDocs(q);
 
-    if (snapshot.docs.length >= messageLimit) {
-      throw new Error(`Message limit reached (${messageLimit} messages)`);
+      if (snapshot.docs.length >= messageLimit) {
+        throw new Error(`Message limit reached (${messageLimit} messages)`);
+      }
     }
   }
 
@@ -85,6 +104,24 @@ export const sendMessageWithLimit = async ({
  * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
  */
 export const canSendMessage = async (matchId: string, senderId: string): Promise<boolean> => {
+  // Check if user is premium (premium users get unlimited messages)
+  // Note: Premium is NOT available in beta, but logic is here for future
+  let isPremium = false;
+  try {
+    const { subscriptionService } = await import("@/services");
+    if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+      const subscription = subscriptionService.getUserSubscription(senderId);
+      isPremium = subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+    }
+  } catch {
+    // Ignore errors - assume not premium
+  }
+  
+  // Premium users bypass message limits
+  if (isPremium) {
+    return true;
+  }
+  
   // In demo mode, always allow sending messages (unlimited)
   const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
   if (isDemoMode) {
@@ -183,6 +220,26 @@ export const subscribeToMessageLimit = (
   senderId: string,
   callback: (canSend: boolean, remaining: number) => void
 ) => {
+  // Check if user is premium (premium users get unlimited messages)
+  // Note: Premium is NOT available in beta, but logic is here for future
+  let isPremium = false;
+  try {
+    const { subscriptionService } = require("@/services");
+    if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+      const subscription = subscriptionService.getUserSubscription(senderId);
+      isPremium = subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+    }
+  } catch {
+    // Ignore errors - assume not premium
+  }
+  
+  // Premium users bypass message limits (hide UI)
+  if (isPremium) {
+    // Return a no-op unsubscribe function
+    callback(true, 999); // Show unlimited for premium
+    return () => {}; // No-op unsubscribe
+  }
+  
   const q = query(
     collection(firestore, "messages"),
     where("matchId", "==", matchId),

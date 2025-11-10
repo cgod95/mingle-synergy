@@ -17,11 +17,13 @@
 
 ## 📁 Key Documents (Read in Order)
 
-1. **`ROADMAP_TO_BETA.md`** - Complete roadmap and plan
-2. **`BETA_LAUNCH_CHECKLIST.md`** - Actionable checklist
-3. **`BETA_TESTER_GUIDE.md`** - Beta tester onboarding
-4. **`CLOSED_BETA_READINESS.md`** - Assessment and gaps
-5. **`BUG_FIXES_PLAN.md`** - Bug fixes and next steps
+1. **`REAL_LIFE_TESTING_GUIDE.md`** ⭐ CURRENT PHASE - Testing guide for user
+2. **`DEMO_MODE_POLISH_CHECKLIST.md`** - Pre-testing polish checklist
+3. **`CLOSED_BETA_SETUP_GUIDE.md`** - Next phase: Beta setup guide
+4. **`ROADMAP_TO_BETA.md`** - Complete roadmap and plan
+5. **`BETA_LAUNCH_CHECKLIST.md`** - Actionable checklist
+6. **`BETA_TESTER_GUIDE.md`** - Beta tester onboarding
+7. **`CLOSED_BETA_READINESS.md`** - Assessment and gaps
 
 ---
 
@@ -63,10 +65,12 @@
 
 1. ✅ Environment variables documented (`ENV_VARIABLES.md`)
 2. ✅ Testing guides created (`TESTING_CHECKLIST.md`, `QUICK_VERIFICATION.md`)
-3. ⏳ Verify venue loading (use `QUICK_VERIFICATION.md`)
-4. ⏳ Complete final testing pass (use `TESTING_CHECKLIST.md`)
-5. ⏳ Set up beta operations (feedback channel, Sentry alerts)
-6. ⏳ Launch beta
+3. ✅ Real-life testing guide created (`REAL_LIFE_TESTING_GUIDE.md`)
+4. ✅ Closed beta setup guide created (`CLOSED_BETA_SETUP_GUIDE.md`)
+5. ✅ Demo mode polish checklist created (`DEMO_MODE_POLISH_CHECKLIST.md`)
+6. ⏳ **NEXT:** User completes real-life testing
+7. ⏳ **THEN:** Follow closed beta setup guide
+8. ⏳ Launch beta
 
 ---
 

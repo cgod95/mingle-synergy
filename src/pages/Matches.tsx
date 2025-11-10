@@ -4,8 +4,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Clock, ArrowRight } from "lucide-react";
-import { getActiveMatches, getRemainingSeconds, type Match } from "@/lib/matchesCompat";
+import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles } from "lucide-react";
+import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
 import { timeAgo } from "@/lib/timeago";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +22,8 @@ type MatchWithPreview = Match & {
   lastMessageTime?: number;
 };
 
+type FilterType = 'all' | 'active' | 'expired';
+
 export default function Matches() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ export default function Matches() {
   const [isLoading, setIsLoading] = useState(true);
   const [earliestExpiry, setEarliestExpiry] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<string>("");
+  const [filter, setFilter] = useState<FilterType>('all');
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -51,10 +54,11 @@ export default function Matches() {
       
       setIsLoading(true);
       try {
-        const activeMatches = await getActiveMatches(currentUser.uid);
+        // Get all matches (including expired) for display
+        const allMatches = await getAllMatches(currentUser.uid);
         
         // Enrich with last message preview
-        const enrichedMatches: MatchWithPreview[] = activeMatches.map((match) => {
+        const enrichedMatches: MatchWithPreview[] = allMatches.map((match) => {
           const lastMsg = getLastMessage(match.id);
           return {
             ...match,
@@ -75,9 +79,10 @@ export default function Matches() {
 
         setMatches(enrichedMatches);
 
-        // Find earliest expiry for countdown timer
-        if (enrichedMatches.length > 0) {
-          const earliest = Math.min(...enrichedMatches.map(m => m.expiresAt));
+        // Find earliest expiry for countdown timer (only for active matches)
+        const activeMatches = enrichedMatches.filter(m => !isExpired(m));
+        if (activeMatches.length > 0) {
+          const earliest = Math.min(...activeMatches.map(m => m.expiresAt));
           setEarliestExpiry(earliest);
         } else {
           setEarliestExpiry(null);
@@ -144,15 +149,27 @@ export default function Matches() {
     navigate(`/chat/${matchId}`);
   };
 
+  // Filter matches based on selected filter
+  const filteredMatches = matches.filter(match => {
+    if (filter === 'active') return !isExpired(match);
+    if (filter === 'expired') return isExpired(match);
+    return true; // 'all'
+  });
+
+  // Calculate stats
+  const activeMatches = matches.filter(m => !isExpired(m)).length;
+  const expiredMatches = matches.filter(m => isExpired(m)).length;
+  const totalMatches = matches.length;
+
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
         {/* Countdown Timer Banner - Fixed at top */}
         {earliestExpiry && countdown && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
+            className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white shadow-lg"
           >
             <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-center gap-2">
               <Clock className="w-5 h-5 animate-pulse" />
@@ -164,13 +181,88 @@ export default function Matches() {
         )}
 
         <div className="max-w-6xl mx-auto px-4 py-6">
+          {/* Header with Stats */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="mb-6"
           >
-            <h1 className="text-4xl font-bold text-neutral-800 mb-2">Matches</h1>
-            <p className="text-lg text-neutral-600">Your conversations</p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                  Matches
+                </h1>
+                <p className="text-lg text-neutral-600">Your conversations</p>
+              </div>
+              {totalMatches > 0 && (
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-3 py-1">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    {activeMatches} active
+                  </Badge>
+                </div>
+              )}
+            </div>
+            
+            {/* Stats Cards */}
+            {totalMatches > 0 && (
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl p-4 text-white shadow-lg"
+                >
+                  <div className="text-2xl font-bold">{totalMatches}</div>
+                  <div className="text-sm opacity-90">Total</div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl p-4 text-white shadow-lg"
+                >
+                  <div className="text-2xl font-bold">{activeMatches}</div>
+                  <div className="text-sm opacity-90">Active</div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-gradient-to-br from-neutral-400 to-neutral-500 rounded-xl p-4 text-white shadow-lg"
+                >
+                  <div className="text-2xl font-bold">{expiredMatches}</div>
+                  <div className="text-sm opacity-90">Expired</div>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Quick Actions - Filter Buttons */}
+            {totalMatches > 0 && (
+              <div className="flex items-center gap-2 mb-4">
+                <Filter className="w-4 h-4 text-neutral-500" />
+                <div className="flex gap-2">
+                  {(['all', 'active', 'expired'] as FilterType[]).map((filterType) => (
+                    <Button
+                      key={filterType}
+                      onClick={() => setFilter(filterType)}
+                      variant={filter === filterType ? 'default' : 'outline'}
+                      size="sm"
+                      className={
+                        filter === filterType
+                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0'
+                          : ''
+                      }
+                    >
+                      {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <p className="text-sm text-neutral-500">
+              💡 Matches last 24 hours. You can send 3 messages per match. Focus on meeting up in person!
+            </p>
           </motion.div>
 
           {isLoading ? (
@@ -203,9 +295,10 @@ export default function Matches() {
           ) : (
             <div className="space-y-3">
               <AnimatePresence>
-                {matches.map((match, index) => {
+                {filteredMatches.map((match, index) => {
                   const remainingTime = formatRemainingTime(match.expiresAt);
                   const isExpiringSoon = getRemainingSeconds(match) < 30 * 60; // Less than 30 minutes
+                  const matchExpired = isExpired(match);
                   
                   return (
                     <motion.div
@@ -214,20 +307,22 @@ export default function Matches() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ delay: index * 0.05 }}
-                      whileHover={{ scale: 1.01, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={matchExpired ? {} : { scale: 1.01, y: -2 }}
+                      whileTap={matchExpired ? {} : { scale: 0.98 }}
                     >
                       <Card
-                        className={`cursor-pointer hover:shadow-xl transition-all border-2 ${
-                          isExpiringSoon
-                            ? "border-orange-300 bg-orange-50/50"
-                            : "border-neutral-200 hover:border-indigo-300 bg-white"
+                        className={`cursor-pointer transition-all border-2 overflow-hidden ${
+                          matchExpired
+                            ? "opacity-60 border-neutral-200 bg-gradient-to-br from-neutral-50 to-neutral-100"
+                            : isExpiringSoon
+                            ? "border-orange-300 bg-gradient-to-br from-orange-50/80 to-red-50/80 hover:shadow-xl hover:border-orange-400"
+                            : "border-indigo-200 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 hover:shadow-xl hover:border-indigo-400"
                         }`}
                         onClick={() => handleMatchClick(match.id)}
                       >
                         <div className="flex items-center gap-4 px-6 py-5">
-                          {/* Avatar */}
-                          <Avatar className="h-16 w-16 flex-shrink-0 ring-2 ring-indigo-100">
+                          {/* Avatar with gradient ring */}
+                          <Avatar className="h-20 w-20 flex-shrink-0 ring-4 ring-offset-2 ring-indigo-200/50">
                             {match.avatarUrl ? (
                               <AvatarImage 
                                 src={match.avatarUrl} 
@@ -238,27 +333,27 @@ export default function Matches() {
                                 }}
                               />
                             ) : null}
-                            <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white font-bold text-xl">
+                            <AvatarFallback className="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white font-bold text-2xl">
                               {(match.displayName || "M").charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
 
                           {/* Content */}
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-lg text-neutral-800 truncate">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <h3 className="font-bold text-xl text-neutral-800 truncate">
                                   {match.displayName || "Match"}
                                 </h3>
                                 {match.unreadCount && match.unreadCount > 0 && (
-                                  <Badge className="bg-indigo-500 text-white text-xs px-2 py-0">
+                                  <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2.5 py-0.5 animate-pulse">
                                     {match.unreadCount}
                                   </Badge>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
-                                {isExpiringSoon && (
-                                  <Badge variant="destructive" className="text-xs">
+                                {isExpiringSoon && !matchExpired && (
+                                  <Badge variant="destructive" className="text-xs animate-pulse">
                                     <Clock className="w-3 h-3 mr-1" />
                                     {remainingTime}
                                   </Badge>
@@ -271,11 +366,21 @@ export default function Matches() {
                               </div>
                             </div>
                             
+                            {/* Venue Info */}
+                            {match.venueName && (
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <MapPin className="w-3.5 h-3.5 text-indigo-500" />
+                                <span className="text-xs font-medium text-indigo-600">
+                                  Met at {match.venueName}
+                                </span>
+                              </div>
+                            )}
+                            
                             {/* Last Message Preview */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mb-2">
                               {match.lastMessage ? (
                                 <>
-                                  <MessageCircle className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                                  <MessageCircle className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                                   <p className="text-sm text-neutral-600 truncate flex-1">
                                     {match.lastMessage}
                                   </p>
@@ -288,9 +393,16 @@ export default function Matches() {
                             </div>
 
                             {/* Time Remaining Badge */}
-                            {!isExpiringSoon && (
-                              <div className="mt-2">
-                                <Badge variant="outline" className="text-xs text-neutral-600">
+                            {matchExpired ? (
+                              <div className="mt-1">
+                                <Badge variant="outline" className="text-xs text-neutral-400 border-neutral-300">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  Expired - Check in to reactivate
+                                </Badge>
+                              </div>
+                            ) : !isExpiringSoon && (
+                              <div className="mt-1">
+                                <Badge variant="outline" className="text-xs text-indigo-600 border-indigo-300 bg-indigo-50/50">
                                   <Clock className="w-3 h-3 mr-1" />
                                   {remainingTime} left
                                 </Badge>
@@ -299,7 +411,7 @@ export default function Matches() {
                           </div>
 
                           {/* Arrow */}
-                          <ArrowRight className="w-5 h-5 text-neutral-400 flex-shrink-0" />
+                          <ArrowRight className="w-5 h-5 text-indigo-400 flex-shrink-0" />
                         </div>
                       </Card>
                     </motion.div>

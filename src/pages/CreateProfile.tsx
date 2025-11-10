@@ -38,7 +38,7 @@ export default function CreateProfile() {
       });
       setOnboardingStepComplete('profile');
       localStorage.setItem('profileComplete', 'true');
-      navigate('/photo-upload');
+      navigate('/photo-upload'); // Next step: photo upload
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -46,13 +46,15 @@ export default function CreateProfile() {
 
   return (
     <Layout>
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-sm">
-          <CardHeader className="text-center space-y-2">
-            <CardTitle>Create Profile</CardTitle>
-            <p className="text-sm text-neutral-600">Tell us a bit about you</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-xl">
+          <CardHeader className="text-center space-y-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
+            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+              Create Profile
+            </CardTitle>
+            <p className="text-sm text-neutral-700">Tell us a bit about you</p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-neutral-900">Your name</label>
               <Input 
@@ -72,7 +74,7 @@ export default function CreateProfile() {
             {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
             <Button
               onClick={handleSubmit}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
               disabled={!name.trim() || !bio.trim()}
             >
               Continue

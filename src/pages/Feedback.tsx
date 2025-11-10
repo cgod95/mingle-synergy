@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { feedbackRepo } from "@/services/feedbackRepo";
+import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import BottomNav from "@/components/BottomNav";
 
@@ -8,6 +11,7 @@ type FeedbackItem = { id?: string; message: string; createdAt: number; from?: st
 
 export default function Feedback() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [text, setText] = useState("");
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [banner, setBanner] = useState<string | null>(null);
@@ -50,6 +54,18 @@ export default function Feedback() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
         <div className="max-w-2xl mx-auto px-4 py-6">
+          {/* Back Button */}
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/settings')}
+              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Settings
+            </Button>
+          </div>
           <h1 className="text-2xl font-bold text-neutral-900 mb-2">Feedback</h1>
           <p className="text-sm text-neutral-600 mb-6">
             Tell us what feels good, broken, or missing. Your feedback helps us improve!

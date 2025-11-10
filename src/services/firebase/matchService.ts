@@ -25,7 +25,7 @@ import { FirestoreMatch } from '@/types/match';
 import { firestore } from '@/firebase';
 import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
 
-// Use single source of truth for match expiry
+// Use single source of truth for match expiry (24 hours)
 const MATCH_EXPIRY_TIME = MATCH_EXPIRY_MS;
 
 class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
@@ -152,6 +152,19 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         throw new Error('Reconnect flow is disabled');
       }
       
+      // Check rematch limit (max 1 rematch per match)
+      const { hasRematched, incrementRematchCount } = await import("@/utils/rematchTracking");
+      if (hasRematched(matchId)) {
+        throw new Error('You have already rematched with this person. Reconnect is only available once per match.');
+      }
+      
+      // Check if user is checked into a venue (required for reconnect)
+      const { getCheckedVenueId } = await import("@/lib/checkinStore");
+      const checkedInVenueId = getCheckedVenueId();
+      if (!checkedInVenueId) {
+        throw new Error('You must be checked into a venue to reconnect. Check in to a venue first.');
+      }
+      
       const matchesCollection = this.getMatchesCollection();
       if (!matchesCollection) {
         throw new Error('Matches collection not available');
@@ -207,6 +220,9 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         } catch (error) {
           console.warn('Failed to track reconnect_requested event:', error);
         }
+        
+        // Increment rematch count for both users
+        incrementRematchCount(matchId);
         
         // Create fresh match
         const newMatchId = await this.createMatch(user1Id, user2Id, venueId, venueName);

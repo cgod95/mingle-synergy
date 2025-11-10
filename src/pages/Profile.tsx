@@ -1,6 +1,6 @@
 // 🧠 Purpose: Implement static Profile page to display current user info.
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +13,36 @@ import BottomNav from '@/components/BottomNav';
 export default function Profile() {
   const { currentUser, signOut } = useAuth();
   const navigate = useNavigate();
+  const [profileData, setProfileData] = useState<{ displayName?: string; name?: string; bio?: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load profile data from userService
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!currentUser?.uid) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const { userService } = await import('@/services');
+        const profile = await userService.getUserProfile(currentUser.uid);
+        if (profile) {
+          setProfileData({
+            displayName: profile.displayName,
+            name: profile.name,
+            bio: profile.bio
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadProfile();
+  }, [currentUser]);
 
   if (!currentUser) return null;
 
@@ -42,8 +72,13 @@ export default function Profile() {
                 </AvatarFallback>
               </Avatar>
             </motion.div>
-            <CardTitle className="text-2xl font-bold text-neutral-800 mb-2">{currentUser.name || 'User'}</CardTitle>
+            <CardTitle className="text-2xl font-bold text-neutral-800 mb-2">
+              {profileData?.displayName || profileData?.name || currentUser.name || 'User'}
+            </CardTitle>
             <p className="text-base text-neutral-600">{currentUser.email}</p>
+            {profileData?.bio && (
+              <p className="text-sm text-neutral-500 mt-2 italic">"{profileData.bio}"</p>
+            )}
           </CardHeader>
           <CardContent className="space-y-4 px-6 pb-6">
             <Button

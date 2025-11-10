@@ -146,7 +146,7 @@ export default function Verification() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -154,15 +154,17 @@ export default function Verification() {
           className="space-y-6"
         >
           <div>
-            <h1 className="text-3xl font-bold text-neutral-900 mb-2">Verification</h1>
-            <p className="text-neutral-600">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              Verification
+            </h1>
+            <p className="text-lg text-neutral-600">
               Verify your account to improve safety and trust. Verification is optional but recommended.
             </p>
           </div>
 
           {/* Email Verification */}
-          <Card>
-            <CardHeader>
+          <Card className="border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${emailVerified ? 'bg-green-100' : 'bg-indigo-100'}`}>
@@ -241,8 +243,8 @@ export default function Verification() {
           </Card>
 
           {/* Selfie Verification (Optional) */}
-          <Card>
-            <CardHeader>
+          <Card className="border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${selfieVerified ? 'bg-green-100' : 'bg-purple-100'}`}>
@@ -307,7 +309,7 @@ export default function Verification() {
           </Card>
 
           {/* Info Card */}
-          <Card className="bg-indigo-50 border-indigo-200">
+          <Card className="bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 border-2 border-indigo-200 shadow-lg">
             <CardContent className="pt-6">
               <div className="text-sm text-indigo-900">
                 <p className="font-semibold mb-2">Why verify?</p>
@@ -324,10 +326,17 @@ export default function Verification() {
           </Card>
 
           <div className="flex gap-4">
-            <Button variant="outline" onClick={() => navigate(-1)} className="flex-1">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(-1)} 
+              className="flex-1 border-indigo-200 hover:bg-indigo-50"
+            >
               Back
             </Button>
-            <Button onClick={() => navigate('/profile')} className="flex-1">
+            <Button 
+              onClick={() => navigate('/profile')} 
+              className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
+            >
               Go to Profile
             </Button>
           </div>

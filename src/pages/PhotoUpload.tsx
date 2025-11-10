@@ -51,11 +51,13 @@ export default function PhotoUpload() {
 
   return (
     <Layout>
-      <div className="flex flex-col justify-center min-h-[80vh]">
-        <Card className="w-full max-w-sm mx-auto">
-          <CardHeader className="text-center space-y-2">
-            <CardTitle>Upload a photo</CardTitle>
-            <p className="text-sm text-neutral-600">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex flex-col justify-center p-4">
+        <Card className="w-full max-w-md mx-auto border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-xl">
+          <CardHeader className="text-center space-y-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
+            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+              Upload a photo
+            </CardTitle>
+            <p className="text-sm text-neutral-700">
               You'll need one to check in, but you can skip this step for now.
             </p>
           </CardHeader>
@@ -80,14 +82,14 @@ export default function PhotoUpload() {
               <Button
                 onClick={handleUpload}
                 disabled={!file || uploading}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
               >
                 {uploading ? 'Uploading...' : 'Continue'}
               </Button>
               <Button
                 variant="outline"
                 onClick={handleSkip}
-                className="w-full"
+                className="w-full border-2 border-indigo-200 hover:bg-indigo-50"
               >
                 Skip for now
               </Button>

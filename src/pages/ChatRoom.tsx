@@ -14,6 +14,10 @@ import {
 import { BlockReportDialog } from "@/components/BlockReportDialog";
 
 import { getActiveMatches } from "@/lib/matchesCompat";
+import { getMessageCount, canSendMessage, getRemainingMessages, incrementMessageCount } from "@/utils/messageLimitTracking";
+import { getCheckedVenueId } from "@/lib/checkinStore";
+import MessageLimitModal from "@/components/ui/MessageLimitModal";
+import { useToast } from "@/hooks/use-toast";
 
 // Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
 const CONVERSATION_STARTERS = [
@@ -71,6 +75,10 @@ export default function ChatRoom() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showMessageLimitModal, setShowMessageLimitModal] = useState(false);
+  const [remainingMessages, setRemainingMessages] = useState(3);
+  const [canSendMsg, setCanSendMsg] = useState(true);
+  const { toast } = useToast();
 
   // Load match name, avatar, expiry, and venue from matchesCompat
   useEffect(() => {
@@ -139,7 +147,23 @@ export default function ChatRoom() {
     if (!matchId) return;
     const seeded = ensureThread(matchId);
     setMsgs(seeded);
-  }, [matchId]);
+    
+    // Update message limit tracking
+    if (currentUser?.uid) {
+      const updateLimits = async () => {
+        const remaining = await getRemainingMessages(matchId, currentUser.uid);
+        const canSend = await canSendMessage(matchId, currentUser.uid);
+        setRemainingMessages(remaining);
+        setCanSendMsg(canSend);
+        
+        // Show modal if limit reached (but not for premium users)
+        if (!canSend && remaining === 0) {
+          setShowMessageLimitModal(true);
+        }
+      };
+      updateLimits();
+    }
+  }, [matchId, currentUser?.uid]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -163,10 +187,51 @@ export default function ChatRoom() {
     );
   }
 
-  const onSend = (e: React.FormEvent) => {
+  const onSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const t = text.trim();
-    if (!t) return;
+    if (!t || !currentUser?.uid) return;
+    
+    // Check message limit (premium users bypass)
+    const canSend = await canSendMessage(matchId, currentUser.uid);
+    if (!canSend) {
+      toast({
+        title: "Message limit reached",
+        description: "You've sent all 3 messages. Wait for a reply or reconnect at a venue.",
+        variant: "destructive",
+      });
+      setShowMessageLimitModal(true);
+      return;
+    }
+    
+    // Increment message count (only for non-premium users)
+    const isPremium = await (async () => {
+      try {
+        const { subscriptionService } = await import("@/services");
+        if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+          const subscription = subscriptionService.getUserSubscription(currentUser.uid);
+          return subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+        }
+      } catch {}
+      return false;
+    })();
+    
+    if (!isPremium) {
+      incrementMessageCount(matchId, currentUser.uid);
+    }
+    
+    const remaining = await getRemainingMessages(matchId, currentUser.uid);
+    setRemainingMessages(remaining);
+    setCanSendMsg(await canSendMessage(matchId, currentUser.uid));
+    
+    // Show toast if 1 message remaining (but not for premium)
+    if (remaining === 1 && !isPremium) {
+      toast({
+        title: "1 message remaining",
+        description: "Make it count! Focus on meeting up in person.",
+      });
+    }
+    
     const next = [...msgs, { sender: "you", text: t, ts: Date.now() }];
     setMsgs(next);
     saveMessages(matchId, next);
@@ -371,26 +436,84 @@ export default function ChatRoom() {
 
       {/* Input - Fixed at bottom */}
       <div className="bg-white border-t border-neutral-200 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 safe-area-inset-bottom">
+        {/* Message limit indicator (hidden for premium users) */}
+        {remainingMessages < 3 && remainingMessages < 999 && (
+          <div className="mb-2 px-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className={`font-medium ${
+                remainingMessages === 0 ? 'text-red-600' : 
+                remainingMessages === 1 ? 'text-orange-600' : 
+                'text-neutral-600'
+              }`}>
+                {remainingMessages === 0 
+                  ? "Message limit reached" 
+                  : `${remainingMessages} message${remainingMessages !== 1 ? 's' : ''} remaining`}
+              </span>
+              {remainingMessages === 0 && (
+                <button
+                  onClick={() => setShowMessageLimitModal(true)}
+                  className="text-indigo-600 hover:text-indigo-700 underline text-xs"
+                >
+                  Learn more
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
         <form onSubmit={onSend} className="flex gap-2 sm:gap-3 items-end">
           <div className="flex-1 relative">
             <input
               ref={inputRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Type a message..."
-              className="w-full rounded-full border-2 border-neutral-300 px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm"
+              placeholder={
+                !canSendMsg 
+                  ? "Message limit reached" 
+                  : remainingMessages < 3 
+                  ? `Type a message... (${remainingMessages} left)`
+                  : "Type a message..."
+              }
+              disabled={!canSendMsg}
+              className={`w-full rounded-full border-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm ${
+                !canSendMsg 
+                  ? 'border-red-200 bg-red-50 text-neutral-400 cursor-not-allowed' 
+                  : 'border-neutral-300 bg-white'
+              }`}
             />
+            {!canSendMsg && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-xs text-red-600 font-medium bg-white/90 px-2 py-1 rounded">
+                  Limit reached
+                </span>
+              </div>
+            )}
           </div>
           <Button
             type="submit"
-            disabled={!text.trim()}
+            disabled={!text.trim() || !canSendMsg}
             className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0"
             size="icon"
+            title={!canSendMsg ? "Message limit reached. Reconnect at a venue to continue chatting." : ""}
           >
             <Send className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </form>
+        
+        {/* Helpful tip */}
+        {remainingMessages > 0 && remainingMessages < 3 && (
+          <p className="text-xs text-neutral-500 mt-2 px-2 text-center">
+            💡 Tip: Focus on meeting up in person rather than long conversations
+          </p>
+        )}
       </div>
+      
+      {/* Message Limit Modal */}
+      <MessageLimitModal
+        open={showMessageLimitModal}
+        onClose={() => setShowMessageLimitModal(false)}
+        remainingMessages={remainingMessages}
+      />
 
       {/* Block/Report Dialogs */}
       {otherUserId && (

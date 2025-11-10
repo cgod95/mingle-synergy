@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Settings, 
   User, 
@@ -22,7 +23,8 @@ import {
   ChevronRight,
   Star,
   Crown,
-  Zap
+  Zap,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -111,6 +113,15 @@ const SettingsPage: React.FC = () => {
     // Track page view
     analytics.trackPageView('/settings');
   }, [currentUser]);
+
+  // Apply dark mode to document
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   const savePreferences = () => {
     const preferences = {
@@ -299,11 +310,35 @@ const SettingsPage: React.FC = () => {
       items: [
         {
           label: 'Location Sharing',
-          description: 'Share your location for venue discovery',
-          action: () => setLocationSharing(!locationSharing),
+          description: locationSharing ? 'Location access enabled' : 'Enable location to check in and see people',
+          action: async () => {
+            const { requestLocationPermission } = await import('@/utils/locationPermission');
+            const granted = await requestLocationPermission();
+            if (granted) {
+              setLocationSharing(true);
+              savePreferences();
+            } else {
+              // Show error or explanation
+              alert('Location permission is required to check in to venues and see people nearby. Please enable it in your browser settings.');
+            }
+          },
           icon: locationSharing ? Wifi : WifiOff,
           toggle: locationSharing,
-          onToggle: setLocationSharing
+          onToggle: async (enabled: boolean) => {
+            if (enabled) {
+              const { requestLocationPermission } = await import('@/utils/locationPermission');
+              const granted = await requestLocationPermission();
+              if (granted) {
+                setLocationSharing(true);
+                savePreferences();
+              } else {
+                alert('Location permission is required. Please enable it in your browser settings.');
+              }
+            } else {
+              setLocationSharing(false);
+              savePreferences();
+            }
+          }
         },
         {
           label: 'Profile Visibility',
@@ -423,92 +458,144 @@ const SettingsPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-4xl mx-auto p-4">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-            <p className="text-gray-600">Manage your account preferences and app settings</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          {/* Back Button */}
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/profile')}
+              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Profile
+            </Button>
           </div>
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              Settings
+            </h1>
+            <p className="text-lg text-neutral-600">Manage your account preferences and app settings</p>
+          </motion.div>
 
           {/* Settings Sections */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {settingsSections.map((section, sectionIndex) => (
-              <Card key={sectionIndex}>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <section.icon className="w-5 h-5 mr-2" />
-                    {section.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {section.items.map((item, itemIndex) => (
-                      <div key={itemIndex}>
-                        <div className="flex items-center justify-between py-3">
-                          <div className="flex items-center flex-1">
-                            <item.icon className="w-5 h-5 mr-3 text-gray-500" />
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                <span className={`font-medium ${item.danger ? 'text-red-600' : 'text-gray-900'}`}>
-                                  {item.label}
-                                </span>
-                                {item.badge && (
-                                  <Badge 
-                                    variant={item.badgeVariant as 'default' | 'secondary' | 'destructive' | 'outline'} 
-                                    className="ml-2"
-                                  >
-                                    {item.badge}
-                                  </Badge>
-                                )}
+              <motion.div
+                key={sectionIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: sectionIndex * 0.1 }}
+              >
+                <Card className="border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-lg hover:shadow-xl transition-all">
+                  <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
+                    <CardTitle className="flex items-center text-lg">
+                      <section.icon className="w-5 h-5 mr-2 text-indigo-600" />
+                      <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-bold">
+                        {section.title}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="space-y-1">
+                      {section.items.map((item, itemIndex) => (
+                        <div key={itemIndex}>
+                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-indigo-50/50 transition-colors">
+                            <div className="flex items-center flex-1 min-w-0">
+                              <div className={`p-2 rounded-lg mr-3 ${
+                                item.danger 
+                                  ? 'bg-red-100 text-red-600' 
+                                  : 'bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600'
+                              }`}>
+                                <item.icon className="w-4 h-4" />
                               </div>
-                              <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className={`font-semibold text-base ${
+                                    item.danger ? 'text-red-600' : 'text-neutral-800'
+                                  }`}>
+                                    {item.label}
+                                  </span>
+                                  {item.badge && (
+                                    <Badge 
+                                      variant={item.badgeVariant as 'default' | 'secondary' | 'destructive' | 'outline'} 
+                                      className={
+                                        item.badgeVariant === 'default' 
+                                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0'
+                                          : ''
+                                      }
+                                    >
+                                      {item.badge}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-neutral-600 mt-0.5">{item.description}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center ml-4">
+                              {item.toggle !== undefined ? (
+                                <Switch
+                                  checked={item.toggle}
+                                  onCheckedChange={item.onToggle}
+                                />
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={item.action}
+                                  className={`${
+                                    item.danger 
+                                      ? 'text-red-600 hover:text-red-700 hover:bg-red-50' 
+                                      : 'text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50'
+                                  }`}
+                                >
+                                  <ChevronRight className="w-5 h-5" />
+                                </Button>
+                              )}
                             </div>
                           </div>
-                          
-                          <div className="flex items-center">
-                            {item.toggle !== undefined ? (
-                              <Switch
-                                checked={item.toggle}
-                                onCheckedChange={item.onToggle}
-                              />
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={item.action}
-                                className={item.danger ? 'text-red-600 hover:text-red-700' : ''}
-                              >
-                                <ChevronRight className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
+                          {itemIndex < section.items.length - 1 && (
+                            <Separator className="my-1 bg-indigo-100" />
+                          )}
                         </div>
-                        {itemIndex < section.items.length - 1 && <Separator />}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
 
           {/* Logout Button */}
-          <Card className="mt-6">
-            <CardContent className="pt-6">
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  await signOut();
-                  navigate('/');
-                }}
-                className="w-full text-red-600 border-red-200 hover:bg-red-50"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Log Out
-              </Button>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: settingsSections.length * 0.1 }}
+            className="mt-6"
+          >
+            <Card className="border-2 border-red-100 bg-gradient-to-br from-red-50/50 to-pink-50/50">
+              <CardContent className="pt-6">
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    await signOut();
+                    navigate('/');
+                  }}
+                  className="w-full text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400 font-semibold"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Log Out
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Premium Upgrade Modal */}

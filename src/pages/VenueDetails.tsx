@@ -4,7 +4,7 @@ import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { checkInAt, getCheckedVenueId, setCurrentZone } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, Navigation } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, Navigation, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
+import { canSeePeopleAtVenues } from "@/utils/locationPermission";
 import {
   Select,
   SelectContent,
@@ -77,6 +78,34 @@ export default function VenueDetails() {
   if (!venue) return <div className="p-4">Venue not found</div>;
 
   const handleCheckIn = async () => {
+    // Check location permission first
+    const { canCheckInToVenues, getLocationExplanationMessage, requestLocationPermission } = await import("@/utils/locationPermission");
+    const { isWithinCheckInDistance, getCheckInErrorMessage } = await import("@/utils/distanceCheck");
+    
+    if (!canCheckInToVenues()) {
+      // Try to request permission if not granted
+      const permissionGranted = await requestLocationPermission();
+      if (!permissionGranted) {
+        setToast("Location access required to check in. " + getLocationExplanationMessage());
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
+    }
+    
+    // Check if user is within 500m of venue
+    if (venue.latitude && venue.longitude) {
+      const distanceCheck = await isWithinCheckInDistance(venue.latitude, venue.longitude);
+      
+      if (!distanceCheck.withinDistance) {
+        const errorMsg = distanceCheck.distanceMeters 
+          ? getCheckInErrorMessage(distanceCheck.distanceMeters)
+          : "Unable to verify location. Please ensure location access is enabled.";
+        setToast(errorMsg);
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
+    }
+    
     // DEMO MODE: Photo requirement disabled for easier testing
     
     checkInAt(venue.id);
@@ -114,6 +143,18 @@ export default function VenueDetails() {
   return (
     <div className="mb-20 bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/checkin')}
+            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Venues
+          </Button>
+        </div>
         <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6">
           <img
             src={venue.image || "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1200&auto=format&fit=crop"}
@@ -166,16 +207,9 @@ export default function VenueDetails() {
               <Select
                 value={selectedZone || undefined}
                 onValueChange={(value) => {
-                  // Handle "none" as clearing the zone
-                  if (value === "none") {
-                    setSelectedZone("");
-                    setCurrentZone(venue.id, "");
-                    setToast("Zone cleared");
-                  } else {
-                    setSelectedZone(value);
-                    setCurrentZone(venue.id, value);
-                    setToast(`Updated to ${value}`);
-                  }
+                  setSelectedZone(value);
+                  setCurrentZone(venue.id, value);
+                  setToast(value ? `Updated to ${value}` : "Zone cleared");
                   setTimeout(() => setToast(null), 1600);
                 }}
               >
@@ -183,9 +217,9 @@ export default function VenueDetails() {
                   <SelectValue placeholder="Select your zone (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No zone selected</SelectItem>
                   {venue.zones.map((zone) => (
                     <SelectItem key={zone} value={zone}>
+                      {selectedZone === zone && "✓ "}
                       {zone}
                     </SelectItem>
                   ))}
@@ -199,8 +233,56 @@ export default function VenueDetails() {
         )}
 
         <div className="p-6">
-          <h2 className="font-bold text-2xl mb-6 text-neutral-800">People here now</h2>
-          {people.length === 0 ? (
+          <div className="mb-6">
+            <h2 className="font-bold text-2xl mb-2 text-neutral-800">People here now</h2>
+            <p className="text-sm text-neutral-500">
+              💡 Like someone to start a conversation. If they like you back, you'll match and can chat!
+            </p>
+          </div>
+          {!canSeePeopleAtVenues() ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12 bg-white rounded-2xl border border-neutral-200"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-indigo-400" />
+              </div>
+              <p className="text-neutral-600 font-medium mb-2">Location access required</p>
+              <p className="text-sm text-neutral-500 mb-4">
+                Enable location access to see people at this venue. You can still browse venues without location.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={async () => {
+                    const { requestLocationPermission } = await import("@/utils/locationPermission");
+                    const granted = await requestLocationPermission();
+                    if (granted) {
+                      setToast("Location enabled! You can now see people at venues.");
+                      setTimeout(() => setToast(null), 2000);
+                      // Refresh the page to show people
+                      window.location.reload();
+                    } else {
+                      setToast("Location permission denied. Please enable it in browser settings.");
+                      setTimeout(() => setToast(null), 3000);
+                    }
+                  }}
+                  size="sm"
+                  className="w-full"
+                >
+                  Enable Location Now
+                </Button>
+                <Button
+                  onClick={() => navigate('/settings')}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Go to Settings
+                </Button>
+              </div>
+            </motion.div>
+          ) : people.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

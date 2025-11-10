@@ -65,15 +65,19 @@ export default function Preferences() {
     });
     
     setOnboardingStepComplete('preferences');
-    navigate('/venues');
+    navigate('/checkin'); // Navigate to check-in after preferences
   };
 
   return (
     <Layout>
-      <div className="min-h-screen flex flex-col justify-between bg-white pb-20">
+      <div className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
         <div className="p-6 space-y-6">
-          <h1 className="text-2xl font-semibold text-center text-gray-900">Set your preferences</h1>
-          <p className="text-center text-gray-600">You can update these anytime.</p>
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Set your preferences
+            </h1>
+            <p className="text-neutral-700">You can update these anytime.</p>
+          </div>
 
           <div className="space-y-4">
             <label className="block">
