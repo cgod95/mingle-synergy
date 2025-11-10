@@ -14,7 +14,7 @@ I'm continuing work on the Mingle app. Please read these files first:
 4. DEMO_MODE_PROGRESS.md - Demo mode implementation status
 
 Current branch: feature/backend-parity-merge
-Latest commit: f8328ac (Updated handover docs with latest syntax fixes)
+Latest commit: 0b402a9 (Fixed Settings page + added venue error logging)
 
 We just finished fixing duplicate code issues in:
 - src/lib/chatStore.ts
@@ -89,10 +89,18 @@ git status
 
 - ✅ Demo mode complete and functional
 - ✅ All syntax errors fixed
+- ✅ Settings page fixed (was missing isVisible state)
+- ✅ Venue error logging added for debugging
 - ✅ Ready for continued development
 - ✅ All changes committed and pushed
+- ⚠️ Some venues may not be working (check console logs)
 - ⚠️ Theme consolidation needed (not blocking)
 - ⚠️ Environment vars need documentation
+
+### Known Issues:
+- **Settings Page**: ✅ FIXED - Was missing `isVisible` state variable
+- **Venue Loading**: ⚠️ IN PROGRESS - Added error logging, check console for details
+- See `BUG_FIXES_PLAN.md` for detailed investigation and next steps
 
 ---
 

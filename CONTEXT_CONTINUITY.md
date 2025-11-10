@@ -3,7 +3,7 @@
 **Last Updated:** January 2025 (Session End - 75% Context Used)  
 **Current Phase:** Demo Mode Free Access & Population - Complete  
 **Next Phase:** Post-Expiry Gating & Closed Beta Preparation  
-**Latest Commit:** `7f870cc` - Fixed all duplicate code syntax errors (13 files)
+**Latest Commit:** `0b402a9` - Fixed Settings page + added venue error logging
 
 ## 🎯 Current Status
 
@@ -189,6 +189,11 @@ git log --oneline -10
 - ✅ Duplicate code in `subscriptionService.ts` - Fixed (duplicate export)
 
 **All syntax errors resolved. Build now shows only TypeScript warnings (unused variables), no syntax errors.**
+
+### Recent Bug Fixes:
+- ✅ Settings page - Fixed missing `isVisible` state variable
+- ✅ Venue loading - Added error logging to debug venue issues
+- ✅ Error handling - Improved error logging in CheckInPage and VenueDetails
 
 ### Current Branch:
 - `feature/backend-parity-merge`
