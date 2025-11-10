@@ -8,6 +8,9 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import config from "@/config";
+import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
+import { RetryButton } from "@/components/ui/RetryButton";
+import { retryWithMessage, isNetworkError } from "@/utils/retry";
 
 const ACTIVE_KEY = "mingle_active_venue";
 
@@ -17,6 +20,8 @@ export default function CheckInPage() {
   const [venues, setVenues] = useState<any[]>([]);
   const [checked, setChecked] = useState<boolean>(() => !!localStorage.getItem(ACTIVE_KEY));
   const { currentUser } = useAuth();
+  const [loadingVenues, setLoadingVenues] = useState(true);
+  const [venueError, setVenueError] = useState<Error | null>(null);
 
   // Get venueId from QR code URL params
   const qrVenueId = params.get("venueId");
@@ -41,47 +46,61 @@ export default function CheckInPage() {
     navigate(`/venues/${id}`);
   };
 
-  useEffect(() => {
-    getVenues()
-      .then(loadedVenues => {
-        console.log('[CheckInPage] Loaded venues:', loadedVenues.length);
-        setVenues(loadedVenues);
+  const loadVenues = async () => {
+    setLoadingVenues(true);
+    setVenueError(null);
+    
+    try {
+      const loadedVenues = await retryWithMessage(
+        () => getVenues(),
+        { operationName: 'loading venues', maxRetries: 3 }
+      );
+      
+      console.log('[CheckInPage] Loaded venues:', loadedVenues.length);
+      setVenues(loadedVenues);
+      
+      // Auto-check-in if coming from QR code URL
+      if (qrVenueId && source === "qr" && currentUser) {
+        const venue = loadedVenues.find(v => v.id === qrVenueId);
+        const alreadyChecked = !!localStorage.getItem(ACTIVE_KEY);
         
-        // Auto-check-in if coming from QR code URL
-        if (qrVenueId && source === "qr" && currentUser) {
-          const venue = loadedVenues.find(v => v.id === qrVenueId);
-          const alreadyChecked = !!localStorage.getItem(ACTIVE_KEY);
-          
-          if (venue && !alreadyChecked) {
-            // Small delay to show user what's happening
-            setTimeout(() => {
-              localStorage.setItem(ACTIVE_KEY, qrVenueId);
-              setChecked(true);
-              
-              // Track check-in
-              try {
-                import("@/services/specAnalytics").then(({ trackUserCheckedIn }) => {
-                  trackUserCheckedIn(qrVenueId, venue.name);
-                });
-              } catch (error) {
-                console.warn('Failed to track user_checked_in event:', error);
-              }
-              
-              navigate(`/venues/${qrVenueId}`);
-            }, 500);
-          }
+        if (venue && !alreadyChecked) {
+          // Small delay to show user what's happening
+          setTimeout(() => {
+            localStorage.setItem(ACTIVE_KEY, qrVenueId);
+            setChecked(true);
+            
+            // Track check-in
+            try {
+              import("@/services/specAnalytics").then(({ trackUserCheckedIn }) => {
+                trackUserCheckedIn(qrVenueId, venue.name);
+              });
+            } catch (error) {
+              console.warn('Failed to track user_checked_in event:', error);
+            }
+            
+            navigate(`/venues/${qrVenueId}`);
+          }, 500);
         }
-      })
-      .catch(error => {
-        console.error('[CheckInPage] Error loading venues:', error);
-        setVenues([]);
-      });
+      }
+    } catch (error) {
+      console.error('[CheckInPage] Error loading venues:', error);
+      setVenueError(error instanceof Error ? error : new Error('Failed to load venues'));
+      setVenues([]);
+    } finally {
+      setLoadingVenues(false);
+    }
+  };
+
+  useEffect(() => {
+    loadVenues();
   }, [qrVenueId, source, currentUser, navigate]);
 
   const preselect = qrVenueId || params.get("id");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+      <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Back Button - only show if not in demo mode or if user came from landing */}
         {!config.DEMO_MODE && (
@@ -201,6 +220,33 @@ export default function CheckInPage() {
           </motion.div>
         )}
 
+        {venueError && venues.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-6 bg-white rounded-xl border-2 border-red-200 text-center"
+          >
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+              <MapPin className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-lg font-bold text-neutral-800 mb-2">Failed to load venues</h3>
+            <p className="text-sm text-neutral-600 mb-4">
+              {isNetworkError(venueError)
+                ? 'Network error. Please check your connection and try again.'
+                : venueError.message || 'Something went wrong. Please try again.'}
+            </p>
+            <RetryButton onRetry={loadVenues} isLoading={loadingVenues} />
+          </motion.div>
+        )}
+
+        {loadingVenues && venues.length === 0 && !venueError && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-neutral-600">Loading venues...</p>
+          </div>
+        )}
+
+        {!loadingVenues && venues.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {venues.map((v, index) => (
             <motion.div
@@ -261,6 +307,7 @@ export default function CheckInPage() {
             </motion.div>
           ))}
         </div>
+        )}
       </div>
       <BottomNav />
     </div>

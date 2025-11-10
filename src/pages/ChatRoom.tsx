@@ -18,6 +18,8 @@ import { getMessageCount, canSendMessage, getRemainingMessages, incrementMessage
 import { getCheckedVenueId } from "@/lib/checkinStore";
 import MessageLimitModal from "@/components/ui/MessageLimitModal";
 import { useToast } from "@/hooks/use-toast";
+import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
+import { retryWithMessage, isNetworkError } from "@/utils/retry";
 
 // Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
 const CONVERSATION_STARTERS = [
@@ -78,6 +80,8 @@ export default function ChatRoom() {
   const [showMessageLimitModal, setShowMessageLimitModal] = useState(false);
   const [remainingMessages, setRemainingMessages] = useState(3);
   const [canSendMsg, setCanSendMsg] = useState(true);
+  const [sendError, setSendError] = useState<Error | null>(null);
+  const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
   // Load match name, avatar, expiry, and venue from matchesCompat
@@ -190,54 +194,77 @@ export default function ChatRoom() {
   const onSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const t = text.trim();
-    if (!t || !currentUser?.uid) return;
+    if (!t || !currentUser?.uid || sending) return;
     
-    // Check message limit (premium users bypass)
-    const canSend = await canSendMessage(matchId, currentUser.uid);
-    if (!canSend) {
+    setSendError(null);
+    setSending(true);
+    
+    try {
+      // Check message limit (premium users bypass)
+      const canSend = await retryWithMessage(
+        () => canSendMessage(matchId, currentUser.uid),
+        { operationName: 'checking message limit', maxRetries: 2 }
+      );
+      
+      if (!canSend) {
+        toast({
+          title: "Message limit reached",
+          description: "You've sent all 3 messages. Wait for a reply or reconnect at a venue.",
+          variant: "destructive",
+        });
+        setShowMessageLimitModal(true);
+        return;
+      }
+      
+      // Increment message count (only for non-premium users)
+      const isPremium = await (async () => {
+        try {
+          const { subscriptionService } = await import("@/services");
+          if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+            const subscription = subscriptionService.getUserSubscription(currentUser.uid);
+            return subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+          }
+        } catch {}
+        return false;
+      })();
+      
+      if (!isPremium) {
+        incrementMessageCount(matchId, currentUser.uid);
+      }
+      
+      const remaining = await getRemainingMessages(matchId, currentUser.uid);
+      setRemainingMessages(remaining);
+      setCanSendMsg(await canSendMessage(matchId, currentUser.uid));
+      
+      // Show toast if 1 message remaining (but not for premium)
+      if (remaining === 1 && !isPremium) {
+        toast({
+          title: "1 message remaining",
+          description: "Make it count! Focus on meeting up in person.",
+        });
+      }
+      
+      const next = [...msgs, { sender: "you", text: t, ts: Date.now() }];
+      setMsgs(next);
+      saveMessages(matchId, next);
+      setText("");
+      setShowStarters(false); // Hide starters after first message
+      inputRef.current?.focus();
+    } catch (error) {
+      console.error('[ChatRoom] Error sending message:', error);
+      const errorObj = error instanceof Error ? error : new Error('Failed to send message');
+      setSendError(errorObj);
+      
       toast({
-        title: "Message limit reached",
-        description: "You've sent all 3 messages. Wait for a reply or reconnect at a venue.",
+        title: "Failed to send message",
+        description: isNetworkError(error)
+          ? "Network error. Please check your connection and try again."
+          : errorObj.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
-      setShowMessageLimitModal(true);
-      return;
+    } finally {
+      setSending(false);
     }
-    
-    // Increment message count (only for non-premium users)
-    const isPremium = await (async () => {
-      try {
-        const { subscriptionService } = await import("@/services");
-        if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
-          const subscription = subscriptionService.getUserSubscription(currentUser.uid);
-          return subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
-        }
-      } catch {}
-      return false;
-    })();
-    
-    if (!isPremium) {
-      incrementMessageCount(matchId, currentUser.uid);
-    }
-    
-    const remaining = await getRemainingMessages(matchId, currentUser.uid);
-    setRemainingMessages(remaining);
-    setCanSendMsg(await canSendMessage(matchId, currentUser.uid));
-    
-    // Show toast if 1 message remaining (but not for premium)
-    if (remaining === 1 && !isPremium) {
-      toast({
-        title: "1 message remaining",
-        description: "Make it count! Focus on meeting up in person.",
-      });
-    }
-    
-    const next = [...msgs, { sender: "you", text: t, ts: Date.now() }];
-    setMsgs(next);
-    saveMessages(matchId, next);
-    setText("");
-    setShowStarters(false); // Hide starters after first message
-    inputRef.current?.focus();
   };
 
   const sendStarter = (starter: string) => {
@@ -250,6 +277,7 @@ export default function ChatRoom() {
 
       return (
         <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50 z-50">
+          <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
           {/* Mingle Branding */}
           <div className="bg-white/80 backdrop-blur-md border-b border-neutral-200 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
             <Link to="/matches" className="flex items-center space-x-2 group">
@@ -508,12 +536,21 @@ export default function ChatRoom() {
           </div>
           <Button
             type="submit"
-            disabled={!text.trim() || !canSendMsg}
+            disabled={!text.trim() || !canSendMsg || sending}
             className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0"
             size="icon"
-            title={!canSendMsg ? "Message limit reached. Reconnect at a venue to continue chatting." : ""}
+            title={!canSendMsg ? "Message limit reached. Reconnect at a venue to continue chatting." : sending ? "Sending..." : ""}
           >
-            <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+            {sending ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              >
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              </motion.div>
+            ) : (
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+            )}
           </Button>
         </form>
         
