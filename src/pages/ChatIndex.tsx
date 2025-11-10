@@ -7,6 +7,7 @@ import { timeAgo } from "../lib/timeago";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { ChatListSkeleton } from "@/components/ui/LoadingStates";
+import BottomNav from "@/components/BottomNav";
 
 type Row = {
   id: string;
@@ -43,14 +44,14 @@ export default function ChatIndex() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
-      <div className="mx-auto max-w-2xl px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+          className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-neutral-800 mb-2">Chats</h1>
-          <p className="text-neutral-600">Your conversations</p>
+          <h1 className="text-4xl font-bold text-neutral-800 mb-2">Chats</h1>
+          <p className="text-lg text-neutral-600">Your conversations</p>
         </motion.div>
 
         {isLoading ? (
@@ -70,31 +71,31 @@ export default function ChatIndex() {
             </div>
           </motion.div>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {rows.map((r, index) => (
               <motion.div
                 key={r.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Card
-                  className="cursor-pointer hover:shadow-md transition-all border border-neutral-200 bg-white"
+                  className="cursor-pointer hover:shadow-lg transition-all border border-neutral-200 bg-white"
                   onClick={() => navigate(`/chat/${r.id}`)}
                 >
-                  <div className="flex items-center gap-4 px-4 py-4">
-                    <Avatar className="h-12 w-12 flex-shrink-0">
-                      <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white font-semibold">
+                  <div className="flex items-center gap-4 px-6 py-5">
+                    <Avatar className="h-14 w-14 flex-shrink-0 ring-2 ring-indigo-100">
+                      <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white font-bold text-lg">
                         {r.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between mb-1">
-                        <div className="truncate font-semibold text-neutral-800">{r.name}</div>
+                        <div className="truncate font-bold text-lg text-neutral-800">{r.name}</div>
                         {r.lastTs && (
-                          <div className="ml-3 flex-shrink-0 text-xs text-neutral-500">
+                          <div className="ml-3 flex-shrink-0 text-xs text-neutral-500 font-medium">
                             {timeAgo(r.lastTs)}
                           </div>
                         )}
@@ -111,6 +112,7 @@ export default function ChatIndex() {
           </div>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

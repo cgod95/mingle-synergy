@@ -15,25 +15,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   // If in demo mode, bypass Firebase auth and use UserContext
   if (config.DEMO_MODE) {
     if (!currentUser) {
-      return <Navigate to="/onboarding" replace />;
+      return <Navigate to="/" replace />;
     }
     
-    // Check onboarding completion - redirect to next incomplete step
-    if (!isOnboardingComplete) {
-      const nextStep = getNextOnboardingStep();
-      if (nextStep) {
-        // Map onboarding steps to routes
-        const stepRoutes: Record<string, string> = {
-          email: '/signin',
-          profile: '/create-profile',
-          photo: '/upload-photos',
-          preferences: '/preferences',
-        };
-        const redirectPath = stepRoutes[nextStep] || '/onboarding';
-        return <Navigate to={redirectPath} replace />;
-      }
-    }
-    
+    // In demo mode, bypass all onboarding checks - grant full access immediately
+    // Demo users get instant access to all features
     return <>{children}</>;
   }
 

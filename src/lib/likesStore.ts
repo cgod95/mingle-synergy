@@ -28,7 +28,10 @@ export function resetLikesStore() { save({ mine: [], likedMe: [], matches: [] })
 export function ensureDemoLikesSeed() {
   const s = load();
   if (!s.likedMe.length) {
-    s.likedMe = ["chloe", "lucas"]; // they already like me so we can form matches
+    // Seed more mutual likes for richer demo experience
+    // First 8 people already like you (for instant matches)
+    const mutualLikes = ["ava", "jay", "lucas", "sophia", "mila", "ethan", "zoe", "liam"];
+    s.likedMe = mutualLikes;
     save(s);
   }
 }
@@ -52,5 +55,8 @@ export function isLiked(id: string): boolean {
 }
 
 export function listMatches(): string[] {
+  return load().matches;
+}
+
   return load().matches;
 }

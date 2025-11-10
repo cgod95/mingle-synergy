@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,7 +59,7 @@ export default function SignIn() {
               Sign In
             </Button>
             <p className="text-xs text-center text-neutral-600">
-              Don't have an account? <a className="underline text-neutral-900" href="/onboarding">Sign up</a>
+              Don't have an account? <Link to="/signup" className="underline text-neutral-900">Sign up</Link>
             </p>
           </CardContent>
         </Card>

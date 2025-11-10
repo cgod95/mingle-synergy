@@ -153,3 +153,5 @@ Refer to:
 
 **Remember:** Cursor should **merge forward intelligently**, preserving all working progress while building toward the MVP specification. The current repo has valuable work that must be preserved.
 
+
+

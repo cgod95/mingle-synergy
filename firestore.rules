@@ -2,15 +2,120 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Public venues read (adjust later if needed)
-    match /venues/{venueId} {
-      allow read: if true;
-      allow write: if false; // only admins later
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Each user can read/write only their own profile doc
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isMatchParticipant(matchData) {
+      return isSignedIn() && (
+        matchData.userId1 == request.auth.uid ||
+        matchData.userId2 == request.auth.uid
+      );
+    }
+
+    // User profiles - users can read/write their own document
+    match /users/{uid} {
+      allow read: if isSelf(uid);
+      allow write: if isSelf(uid);
+    }
+
+    // Onboarding progress - users can read/write their own onboarding progress
+    match /onboarding/{userId} {
+      allow read, write: if isSelf(userId);
+    }
+
+    // Venues - public read for authenticated users, write restricted (admin only for now)
+    match /venues/{venueId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only admins later - adjust when admin system is implemented
+    }
+
+    // Matches - only participants can read/write
+    match /matches/{matchId} {
+      // Read: user must be participant (check existing resource or request data)
+      allow read: if isSignedIn() && (
+        resource.data.userId1 == request.auth.uid ||
+        resource.data.userId2 == request.auth.uid ||
+        request.resource.data.userId1 == request.auth.uid ||
+        request.resource.data.userId2 == request.auth.uid
+      );
+      
+      // Create: user must be one of the participants
+      allow create: if isSignedIn() && (
+        request.resource.data.userId1 == request.auth.uid ||
+        request.resource.data.userId2 == request.auth.uid
+      );
+      
+      // Update: user must be participant
+      allow update: if isSignedIn() && (
+        resource.data.userId1 == request.auth.uid ||
+        resource.data.userId2 == request.auth.uid
+      );
+      
+      // Delete: not allowed (matches are soft-deleted or archived)
+      allow delete: if false;
+    }
+
+    // Messages - only participants of the match can read/write
+    match /messages/{messageId} {
+      // Read: user must be participant of the match
+      allow read: if isSignedIn() && (
+        exists(/databases/$(database)/documents/matches/$(resource.data.matchId)) &&
+        (
+          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId1 == request.auth.uid ||
+          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId2 == request.auth.uid
+        )
+      );
+      
+      // Create: user must be sender and participant of the match
+      allow create: if isSignedIn() &&
+        request.resource.data.senderId == request.auth.uid &&
+        exists(/databases/$(database)/documents/matches/$(request.resource.data.matchId)) &&
+        (
+          get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.userId1 == request.auth.uid ||
+          get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.userId2 == request.auth.uid
+        );
+      
+      // Update/Delete: not allowed (messages are immutable)
+      allow update, delete: if false;
+    }
+
+    // Reconnect requests - authenticated users can read/write
+    match /reconnectRequests/{requestId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Reports - users can write, only admins can read (read disabled for now)
+    match /reports/{reportId} {
+      allow write: if isSignedIn();
+      allow read: if false; // Private to admins - enable when admin system is implemented
+    }
+
+    // Likes/Interests - users can read their own likes, create likes where they are the sender
+    match /likes/{likeId} {
+      allow read: if isSignedIn() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow create: if isSignedIn() &&
+        request.resource.data.fromUserId == request.auth.uid;
+      allow update, delete: if false; // Likes are immutable
+    }
+
+    // Interests collection (if used separately from likes)
+    match /interests/{interestId} {
+      allow read: if isSignedIn() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow create: if isSignedIn() &&
+        request.resource.data.fromUserId == request.auth.uid;
+      allow update, delete: if false;
     }
   }
 }

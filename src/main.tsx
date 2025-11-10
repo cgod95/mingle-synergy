@@ -7,6 +7,10 @@ import "./index.css";
 import { initErrorTracking } from "./utils/errorHandler";
 initErrorTracking();
 
+// Initialize demo notification service
+import { demoNotificationService } from "./services/demoNotificationService";
+// Service auto-starts demo notifications on import
+
 // Demo data seeds (safe no-ops if already seeded)
 import { ensureDemoThreadsSeed } from "./lib/chatStore";
 import { ensureDemoLikesSeed } from "./lib/likesStore";

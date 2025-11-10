@@ -66,7 +66,7 @@ export default function Chat() {
     if (expired) return;
     const t = setInterval(() => {
       // force re-render each second
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+       
       setText(t => t);
     }, 1000);
     return () => clearInterval(t);

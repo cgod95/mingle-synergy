@@ -85,9 +85,16 @@ const MatchCard: React.FC<MatchCardProps> = ({
               transition={{ duration: 0.2 }}
               className="relative"
             >
-              <Avatar className="h-16 w-16 cursor-pointer ring-2 ring-white shadow-md" onClick={() => onViewProfile(match.id)}>
-                <AvatarImage src={match.photoUrl} alt={match.name} className="object-cover" />
-                <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white text-lg font-semibold">
+              <Avatar className="h-20 w-20 cursor-pointer ring-2 ring-white shadow-lg" onClick={() => onViewProfile(match.id)}>
+                <AvatarImage 
+                  src={match.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop"} 
+                  alt={match.name} 
+                  className="object-cover" 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop";
+                  }}
+                />
+                <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white text-xl font-semibold">
                   {match.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>

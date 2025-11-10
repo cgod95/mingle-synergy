@@ -14,7 +14,4 @@ export const useUser = () => {
     throw new Error('useUser must be used within a UserProvider');
   }
   return context;
-};
-
-// Re-export UserProvider from UserContext.tsx to avoid module resolution conflicts
-export { UserProvider } from './UserContext.tsx'; 
+}; 

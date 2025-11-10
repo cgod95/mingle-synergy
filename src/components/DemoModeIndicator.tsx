@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Info, X, Sparkles, Users, MapPin, MessageCircle } from 'lucide-react';
+import { Info, X, Sparkles, Users, MapPin, MessageCircle, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDemoFreeWindow, formatDemoFreeRemaining } from '@/utils/demoFree';
+import config from '@/config';
 
 interface DemoModeIndicatorProps {
   className?: string;
@@ -15,6 +17,18 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
   variant = 'compact' 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [freeWindow, setFreeWindow] = useState(getDemoFreeWindow());
+
+  useEffect(() => {
+    if (!config.DEMO_MODE) return;
+
+    // Update countdown every minute
+    const interval = setInterval(() => {
+      setFreeWindow(getDemoFreeWindow());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (variant === 'compact') {
     return (
@@ -30,6 +44,12 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
         >
           <Sparkles className="w-3 h-3 mr-1" />
           Demo Mode
+          {freeWindow.isActive && freeWindow.expiresAt && (
+            <span className="ml-2 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {formatDemoFreeRemaining(freeWindow)}
+            </span>
+          )}
         </Badge>
         
         <AnimatePresence>
@@ -64,6 +84,18 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
                       You're experiencing Mingle in demo mode with simulated data.
                     </p>
                     
+                    {freeWindow.isActive && freeWindow.expiresAt && (
+                      <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3">
+                        <div className="flex items-center text-yellow-800 font-medium mb-1">
+                          <Clock className="w-4 h-4 mr-2" />
+                          Free Access Expires
+                        </div>
+                        <div className="text-yellow-700 text-xs">
+                          {formatDemoFreeRemaining(freeWindow)} remaining
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="space-y-2">
                       <div className="flex items-center text-yellow-700">
                         <Users className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -71,7 +103,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
                       </div>
                       <div className="flex items-center text-yellow-700">
                         <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>5 demo venues to explore</span>
+                        <span>8 demo venues to explore</span>
                       </div>
                       <div className="flex items-center text-yellow-700">
                         <MessageCircle className="w-4 h-4 mr-2 flex-shrink-0" />

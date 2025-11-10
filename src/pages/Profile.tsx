@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Settings, LogOut, Edit } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 
 export default function Profile() {
@@ -18,65 +17,63 @@ export default function Profile() {
   if (!currentUser) return null;
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
-        <div className="max-w-md mx-auto p-4">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <h1 className="text-3xl font-bold text-neutral-800 mb-2">Profile</h1>
-            <p className="text-neutral-600">Manage your account</p>
-          </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <h1 className="text-3xl font-bold text-neutral-800 mb-2">Profile</h1>
+          <p className="text-neutral-600">Manage your account</p>
+        </motion.div>
 
-          <Card className="mb-4 border border-neutral-200 shadow-sm">
-            <CardHeader className="text-center pb-4">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1, type: "spring" }}
-                className="mb-4"
-              >
-                <Avatar className="h-24 w-24 mx-auto ring-4 ring-white shadow-lg">
-                  <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white text-3xl font-bold">
-                    {currentUser.name?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </motion.div>
-              <CardTitle className="text-xl text-neutral-800">{currentUser.name || 'User'}</CardTitle>
-              <p className="text-sm text-neutral-600 mt-1">{currentUser.email}</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                onClick={() => navigate('/profile/edit')}
-                className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
-                variant="default"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate('/settings')}
-                className="w-full border-neutral-300 hover:bg-neutral-50"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-              <Button
-                variant="outline"
-                onClick={signOut}
-                className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="mb-6 border border-neutral-200 shadow-xl bg-white">
+          <CardHeader className="text-center pb-6">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: "spring" }}
+              className="mb-6"
+            >
+              <Avatar className="h-32 w-32 mx-auto ring-4 ring-indigo-100 shadow-xl">
+                <AvatarFallback className="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white text-4xl font-bold">
+                  {currentUser.name?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </motion.div>
+            <CardTitle className="text-2xl font-bold text-neutral-800 mb-2">{currentUser.name || 'User'}</CardTitle>
+            <p className="text-base text-neutral-600">{currentUser.email}</p>
+          </CardHeader>
+          <CardContent className="space-y-4 px-6 pb-6">
+            <Button
+              onClick={() => navigate('/profile/edit')}
+              className="w-full h-12 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-base font-semibold shadow-md"
+              variant="default"
+            >
+              <Edit className="w-5 h-5 mr-2" />
+              Edit Profile
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/settings')}
+              className="w-full h-12 border-2 border-neutral-300 hover:bg-neutral-50 text-base font-medium"
+            >
+              <Settings className="w-5 h-5 mr-2" />
+              Settings
+            </Button>
+            <Button
+              variant="outline"
+              onClick={signOut}
+              className="w-full h-12 border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 text-base font-medium"
+            >
+              <LogOut className="w-5 h-5 mr-2" />
+              Sign Out
+            </Button>
+          </CardContent>
+        </Card>
       </div>
       <BottomNav />
-    </Layout>
+    </div>
   );
 }

@@ -29,7 +29,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { subscriptionService } from '@/services/subscriptionService';
+import { subscriptionService } from '@/services';
 import { analytics } from '@/services/analytics';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
@@ -37,9 +37,11 @@ import PremiumUpgradeModal from '@/components/ui/PremiumUpgradeModal';
 import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SettingsPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -47,9 +49,12 @@ const SettingsPage: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState(subscriptionService.getCurrentPlan());
-  const [userSubscription, setUserSubscription] = useState(subscriptionService.getUserSubscription());
-  const [isVisible, setIsVisible] = useState(true); // Visibility toggle per spec
+  const [currentPlan, setCurrentPlan] = useState<any>(null);
+  const [userSubscription, setUserSubscription] = useState<any>(null);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  const [language, setLanguage] = useState('en');
 
   useEffect(() => {
     // Load user preferences from localStorage
@@ -62,11 +67,49 @@ const SettingsPage: React.FC = () => {
       setAnalyticsEnabled(preferences.analytics ?? true);
       setRealtimeEnabled(preferences.realtime ?? true);
       setIsVisible(preferences.isVisible ?? true);
+      setEmailNotificationsEnabled(preferences.emailNotifications ?? true);
+      setSoundEnabled(preferences.sound ?? true);
+      setVibrationEnabled(preferences.vibration ?? true);
+      setLanguage(preferences.language ?? 'en');
     }
+
+    // Load subscription info
+    const loadSubscription = async () => {
+      try {
+        if (currentUser?.uid) {
+          // Try getUserSubscription if it exists
+          if ('getUserSubscription' in subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+            const sub = subscriptionService.getUserSubscription(currentUser.uid);
+            setUserSubscription(sub);
+            if (sub) {
+              // Try to get plan details
+              if ('getTier' in subscriptionService && typeof subscriptionService.getTier === 'function') {
+                const tier = subscriptionService.getTier(sub.tierId);
+                setCurrentPlan(tier || { id: 'free', name: 'Free' });
+              } else if ('getPlans' in subscriptionService && typeof subscriptionService.getPlans === 'function') {
+                const plans = await subscriptionService.getPlans();
+                const plan = plans.find((p: any) => p.id === sub.tierId);
+                setCurrentPlan(plan || { id: 'free', name: 'Free' });
+              } else {
+                setCurrentPlan({ id: 'free', name: 'Free' });
+              }
+            } else {
+              setCurrentPlan({ id: 'free', name: 'Free' });
+            }
+          } else {
+            setCurrentPlan({ id: 'free', name: 'Free' });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading subscription:', error);
+        setCurrentPlan({ id: 'free', name: 'Free' });
+      }
+    };
+    loadSubscription();
 
     // Track page view
     analytics.trackPageView('/settings');
-  }, []);
+  }, [currentUser]);
 
   const savePreferences = () => {
     const preferences = {
@@ -76,6 +119,10 @@ const SettingsPage: React.FC = () => {
       analytics: analyticsEnabled,
       realtime: realtimeEnabled,
       isVisible,
+      emailNotifications: emailNotificationsEnabled,
+      sound: soundEnabled,
+      vibration: vibrationEnabled,
+      language,
     };
     localStorage.setItem('user_preferences', JSON.stringify(preferences));
     
@@ -163,19 +210,19 @@ const SettingsPage: React.FC = () => {
         {
           label: 'Profile Settings',
           description: 'Edit your profile information',
-          action: () => window.location.href = '/profile/edit',
+          action: () => navigate('/profile/edit'),
           icon: ChevronRight
         },
         {
           label: 'Privacy Settings',
           description: 'Control your privacy and visibility',
-          action: () => window.location.href = '/privacy',
+          action: () => navigate('/privacy'),
           icon: ChevronRight
         },
         {
           label: 'Verification',
           description: 'Verify your identity',
-          action: () => window.location.href = '/verification',
+          action: () => navigate('/verification'),
           icon: ChevronRight
         }
       ]
@@ -195,13 +242,13 @@ const SettingsPage: React.FC = () => {
         {
           label: 'Billing & Payment',
           description: 'Manage your payment methods',
-          action: () => window.location.href = '/billing',
+          action: () => navigate('/billing'),
           icon: CreditCard
         },
         {
           label: 'Usage Statistics',
           description: 'View your app usage',
-          action: () => window.location.href = '/usage',
+          action: () => navigate('/usage'),
           icon: BarChart3
         }
       ]
@@ -221,14 +268,27 @@ const SettingsPage: React.FC = () => {
         {
           label: 'Email Notifications',
           description: 'Receive email updates',
-          action: () => {},
-          icon: ChevronRight
+          action: () => setEmailNotificationsEnabled(!emailNotificationsEnabled),
+          icon: ChevronRight,
+          toggle: emailNotificationsEnabled,
+          onToggle: (enabled: boolean) => {
+            setEmailNotificationsEnabled(enabled);
+            savePreferences();
+          }
         },
         {
           label: 'Sound & Vibration',
-          description: 'Customize notification sounds',
-          action: () => {},
-          icon: ChevronRight
+          description: soundEnabled ? 'Sound enabled' : 'Sound disabled',
+          action: () => {
+            setSoundEnabled(!soundEnabled);
+            savePreferences();
+          },
+          icon: soundEnabled ? Bell : Bell,
+          toggle: soundEnabled,
+          onToggle: (enabled: boolean) => {
+            setSoundEnabled(enabled);
+            savePreferences();
+          }
         }
       ]
     },
@@ -287,8 +347,15 @@ const SettingsPage: React.FC = () => {
         },
         {
           label: 'Language',
-          description: 'Change app language',
-          action: () => {},
+          description: language === 'en' ? 'English' : language === 'es' ? 'Spanish' : language === 'fr' ? 'French' : language,
+          action: () => {
+            // Cycle through available languages
+            const languages = ['en', 'es', 'fr'];
+            const currentIndex = languages.indexOf(language);
+            const nextIndex = (currentIndex + 1) % languages.length;
+            setLanguage(languages[nextIndex]);
+            savePreferences();
+          },
           icon: Globe
         }
       ]
@@ -328,19 +395,19 @@ const SettingsPage: React.FC = () => {
         {
           label: 'Help Center',
           description: 'Get help and find answers',
-          action: () => window.location.href = '/help',
+          action: () => navigate('/help'),
           icon: HelpCircle
         },
         {
           label: 'Contact Support',
           description: 'Reach out to our support team',
-          action: () => window.location.href = '/contact',
+          action: () => navigate('/contact'),
           icon: ChevronRight
         },
         {
           label: 'About',
           description: 'App version and information',
-          action: () => window.location.href = '/about',
+          action: () => navigate('/about'),
           icon: Info
         }
       ]
@@ -424,9 +491,9 @@ const SettingsPage: React.FC = () => {
             <CardContent className="pt-6">
               <Button
                 variant="outline"
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.href = '/';
+                onClick={async () => {
+                  await signOut();
+                  navigate('/');
                 }}
                 className="w-full text-red-600 border-red-200 hover:bg-red-50"
               >

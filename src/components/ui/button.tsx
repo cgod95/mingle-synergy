@@ -51,7 +51,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         transition={{ duration: 0.1 }}
       >
         <Comp
-          className={cn(buttonVariants({ variant, size, className }))}
+          className={cn(buttonVariants({ variant, size, className }), "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2")}
           ref={ref}
           disabled={disabled || loading}
           {...props}

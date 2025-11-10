@@ -160,6 +160,19 @@ class BusinessFeaturesService {
   }
 
   async getPlans(): Promise<SubscriptionPlan[]> {
+    // In demo mode, return plans with unlimited limits
+    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+    if (isDemoMode) {
+      return this.plans.map(plan => ({
+        ...plan,
+        limits: {
+          matches: -1, // Unlimited
+          messages: -1, // Unlimited
+          venues: -1, // Unlimited
+          premiumFeatures: true,
+        },
+      }));
+    }
     return [...this.plans];
   }
 
@@ -512,6 +525,19 @@ class BusinessFeaturesService {
     cancelled: number;
     expired: number;
   } {
+    const subscriptions = Array.from(this.subscriptions.values());
+    
+    return {
+      total: subscriptions.length,
+      active: subscriptions.filter(s => s.status === 'active').length,
+      cancelled: subscriptions.filter(s => s.status === 'cancelled').length,
+      expired: subscriptions.filter(s => s.status === 'expired').length
+    };
+  }
+}
+
+// Export singleton instance
+export const businessFeatures = new BusinessFeaturesService(); 
     const subscriptions = Array.from(this.subscriptions.values());
     
     return {

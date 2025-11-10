@@ -25,3 +25,5 @@ export function getPhotoRequirementMessage(): string {
   return "Add one photo so people recognize you at the venue. It takes 10 seconds.";
 }
 
+
+

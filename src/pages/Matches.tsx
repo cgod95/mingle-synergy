@@ -1,118 +1,178 @@
-// 🧠 Purpose: Implement Matches page UI to display matched users from mock data.
+// 🧠 Purpose: Unified Matches & Chats page - like dating apps
+// Shows all matches with last message preview, avatar, and countdown timer at top
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
-import MatchCard from "@/components/MatchCard";
-import { DisplayMatch } from "@/types/match";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, MessageCircle, Clock, ArrowRight } from "lucide-react";
+import { getActiveMatches, getRemainingSeconds, type Match } from "@/lib/matchesCompat";
+import { getLastMessage } from "@/lib/chatStore";
+import { timeAgo } from "@/lib/timeago";
 import { useAuth } from "@/context/AuthContext";
-import BottomNav from '../components/BottomNav';
-import ErrorBoundary from '../components/ErrorBoundary';
-import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
-import { getUserMatches, mockUsers } from "@/data/mock";
-import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import BottomNav from "@/components/BottomNav";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { MatchListSkeleton } from "@/components/ui/LoadingStates";
 
-const Matches: React.FC = () => {
+type MatchWithPreview = Match & {
+  lastMessage?: string;
+  lastMessageTime?: number;
+};
+
+export default function Matches() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const [matches, setMatches] = useState<DisplayMatch[]>([]);
+  const [matches, setMatches] = useState<MatchWithPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const { toast } = useToast();
+  const [earliestExpiry, setEarliestExpiry] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState<string>("");
 
   useEffect(() => {
     const fetchMatches = async () => {
-      if (!currentUser) {
+      if (!currentUser?.uid) {
         setIsLoading(false);
         return;
       }
+      
+      // In demo mode, ensure data is seeded if matches list is empty
+      if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
+        try {
+          const { ensureDemoLikesSeed } = await import('@/lib/likesStore');
+          const { ensureDemoThreadsSeed } = await import('@/lib/chatStore');
+          ensureDemoLikesSeed();
+          ensureDemoThreadsSeed();
+        } catch (error) {
+          console.warn('Failed to seed demo data:', error);
+        }
+      }
+      
       setIsLoading(true);
       try {
-        // Simulate loading delay for better UX
-        await new Promise(resolve => setTimeout(resolve, 300));
+        const activeMatches = await getActiveMatches(currentUser.uid);
         
-        // Use mock data instead of Firebase
-        const currentUserId = currentUser.uid || 'u1'; // Default to u1 for demo
-        const userMatches = getUserMatches(currentUserId);
-        
-        const displayMatches: DisplayMatch[] = userMatches.map((match) => {
-          const matchedUserId = match.userId === currentUserId ? match.matchedUserId : match.userId;
-          const matchedUser = mockUsers.find(user => user.id === matchedUserId);
-          
+        // Enrich with last message preview
+        const enrichedMatches: MatchWithPreview[] = activeMatches.map((match) => {
+          const lastMsg = getLastMessage(match.id);
           return {
-            id: match.id,
-            name: matchedUser?.name || "Unknown",
-            age: matchedUser?.age || 0,
-            bio: matchedUser?.bio || "",
-            photoUrl: matchedUser?.photos?.[0] || "",
+            ...match,
+            lastMessage: lastMsg?.text,
+            lastMessageTime: lastMsg?.ts,
           };
         });
 
-        setMatches(displayMatches);
+        // Sort by last message time (most recent first), then by expiry (soonest first)
+        enrichedMatches.sort((a, b) => {
+          if (a.lastMessageTime && b.lastMessageTime) {
+            return b.lastMessageTime - a.lastMessageTime;
+          }
+          if (a.lastMessageTime) return -1;
+          if (b.lastMessageTime) return 1;
+          return a.expiresAt - b.expiresAt; // Soonest expiry first
+        });
+
+        setMatches(enrichedMatches);
+
+        // Find earliest expiry for countdown timer
+        if (enrichedMatches.length > 0) {
+          const earliest = Math.min(...enrichedMatches.map(m => m.expiresAt));
+          setEarliestExpiry(earliest);
+        } else {
+          setEarliestExpiry(null);
+        }
       } catch (error) {
         console.error('Error fetching matches:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load matches. Please try again.",
-          variant: "destructive",
-        });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchMatches();
-  }, [currentUser, toast]);
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchMatches, 30000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
-  const handleWeMetClick = (matchId: string) => {
-    setSelectedMatchId(matchId);
-    setShowConfirmation(true);
-  };
+  // Update countdown timer every second
+  useEffect(() => {
+    if (!earliestExpiry) {
+      setCountdown("");
+      return;
+    }
 
-  const handleConfirm = async () => {
-    if (!currentUser || !selectedMatchId) return;
+    const updateCountdown = () => {
+      const now = Date.now();
+      const remaining = earliestExpiry - now;
+      
+      if (remaining <= 0) {
+        setCountdown("Expired");
+        return;
+      }
+
+      const hours = Math.floor(remaining / (1000 * 60 * 60));
+      const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+      if (hours > 0) {
+        setCountdown(`${hours}h ${minutes}m`);
+      } else if (minutes > 0) {
+        setCountdown(`${minutes}m ${seconds}s`);
+      } else {
+        setCountdown(`${seconds}s`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [earliestExpiry]);
+
+  const formatRemainingTime = (expiresAt: number): string => {
+    const remaining = getRemainingSeconds({ expiresAt } as Match);
+    if (remaining === 0) return "Expired";
     
-    // Show success toast
-    toast({
-      title: "We Met! 🎉",
-      description: "Thanks for confirming! Your match has been updated.",
-      duration: 3000,
-    });
+    const hours = Math.floor(remaining / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
     
-    setShowConfirmation(false);
-    setSelectedMatchId(null);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
   };
 
-  const handleCancel = () => {
-    setShowConfirmation(false);
-    setSelectedMatchId(null);
-  };
-
-  const handleViewProfile = (userId: string) => {
-    // Navigate to profile view - placeholder for now
-    console.log("View profile:", userId);
-  };
-
-  const handleSendMessage = (matchId: string) => {
+  const handleMatchClick = (matchId: string) => {
     navigate(`/chat/${matchId}`);
   };
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-16 p-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <h1 className="text-3xl font-bold text-neutral-800 mb-2">Your Matches</h1>
-          <p className="text-neutral-600">People you've connected with</p>
-        </motion.div>
-        <div className="space-y-4">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+        {/* Countdown Timer Banner - Fixed at top */}
+        {earliestExpiry && countdown && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
+          >
+            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-center gap-2">
+              <Clock className="w-5 h-5 animate-pulse" />
+              <span className="font-bold text-lg">
+                Your earliest match expires in {countdown}
+              </span>
+            </div>
+          </motion.div>
+        )}
+
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <h1 className="text-4xl font-bold text-neutral-800 mb-2">Matches</h1>
+            <p className="text-lg text-neutral-600">Your conversations</p>
+          </motion.div>
+
           {isLoading ? (
             <MatchListSkeleton />
           ) : matches.length === 0 ? (
@@ -141,28 +201,116 @@ const Matches: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            matches.map((match) => (
-              <MatchCard 
-                key={match.id} 
-                match={match} 
-                onWeMetClick={handleWeMetClick}
-                onViewProfile={handleViewProfile}
-                onSendMessage={handleSendMessage}
-              />
-            ))
+            <div className="space-y-3">
+              <AnimatePresence>
+                {matches.map((match, index) => {
+                  const remainingTime = formatRemainingTime(match.expiresAt);
+                  const isExpiringSoon = getRemainingSeconds(match) < 30 * 60; // Less than 30 minutes
+                  
+                  return (
+                    <motion.div
+                      key={match.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.01, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Card
+                        className={`cursor-pointer hover:shadow-xl transition-all border-2 ${
+                          isExpiringSoon
+                            ? "border-orange-300 bg-orange-50/50"
+                            : "border-neutral-200 hover:border-indigo-300 bg-white"
+                        }`}
+                        onClick={() => handleMatchClick(match.id)}
+                      >
+                        <div className="flex items-center gap-4 px-6 py-5">
+                          {/* Avatar */}
+                          <Avatar className="h-16 w-16 flex-shrink-0 ring-2 ring-indigo-100">
+                            {match.avatarUrl ? (
+                              <AvatarImage 
+                                src={match.avatarUrl} 
+                                alt={match.displayName || "Match"} 
+                                className="object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "";
+                                }}
+                              />
+                            ) : null}
+                            <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white font-bold text-xl">
+                              {(match.displayName || "M").charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          {/* Content */}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-lg text-neutral-800 truncate">
+                                  {match.displayName || "Match"}
+                                </h3>
+                                {match.unreadCount && match.unreadCount > 0 && (
+                                  <Badge className="bg-indigo-500 text-white text-xs px-2 py-0">
+                                    {match.unreadCount}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {isExpiringSoon && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    {remainingTime}
+                                  </Badge>
+                                )}
+                                {match.lastMessageTime && (
+                                  <span className="text-xs text-neutral-500 font-medium">
+                                    {timeAgo(match.lastMessageTime)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Last Message Preview */}
+                            <div className="flex items-center gap-2">
+                              {match.lastMessage ? (
+                                <>
+                                  <MessageCircle className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                                  <p className="text-sm text-neutral-600 truncate flex-1">
+                                    {match.lastMessage}
+                                  </p>
+                                </>
+                              ) : (
+                                <p className="text-sm text-neutral-500 italic">
+                                  Start the conversation...
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Time Remaining Badge */}
+                            {!isExpiringSoon && (
+                              <div className="mt-2">
+                                <Badge variant="outline" className="text-xs text-neutral-600">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {remainingTime} left
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Arrow */}
+                          <ArrowRight className="w-5 h-5 text-neutral-400 flex-shrink-0" />
+                        </div>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
           )}
         </div>
+        <BottomNav />
       </div>
-      <BottomNav />
-
-      {/* Confirmation Modal */}
-      <WeMetConfirmationModal
-        open={showConfirmation}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-      />
     </ErrorBoundary>
   );
-};
-
-export default Matches;
+}

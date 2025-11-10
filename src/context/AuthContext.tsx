@@ -10,6 +10,7 @@ type Ctx = {
   login: (u: NonNullable<User>) => void;
   logout: () => void;
   signOut: () => void; // Alias for compatibility
+  createDemoUser: () => void;
 };
 
 const Context = createContext<Ctx | null>(null);
@@ -54,6 +55,20 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     try { localStorage.removeItem(KEY); } catch {}
   };
 
+  const createDemoUser = () => {
+    const demoUser: User = {
+      id: `demo_${Date.now()}`,
+      uid: `demo_${Date.now()}`,
+      name: 'Demo User',
+      email: 'demo@mingle.app',
+    };
+    login(demoUser);
+    // Mark as demo user
+    try {
+      localStorage.setItem('mingle:demo_user', 'true');
+    } catch {}
+  };
+
   const value = useMemo(() => ({
     user,
     currentUser: user ? { ...user, uid: user.uid || user.id } : null,
@@ -61,6 +76,23 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     login,
     logout,
     signOut: logout, // Alias for compatibility
+    createDemoUser,
+  }), [user]);
+
+  return <Context.Provider value={value}>{children}</Context.Provider>;
+};
+
+export function useAuth() {
+  const c = useContext(Context);
+  if (!c) throw new Error("useAuth must be used within AuthProvider");
+  return c;
+}
+
+    isAuthenticated: !!user,
+    login,
+    logout,
+    signOut: logout, // Alias for compatibility
+    createDemoUser,
   }), [user]);
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

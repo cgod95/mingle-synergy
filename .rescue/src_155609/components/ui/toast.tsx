@@ -13,7 +13,7 @@ function ensureHost() {
   return root!;
 }
 
-let queue: string[] = [];
+const queue: string[] = [];
 let visible = false;
 
 function render() {

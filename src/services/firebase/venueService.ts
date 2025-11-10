@@ -13,20 +13,20 @@ const CACHE_KEYS = {
   VENUE_PREFIX: 'venue_'
 };
 
-// Mock venue data for demo mode
+// Mock venue data for demo mode - expanded with Unsplash images
 const mockVenues: Venue[] = [
   {
     id: '1',
-    name: 'The Local Bar',
+    name: 'Neon Garden',
     type: 'bar',
     address: '123 Main Street',
     city: 'Melbourne',
     latitude: -37.8136,
     longitude: 144.9631,
-    image: '/images/mock-a.jpg',
+    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop',
     checkInCount: 42,
     expiryTime: 120,
-    zones: ['front', 'back', 'outdoor'],
+    zones: ['front', 'back', 'outdoor', 'rooftop'],
     checkedInUsers: [],
     specials: [
       { title: 'Happy Hour', description: '5-7pm' },
@@ -35,16 +35,16 @@ const mockVenues: Venue[] = [
   },
   {
     id: '2',
-    name: 'Club Nightlife',
+    name: 'Club Aurora',
     type: 'club',
     address: '456 Party Avenue',
     city: 'Melbourne',
     latitude: -37.8136,
     longitude: 144.9631,
-    image: '/images/mock-b.jpg',
+    image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=600&fit=crop',
     checkInCount: 88,
     expiryTime: 120,
-    zones: ['main-floor', 'vip', 'rooftop'],
+    zones: ['main-floor', 'vip', 'rooftop', 'dance-floor'],
     checkedInUsers: [],
     specials: [
       { title: 'Student Night', description: 'Thursdays' },
@@ -53,20 +53,110 @@ const mockVenues: Venue[] = [
   },
   {
     id: '3',
-    name: 'Coffee Corner',
+    name: 'The Roastery',
     type: 'cafe',
     address: '789 Brew Street',
     city: 'Melbourne',
     latitude: -37.8136,
     longitude: 144.9631,
-    image: '/images/mock-c.jpg',
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4c7c6e?w=800&h=600&fit=crop',
     checkInCount: 15,
     expiryTime: 120,
-    zones: ['indoor', 'outdoor'],
+    zones: ['indoor', 'outdoor', 'patio'],
     checkedInUsers: [],
     specials: [
       { title: 'Free WiFi', description: 'Available' },
       { title: 'Artisan Coffee', description: 'Premium beans' }
+    ],
+  },
+  {
+    id: '4',
+    name: 'Sunset Lounge',
+    type: 'bar',
+    address: '321 Sunset Boulevard',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop',
+    checkInCount: 28,
+    expiryTime: 120,
+    zones: ['lounge', 'bar', 'outdoor'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'Cocktail Hour', description: '6-8pm' },
+      { title: 'Rooftop Views', description: 'Sunset specials' }
+    ],
+  },
+  {
+    id: '5',
+    name: 'The Warehouse',
+    type: 'club',
+    address: '555 Industrial Way',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=800&h=600&fit=crop',
+    checkInCount: 65,
+    expiryTime: 120,
+    zones: ['main-floor', 'mezzanine', 'vip'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'Techno Night', description: 'Saturdays' },
+      { title: 'Late Night', description: 'Until 4am' }
+    ],
+  },
+  {
+    id: '6',
+    name: 'Garden Bistro',
+    type: 'restaurant',
+    address: '888 Garden Lane',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop',
+    checkInCount: 34,
+    expiryTime: 120,
+    zones: ['dining', 'bar', 'garden'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'Farm to Table', description: 'Fresh ingredients' },
+      { title: 'Wine Pairing', description: 'Available' }
+    ],
+  },
+  {
+    id: '7',
+    name: 'The Loft',
+    type: 'bar',
+    address: '777 High Street',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&h=600&fit=crop',
+    checkInCount: 52,
+    expiryTime: 120,
+    zones: ['main', 'loft', 'outdoor'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'Craft Cocktails', description: 'Signature drinks' },
+      { title: 'Live Jazz', description: 'Wednesdays' }
+    ],
+  },
+  {
+    id: '8',
+    name: 'Electric Dreams',
+    type: 'club',
+    address: '999 Neon Street',
+    city: 'Melbourne',
+    latitude: -37.8136,
+    longitude: 144.9631,
+    image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=600&fit=crop',
+    checkInCount: 95,
+    expiryTime: 120,
+    zones: ['main-floor', 'vip', 'chill-zone'],
+    checkedInUsers: [],
+    specials: [
+      { title: 'EDM Night', description: 'Fridays' },
+      { title: 'Light Show', description: 'Every hour' }
     ],
   },
 ];
@@ -291,6 +381,96 @@ class FirebaseVenueService implements VenueService {
       if (!isOnline()) {
         const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
         if (cachedVenues.length > 0) {
+          return cachedVenues.filter(venue => venueIds.includes(venue.id));
+        }
+      }
+      
+      // Firestore limits "in" queries to 10 items, so we need to chunk
+      const chunkedResults = await Promise.all(
+        // Split into chunks of 10
+        this.chunk(venueIds, 10).map(async (chunk) => {
+          const venuesRef = collection(firestore, 'venues');
+          const q = query(venuesRef, where('__name__', 'in', chunk));
+          const snapshot = await getDocs(q);
+            
+          return snapshot.docs.map(doc => 
+            transformFirestoreVenue(doc.data(), doc.id)
+          );
+        })
+      );
+      
+      // Flatten results
+      return chunkedResults.flat();
+    } catch (error) {
+      console.error('Error fetching venues by IDs:', error);
+      return [];
+    }
+  }
+
+  // Helper function to chunk arrays
+  private chunk<T>(array: T[], size: number): T[][] {
+    const chunked: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunked.push(array.slice(i, i + size));
+    }
+    return chunked;
+  }
+  
+  // Add the required method for e2eTests compatibility
+  async getAllVenues(): Promise<Venue[]> {
+    return this.getVenues();
+  }
+
+  /**
+   * Get all users checked into a specific venue
+   */
+  async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
+    try {
+      const usersRef = collection(firestore, 'users');
+      const q = query(usersRef, where('currentVenue', '==', venueId));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as UserProfile));
+    } catch (error) {
+      console.error('Error fetching users at venue:', error);
+      return [];
+    }
+  }
+}
+
+// Simple standalone check-in function
+export const checkInToVenue = async (venueId: string): Promise<void> => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) throw new Error('User not authenticated.');
+
+  const userRef = doc(firestore, 'users', user.uid);
+  const venueRef = doc(firestore, 'venues', venueId);
+
+  // Confirm venue exists
+  const venueSnap = await getDoc(venueRef);
+  if (!venueSnap.exists()) throw new Error('Venue does not exist.');
+
+  // Update user's checkedInVenues field
+  await updateDoc(userRef, {
+    checkedInVenues: arrayUnion(venueId),
+    lastCheckIn: Date.now(),
+  });
+};
+
+export const getCheckedInUsers = async (venueId: string): Promise<UserProfile[]> => {
+  const usersRef = collection(firestore, 'users');
+  const q = query(usersRef, where('checkedInVenues', 'array-contains', venueId));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+};
+
+export default new FirebaseVenueService();
+
           return cachedVenues.filter(venue => venueIds.includes(venue.id));
         }
       }

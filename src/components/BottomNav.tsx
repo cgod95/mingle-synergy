@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Heart, User, MessageCircle, MapPin } from 'lucide-react';
+import { Heart, User, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 
@@ -45,7 +45,7 @@ const BottomNav: React.FC = () => {
   const navItems = [
     { path: '/checkin', icon: MapPin, label: 'Check In' },
     { path: '/matches', icon: Heart, label: 'Matches' },
-    { path: '/chats', icon: MessageCircle, label: 'Chats' },
+    // Chats removed - unified into Matches page
     { path: '/profile', icon: User, label: 'Profile' },
   ];
 
@@ -72,7 +72,9 @@ const BottomNav: React.FC = () => {
             <motion.button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className="flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors duration-200"
+              aria-label={`Navigate to ${item.label}`}
+              aria-current={active ? 'page' : undefined}
+              className="flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >

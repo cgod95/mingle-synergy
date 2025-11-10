@@ -185,6 +185,11 @@ export class SubscriptionService {
 
   // Check if user has a specific feature
   hasFeature(userId: string, feature: string): boolean {
+    // In demo mode, grant all features
+    if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
+      return true;
+    }
+
     const subscription = this.getUserSubscription(userId);
     if (!subscription) {
       // Check free tier features
@@ -198,6 +203,11 @@ export class SubscriptionService {
 
   // Check if user can perform an action (respecting limits)
   canPerformAction(userId: string, action: keyof UserSubscription['usage']): boolean {
+    // In demo mode, allow all actions (unlimited)
+    if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
+      return true;
+    }
+
     const subscription = this.getUserSubscription(userId);
     if (!subscription) {
       // Check free tier limits
@@ -445,6 +455,16 @@ export class SubscriptionService {
           dailySuperLikes: 0,
           dailyRewinds: 0,
           profileBoosts: 0,
+          messageFilters: 0,
+          advancedFilters: 0
+        };
+        subscription.updatedAt = now;
+      }
+    });
+  }
+}
+
+export default SubscriptionService; 
           messageFilters: 0,
           advancedFilters: 0
         };

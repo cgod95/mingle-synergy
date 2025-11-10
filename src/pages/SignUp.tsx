@@ -53,7 +53,7 @@ export default function SignUp() {
         {err && <div style={{ color: "crimson", fontSize: 12 }}>{err}</div>}
       </form>
       <p style={{ marginTop: 12 }}>
-        Have an account? <Link to="/sign-in">Sign in</Link>
+        Have an account? <Link to="/signin">Sign in</Link>
       </p>
     </main>
   );

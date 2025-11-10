@@ -40,23 +40,39 @@ export const sendMessageWithLimit = async ({
   senderId: string;
   message: string;
 }) => {
-  const messagesRef = collection(firestore, "messages");
-  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
-    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 3;
+  // In demo mode, skip message limit checks
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  
+  if (!isDemoMode) {
+    const messagesRef = collection(firestore, "messages");
+    const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+      ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+      : 3;
 
-  const q = query(
-    messagesRef,
-    where("matchId", "==", matchId),
-    where("senderId", "==", senderId)
-  );
-  const snapshot = await getDocs(q);
+    const q = query(
+      messagesRef,
+      where("matchId", "==", matchId),
+      where("senderId", "==", senderId)
+    );
+    const snapshot = await getDocs(q);
 
-  if (snapshot.docs.length >= messageLimit) {
-    throw new Error(`Message limit reached (${messageLimit} messages)`);
+    if (snapshot.docs.length >= messageLimit) {
+      throw new Error(`Message limit reached (${messageLimit} messages)`);
+    }
   }
 
-  await addDoc(messagesRef, {
+  // In demo mode, use localStorage-based chatStore instead of Firestore
+  if (isDemoMode) {
+    const { appendMessage } = await import('@/lib/chatStore');
+    appendMessage(matchId, {
+      sender: 'you',
+      ts: Date.now(),
+      text: message,
+    });
+    return;
+  }
+
+  await addDoc(collection(firestore, "messages"), {
     matchId,
     senderId,
     text: message,
@@ -69,6 +85,12 @@ export const sendMessageWithLimit = async ({
  * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
  */
 export const canSendMessage = async (matchId: string, senderId: string): Promise<boolean> => {
+  // In demo mode, always allow sending messages (unlimited)
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  if (isDemoMode) {
+    return true;
+  }
+
   try {
     const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
       ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
@@ -323,6 +345,28 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     const q = query(
       messagesRef,
       where("matchId", "==", matchId),
+      where("senderId", "!=", userId) // Only mark messages from other users as read
+    );
+    
+    const snapshot = await getDocs(q);
+    const batch = writeBatch(firestore);
+    
+    snapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      const readBy = data.readBy || [];
+      
+      if (!readBy.includes(userId)) {
+        batch.update(doc.ref, {
+          readBy: [...readBy, userId]
+        });
+      }
+    });
+    
+    await batch.commit();
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+  }
+}; 
       where("senderId", "!=", userId) // Only mark messages from other users as read
     );
     
