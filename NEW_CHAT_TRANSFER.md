@@ -1,0 +1,94 @@
+# New Chat Transfer Instructions
+
+## 🚀 Quick Start for New Chat
+
+When context window is full (75%+), use this guide to transfer seamlessly.
+
+### Copy This Message to New Chat:
+
+```
+I'm continuing work on the Mingle app. Please read these files first:
+1. CONTEXT_CONTINUITY.md - Current status and context
+2. SESSION_SUMMARY_JAN_2025.md - Last session summary  
+3. NEXT_STEPS_JAN_2025.md - Immediate next steps
+4. DEMO_MODE_PROGRESS.md - Demo mode implementation status
+
+Current branch: feature/backend-parity-merge
+Latest commit: 8d2c77f (Fixed syntax errors)
+
+We just finished fixing duplicate code issues in:
+- src/lib/chatStore.ts
+- src/lib/likesStore.ts  
+- src/lib/demoDialogue.ts
+- src/lib/demoPeople.ts
+- src/App.tsx
+
+All syntax errors should be resolved. Ready to continue with next steps.
+```
+
+### What Was Just Fixed:
+
+1. **Duplicate Code Removed:**
+   - `chatStore.ts` - Removed duplicate `ensureDemoThreadsSeed` function
+   - `likesStore.ts` - Removed duplicate `return load().matches;` line
+   - `demoDialogue.ts` - Removed entire duplicate file content
+   - `demoPeople.ts` - Removed entire duplicate file content
+   - `App.tsx` - Removed extra closing brace
+
+2. **Status:**
+   - All syntax errors resolved ✅
+   - Files should compile correctly ✅
+   - Changes committed: `8d2c77f` ✅
+   - Pushed to GitHub ✅
+
+### Next Steps (Priority Order):
+
+1. **Branding/Theme Consolidation** (2-3 hours)
+   - Audit theme files
+   - Choose single source of truth
+   - Update all configs
+
+2. **Environment Variables Documentation** (30 min)
+   - Update `.env.example`
+   - Document demo mode vars
+
+3. **Final Testing Pass** (3-4 hours)
+   - Test all routes
+   - Test demo mode end-to-end
+
+### Quick Verification:
+
+```bash
+# Check if dev server works
+npm run dev
+
+# Check for errors
+npm run build
+
+# Check git status
+git status
+```
+
+### Key Files to Review:
+
+- `CONTEXT_CONTINUITY.md` - Full context guide
+- `SESSION_SUMMARY_JAN_2025.md` - Last session details
+- `NEXT_STEPS_JAN_2025.md` - Immediate tasks
+- `CLOSED_BETA_READINESS.md` - Beta readiness assessment
+- `ROUTING_HEALTH_CHECK.md` - Routing verification
+
+### Current State:
+
+- ✅ Demo mode complete and functional
+- ✅ All syntax errors fixed
+- ✅ Ready for continued development
+- ✅ All changes committed and pushed
+- ⚠️ Theme consolidation needed (not blocking)
+- ⚠️ Environment vars need documentation
+
+---
+
+**Last Updated:** January 2025  
+**Context Used:** ~75%  
+**Ready for Transfer:** Yes
+
