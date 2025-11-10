@@ -18,7 +18,15 @@ export default function CheckInPage() {
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    getVenues().then(setVenues).catch(() => setVenues([]));
+    getVenues()
+      .then(venues => {
+        console.log('[CheckInPage] Loaded venues:', venues.length);
+        setVenues(venues);
+      })
+      .catch(error => {
+        console.error('[CheckInPage] Error loading venues:', error);
+        setVenues([]);
+      });
   }, []);
 
   const onCheckIn = async (id: string) => {

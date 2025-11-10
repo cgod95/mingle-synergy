@@ -39,7 +39,15 @@ export default function VenueDetails() {
   
   useEffect(() => {
     if (id) {
-      getVenue(id).then(setVenue).catch(() => setVenue(null));
+      getVenue(id)
+        .then(venue => {
+          console.log('[VenueDetails] Loaded venue:', id, venue ? venue.name : 'not found');
+          setVenue(venue);
+        })
+        .catch(error => {
+          console.error('[VenueDetails] Error loading venue:', id, error);
+          setVenue(null);
+        });
     }
   }, [id]);
   

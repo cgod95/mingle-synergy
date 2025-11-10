@@ -55,6 +55,7 @@ const SettingsPage: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [language, setLanguage] = useState('en');
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     // Load user preferences from localStorage
