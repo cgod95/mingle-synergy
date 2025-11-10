@@ -14,7 +14,7 @@ I'm continuing work on the Mingle app. Please read these files first:
 4. DEMO_MODE_PROGRESS.md - Demo mode implementation status
 
 Current branch: feature/backend-parity-merge
-Latest commit: 8d2c77f (Fixed syntax errors)
+Latest commit: f8328ac (Updated handover docs with latest syntax fixes)
 
 We just finished fixing duplicate code issues in:
 - src/lib/chatStore.ts
