@@ -14,7 +14,7 @@ I'm continuing work on the Mingle app. Please read these files first:
 4. DEMO_MODE_PROGRESS.md - Demo mode implementation status
 
 Current branch: feature/backend-parity-merge
-Latest commit: 0b402a9 (Fixed Settings page + added venue error logging)
+Latest commit: 884aa39 (Fixed Select component empty value error)
 
 We just finished fixing duplicate code issues in:
 - src/lib/chatStore.ts
@@ -99,6 +99,7 @@ git status
 
 ### Known Issues:
 - **Settings Page**: ✅ FIXED - Was missing `isVisible` state variable
+- **Select Component**: ✅ FIXED - Empty string value error in VenueDetails
 - **Venue Loading**: ⚠️ IN PROGRESS - Added error logging, check console for details
 - See `BUG_FIXES_PLAN.md` for detailed investigation and next steps
 
