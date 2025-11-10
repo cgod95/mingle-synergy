@@ -367,25 +367,3 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     console.error('Error marking messages as read:', error);
   }
 }; 
-      where("senderId", "!=", userId) // Only mark messages from other users as read
-    );
-    
-    const snapshot = await getDocs(q);
-    const batch = writeBatch(firestore);
-    
-    snapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      const readBy = data.readBy || [];
-      
-      if (!readBy.includes(userId)) {
-        batch.update(doc.ref, {
-          readBy: [...readBy, userId]
-        });
-      }
-    });
-    
-    await batch.commit();
-  } catch (error) {
-    console.error('Error marking messages as read:', error);
-  }
-}; 

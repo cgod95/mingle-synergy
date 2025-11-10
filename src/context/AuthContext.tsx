@@ -87,19 +87,3 @@ export function useAuth() {
   if (!c) throw new Error("useAuth must be used within AuthProvider");
   return c;
 }
-
-    isAuthenticated: !!user,
-    login,
-    logout,
-    signOut: logout, // Alias for compatibility
-    createDemoUser,
-  }), [user]);
-
-  return <Context.Provider value={value}>{children}</Context.Provider>;
-};
-
-export function useAuth() {
-  const c = useContext(Context);
-  if (!c) throw new Error("useAuth must be used within AuthProvider");
-  return c;
-}

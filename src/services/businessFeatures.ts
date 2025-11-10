@@ -538,16 +538,3 @@ class BusinessFeaturesService {
 
 // Export singleton instance
 export const businessFeatures = new BusinessFeaturesService(); 
-    const subscriptions = Array.from(this.subscriptions.values());
-    
-    return {
-      total: subscriptions.length,
-      active: subscriptions.filter(s => s.status === 'active').length,
-      cancelled: subscriptions.filter(s => s.status === 'cancelled').length,
-      expired: subscriptions.filter(s => s.status === 'expired').length
-    };
-  }
-}
-
-// Export singleton instance
-export const businessFeatures = new BusinessFeaturesService(); 

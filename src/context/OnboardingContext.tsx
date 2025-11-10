@@ -214,10 +214,3 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
 };
 
 export const useOnboarding = () => useContext(OnboardingContext);
-
-      {children}
-    </OnboardingContext.Provider>
-  );
-};
-
-export const useOnboarding = () => useContext(OnboardingContext);

@@ -465,13 +465,3 @@ export class SubscriptionService {
 }
 
 export default SubscriptionService; 
-          messageFilters: 0,
-          advancedFilters: 0
-        };
-        subscription.updatedAt = now;
-      }
-    });
-  }
-}
-
-export default SubscriptionService; 

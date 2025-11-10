@@ -291,24 +291,3 @@ export default function VenueDetails() {
     </div>
   );
 }
-
-                          <Heart className={`w-3.5 h-3.5 mr-1.5 ${isLiked(p.id) || isMatched(p.id) ? "fill-current" : ""}`} />
-                        </motion.div>
-                        {isLiking === p.id ? "Liking..." : isMatched(p.id) ? "Matched" : isLiked(p.id) ? "Liked" : "Like"}
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {toast && <Toast text={toast} />}
-      </AnimatePresence>
-      <BottomNav />
-    </div>
-  );
-}
