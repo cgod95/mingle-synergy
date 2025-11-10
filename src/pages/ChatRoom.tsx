@@ -315,6 +315,23 @@ export default function ChatRoom() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-3">
+        {/* How Mingle Works Info Banner */}
+        {msgs.length <= 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-xl border border-indigo-200 p-3"
+          >
+            <div className="flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-neutral-700 mb-1">You have 3 messages to make plans</p>
+                <p className="text-xs text-neutral-600">Focus on meeting up in person - that's what Mingle is all about!</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Conversation Starters - Show when conversation is new */}
         {showStarters && msgs.length <= 1 && (
           <motion.div

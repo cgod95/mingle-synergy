@@ -37,12 +37,28 @@ export default function LandingPage() {
         <p className="text-lg text-neutral-800 max-w-xl mb-2 font-medium">
           The anti-dating app dating app. No swiping. No noise. Just meaningful encounters in real places.
         </p>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-indigo-100 p-4 max-w-xl">
-          <p className="text-sm text-neutral-700 flex items-center justify-center gap-2">
-            <Zap className="w-4 h-4 text-indigo-500" />
-            <span>How it works: Check into venues → See people there → Like to match → Chat (3 messages) → Meet up!</span>
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white/80 backdrop-blur-sm rounded-xl border-2 border-indigo-200 p-5 max-w-xl shadow-lg"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-neutral-800 mb-2">How Mingle Works</h3>
+              <ol className="text-sm text-neutral-700 space-y-1.5 list-decimal list-inside">
+                <li><strong>Check into venues</strong> where you are (within 500m)</li>
+                <li><strong>See people</strong> who are also checked in there</li>
+                <li><strong>Like someone</strong> - if they like you back, you match!</li>
+                <li><strong>Chat (3 messages)</strong> to make plans to meet up</li>
+                <li><strong>Meet in person</strong> - that's what Mingle is all about!</li>
+              </ol>
+            </div>
+          </div>
+        </motion.div>
 
         <div className="flex flex-col gap-4 w-full max-w-sm space-y-4">
           {/* Demo Mode Button - Prominent */}

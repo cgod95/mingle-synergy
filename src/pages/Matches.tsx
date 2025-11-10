@@ -236,6 +236,42 @@ export default function Matches() {
               </div>
             )}
 
+            {/* How Mingle Works Info Card */}
+            {totalMatches === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-neutral-800 mb-2">How Matches Work</h3>
+                    <ul className="text-sm text-neutral-600 space-y-1.5">
+                      <li className="flex items-start gap-2">
+                        <span className="text-indigo-500 mt-0.5">•</span>
+                        <span><strong>Check into a venue</strong> to see people there</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-indigo-500 mt-0.5">•</span>
+                        <span><strong>Like someone</strong> - if they like you back, you match!</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-indigo-500 mt-0.5">•</span>
+                        <span><strong>Chat (3 messages)</strong> to make plans to meet up</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-indigo-500 mt-0.5">•</span>
+                        <span><strong>Matches expire in 24 hours</strong> - reconnect by checking in again</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Quick Actions - Filter Buttons */}
             {totalMatches > 0 && (
               <div className="flex items-center gap-2 mb-4">
@@ -278,15 +314,21 @@ export default function Matches() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center"
+                  className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center shadow-lg"
                 >
                   <Heart className="w-12 h-12 text-indigo-400" />
                 </motion.div>
-                <h3 className="text-xl font-bold text-neutral-800 mb-2">No matches yet</h3>
-                <p className="text-neutral-600 mb-6">Check into a venue to start meeting people!</p>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                  No matches yet
+                </h3>
+                <p className="text-neutral-600 mb-1">Check into a venue to start meeting people!</p>
+                <p className="text-sm text-neutral-500 mb-6">
+                  Like someone at a venue - if they like you back, you'll match!
+                </p>
                 <Button
                   onClick={() => navigate('/checkin')}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-lg"
+                  size="lg"
                 >
                   Find Venues
                 </Button>

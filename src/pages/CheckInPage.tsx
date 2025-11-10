@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, CheckCircle2, ArrowLeft, QrCode } from "lucide-react";
+import { MapPin, CheckCircle2, ArrowLeft, QrCode, Sparkles } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -104,7 +104,32 @@ export default function CheckInPage() {
         >
           <h1 className="text-3xl font-bold text-neutral-800 mb-2">Check In</h1>
           <p className="text-neutral-600 mb-2">Select your current venue to start meeting people</p>
-          <p className="text-sm text-neutral-500">
+          
+          {/* How Mingle Works Info Card */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mt-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-neutral-800 mb-2">How Mingle Works</h3>
+                <ol className="text-sm text-neutral-600 space-y-1.5 list-decimal list-inside">
+                  <li><strong>Check into a venue</strong> where you are (within 500m)</li>
+                  <li><strong>See people</strong> who are also checked in there</li>
+                  <li><strong>Like someone</strong> - if they like you back, you match!</li>
+                  <li><strong>Chat (3 messages)</strong> to make plans to meet up</li>
+                  <li><strong>Meet in person</strong> - that's what Mingle is all about!</li>
+                </ol>
+              </div>
+            </div>
+          </motion.div>
+          
+          <p className="text-sm text-neutral-500 mt-3">
             💡 You must be within 500m of a venue to check in. Once checked in, you can see and like people at that venue.
           </p>
         </motion.div>

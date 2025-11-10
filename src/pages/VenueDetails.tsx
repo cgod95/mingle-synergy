@@ -4,7 +4,7 @@ import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { checkInAt, getCheckedVenueId, setCurrentZone } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, Navigation, ArrowLeft } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, Navigation, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
@@ -233,6 +233,29 @@ export default function VenueDetails() {
         )}
 
         <div className="p-6">
+          {/* How Mingle Works Info Card */}
+          {checkedIn === venue.id && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-4"
+            >
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-neutral-800 mb-1">How Mingle Works</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">
+                    <strong>Like someone</strong> to show interest. If they like you back, you'll <strong>match</strong> and can start chatting. 
+                    You have <strong>3 messages</strong> to make plans to meet up in person. Matches expire after <strong>24 hours</strong> - 
+                    reconnect by checking in again!
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           <div className="mb-6">
             <h2 className="font-bold text-2xl mb-2 text-neutral-800">People here now</h2>
             <p className="text-sm text-neutral-500">
@@ -284,15 +307,23 @@ export default function VenueDetails() {
             </motion.div>
           ) : people.length === 0 ? (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12 bg-white rounded-2xl border border-neutral-200"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16 px-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-sm"
             >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-                <Heart className="w-8 h-8 text-indigo-400" />
-              </div>
-              <p className="text-neutral-600 font-medium">No one here yet</p>
-              <p className="text-sm text-neutral-500 mt-1">Be the first to check in!</p>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center"
+              >
+                <Heart className="w-10 h-10 text-indigo-400" />
+              </motion.div>
+              <h3 className="text-xl font-bold text-neutral-800 mb-2">No one here yet</h3>
+              <p className="text-sm text-neutral-600 mb-4">Be the first to check in and start meeting people!</p>
+              <p className="text-xs text-neutral-500">
+                💡 Share Mingle with friends at this venue to see them here
+              </p>
             </motion.div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
