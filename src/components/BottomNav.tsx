@@ -76,7 +76,7 @@ const BottomNav: React.FC = () => {
   }, [currentUser?.uid]);
 
   const navItems = [
-    { path: '/checkin', icon: MapPin, label: 'Venue' },
+    { path: '/checkin', icon: MapPin, label: 'Venues' },
     { path: '/matches', icon: Heart, label: 'Matches', showBadge: true },
     { path: '/profile', icon: User, label: 'Profile' },
   ];
@@ -93,7 +93,7 @@ const BottomNav: React.FC = () => {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200 shadow-lg px-4 py-3 z-50"
+      className="fixed bottom-0 left-0 right-0 bg-neutral-800/95 backdrop-blur-md border-t border-neutral-700 shadow-lg px-4 py-3 z-50"
     >
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map((item) => {
@@ -135,10 +135,9 @@ const BottomNav: React.FC = () => {
               <motion.span
                 animate={{
                   color: active ? '#6366F1' : '#6B7280',
-                  fontWeight: active ? '700' : '500'
                 }}
                 transition={{ duration: 0.2 }}
-                className="text-xs"
+                className={`text-xs ${active ? 'font-bold' : 'font-medium'}`}
               >
                 {item.label}
               </motion.span>

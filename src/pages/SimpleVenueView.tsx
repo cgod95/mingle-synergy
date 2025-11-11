@@ -136,7 +136,7 @@ const SimpleVenueView: React.FC = () => {
   return (
     <Layout>
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-neutral-200 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-800 px-4 py-3">
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
@@ -148,8 +148,8 @@ const SimpleVenueView: React.FC = () => {
           </Button>
           
           <div className="text-center">
-            <h1 className="font-semibold text-lg">{venue.name}</h1>
-            <div className="flex items-center justify-center space-x-2 text-sm text-neutral-600">
+            <h1 className="font-semibold text-lg text-white">{venue.name}</h1>
+            <div className="flex items-center justify-center space-x-2 text-sm text-neutral-300">
               <Users className="w-4 h-4" />
               <span>{venueUsers.length} people here</span>
             </div>

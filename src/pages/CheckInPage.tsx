@@ -164,7 +164,7 @@ export default function CheckInPage() {
   const preselect = qrVenueId || params.get("id");
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-20">
+    <div className="min-h-screen bg-neutral-900 pb-20">
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Back Button - only show if not in demo mode or if user came from landing */}
@@ -174,7 +174,7 @@ export default function CheckInPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-[#FF6B6B] hover:text-[#FF5252] hover:bg-[#FFE5E5]"
+              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -186,11 +186,11 @@ export default function CheckInPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="bg-white rounded-xl border border-neutral-200 p-5 mb-6 shadow-sm">
-            <h1 className="text-heading-1 mb-2">Venues</h1>
-            <p className="text-body-secondary mb-3">Check in to see who's here. Scan a QR code or select a venue below.</p>
-            <div className="flex items-center gap-2 text-sm text-neutral-600">
-              <MapPin className="w-4 h-4 text-[#FF6B6B]" />
+          <div className="bg-neutral-800 rounded-xl border border-neutral-700 p-5 mb-6 shadow-sm">
+            <h1 className="text-heading-1 mb-2 text-white">Venues</h1>
+            <p className="text-body-secondary mb-3 text-neutral-300">Check in to see who's here. Scan a QR code or select a venue below.</p>
+            <div className="flex items-center gap-2 text-sm text-neutral-400">
+              <MapPin className="w-4 h-4 text-indigo-400" />
               <span>Showing venues closest to you</span>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function CheckInPage() {
           className="mb-4"
         >
           <Card 
-            className="border-2 border-[#FF6B6B] bg-[#FFE5E5] cursor-pointer hover:border-[#FF5252] hover:bg-[#FFB3B3] hover:shadow-lg transition-all"
+            className="border-2 border-indigo-600 bg-indigo-900/30 cursor-pointer hover:border-indigo-500 hover:bg-indigo-900/50 hover:shadow-lg transition-all"
             onClick={() => {
               // For now, show message about using phone camera
               // Scanner component will be enabled when html5-qrcode is installed
@@ -211,16 +211,16 @@ export default function CheckInPage() {
             }}
           >
             <div className="p-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#FF6B6B] flex items-center justify-center shadow-md">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-600 flex items-center justify-center shadow-md">
                 <QrCode className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">
+              <h2 className="text-xl font-bold text-white mb-2">
                 Scan QR Code
               </h2>
-              <p className="text-sm text-neutral-700 mb-1 font-medium">
+              <p className="text-sm text-neutral-200 mb-1 font-medium">
                 Use your phone camera to scan the venue QR code
               </p>
-              <p className="text-xs text-neutral-600">
+              <p className="text-sm text-neutral-300">
                 The QR code will automatically check you in
               </p>
             </div>
@@ -232,9 +232,9 @@ export default function CheckInPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 bg-[#FFE5E5] border border-[#FFB3B3] rounded-xl"
+            className="mb-4 p-4 bg-indigo-900/30 border border-indigo-700 rounded-xl"
           >
-            <p className="text-sm text-[#FF5252] font-medium">
+            <p className="text-sm text-indigo-300 font-medium">
               📱 Scanned QR code for {venues.find(v => v.id === qrVenueId)?.name || "venue"} - Checking you in...
             </p>
           </motion.div>
@@ -249,55 +249,65 @@ export default function CheckInPage() {
               transition={{ delay: 0.1 }}
               className="mb-4"
             >
-              <Card className="border border-indigo-300 bg-white hover:border-indigo-400 hover:shadow-md transition-all">
-                <Button
-                  onClick={async () => {
-                    try {
-                      const { requestLocationPermission } = await import("@/utils/locationPermission");
-                      const granted = await requestLocationPermission();
-                      if (granted) {
-                        // Try to detect nearby venue
-                        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                          navigator.geolocation.getCurrentPosition(resolve, reject, {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
+              <Card className="border-2 border-indigo-600 bg-indigo-900/30 hover:border-indigo-500 hover:bg-indigo-900/50 hover:shadow-lg transition-all">
+                <div className="p-6 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-600 flex items-center justify-center shadow-md">
+                    <MapPin className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white mb-2">
+                    I'm Here (Auto-detect)
+                  </h2>
+                  <p className="text-sm text-neutral-200 mb-4 font-medium">
+                    Automatically detect your location and check in to the nearest venue
+                  </p>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const { requestLocationPermission } = await import("@/utils/locationPermission");
+                        const granted = await requestLocationPermission();
+                        if (granted) {
+                          // Try to detect nearby venue
+                          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                              enableHighAccuracy: true,
+                              timeout: 10000,
+                            });
                           });
-                        });
-                        
-                        // Find closest venue (simplified - would need proper distance calculation)
-                        const nearbyVenue = venues.find(v => {
-                          // Simple distance check (would need proper haversine formula)
-                          return v.latitude && v.longitude;
-                        });
-                        
-                        if (nearbyVenue) {
-                          await onCheckIn(nearbyVenue.id);
+                          
+                          // Find closest venue (simplified - would need proper distance calculation)
+                          const nearbyVenue = venues.find(v => {
+                            // Simple distance check (would need proper haversine formula)
+                            return v.latitude && v.longitude;
+                          });
+                          
+                          if (nearbyVenue) {
+                            await onCheckIn(nearbyVenue.id);
+                          } else {
+                            alert('No venue detected nearby. Please scan QR code or select manually.');
+                          }
                         } else {
-                          alert('No venue detected nearby. Please scan QR code or select manually.');
+                          alert('Location permission needed for auto-detect. Please scan QR code or select manually.');
                         }
-                      } else {
-                        alert('Location permission needed for auto-detect. Please scan QR code or select manually.');
+                      } catch (error) {
+                        alert('Could not detect your location. Please scan QR code or select manually.');
                       }
-                    } catch (error) {
-                      alert('Could not detect your location. Please scan QR code or select manually.');
-                    }
-                  }}
-                  variant="outline"
-                  className="w-full border-0 text-[#FF6B6B] hover:bg-[#FFE5E5] font-medium"
-                >
-                  <MapPin className="w-4 h-4 mr-2" />
-                  I'm Here (Auto-detect)
-                </Button>
+                    }}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-4 h-auto"
+                  >
+                    <MapPin className="w-5 h-5 mr-2" />
+                    Detect My Location
+                  </Button>
+                </div>
               </Card>
             </motion.div>
 
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-neutral-300"></div>
+                <div className="w-full border-t border-neutral-700"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-neutral-50 text-neutral-500 font-medium">
+                <span className="px-4 bg-neutral-900 text-neutral-400 font-medium">
                   Nearby Venues
                 </span>
               </div>
@@ -309,10 +319,10 @@ export default function CheckInPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center space-x-2"
+            className="mb-4 p-4 bg-indigo-900/30 border border-indigo-700 rounded-xl flex items-center space-x-2"
           >
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-            <p className="text-sm text-green-700 font-medium">You're checked in! Browse people at your venue.</p>
+            <CheckCircle2 className="w-5 h-5 text-indigo-400" />
+            <p className="text-sm text-indigo-300 font-medium">You're checked in! Browse people at your venue.</p>
           </motion.div>
         )}
 
@@ -320,13 +330,13 @@ export default function CheckInPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-6 bg-white rounded-xl border-2 border-red-200 text-center"
+            className="mb-6 p-6 bg-neutral-800 rounded-xl border-2 border-red-700 text-center"
           >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-              <MapPin className="w-8 h-8 text-red-600" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900 flex items-center justify-center">
+              <MapPin className="w-8 h-8 text-red-400" />
             </div>
-            <h3 className="text-lg font-bold text-neutral-800 mb-2">Failed to load venues</h3>
-            <p className="text-sm text-neutral-600 mb-4">
+            <h3 className="text-lg font-bold text-white mb-2">Failed to load venues</h3>
+            <p className="text-sm text-neutral-300 mb-4">
               {isNetworkError(venueError)
                 ? 'Network error. Please check your connection and try again.'
                 : venueError.message || 'Something went wrong. Please try again.'}
@@ -364,8 +374,8 @@ export default function CheckInPage() {
                 <Card
                   className={`cursor-pointer transition-all h-full overflow-hidden ${
                     preselect === v.id
-                      ? "border-2 border-[#FF6B6B] shadow-md bg-[#FFE5E5]"
-                      : "border border-neutral-200 hover:border-[#FFB3B3] hover:shadow-md bg-white"
+                      ? "border-2 border-indigo-600 shadow-md bg-indigo-900/30"
+                      : "border border-neutral-700 hover:border-indigo-500 hover:shadow-md bg-neutral-800"
                   }`}
                   onClick={() => onCheckIn(v.id)}
                 >
@@ -389,7 +399,7 @@ export default function CheckInPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     {distanceText && (
                       <div className="absolute top-3 right-3">
-                        <Badge className="bg-white/90 backdrop-blur-sm border-0 text-[#FF6B6B] font-medium shadow-md">
+                        <Badge className="bg-neutral-800/90 backdrop-blur-sm border-0 text-indigo-400 font-medium shadow-md">
                           {distanceText}
                         </Badge>
                       </div>
@@ -397,9 +407,9 @@ export default function CheckInPage() {
                   </div>
                   
                   <div className="p-5">
-                    <h3 className="font-bold text-neutral-900 text-lg mb-2">{v.name}</h3>
+                    <h3 className="font-bold text-white text-lg mb-2">{v.name}</h3>
                     {(v.openingHours || v.address) && (
-                      <p className="text-xs text-neutral-600 mb-2">
+                      <p className="text-sm text-neutral-300 mb-2">
                         {v.openingHours && (
                           <>
                             {v.openingHours.includes('until') || v.openingHours.includes('Closes') 
@@ -412,14 +422,14 @@ export default function CheckInPage() {
                       </p>
                     )}
                     {v.checkInCount !== undefined && v.checkInCount > 0 && (
-                      <div className="mb-3 text-sm font-medium text-[#FF6B6B]">
+                      <div className="mb-3 text-sm font-medium text-indigo-400">
                         {v.checkInCount} {v.checkInCount === 1 ? 'person' : 'people'} here
                       </div>
                     )}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full text-[#FF6B6B] hover:bg-[#FFE5E5] font-medium border-0"
+                      className="w-full text-indigo-400 hover:bg-indigo-900/30 font-medium border-0"
                     >
                       Check In →
                     </Button>

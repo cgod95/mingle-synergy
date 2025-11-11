@@ -1,4 +1,4 @@
 export const buttonVariants = {
-    default: 'bg-coral-500 text-white',
-    ghost: 'bg-transparent text-coral-500',
+    default: 'bg-indigo-600 text-white',
+    ghost: 'bg-transparent text-indigo-400',
   };

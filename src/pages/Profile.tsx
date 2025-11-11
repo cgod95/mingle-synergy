@@ -52,7 +52,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50 pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <UserProfileSkeleton />
         </div>
@@ -62,18 +62,18 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+    <div className="min-h-screen bg-neutral-900 pb-20">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <h1 className="text-heading-1 mb-2">Profile</h1>
-          <p className="text-body-secondary">Manage your account</p>
+          <h1 className="text-heading-1 mb-2 text-white">Profile</h1>
+          <p className="text-body-secondary text-neutral-300">Manage your account</p>
         </motion.div>
 
-        <Card className="mb-6 border border-neutral-200 shadow-xl bg-white">
+        <Card className="mb-6 border border-neutral-700 shadow-xl bg-neutral-800">
           <CardHeader className="text-center pb-6">
             <motion.div
               initial={{ scale: 0 }}
@@ -81,18 +81,18 @@ export default function Profile() {
               transition={{ delay: 0.1, type: "spring" }}
               className="mb-6"
             >
-              <Avatar className="h-32 w-32 mx-auto ring-4 ring-indigo-100 shadow-lg">
+              <Avatar className="h-32 w-32 mx-auto ring-4 ring-indigo-900 shadow-lg">
                 <AvatarFallback className="bg-indigo-600 text-white text-4xl font-bold">
                   {currentUser.name?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
             </motion.div>
-            <CardTitle className="text-2xl font-bold text-neutral-800 mb-2">
+            <CardTitle className="text-2xl font-bold text-white mb-2">
               {profileData?.displayName || profileData?.name || currentUser.name || 'User'}
             </CardTitle>
-            <p className="text-base text-neutral-600">{currentUser.email}</p>
+            <p className="text-base text-neutral-300">{currentUser.email}</p>
             {profileData?.bio && (
-              <p className="text-sm text-neutral-500 mt-2 italic">"{profileData.bio}"</p>
+              <p className="text-sm text-neutral-400 mt-2 italic">"{profileData.bio}"</p>
             )}
           </CardHeader>
           <CardContent className="space-y-4 px-6 pb-6">
@@ -107,7 +107,7 @@ export default function Profile() {
             <Button
               variant="outline"
               onClick={() => navigate('/settings')}
-              className="w-full h-12 border-2 border-neutral-300 hover:bg-neutral-50 text-base font-medium"
+              className="w-full h-12 border-2 border-neutral-600 hover:bg-neutral-700 text-neutral-200 text-base font-medium bg-neutral-800/50"
             >
               <Settings className="w-5 h-5 mr-2" />
               Settings
@@ -115,7 +115,7 @@ export default function Profile() {
             <Button
               variant="outline"
               onClick={signOut}
-              className="w-full h-12 border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 text-base font-medium"
+              className="w-full h-12 border-2 border-red-700 text-red-400 hover:bg-red-900/20 hover:border-red-600 text-base font-medium bg-neutral-800/50"
             >
               <LogOut className="w-5 h-5 mr-2" />
               Sign Out

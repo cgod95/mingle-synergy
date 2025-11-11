@@ -228,3 +228,4 @@ https://mingle.app/checkin?venueId=1&source=qr
 
 
 
+

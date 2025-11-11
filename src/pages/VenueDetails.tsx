@@ -75,6 +75,7 @@ export default function VenueDetails() {
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>("");
+  const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -91,10 +92,10 @@ export default function VenueDetails() {
 
   if (loadingVenue) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-neutral-600">Loading venue...</p>
+          <p className="text-neutral-300">Loading venue...</p>
         </div>
       </div>
     );
@@ -102,10 +103,10 @@ export default function VenueDetails() {
 
   if (venueError || !venue) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Venue Not Found</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-xl font-semibold text-white mb-2">Venue Not Found</h2>
+          <p className="text-neutral-300 mb-4">
             {venueError?.message || 'The venue you\'re looking for doesn\'t exist or has been removed.'}
           </p>
           <Button onClick={() => navigate('/checkin')} variant="default">
@@ -171,17 +172,21 @@ export default function VenueDetails() {
     await new Promise(resolve => setTimeout(resolve, 300));
     
     const matched = likePerson(personId);
-    if (matched) {
-      setToast(`Matched with ${personName} 🎉`);
-    } else {
-      setToast(`Like sent to ${personName}`);
-    }
     setIsLiking(null);
-    setTimeout(() => setToast(null), 2000);
+    
+    // Show notification on card
+    if (matched) {
+      setLikeNotification({ personId, message: "It's a match! 🎉" });
+    } else {
+      setLikeNotification({ personId, message: "Like sent! ❤️" });
+    }
+    
+    // Clear notification after 2 seconds
+    setTimeout(() => setLikeNotification(null), 2000);
   };
 
   return (
-    <div className="mb-20 bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
+    <div className="mb-20 bg-neutral-900 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Back Button */}
         <div className="mb-4">
@@ -189,7 +194,7 @@ export default function VenueDetails() {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/checkin')}
-            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+            className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Venues
@@ -230,8 +235,8 @@ export default function VenueDetails() {
               onClick={handleCheckIn}
               className={`rounded-full px-6 py-2.5 font-medium shadow-lg transition-all ${
                 checkedIn === venue.id
-                  ? "bg-green-500 hover:bg-green-600 text-white"
-                  : "bg-white hover:bg-white/95 text-indigo-600"
+                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
               }`}
             >
               {checkedIn === venue.id ? (
@@ -249,10 +254,10 @@ export default function VenueDetails() {
         {/* Venue Zones - Context only (not filter) */}
         {venue.zones && venue.zones.length > 0 && checkedIn === venue.id && (
           <div className="px-6 pb-4">
-            <div className="bg-white rounded-xl border border-indigo-100 p-4">
+            <div className="bg-neutral-800 rounded-xl border border-indigo-700 p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Navigation className="w-4 h-4 text-indigo-500" />
-                <span className="text-sm font-medium text-neutral-700">Your zone</span>
+                <Navigation className="w-4 h-4 text-indigo-400" />
+                <span className="text-sm font-medium text-neutral-200">Your zone</span>
               </div>
               <Select
                 value={selectedZone || undefined}
@@ -263,7 +268,7 @@ export default function VenueDetails() {
                   setTimeout(() => setToast(null), 1600);
                 }}
               >
-                <SelectTrigger className="w-full bg-white border-indigo-200">
+                <SelectTrigger className="w-full bg-neutral-700 border-indigo-600 text-neutral-200">
                   <SelectValue placeholder="Select your zone (optional)" />
                 </SelectTrigger>
                 <SelectContent>
@@ -275,7 +280,7 @@ export default function VenueDetails() {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-neutral-500 mt-2">
+              <p className="text-xs text-neutral-400 mt-2">
                 This helps others know where you are in the venue
               </p>
             </div>
@@ -288,15 +293,15 @@ export default function VenueDetails() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 bg-indigo-50 rounded-xl border border-indigo-200 p-4"
+              className="mb-6 bg-indigo-900/30 rounded-xl border border-indigo-700 p-4"
             >
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-indigo-600 flex-shrink-0">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-neutral-800 mb-1">How Mingle Works</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">
+                  <h3 className="font-semibold text-white mb-1">How Mingle Works</h3>
+                  <p className="text-sm text-neutral-300 leading-relaxed">
                     <strong>Like someone</strong> to show interest. If they like you back, you'll <strong>match</strong> and can start chatting. 
                     <strong>Chat to make plans</strong> to meet up in person. Match active while you're both checked in - 
                     reconnect by checking in again!
@@ -307,8 +312,8 @@ export default function VenueDetails() {
           )}
 
           <div className="mb-6">
-            <h2 className="text-heading-2 mb-2">People here now</h2>
-            <p className="text-sm text-neutral-500">
+            <h2 className="text-heading-2 mb-2 text-white">People here now</h2>
+            <p className="text-sm text-neutral-300">
               💡 Like someone to start a conversation. If they like you back, you'll match and can chat!
             </p>
           </div>
@@ -316,13 +321,13 @@ export default function VenueDetails() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12 bg-white rounded-2xl border border-neutral-200"
+              className="text-center py-12 bg-neutral-800 rounded-2xl border border-neutral-700"
             >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
-                <MapPin className="w-8 h-8 text-indigo-600" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-900 flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-indigo-400" />
               </div>
-              <p className="text-neutral-600 font-medium mb-2">Location access required</p>
-              <p className="text-sm text-neutral-500 mb-4">
+              <p className="text-neutral-200 font-medium mb-2">Location access required</p>
+              <p className="text-sm text-neutral-300 mb-4">
                 Enable location access to see people at this venue. You can still browse venues without location.
               </p>
               <div className="flex flex-col gap-2">
@@ -359,19 +364,19 @@ export default function VenueDetails() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16 px-4 bg-white rounded-2xl border border-neutral-200 shadow-sm"
+              className="text-center py-16 px-4 bg-neutral-800 rounded-2xl border border-neutral-700 shadow-sm"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="w-20 h-20 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center"
+                className="w-20 h-20 mx-auto mb-4 rounded-full bg-indigo-900 flex items-center justify-center"
               >
-                <Heart className="w-10 h-10 text-indigo-600" />
+                <Heart className="w-10 h-10 text-indigo-400" />
               </motion.div>
-              <h3 className="text-xl font-bold text-neutral-900 mb-2">No one here yet</h3>
-              <p className="text-sm text-neutral-600 mb-4">Be the first to check in and start meeting people!</p>
-              <p className="text-xs text-neutral-500">
+              <h3 className="text-xl font-bold text-white mb-2">No one here yet</h3>
+              <p className="text-sm text-neutral-300 mb-4">Be the first to check in and start meeting people!</p>
+              <p className="text-xs text-neutral-400">
                 💡 Share Mingle with friends at this venue to see them here
               </p>
             </motion.div>
@@ -383,39 +388,51 @@ export default function VenueDetails() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ scale: 1.05, y: -4 }}
-                  className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-md hover:shadow-xl transition-all"
+                  className="bg-neutral-800 rounded-2xl border border-neutral-700 overflow-hidden shadow-md hover:shadow-xl transition-all relative"
                 >
-                  <div className="aspect-[3/4] overflow-hidden bg-neutral-200">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-neutral-200">
                     <img
                       src={p.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop"}
                       alt={p.name}
-                      className="h-full w-full object-cover"
+                      className="w-full h-full object-cover object-center"
+                      style={{ objectFit: 'cover', objectPosition: 'center' }}
                       loading="lazy"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop";
                       }}
                     />
+                    {/* Like notification on top right */}
+                    {likeNotification && likeNotification.personId === p.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="absolute top-2 right-2 bg-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg z-10"
+                      >
+                        {likeNotification.message}
+                      </motion.div>
+                    )}
                   </div>
                   <div className="p-4">
-                    <div className="text-base font-bold text-neutral-800 mb-1">{p.name}</div>
+                    <div className="text-lg font-bold text-white mb-1">{p.name}</div>
                     {p.bio && (
-                      <p className="text-xs text-neutral-600 mb-2 line-clamp-2">{p.bio}</p>
+                      <p className="text-sm text-neutral-300 mb-2 line-clamp-2">{p.bio}</p>
                     )}
                     {/* Activity indicator */}
                     {p.lastActive && (
                       <div className="flex items-center gap-1 mb-2">
                         <div className={`w-2 h-2 rounded-full ${
-                          Date.now() - p.lastActive < 300000 ? 'bg-green-500' : 
+                          Date.now() - p.lastActive < 300000 ? 'bg-indigo-500' : 
                           Date.now() - p.lastActive < 1800000 ? 'bg-yellow-500' : 
-                          'bg-gray-400'
+                          'bg-neutral-500'
                         }`} />
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-sm text-neutral-400">
                           {Date.now() - p.lastActive < 300000 ? 'Active now' :
                            Date.now() - p.lastActive < 1800000 ? `Active ${Math.floor((Date.now() - p.lastActive) / 60000)}m ago` :
                            'Earlier'}
                         </span>
                         {p.zone && (
-                          <span className="text-xs text-indigo-600 ml-1">• {p.zone}</span>
+                          <span className="text-sm text-indigo-400 ml-1">• {p.zone}</span>
                         )}
                       </div>
                     )}
@@ -423,15 +440,15 @@ export default function VenueDetails() {
                     <div className="flex items-center justify-between">
                       <div>
                         {isMatched(p.id) ? (
-                          <Badge className="bg-green-100 text-green-700 border-green-200 text-xs font-medium">
+                          <Badge className="bg-indigo-900 text-indigo-300 border-indigo-700 text-xs font-medium">
                             Matched
                           </Badge>
                         ) : isLiked(p.id) ? (
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs font-medium">
+                          <Badge className="bg-blue-900 text-blue-300 border-blue-700 text-xs font-medium">
                             Liked
                           </Badge>
                         ) : (
-                          <span className="text-xs text-neutral-400">—</span>
+                          <span className="text-xs text-neutral-500">—</span>
                         )}
                       </div>
                       <Button
@@ -439,7 +456,7 @@ export default function VenueDetails() {
                         size="sm"
                         className={`rounded-full text-xs h-8 px-4 transition-all shadow-sm ${
                           isLiked(p.id) || isMatched(p.id)
-                            ? "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                            ? "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
                             : "bg-indigo-600 hover:bg-indigo-700 text-white"
                         }`}
                         disabled={isLiked(p.id) || isMatched(p.id) || isLiking === p.id}

@@ -15,8 +15,8 @@ const Header: React.FC = () => {
   if (!user) return null;
 
   return (
-    <header className="w-full px-4 py-2 bg-gray-100 border-b flex justify-between items-center">
-      <div className="text-sm text-gray-700">
+    <header className="w-full px-4 py-2 bg-neutral-900 border-b border-neutral-800 flex justify-between items-center">
+      <div className="text-sm text-neutral-200">
         Signed in as {user.displayName || user.email}
       </div>
       <div className="flex space-x-4 items-center">

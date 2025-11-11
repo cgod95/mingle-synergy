@@ -73,10 +73,10 @@ export default function ProfileEdit() {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20 flex items-center justify-center">
+        <div className="min-h-screen bg-neutral-900 pb-20 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-neutral-600">Loading profile...</p>
+            <p className="text-neutral-300">Loading profile...</p>
           </div>
         </div>
       </Layout>
@@ -85,7 +85,7 @@ export default function ProfileEdit() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-md mx-auto px-4 py-6">
           {/* Back Button */}
           <div className="mb-4">
@@ -93,39 +93,41 @@ export default function ProfileEdit() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/profile')}
-              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+              className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Profile
             </Button>
           </div>
-          <Card className="w-full border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-xl">
-            <CardHeader className="text-center space-y-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
-              <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-bold">
+          <Card className="w-full border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+            <CardHeader className="text-center space-y-2 border-b border-neutral-700">
+              <CardTitle className="text-2xl text-white font-bold">
                 Edit Profile
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-900">Name</label>
+              <label className="block text-sm font-medium text-white">Name</label>
               <Input
                 type="text"
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-900">Bio</label>
+              <label className="block text-sm font-medium text-white">Bio</label>
               <Input
                 type="text"
                 placeholder="Short bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
               />
             </div>
             <Button 
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold" 
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold" 
               onClick={handleSave}
               disabled={saving || !name.trim() || !bio.trim()}
             >

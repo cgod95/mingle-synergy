@@ -49,3 +49,4 @@ The app is experiencing "Invalid hook call" errors because multiple React instan
 - WebSocket errors only for HMR (non-critical)
 - App should work normally
 
+

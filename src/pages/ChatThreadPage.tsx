@@ -77,7 +77,7 @@ export default function ChatThreadPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center pb-20">
+        <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center pb-20">
           <SmallLoadingSpinner />
           <p className="mt-2 text-muted-foreground">Loading chat...</p>
         </div>
@@ -89,7 +89,7 @@ export default function ChatThreadPage() {
   if (!match || !partner) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center pb-20">
+        <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center pb-20">
           <div className="text-center">
             <h3 className="text-lg font-medium text-gray-900 mb-2">Chat not found</h3>
             <p className="text-sm text-gray-500">
@@ -104,10 +104,10 @@ export default function ChatThreadPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 flex flex-col pb-20">
+      <div className="min-h-screen bg-neutral-900 flex flex-col pb-20">
         {/* Header */}
-        <div className="bg-white border-b px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+        <div className="bg-neutral-800 border-b border-neutral-700 px-4 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-neutral-700 flex-shrink-0">
             <img
               src={partner.photos?.[0] || ""}
               alt={partnerName}
@@ -118,13 +118,13 @@ export default function ChatThreadPage() {
                 target.nextElementSibling?.classList.remove('hidden');
               }}
             />
-            <div className="w-full h-full bg-gray-300 items-center justify-center text-gray-600 font-medium text-sm hidden">
+            <div className="w-full h-full bg-neutral-600 items-center justify-center text-neutral-300 font-medium text-sm hidden">
               {partnerName.charAt(0).toUpperCase()}
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="font-semibold text-gray-900 truncate">{partnerName}</h1>
-            <p className="text-xs text-gray-500">Active now</p>
+            <h1 className="font-semibold text-white truncate">{partnerName}</h1>
+            <p className="text-xs text-neutral-400">Active now</p>
           </div>
         </div>
 

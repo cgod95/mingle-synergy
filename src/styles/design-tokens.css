@@ -2,22 +2,22 @@
 
 :root {
   /* === Colors === */
-  /* Primary Brand Colors - Warm & Sexy (Coral/Amber) */
-  --color-primary: #FF6B6B; /* coral-500 */
-  --color-primary-hover: #FF5252; /* coral-600 */
-  --color-primary-light: #FF8E8E; /* coral-400 */
-  --color-primary-lighter: #FFB3B3; /* coral-300 */
-  --color-primary-lightest: #FFE5E5; /* coral-100 */
+  /* Primary Brand Colors - Purple/Indigo */
+  --color-primary: #6366F1; /* indigo-500 */
+  --color-primary-hover: #4F46E5; /* indigo-600 */
+  --color-primary-light: #818CF8; /* indigo-400 */
+  --color-primary-lighter: #C7D2FE; /* indigo-200 */
+  --color-primary-lightest: #EEF2FF; /* indigo-50 */
 
-  /* Secondary Accent - Deep Amber (use sparingly) */
-  --color-secondary: #FF8C42; /* amber-500 */
-  --color-secondary-light: #FFA07A; /* salmon */
-  --color-secondary-lightest: #FFE5D9; /* warm peach */
+  /* Secondary Accent - Purple (use sparingly) */
+  --color-secondary: #9333EA; /* purple-600 */
+  --color-secondary-light: #C084FC; /* purple-400 */
+  --color-secondary-lightest: #F3E8FF; /* purple-50 */
 
   /* Status Colors */
-  --color-success: #16A34A; /* green-600 */
-  --color-success-light: #86EFAC; /* green-300 */
-  --color-success-lightest: #D1FAE5; /* green-100 */
+  --color-success: #6366F1; /* indigo-600 */
+  --color-success-light: #818CF8; /* indigo-400 */
+  --color-success-lightest: #C7D2FE; /* indigo-200 */
   
   --color-warning: #F97316; /* orange-500 */
   --color-warning-light: #FDBA74; /* orange-300 */
@@ -118,49 +118,49 @@
 
 /* Utility Classes */
 .text-heading-1 {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-4xl); /* Increased from 3xl */
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .text-heading-2 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-3xl); /* Increased from 2xl */
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .text-heading-3 {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl); /* Increased from xl */
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
 }
 
 .text-body {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg); /* Increased from base */
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
 }
 
 .text-body-secondary {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg); /* Increased from base */
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
 }
 
 .text-caption {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base); /* Increased from sm */
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
 }
 
 .text-label {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm); /* Increased from xs */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
   color: var(--color-text-tertiary);

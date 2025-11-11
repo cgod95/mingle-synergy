@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense, useState } from "react";
 import AppShell from "./components/layout/AppShell";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
+import MingleLoader from "./components/ui/MingleLoader";
 
 // Lazy load pages for code splitting
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -99,6 +100,21 @@ function AppRoutes() {
 }
 
 export default function App() {
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    // Simulate app initialization (like Tinder's loader)
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 1500); // Show loader for 1.5s minimum
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isInitializing) {
+    return <MingleLoader />;
+  }
+
   return (
     <ErrorBoundary>
       <AuthProvider>

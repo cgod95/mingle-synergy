@@ -16,12 +16,12 @@
   --text-inverse: #FFFFFF;    /* White text for dark backgrounds */
   
   /* Brand colors */
-  --brand-primary: #F3643E;   /* Hinge red-orange */
-  --brand-secondary: #212126; /* Dark charcoal */
-  --brand-accent: #EFEFEF;    /* Light gray accent */
+  --brand-primary: #6366F1;   /* indigo-600 */
+  --brand-secondary: #9333EA; /* purple-600 */
+  --brand-accent: #818CF8;    /* indigo-400 */
   
   /* Status colors */
-  --success: #34D399;
+  --success: #6366F1;
   --warning: #FBBF24;
   --error: #EF4444;
   

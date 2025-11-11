@@ -39,7 +39,7 @@ export default function MingleLogo({ size = 'md', showText = true, className = '
             cx="12"
             cy="16"
             r="8"
-            fill="url(#coralGradient)"
+            fill="url(#indigoGradient)"
             opacity="0.9"
           />
           {/* Right circle */}
@@ -47,7 +47,7 @@ export default function MingleLogo({ size = 'md', showText = true, className = '
             cx="20"
             cy="16"
             r="8"
-            fill="url(#amberGradient)"
+            fill="url(#purpleGradient)"
             opacity="0.9"
           />
           {/* Intersection highlight */}
@@ -60,23 +60,23 @@ export default function MingleLogo({ size = 'md', showText = true, className = '
           {/* Connection lines */}
           <path
             d="M 16 8 L 16 12 M 16 20 L 16 24"
-            stroke="url(#coralGradient)"
+            stroke="url(#indigoGradient)"
             strokeWidth="2"
             strokeLinecap="round"
           />
           <defs>
-            <linearGradient id="coralGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FF6B6B" />
-              <stop offset="100%" stopColor="#FF8C42" />
+            <linearGradient id="indigoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#6366F1" />
+              <stop offset="100%" stopColor="#818CF8" />
             </linearGradient>
-            <linearGradient id="amberGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FF8C42" />
-              <stop offset="100%" stopColor="#FFA07A" />
+            <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#9333EA" />
+              <stop offset="100%" stopColor="#C084FC" />
             </linearGradient>
             <linearGradient id="intersectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FF5252" />
-              <stop offset="50%" stopColor="#FF6B6B" />
-              <stop offset="100%" stopColor="#FF8C42" />
+              <stop offset="0%" stopColor="#6366F1" />
+              <stop offset="50%" stopColor="#818CF8" />
+              <stop offset="100%" stopColor="#9333EA" />
             </linearGradient>
           </defs>
         </svg>

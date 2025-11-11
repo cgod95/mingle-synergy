@@ -120,7 +120,7 @@ export default function Matches() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-neutral-50 pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-6xl mx-auto px-4 py-6">
           {/* Header */}
           <motion.div
@@ -130,10 +130,10 @@ export default function Matches() {
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-heading-1 mb-1">
+                <h1 className="text-heading-1 mb-1 text-white">
                   Matches
                 </h1>
-                <p className="text-body-secondary">Your conversations</p>
+                <p className="text-body-secondary text-neutral-300">Your conversations</p>
               </div>
               {totalMatches > 0 && (
                 <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export default function Matches() {
             {/* Filter Buttons */}
             {totalMatches > 0 && (
               <div className="flex items-center gap-2 mb-4">
-                <Filter className="w-4 h-4 text-neutral-500" />
+                <Filter className="w-4 h-4 text-neutral-400" />
                 <div className="flex gap-2">
                   {(['all', 'active', 'expired'] as FilterType[]).map((filterType) => (
                     <Button
@@ -159,7 +159,7 @@ export default function Matches() {
                       className={
                         filter === filterType
                           ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-0'
-                          : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50'
+                          : 'border-neutral-600 text-neutral-300 hover:bg-neutral-800 bg-neutral-800/50'
                       }
                     >
                       {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
@@ -199,16 +199,16 @@ export default function Matches() {
                       <Card
                         className={`cursor-pointer transition-all border overflow-hidden ${
                           matchExpired
-                            ? "opacity-60 border-neutral-200 bg-white"
+                            ? "opacity-60 border-neutral-700 bg-neutral-800/50"
                             : isExpiringSoon
-                            ? "border-orange-300 bg-orange-50/50 hover:shadow-md hover:border-orange-400"
-                            : "border-neutral-200 bg-white hover:shadow-md hover:border-indigo-300"
+                            ? "border-orange-500 bg-orange-900/20 hover:shadow-md hover:border-orange-400"
+                            : "border-neutral-700 bg-neutral-800 hover:shadow-lg hover:border-indigo-500"
                         }`}
                         onClick={() => handleMatchClick(match.id)}
                       >
                         <div className="flex items-center gap-4 px-6 py-5">
                           {/* Avatar */}
-                          <Avatar className="h-20 w-20 flex-shrink-0 ring-2 ring-offset-2 ring-indigo-100">
+                            <Avatar className="h-20 w-20 flex-shrink-0 ring-2 ring-offset-2 ring-offset-neutral-800 ring-indigo-500">
                             {match.avatarUrl ? (
                               <AvatarImage 
                                 src={match.avatarUrl} 
@@ -224,7 +224,7 @@ export default function Matches() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <h3 className="font-bold text-xl text-neutral-800 truncate">
+                                <h3 className="font-bold text-xl text-white truncate">
                                   {match.displayName || "Match"}
                                 </h3>
                                 {match.unreadCount && match.unreadCount > 0 && (
@@ -241,21 +241,21 @@ export default function Matches() {
                                   </Badge>
                                 )}
                                 {match.lastMessageTime && (
-                                  <span className="text-xs text-neutral-500 font-medium">
-                                    {timeAgo(match.lastMessageTime)}
-                                  </span>
+                                <span className="text-xs text-neutral-400 font-medium">
+                                  {timeAgo(match.lastMessageTime)}
+                                </span>
                                 )}
                               </div>
                             </div>
                             
                             {/* Venue Info - PROMINENT */}
                             {match.venueName && (
-                              <div className="flex items-center gap-2 mb-2.5 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-200">
-                                <MapPin className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-                                <span className="text-sm font-semibold text-indigo-700">
+                              <div className="flex items-center gap-2 mb-2.5 px-3 py-1.5 bg-indigo-900/40 rounded-lg border border-indigo-700">
+                                <MapPin className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                                <span className="text-sm font-semibold text-indigo-300">
                                   {match.venueName}
                                 </span>
-                                <span className="text-xs text-indigo-500">• Met here</span>
+                                <span className="text-xs text-indigo-400">• Met here</span>
                               </div>
                             )}
                             
@@ -264,12 +264,12 @@ export default function Matches() {
                               {match.lastMessage ? (
                                 <>
                                   <MessageCircle className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                                  <p className="text-sm text-neutral-600 truncate flex-1">
+                                  <p className="text-sm text-neutral-300 truncate flex-1">
                                     {match.lastMessage}
                                   </p>
                                 </>
                               ) : (
-                                <p className="text-sm text-neutral-500 italic">
+                                <p className="text-sm text-neutral-400 italic">
                                   Start the conversation...
                                 </p>
                               )}
@@ -278,14 +278,14 @@ export default function Matches() {
                             {/* Time Remaining Badge */}
                             {matchExpired ? (
                               <div className="mt-1">
-                                <Badge variant="outline" className="text-xs text-neutral-400 border-neutral-300">
+                                <Badge variant="outline" className="text-xs text-neutral-500 border-neutral-600 bg-neutral-800">
                                   <Clock className="w-3 h-3 mr-1" />
                                   Expired - Check in to reactivate
                                 </Badge>
                               </div>
                             ) : !isExpiringSoon && (
                               <div className="mt-1">
-                                <Badge variant="outline" className="text-xs text-neutral-600 border-neutral-300 bg-neutral-50">
+                                <Badge variant="outline" className="text-xs text-neutral-300 border-neutral-600 bg-neutral-800/50">
                                   <Clock className="w-3 h-3 mr-1" />
                                   Active for {remainingTime}
                                 </Badge>

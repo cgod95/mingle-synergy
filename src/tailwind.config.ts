@@ -32,23 +32,10 @@ export default {
           tertiary: "#718096",
         },
         brand: {
-          primary: "#F0957D",  // Updated to coral
-          secondary: "#6B7F94",
-          accent: "#A0CCDA",
-          muted: "#E1E7EC",
-        },
-        // Remove yellow theme, replace with coral shades
-        coral: {
-          50: "#FEF2EF",
-          100: "#FDE6DF",
-          200: "#F9CDBF",
-          300: "#F5B39F",
-          400: "#F0957D", // Main coral color
-          500: "#EC7A5C",
-          600: "#D65B3B",
-          700: "#B33D1F",
-          800: "#8F2507",
-          900: "#6B1704",
+          primary: "#6366F1",  // indigo-600
+          secondary: "#9333EA", // purple-600
+          accent: "#818CF8", // indigo-400
+          muted: "#C7D2FE", // indigo-200
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -82,17 +69,6 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        // New Hinge-inspired color palette
-        hinge: {
-          coral: "#F0957D",
-          navy: "#6B7F94",
-          background: "#F8F7F4",
-          teal: "#A0CCDA",
-          text: {
-            primary: "#2D3748",
-            secondary: "#4A5568",
-          },
         },
       },
       spacing: {
