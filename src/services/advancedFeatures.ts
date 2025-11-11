@@ -270,8 +270,8 @@ class AdvancedFeaturesService {
     }
 
     const wsUrlEnv = import.meta.env.VITE_WS_URL;
-    if (!wsUrlEnv) {
-      console.warn('VITE_WS_URL is not set. Real-time features will be disabled.');
+    if (!wsUrlEnv || wsUrlEnv === 'YOUR_WEBSOCKET_URL_HERE' || wsUrlEnv.includes('undefined') || (!wsUrlEnv.startsWith('ws://') && !wsUrlEnv.startsWith('wss://'))) {
+      console.warn('VITE_WS_URL is not properly configured. Real-time features will be disabled.');
       return;
     }
     const wsUrl = `${wsUrlEnv}/realtime/${type}`;
@@ -567,6 +567,12 @@ class AdvancedFeaturesService {
   // WebSocket real-time updates
   connectWebSocket(url: string): void {
     if (this.webSocket?.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    // Validate URL before connecting
+    if (!url || url === 'YOUR_WEBSOCKET_URL_HERE' || url.includes('undefined') || (!url.startsWith('ws://') && !url.startsWith('wss://'))) {
+      console.warn('Invalid WebSocket URL. Real-time features disabled.');
       return;
     }
 

@@ -55,7 +55,10 @@ export default function LandingPage() {
       <div className="sticky top-0 z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <MingleLogo size="md" showText={true} />
+            <div className="flex items-center space-x-2">
+              <MingleLogo size="md" showText={false} />
+              <span className="text-xl font-bold text-white">Mingle</span>
+            </div>
             <div className="hidden md:flex items-center gap-6 text-sm text-neutral-300">
               <Link to="/checkin" className="hover:text-white transition-colors">Venues</Link>
               <Link to="/signin" className="hover:text-white transition-colors">Sign In</Link>

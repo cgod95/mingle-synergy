@@ -105,9 +105,22 @@ export const RealTimeDashboard: React.FC = () => {
 
   // WebSocket connection for real-time updates
   useEffect(() => {
+    // Only connect if VITE_WS_URL is properly configured
+    const wsUrl = import.meta.env.VITE_WS_URL;
+    if (!wsUrl || wsUrl === 'undefined' || wsUrl.includes('undefined')) {
+      console.warn('WebSocket URL not configured. Real-time features disabled.');
+      return;
+    }
+
     const connectWebSocket = () => {
       try {
-        wsRef.current = new WebSocket(import.meta.env.VITE_WS_URL || 'ws://localhost:8080');
+        // Validate URL before creating WebSocket
+        if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+          console.error('Invalid WebSocket URL format:', wsUrl);
+          return;
+        }
+
+        wsRef.current = new WebSocket(wsUrl);
         
         wsRef.current.onopen = () => {
           setIsConnected(true);
@@ -115,18 +128,24 @@ export const RealTimeDashboard: React.FC = () => {
         };
 
         wsRef.current.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          // Handle real-time updates
-          if (data.type === 'user_activity') {
-            // Update metrics and activity stream
+          try {
+            const data = JSON.parse(event.data);
+            // Handle real-time updates
+            if (data.type === 'user_activity') {
+              // Update metrics and activity stream
+            }
+          } catch (error) {
+            console.error('Failed to parse WebSocket message:', error);
           }
         };
 
         wsRef.current.onclose = () => {
           setIsConnected(false);
           console.log('Real-time dashboard disconnected');
-          // Reconnect after 5 seconds
-          setTimeout(connectWebSocket, 5000);
+          // Only reconnect if URL is still valid
+          if (wsUrl && !wsUrl.includes('undefined')) {
+            setTimeout(connectWebSocket, 5000);
+          }
         };
 
         wsRef.current.onerror = (error) => {
@@ -144,6 +163,7 @@ export const RealTimeDashboard: React.FC = () => {
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
+        wsRef.current = null;
       }
     };
   }, []);
