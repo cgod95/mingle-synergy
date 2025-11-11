@@ -531,9 +531,11 @@
 - [ ] Marketing strategy
 
 ### Beta 3
-- [ ] Public launch date
-- [ ] Venue expansion (3-5 venues)
-- [ ] User acquisition strategy
+- [ ] First event date
+- [ ] Venue partnerships secured (3-5 venues)
+- [ ] Stranger recruitment strategy
+- [ ] Event promotion plan
+- [ ] Safety/moderation system ready
 - [ ] Revenue model
 
 ---
