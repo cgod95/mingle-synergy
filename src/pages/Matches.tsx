@@ -1,5 +1,5 @@
 // 🧠 Purpose: Unified Matches & Chats page - like dating apps
-// Shows all matches with last message preview, avatar, and countdown timer at top
+// Shows all matches with last message preview and avatar
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
