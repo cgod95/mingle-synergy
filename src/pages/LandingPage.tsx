@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/context/AuthContext';
-import { Sparkles, Zap, MapPin, Users } from 'lucide-react';
+import { Zap, MapPin, Users, Heart, Sparkles } from 'lucide-react';
 import { getVenues } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 
@@ -43,21 +43,29 @@ export default function LandingPage() {
 
   return (
     <Layout>
+      {/* Mingle Branding Header */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-16">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
+                <Heart className="w-5 h-5 text-white fill-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Mingle
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center text-center px-4 py-20 space-y-8"
+        className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center text-center px-4 py-12 space-y-8"
       >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="w-20 h-20 mx-auto rounded-full bg-indigo-600 flex items-center justify-center shadow-lg mb-4"
-        >
-          <Sparkles className="w-10 h-10 text-white" />
-        </motion.div>
         <h1 className="text-5xl font-bold leading-tight text-neutral-900">
           Meet people at the places you already go
         </h1>

@@ -186,8 +186,14 @@ export default function CheckInPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <h1 className="text-heading-1 mb-2">Venue</h1>
-          <p className="text-body-secondary">Check in to see who's here</p>
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 mb-6 shadow-sm">
+            <h1 className="text-heading-1 mb-2">Venues</h1>
+            <p className="text-body-secondary mb-3">Check in to see who's here. Scan a QR code or select a venue below.</p>
+            <div className="flex items-center gap-2 text-sm text-neutral-600">
+              <MapPin className="w-4 h-4 text-indigo-600" />
+              <span>Showing venues closest to you</span>
+            </div>
+          </div>
         </motion.div>
 
         {/* QR Code Scanner Button - Primary */}
@@ -243,44 +249,46 @@ export default function CheckInPage() {
               transition={{ delay: 0.1 }}
               className="mb-4"
             >
-              <Button
-                onClick={async () => {
-                  try {
-                    const { requestLocationPermission } = await import("@/utils/locationPermission");
-                    const granted = await requestLocationPermission();
-                    if (granted) {
-                      // Try to detect nearby venue
-                      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, {
-                          enableHighAccuracy: true,
-                          timeout: 10000,
+              <Card className="border border-indigo-300 bg-white hover:border-indigo-400 hover:shadow-md transition-all">
+                <Button
+                  onClick={async () => {
+                    try {
+                      const { requestLocationPermission } = await import("@/utils/locationPermission");
+                      const granted = await requestLocationPermission();
+                      if (granted) {
+                        // Try to detect nearby venue
+                        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                          navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                          });
                         });
-                      });
-                      
-                      // Find closest venue (simplified - would need proper distance calculation)
-                      const nearbyVenue = venues.find(v => {
-                        // Simple distance check (would need proper haversine formula)
-                        return v.latitude && v.longitude;
-                      });
-                      
-                      if (nearbyVenue) {
-                        await onCheckIn(nearbyVenue.id);
+                        
+                        // Find closest venue (simplified - would need proper distance calculation)
+                        const nearbyVenue = venues.find(v => {
+                          // Simple distance check (would need proper haversine formula)
+                          return v.latitude && v.longitude;
+                        });
+                        
+                        if (nearbyVenue) {
+                          await onCheckIn(nearbyVenue.id);
+                        } else {
+                          alert('No venue detected nearby. Please scan QR code or select manually.');
+                        }
                       } else {
-                        alert('No venue detected nearby. Please scan QR code or select manually.');
+                        alert('Location permission needed for auto-detect. Please scan QR code or select manually.');
                       }
-                    } else {
-                      alert('Location permission needed for auto-detect. Please scan QR code or select manually.');
+                    } catch (error) {
+                      alert('Could not detect your location. Please scan QR code or select manually.');
                     }
-                  } catch (error) {
-                    alert('Could not detect your location. Please scan QR code or select manually.');
-                  }
-                }}
-                variant="outline"
-                className="w-full border-indigo-300 text-indigo-600 hover:bg-indigo-50 font-medium"
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                I'm Here (Auto-detect)
-              </Button>
+                  }}
+                  variant="outline"
+                  className="w-full border-0 text-indigo-600 hover:bg-indigo-50 font-medium"
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  I'm Here (Auto-detect)
+                </Button>
+              </Card>
             </motion.div>
 
             {/* Divider */}
@@ -289,8 +297,8 @@ export default function CheckInPage() {
                 <div className="w-full border-t border-neutral-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-neutral-50 text-neutral-500">
-                  or select manually
+                <span className="px-4 bg-neutral-50 text-neutral-500 font-medium">
+                  Nearby Venues
                 </span>
               </div>
             </div>
@@ -336,7 +344,7 @@ export default function CheckInPage() {
         )}
 
         {!loadingVenues && venues.length > 0 && (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {venues.map((v, index) => {
             const distanceText = v.distanceKm !== undefined 
               ? v.distanceKm < 1 
@@ -350,7 +358,7 @@ export default function CheckInPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.01, y: -2 }}
+                whileHover={{ scale: 1.02, y: -4 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Card
@@ -361,28 +369,46 @@ export default function CheckInPage() {
                   }`}
                   onClick={() => onCheckIn(v.id)}
                 >
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-neutral-900 text-lg mb-1">{v.name}</h3>
-                        {v.address && (
-                          <div className="flex items-center space-x-1 text-sm text-neutral-500 mb-1">
-                            <MapPin className="w-3.5 h-3.5" />
-                            <span>{v.address}</span>
-                          </div>
-                        )}
-                        {v.openingHours && (
-                          <p className="text-xs text-neutral-500">{v.openingHours}</p>
-                        )}
+                  {/* Venue Image */}
+                  <div className="relative h-48 w-full overflow-hidden bg-neutral-200">
+                    {v.image ? (
+                      <img
+                        src={v.image}
+                        alt={v.name}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop";
+                        }}
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center">
+                        <MapPin className="w-12 h-12 text-neutral-400" />
                       </div>
-                      {distanceText && (
-                        <Badge variant="outline" className="ml-2 border-indigo-300 text-indigo-600 bg-indigo-50">
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                    {distanceText && (
+                      <div className="absolute top-3 right-3">
+                        <Badge className="bg-white/90 backdrop-blur-sm border-0 text-indigo-600 font-medium shadow-md">
                           {distanceText}
                         </Badge>
-                      )}
-                    </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-5">
+                    <h3 className="font-bold text-neutral-900 text-lg mb-1">{v.name}</h3>
+                    {v.address && (
+                      <div className="flex items-center space-x-1 text-sm text-neutral-500 mb-2">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span className="truncate">{v.address}</span>
+                      </div>
+                    )}
+                    {v.openingHours && (
+                      <p className="text-xs text-neutral-500 mb-2">{v.openingHours}</p>
+                    )}
                     {v.checkInCount !== undefined && v.checkInCount > 0 && (
-                      <div className="mb-3 text-sm text-neutral-600">
+                      <div className="mb-3 text-sm font-medium text-indigo-600">
                         {v.checkInCount} {v.checkInCount === 1 ? 'person' : 'people'} here
                       </div>
                     )}

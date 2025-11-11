@@ -278,18 +278,19 @@ export default function ChatRoom() {
 
       return (
         <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50 z-50">
-          <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
-          {/* Mingle Branding */}
-          <div className="bg-white/80 backdrop-blur-md border-b border-neutral-200 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
-            <Link to="/matches" className="flex items-center space-x-2 group">
-              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                <Heart className="w-4 h-4 text-white fill-white" />
-              </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Mingle
-              </span>
-            </Link>
-          </div>
+          <div className="max-w-md mx-auto w-full h-full flex flex-col bg-white shadow-xl">
+            <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
+            {/* Mingle Branding */}
+            <div className="bg-white/80 backdrop-blur-md border-b border-neutral-200 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
+              <Link to="/matches" className="flex items-center space-x-2 group">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
+                  <Heart className="w-4 h-4 text-white fill-white" />
+                </div>
+                <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Mingle
+                </span>
+              </Link>
+            </div>
           {/* Header */}
           <div className="bg-white border-b border-neutral-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center space-x-3 shadow-sm flex-shrink-0">
         <Button
@@ -585,6 +586,7 @@ export default function ChatRoom() {
           />
         </>
       )}
-    </div>
-  );
+          </div>
+        </div>
+      );
 }
