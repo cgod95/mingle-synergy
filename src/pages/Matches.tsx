@@ -261,7 +261,7 @@ export default function Matches() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-500 mt-0.5">•</span>
-                        <span><strong>Chat (5 messages)</strong> to make plans to meet up</span>
+                        <span><strong>Chat to make plans</strong> to meet up in person</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-500 mt-0.5">•</span>
