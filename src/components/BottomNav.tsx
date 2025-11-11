@@ -76,7 +76,7 @@ const BottomNav: React.FC = () => {
   }, [currentUser?.uid]);
 
   const navItems = [
-    { path: '/checkin', icon: MapPin, label: 'Check In' },
+    { path: '/checkin', icon: MapPin, label: 'Venue' },
     { path: '/matches', icon: Heart, label: 'Matches', showBadge: true },
     { path: '/profile', icon: User, label: 'Profile' },
   ];

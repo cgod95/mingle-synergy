@@ -210,10 +210,20 @@ export default function VenueDetails() {
             <div className="flex-1">
               <h1 className="text-white text-heading-1 drop-shadow-lg mb-1">{venue.name}</h1>
               {venue.address && (
-                <div className="flex items-center space-x-1 text-white/90 text-sm">
+                <div className="flex items-center space-x-1 text-white/90 text-sm mb-1">
                   <MapPin className="w-4 h-4" />
                   <span>{venue.address}</span>
                 </div>
+              )}
+              {(venue as any).description && (
+                <p className="text-white/90 text-sm drop-shadow-md mb-1">
+                  {(venue as any).description}
+                </p>
+              )}
+              {((venue as any).openingHours || (venue as any).hours) && (
+                <p className="text-white/80 text-xs drop-shadow-md">
+                  {(venue as any).openingHours || (venue as any).hours}
+                </p>
               )}
             </div>
             <Button

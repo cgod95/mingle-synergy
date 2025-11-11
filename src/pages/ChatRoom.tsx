@@ -311,14 +311,10 @@ export default function ChatRoom() {
         <div className="flex-1 min-w-0">
           <h2 className="font-semibold text-neutral-800 truncate">{matchName}</h2>
           <div className="flex items-center gap-2">
-            <p className="text-xs text-neutral-500">Active now</p>
             {matchExpiresAt && getRemainingTime() && (
-              <>
-                <span className="text-xs text-neutral-400">•</span>
-                <p className="text-xs text-orange-600 font-medium">
-                  Expires in {getRemainingTime()}
-                </p>
-              </>
+              <p className="text-xs text-orange-600 font-medium">
+                Active for {getRemainingTime()}
+              </p>
             )}
           </div>
         </div>

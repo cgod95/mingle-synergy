@@ -30,8 +30,6 @@ export default function Matches() {
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchWithPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [earliestExpiry, setEarliestExpiry] = useState<number | null>(null);
-  const [countdown, setCountdown] = useState<string>("");
   const [filter, setFilter] = useState<FilterType>('all');
 
   useEffect(() => {
@@ -79,15 +77,6 @@ export default function Matches() {
         });
 
         setMatches(enrichedMatches);
-
-        // Find earliest expiry for countdown timer (only for active matches)
-        const activeMatches = enrichedMatches.filter(m => !isExpired(m));
-        if (activeMatches.length > 0) {
-          const earliest = Math.min(...activeMatches.map(m => m.expiresAt));
-          setEarliestExpiry(earliest);
-        } else {
-          setEarliestExpiry(null);
-        }
       } catch (error) {
         logError(error as Error, { context: 'Matches.fetchMatches', userId: currentUser?.uid || 'unknown' });
       } finally {
@@ -101,39 +90,6 @@ export default function Matches() {
     return () => clearInterval(interval);
   }, [currentUser]);
 
-  // Update countdown timer every second
-  useEffect(() => {
-    if (!earliestExpiry) {
-      setCountdown("");
-      return;
-    }
-
-    const updateCountdown = () => {
-      const now = Date.now();
-      const remaining = earliestExpiry - now;
-      
-      if (remaining <= 0) {
-        setCountdown("Expired");
-        return;
-      }
-
-      const hours = Math.floor(remaining / (1000 * 60 * 60));
-      const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-
-      if (hours > 0) {
-        setCountdown(`${hours}h ${minutes}m`);
-      } else if (minutes > 0) {
-        setCountdown(`${minutes}m ${seconds}s`);
-      } else {
-        setCountdown(`${seconds}s`);
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [earliestExpiry]);
 
   const formatRemainingTime = (expiresAt: number): string => {
     const remaining = getRemainingSeconds({ expiresAt } as Match);
@@ -165,30 +121,14 @@ export default function Matches() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-neutral-50 pb-20">
-        {/* Countdown Timer Banner - More subtle */}
-        {earliestExpiry && countdown && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="sticky top-0 z-10 bg-orange-50 border-b border-orange-200"
-          >
-            <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-center gap-2">
-              <Clock className="w-4 h-4 text-orange-600" />
-              <span className="text-sm font-medium text-orange-700">
-                Match active for {countdown} - make plans to meet up tonight
-              </span>
-            </div>
-          </motion.div>
-        )}
-
         <div className="max-w-6xl mx-auto px-4 py-6">
-          {/* Header with Stats */}
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-heading-1 mb-1">
                   Matches
@@ -204,76 +144,8 @@ export default function Matches() {
                 </div>
               )}
             </div>
-            
-            {/* Stats Cards */}
-            {totalMatches > 0 && (
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-indigo-600 rounded-xl p-4 text-white shadow-md"
-                >
-                  <div className="text-2xl font-bold">{totalMatches}</div>
-                  <div className="text-sm opacity-90">Total</div>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white border border-neutral-200 rounded-xl p-4 text-neutral-900 shadow-sm"
-                >
-                  <div className="text-2xl font-bold">{activeMatches}</div>
-                  <div className="text-sm text-neutral-600">Active</div>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white border border-neutral-200 rounded-xl p-4 text-neutral-900 shadow-sm"
-                >
-                  <div className="text-2xl font-bold">{expiredMatches}</div>
-                  <div className="text-sm text-neutral-600">Expired</div>
-                </motion.div>
-              </div>
-            )}
 
-            {/* How Mingle Works Info Card */}
-            {totalMatches === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 bg-indigo-50 rounded-xl border border-indigo-200 p-5"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-indigo-600 flex-shrink-0">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-neutral-800 mb-2">How Matches Work</h3>
-                    <ul className="text-sm text-neutral-600 space-y-1.5">
-                      <li className="flex items-start gap-2">
-                        <span className="text-indigo-500 mt-0.5">•</span>
-                        <span><strong>Check into a venue</strong> to see people there</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-indigo-500 mt-0.5">•</span>
-                        <span><strong>Like someone</strong> - if they like you back, you match!</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-indigo-500 mt-0.5">•</span>
-                        <span><strong>Chat to make plans</strong> to meet up in person</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-indigo-500 mt-0.5">•</span>
-                        <span><strong>Match active while you're both checked in</strong> - reconnect by checking in again</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Quick Actions - Filter Buttons */}
+            {/* Filter Buttons */}
             {totalMatches > 0 && (
               <div className="flex items-center gap-2 mb-4">
                 <Filter className="w-4 h-4 text-neutral-500" />
@@ -296,10 +168,6 @@ export default function Matches() {
                 </div>
               </div>
             )}
-
-            <p className="text-sm text-neutral-500">
-              💡 Match active while you're both checked in. Chat to make plans to meet up tonight!
-            </p>
           </motion.div>
 
           {isLoading ? (
@@ -308,11 +176,7 @@ export default function Matches() {
             <EmptyState
               icon={Heart}
               title="No matches yet"
-              description="Check into a venue to start meeting people! Like someone at a venue - if they like you back, you'll match!"
-              action={{
-                label: "Find Venues",
-                onClick: () => navigate('/checkin')
-              }}
+              description="Check into a venue to start meeting people"
             />
           ) : (
             <div className="space-y-3">
