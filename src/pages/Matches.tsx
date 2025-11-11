@@ -427,7 +427,7 @@ export default function Matches() {
                               <div className="mt-1">
                                 <Badge variant="outline" className="text-xs text-neutral-600 border-neutral-300 bg-neutral-50">
                                   <Clock className="w-3 h-3 mr-1" />
-                                  {remainingTime} left
+                                  Active for {remainingTime}
                                 </Badge>
                               </div>
                             )}
