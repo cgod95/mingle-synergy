@@ -34,7 +34,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Force single React instance
+      // Force single React instance - CRITICAL for fixing hooks errors
       'react': path.resolve(__dirname, './node_modules/react'),
       'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
     },
@@ -42,19 +42,30 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
-    exclude: [],
-    esbuildOptions: {
-      dedupe: ['react', 'react-dom'],
-    },
+    force: true, // Force re-optimization
   },
   build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'animation-vendor': ['framer-motion'],
+        manualChunks: (id) => {
+          // Don't split React - keep it in main bundle
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'react-vendor';
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            // Force framer-motion to use same React instance
+            return 'react-vendor';
+          }
+          if (id.includes('node_modules/firebase')) {
+            return 'firebase-vendor';
+          }
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'ui-vendor';
+          }
         },
       },
     },

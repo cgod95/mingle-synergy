@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import design tokens */
+/* Import design tokens - must be before other @layer rules */
 @import './styles/design-tokens.css';
 
 /* ---- Design tokens ---- */
