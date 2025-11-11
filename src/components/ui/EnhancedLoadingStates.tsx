@@ -23,7 +23,7 @@ export const Skeleton: React.FC<{
   return (
     <div
       className={cn(
-        'animate-pulse bg-gray-200 dark:bg-gray-700',
+        'animate-pulse bg-neutral-200',
         roundedClasses[rounded],
         className
       )}

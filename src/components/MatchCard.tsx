@@ -77,7 +77,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       className="w-full"
     >
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-200">
-        <CardHeader className="pb-4 bg-gradient-to-br from-indigo-50 to-purple-50">
+        <CardHeader className="pb-4 bg-indigo-50">
           <div className="flex items-center space-x-4">
             <motion.div
               whileHover={{ scale: 1.08 }}
@@ -94,7 +94,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop";
                   }}
                 />
-                <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white text-xl font-semibold">
+                <AvatarFallback className="bg-indigo-600 text-white text-xl font-semibold">
                   {match.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -111,7 +111,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   animate={{ scale: 1, rotate: 0 }}
                   className="absolute -top-1 -right-1"
                 >
-                  <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs px-2 py-0.5">
+                  <Badge className="bg-indigo-600 text-white text-xs px-2 py-0.5">
                     <Sparkles className="w-3 h-3 mr-1" />
                     Rematch
                   </Badge>
@@ -121,7 +121,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
-                <h3 className="font-bold text-xl truncate bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h3 className="font-bold text-xl truncate text-neutral-900">
                   {match.name}
                 </h3>
                 <Badge variant="outline" className="text-xs font-medium">
@@ -165,7 +165,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100"
+              className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-100"
             >
               <div className="flex items-start space-x-2">
                 <MessageCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
@@ -193,7 +193,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     transition={{ delay: 0.4 + idx * 0.1, type: "spring", stiffness: 200 }}
                     whileHover={{ scale: 1.05 }}
                   >
-                    <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-3 py-1 shadow-sm">
+                    <Badge className="bg-indigo-600 text-white text-xs px-3 py-1 shadow-sm">
                       {interest}
                     </Badge>
                   </motion.div>
@@ -231,7 +231,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               <Button
                 size="sm"
                 onClick={() => onSendMessage(match.id)}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Message

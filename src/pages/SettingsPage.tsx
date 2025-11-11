@@ -523,7 +523,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-neutral-50 pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Back Button */}
           <div className="mb-4">
@@ -543,10 +543,10 @@ const SettingsPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-heading-1 mb-2">
               Settings
             </h1>
-            <p className="text-lg text-neutral-600">Manage your account preferences and app settings</p>
+            <p className="text-body-secondary">Manage your account preferences and app settings</p>
           </motion.div>
 
           {/* Settings Sections */}
@@ -558,11 +558,11 @@ const SettingsPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: sectionIndex * 0.1 }}
               >
-                <Card className="border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-lg hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
-                    <CardTitle className="flex items-center text-lg">
+                <Card className="border border-neutral-200 bg-white shadow-sm hover:shadow-md transition-all">
+                  <CardHeader className="border-b border-neutral-200">
+                    <CardTitle className="flex items-center text-heading-3">
                       <section.icon className="w-5 h-5 mr-2 text-indigo-600" />
-                      <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-bold">
+                      <span className="text-neutral-900 font-semibold">
                         {section.title}
                       </span>
                     </CardTitle>
@@ -576,7 +576,7 @@ const SettingsPage: React.FC = () => {
                               <div className={`p-2 rounded-lg mr-3 ${
                                 item.danger 
                                   ? 'bg-red-100 text-red-600' 
-                                  : 'bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600'
+                                  : 'bg-indigo-100 text-indigo-600'
                               }`}>
                                 <item.icon className="w-4 h-4" />
                               </div>
@@ -592,7 +592,7 @@ const SettingsPage: React.FC = () => {
                                       variant={item.badgeVariant as 'default' | 'secondary' | 'destructive' | 'outline'} 
                                       className={
                                         item.badgeVariant === 'default' 
-                                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0'
+                                          ? 'bg-indigo-600 text-white border-0'
                                           : ''
                                       }
                                     >
@@ -627,7 +627,7 @@ const SettingsPage: React.FC = () => {
                             </div>
                           </div>
                           {itemIndex < section.items.length - 1 && (
-                            <Separator className="my-1 bg-indigo-100" />
+                            <Separator className="my-1 bg-neutral-200" />
                           )}
                         </div>
                       ))}
@@ -645,7 +645,7 @@ const SettingsPage: React.FC = () => {
             transition={{ delay: settingsSections.length * 0.1 }}
             className="mt-6"
           >
-            <Card className="border-2 border-red-100 bg-gradient-to-br from-red-50/50 to-pink-50/50">
+            <Card className="border border-red-200 bg-red-50/30">
               <CardContent className="pt-6">
                 <Button
                   variant="outline"

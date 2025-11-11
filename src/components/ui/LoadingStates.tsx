@@ -11,7 +11,7 @@ const SkeletonPulse: React.FC<{ className?: string; style?: React.CSSProperties 
   <motion.div
     animate={{ opacity: [0.5, 1, 0.5] }}
     transition={{ duration: 1.5, repeat: Infinity }}
-    className={`bg-gray-200 rounded ${className}`}
+    className={`bg-neutral-200 rounded ${className}`}
     style={style}
   />
 );
@@ -236,7 +236,7 @@ export const InfiniteScrollLoader: React.FC<{ isLoading: boolean }> = ({ isLoadi
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full"
         />
-        <span className="text-gray-500 text-sm">Loading more...</span>
+        <span className="text-neutral-500 text-sm">Loading more...</span>
       </div>
     </div>
   );
@@ -253,7 +253,7 @@ export const FullPageLoader: React.FC<{ message?: string }> = ({
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full mx-auto"
       />
-      <p className="text-gray-600">{message}</p>
+      <p className="text-neutral-600">{message}</p>
     </div>
   </div>
 );

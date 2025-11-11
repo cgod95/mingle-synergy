@@ -66,8 +66,8 @@ export default function VenueList() {
       <Layout>
         <div className="space-y-8 pb-24">
           <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-neutral-900">Venues</h1>
-            <p className="text-neutral-600">Find your next connection</p>
+            <h1 className="text-heading-1">Venues</h1>
+            <p className="text-body-secondary">Find your next connection</p>
           </div>
           <GridSkeleton cols={1} rows={6} />
         </div>
@@ -97,8 +97,8 @@ export default function VenueList() {
       <Layout>
         <div className="space-y-8 pb-24">
           <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-neutral-900">Venues</h1>
-            <p className="text-neutral-600">Find your next connection</p>
+            <h1 className="text-heading-1">Venues</h1>
+            <p className="text-body-secondary">Find your next connection</p>
           </div>
           
           <div className="space-y-4">

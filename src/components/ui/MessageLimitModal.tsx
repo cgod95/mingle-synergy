@@ -63,7 +63,7 @@ export default function MessageLimitModal({
                 // Navigate to venues to reconnect
                 window.location.href = '/checkin';
               }}
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600"
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700"
             >
               Find Venues
             </Button>
