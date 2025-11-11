@@ -28,7 +28,7 @@ function Toast({ text }: { text: string }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-3 text-white text-sm shadow-lg z-50"
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-6 py-3 text-white text-sm shadow-lg z-50"
     >
       {text}
     </motion.div>
@@ -208,7 +208,7 @@ export default function VenueDetails() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
             <div className="flex-1">
-              <h1 className="text-white text-3xl font-bold drop-shadow-lg mb-1">{venue.name}</h1>
+              <h1 className="text-white text-heading-1 drop-shadow-lg mb-1">{venue.name}</h1>
               {venue.address && (
                 <div className="flex items-center space-x-1 text-white/90 text-sm">
                   <MapPin className="w-4 h-4" />
@@ -278,10 +278,10 @@ export default function VenueDetails() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-4"
+              className="mb-6 bg-indigo-50 rounded-xl border border-indigo-200 p-4"
             >
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+                <div className="p-2 rounded-lg bg-indigo-600 flex-shrink-0">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
@@ -297,7 +297,7 @@ export default function VenueDetails() {
           )}
 
           <div className="mb-6">
-            <h2 className="font-bold text-2xl mb-2 text-neutral-800">People here now</h2>
+            <h2 className="text-heading-2 mb-2">People here now</h2>
             <p className="text-sm text-neutral-500">
               💡 Like someone to start a conversation. If they like you back, you'll match and can chat!
             </p>
@@ -308,8 +308,8 @@ export default function VenueDetails() {
               animate={{ opacity: 1 }}
               className="text-center py-12 bg-white rounded-2xl border border-neutral-200"
             >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-                <MapPin className="w-8 h-8 text-indigo-400" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-indigo-600" />
               </div>
               <p className="text-neutral-600 font-medium mb-2">Location access required</p>
               <p className="text-sm text-neutral-500 mb-4">
@@ -349,17 +349,17 @@ export default function VenueDetails() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16 px-4 bg-white rounded-2xl border-2 border-indigo-200 shadow-sm"
+              className="text-center py-16 px-4 bg-white rounded-2xl border border-neutral-200 shadow-sm"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center"
+                className="w-20 h-20 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center"
               >
-                <Heart className="w-10 h-10 text-indigo-400" />
+                <Heart className="w-10 h-10 text-indigo-600" />
               </motion.div>
-              <h3 className="text-xl font-bold text-neutral-800 mb-2">No one here yet</h3>
+              <h3 className="text-xl font-bold text-neutral-900 mb-2">No one here yet</h3>
               <p className="text-sm text-neutral-600 mb-4">Be the first to check in and start meeting people!</p>
               <p className="text-xs text-neutral-500">
                 💡 Share Mingle with friends at this venue to see them here
@@ -375,7 +375,7 @@ export default function VenueDetails() {
                   whileHover={{ scale: 1.05, y: -4 }}
                   className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-md hover:shadow-xl transition-all"
                 >
-                  <div className="aspect-[3/4] overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
+                  <div className="aspect-[3/4] overflow-hidden bg-neutral-200">
                     <img
                       src={p.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop"}
                       alt={p.name}
@@ -430,7 +430,7 @@ export default function VenueDetails() {
                         className={`rounded-full text-xs h-8 px-4 transition-all shadow-sm ${
                           isLiked(p.id) || isMatched(p.id)
                             ? "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                            : "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
+                            : "bg-indigo-600 hover:bg-indigo-700 text-white"
                         }`}
                         disabled={isLiked(p.id) || isMatched(p.id) || isLiking === p.id}
                       >

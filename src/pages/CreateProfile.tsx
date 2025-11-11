@@ -179,7 +179,7 @@ export default function CreateProfile() {
                 <div className="w-8 h-8 rounded-full bg-indigo-200 text-indigo-600 flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
-            <CardTitle className="text-2xl text-neutral-900 font-bold">
+            <CardTitle className="text-heading-2">
               Create Profile
             </CardTitle>
             <p className="text-sm text-neutral-700">Step 1 of 3: Tell us about you</p>

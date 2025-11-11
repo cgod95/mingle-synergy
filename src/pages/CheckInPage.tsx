@@ -124,8 +124,8 @@ export default function CheckInPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <h1 className="text-3xl font-bold text-neutral-800 mb-2">Check In</h1>
-          <p className="text-neutral-600 mb-2">Select your current venue to start meeting people</p>
+          <h1 className="text-heading-1 mb-2">Check In</h1>
+          <p className="text-body-secondary mb-2">Select your current venue to start meeting people</p>
           
           {/* How Mingle Works Info Card */}
           <motion.div

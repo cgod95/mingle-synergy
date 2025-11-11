@@ -253,7 +253,7 @@ const Onboarding = () => {
                     {currentStep.icon}
                   </div>
                 </motion.div>
-                <CardTitle className="text-2xl text-neutral-900 font-bold">
+                <CardTitle className="text-heading-2">
                   {currentStep.title}
                 </CardTitle>
                 <p className="text-neutral-700">{currentStep.description}</p>

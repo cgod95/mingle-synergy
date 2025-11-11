@@ -52,7 +52,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+      <div className="min-h-screen bg-neutral-50 pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <UserProfileSkeleton />
         </div>
@@ -69,8 +69,8 @@ export default function Profile() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <h1 className="text-3xl font-bold text-neutral-800 mb-2">Profile</h1>
-          <p className="text-neutral-600">Manage your account</p>
+          <h1 className="text-heading-1 mb-2">Profile</h1>
+          <p className="text-body-secondary">Manage your account</p>
         </motion.div>
 
         <Card className="mb-6 border border-neutral-200 shadow-xl bg-white">
@@ -81,8 +81,8 @@ export default function Profile() {
               transition={{ delay: 0.1, type: "spring" }}
               className="mb-6"
             >
-              <Avatar className="h-32 w-32 mx-auto ring-4 ring-indigo-100 shadow-xl">
-                <AvatarFallback className="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white text-4xl font-bold">
+              <Avatar className="h-32 w-32 mx-auto ring-4 ring-indigo-100 shadow-lg">
+                <AvatarFallback className="bg-indigo-600 text-white text-4xl font-bold">
                   {currentUser.name?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -98,7 +98,7 @@ export default function Profile() {
           <CardContent className="space-y-4 px-6 pb-6">
             <Button
               onClick={() => navigate('/profile/edit')}
-              className="w-full h-12 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-base font-semibold shadow-md"
+              className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white text-base font-semibold shadow-md"
               variant="default"
             >
               <Edit className="w-5 h-5 mr-2" />

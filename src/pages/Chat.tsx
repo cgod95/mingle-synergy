@@ -118,7 +118,7 @@ const Chat: React.FC = () => {
     <>
       <div className="max-w-xl mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-neutral-900">Chat</h2>
+          <h2 className="text-heading-2">Chat</h2>
           {!isExpired && otherUser && (
             <Button
               variant="outline"

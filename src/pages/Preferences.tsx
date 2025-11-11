@@ -191,7 +191,7 @@ export default function Preferences() {
                 <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
-            <CardTitle className="text-2xl text-neutral-900 font-bold">
+            <CardTitle className="text-heading-2">
               Set Your Preferences
             </CardTitle>
             <p className="text-sm text-neutral-700">Step 3 of 3: You can update these anytime in settings.</p>

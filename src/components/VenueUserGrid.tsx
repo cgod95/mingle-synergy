@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { UserProfile } from '@/types/services';
 import { useAuth } from '@/context/AuthContext';
 import services from '@/services';
@@ -71,9 +72,14 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
 
   if (otherUsers.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No other users at this venue right now.</p>
-        <p className="text-sm text-gray-400 mt-2">Check back later or try another venue!</p>
+      <div className="text-center py-12 px-4">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
+          <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-neutral-900 mb-2">No one here yet</h3>
+        <p className="text-sm text-neutral-600">Check back later or try another venue!</p>
       </div>
     );
   }
@@ -86,44 +92,58 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
         const isLoading = loading[user.id];
 
         return (
-          <div
+          <motion.div
             key={user.id}
-            className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ y: -4 }}
+            className="bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
           >
-            <img
-              src={user.photos?.[0] || '/placeholder-avatar.png'}
-              alt={user.name}
-              className="w-full h-40 object-cover rounded-lg mb-2"
-            />
-            <h3 className="text-lg font-semibold">{user.name}, {user.age}</h3>
-            <p className="text-sm text-gray-600">{user.bio || 'No bio available'}</p>
-            
-            {isRematchable && !isLiked ? (
-              <button
-                onClick={() => handleRematch(user.id)}
-                disabled={isLoading}
-                className={`mt-2 w-full px-4 py-1 rounded ${
-                  isLoading 
-                    ? 'bg-gray-300 cursor-not-allowed' 
-                    : 'bg-blue-500 hover:bg-blue-600 text-white'
-                }`}
-              >
-                {isLoading ? 'Reconnecting...' : 'Reconnect 🔄'}
-              </button>
-            ) : (
-              <button
-                onClick={() => handleLike(user.id)}
-                disabled={isLiked || isLoading}
-                className={`mt-2 w-full px-4 py-1 rounded ${
-                  isLiked || isLoading
-                    ? 'bg-gray-300 cursor-not-allowed' 
-                    : 'bg-pink-500 hover:bg-pink-600 text-white'
-                }`}
-              >
-                {isLiked ? 'Liked ❤️' : 'Like ❤️'}
-              </button>
-            )}
-          </div>
+            <div className="relative h-48 w-full overflow-hidden bg-neutral-200">
+              <img
+                src={user.photos?.[0] || '/placeholder-avatar.png'}
+                alt={user.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+            <div className="p-4">
+              <h3 className="text-base font-semibold text-neutral-900 mb-1">
+                {user.name}{user.age && <span className="text-neutral-600 font-normal">, {user.age}</span>}
+              </h3>
+              {user.bio && (
+                <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{user.bio}</p>
+              )}
+              
+              {isRematchable && !isLiked ? (
+                <button
+                  onClick={() => handleRematch(user.id)}
+                  disabled={isLoading}
+                  className={`mt-2 w-full px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isLoading 
+                      ? 'bg-neutral-300 cursor-not-allowed text-neutral-600' 
+                      : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
+                  }`}
+                >
+                  {isLoading ? 'Reconnecting...' : 'Reconnect 🔄'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleLike(user.id)}
+                  disabled={isLiked || isLoading}
+                  className={`mt-2 w-full px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isLiked || isLoading
+                      ? 'bg-neutral-100 cursor-not-allowed text-neutral-600' 
+                      : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
+                  }`}
+                >
+                  {isLiked ? 'Liked ❤️' : 'Like ❤️'}
+                </button>
+              )}
+            </div>
+          </motion.div>
         );
       })}
     </div>

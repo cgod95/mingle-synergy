@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/BottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { MatchListSkeleton } from "@/components/ui/LoadingStates";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -189,10 +190,10 @@ export default function Matches() {
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-neutral-900 mb-1">
+                <h1 className="text-heading-1 mb-1">
                   Matches
                 </h1>
-                <p className="text-base text-neutral-600">Your conversations</p>
+                <p className="text-body-secondary">Your conversations</p>
               </div>
               {totalMatches > 0 && (
                 <div className="flex items-center gap-2">
@@ -304,36 +305,15 @@ export default function Matches() {
           {isLoading ? (
             <MatchListSkeleton />
           ) : matches.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16 px-4"
-            >
-              <div className="max-w-sm mx-auto">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-24 h-24 mx-auto mb-6 rounded-full bg-indigo-100 flex items-center justify-center shadow-md"
-                >
-                  <Heart className="w-12 h-12 text-indigo-600" />
-                </motion.div>
-                <h3 className="text-2xl font-bold text-neutral-900 mb-2">
-                  No matches yet
-                </h3>
-                <p className="text-neutral-600 mb-1">Check into a venue to start meeting people!</p>
-                <p className="text-sm text-neutral-500 mb-6">
-                  Like someone at a venue - if they like you back, you'll match!
-                </p>
-                <Button
-                  onClick={() => navigate('/checkin')}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
-                  size="lg"
-                >
-                  Find Venues
-                </Button>
-              </div>
-            </motion.div>
+            <EmptyState
+              icon={Heart}
+              title="No matches yet"
+              description="Check into a venue to start meeting people! Like someone at a venue - if they like you back, you'll match!"
+              action={{
+                label: "Find Venues",
+                onClick: () => navigate('/checkin')
+              }}
+            />
           ) : (
             <div className="space-y-3">
               <AnimatePresence>
