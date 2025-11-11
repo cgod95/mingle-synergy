@@ -39,7 +39,7 @@ export default function MingleMLogo({ size = 'md', showText = true, className = 
       </motion.div>
       {showText && (
         <motion.span
-          className={`${textSizeMap[size]} font-bold text-neutral-900 dark:text-white`}
+          className={`${textSizeMap[size]} font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent`}
           whileHover={{ scale: 1.05 }}
         >
           Mingle

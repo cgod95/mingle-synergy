@@ -32,10 +32,11 @@
   - New features: Group join, venue grouping, push notifications, QR code
   - Success criteria: 1 venue partnership, 60%+ active users, 40%+ match rate
   
-- **Beta 3:** Public launch with strangers (100-500+ users, 3-5 venues)
-  - Goals: Public validation, product-market fit, revenue readiness
-  - New features: Advanced matching, venue partnership program, revenue share
-  - Success criteria: 100+ active users, 35%+ match rate, 3-5 venue partnerships
+- **Beta 3:** Real venue events with strangers (100-500+ users, 3-5 venues)
+  - Goals: Public validation with strangers, real venue events, product-market fit, revenue readiness
+  - Format: Weekly/bi-weekly events at partner venues
+  - New features: Advanced matching, venue partnership program, revenue share, moderation system
+  - Success criteria: 100+ active users, 35%+ match rate, 3-5 venue partnerships, 10+ events hosted
 
 #### Venue Partnership Guide (`VENUE_PARTNERSHIP_GUIDE.md`)
 - Value proposition for venues (foot traffic, insights, marketing, revenue)

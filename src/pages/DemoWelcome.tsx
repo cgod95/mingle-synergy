@@ -4,13 +4,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { Sparkles, Heart, MapPin, MessageCircle, Zap } from 'lucide-react';
+import { Heart, MapPin, MessageCircle, Zap } from 'lucide-react';
 import config from '@/config';
 import { logError } from '@/utils/errorHandler';
-import MingleMLogo from '@/components/ui/MingleMLogo';
 import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function DemoWelcome() {
@@ -50,96 +49,134 @@ export default function DemoWelcome() {
   return (
     <div className="min-h-screen bg-neutral-900">
       <MingleHeader />
-      <div className="flex items-center justify-center p-4 pt-8">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-md"
-        >
-          <Card className="border-2 border-neutral-700 shadow-xl bg-neutral-800">
-            <CardHeader className="text-center space-y-4 pb-6">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="mx-auto w-24 h-24 flex items-center justify-center"
-              >
-                <MingleMLogo size="lg" showText={false} />
-              </motion.div>
-              <CardTitle className="text-3xl font-bold text-white">
-                Welcome to Demo Mode
-              </CardTitle>
-              <CardDescription className="text-base text-neutral-300">
-                Experience Mingle with full access - no restrictions, no limits
-              </CardDescription>
-            </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-indigo-900">
-                  <Zap className="w-5 h-5 text-indigo-400" />
+      <div className="flex items-center justify-center p-4 pt-8 min-h-[calc(100vh-4rem)]">
+        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {/* Left Side - Philosophy/Education */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="border-2 border-neutral-700 shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
+              <CardHeader className="space-y-4 pb-6">
+                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
+                  What is Mingle
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
+                      <MapPin className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">Real places, real people</h3>
+                      <p className="text-sm text-neutral-300">
+                        Connect at venues you already visit
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
+                      <Zap className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">Location unlocks everything</h3>
+                      <p className="text-sm text-neutral-300">
+                        Check in. See who's here. Meet up.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
+                      <Heart className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">Serendipity over algorithms</h3>
+                      <p className="text-sm text-neutral-300">
+                        Best connections happen in real places
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-white">Full Access</h3>
-                  <p className="text-sm text-neutral-300">
-                    Unlimited likes, messages, and matches - everything unlocked
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-indigo-900">
-                  <MapPin className="w-5 h-5 text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Populated Venues</h3>
-                  <p className="text-sm text-neutral-300">
-                    Explore 8 venues with 26 active users ready to connect
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-indigo-900">
-                  <MessageCircle className="w-5 h-5 text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Real Conversations</h3>
-                  <p className="text-sm text-neutral-300">
-                    See how people connect and meet up in real places
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-indigo-900">
-                  <Heart className="w-5 h-5 text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Serendipity</h3>
-                  <p className="text-sm text-neutral-300">
-                    Experience the magic of meeting people where you are
-                  </p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-            <div className="pt-4">
-              <Button
-                onClick={handleEnterDemo}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg"
-                size="lg"
-              >
-                Enter Demo Mode
-              </Button>
-              <p className="text-xs text-center text-neutral-400 mt-3">
-                Your demo session is ready - start exploring venues and meeting people!
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          {/* Right Side - Demo Features */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Card className="border-2 border-neutral-700 shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
+              <CardHeader className="space-y-4 pb-6">
+                <div className="space-y-2">
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
+                    What You'll Experience
+                  </CardTitle>
+                  <p className="text-sm text-indigo-300 font-medium">Demo Mode Preview</p>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="mb-4 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700/50">
+                  <p className="text-sm text-neutral-200 text-center font-medium">
+                    8 venues • 26 active users • Real conversations
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
+                      <Zap className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">Full Access</h3>
+                      <p className="text-sm text-neutral-300">
+                        Unlimited likes, messages, matches
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
+                      <MapPin className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">Populated Venues</h3>
+                      <p className="text-sm text-neutral-300">
+                        Real venues with active users
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
+                      <MessageCircle className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">Real Conversations</h3>
+                      <p className="text-sm text-neutral-300">
+                        See how people connect in person
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <Button
+                    onClick={handleEnterDemo}
+                    className="w-full md:w-auto md:min-w-[200px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg"
+                    size="lg"
+                  >
+                    Enter Demo Mode
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

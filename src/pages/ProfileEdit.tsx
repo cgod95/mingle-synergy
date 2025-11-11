@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/Layout";
 import { logError } from "@/utils/errorHandler";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfileEdit() {
   const [name, setName] = useState("");
@@ -17,6 +18,7 @@ export default function ProfileEdit() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { toast } = useToast();
 
   // Load existing profile
   useEffect(() => {
@@ -64,7 +66,11 @@ export default function ProfileEdit() {
       navigate("/profile");
     } catch (error) {
       logError(error as Error, { context: 'ProfileEdit.handleSave', userId: currentUser?.uid || 'unknown' });
-      alert('Failed to update profile. Please try again.');
+      toast({
+        title: "Failed to update profile",
+        description: "Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
@@ -86,7 +92,7 @@ export default function ProfileEdit() {
   return (
     <Layout>
       <div className="min-h-screen bg-neutral-900 pb-20">
-        <div className="max-w-md mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Back Button */}
           <div className="mb-4">
             <Button
@@ -101,7 +107,7 @@ export default function ProfileEdit() {
           </div>
           <Card className="w-full border-2 border-neutral-700 bg-neutral-800 shadow-xl">
             <CardHeader className="text-center space-y-2 border-b border-neutral-700">
-              <CardTitle className="text-2xl text-white font-bold">
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 Edit Profile
               </CardTitle>
             </CardHeader>

@@ -19,11 +19,12 @@
 - **Users:** 20-30 people at venue
 - **Ask:** Test permission + promote to customers
 
-### Beta 3: Scale Partnerships
-- **Goal:** Multiple venue partnerships
-- **Venues:** 3-5 venues
-- **Users:** 100+ users across venues
-- **Ask:** Full partnership program
+### Beta 3: Real Venue Events with Strangers
+- **Goal:** Multiple venue partnerships with real events
+- **Venues:** 3-5 real venue partnerships
+- **Users:** 100+ strangers across venues
+- **Format:** Weekly/bi-weekly events at partner venues
+- **Ask:** Full partnership program + host regular events
 
 ---
 

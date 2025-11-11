@@ -279,7 +279,7 @@ export default function ChatRoom() {
 
       return (
         <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
-          <div className="max-w-2xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl">
+          <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl">
             <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
             {/* Mingle Branding */}
             <div className="bg-neutral-800/80 backdrop-blur-md border-b border-neutral-700 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
@@ -297,7 +297,7 @@ export default function ChatRoom() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <Avatar className="h-10 w-10 ring-2 ring-indigo-100 rounded-md">
+        <Avatar className="h-10 w-10 ring-2 ring-indigo-500/50 rounded-md">
           {matchAvatar ? (
             <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
           ) : null}
@@ -309,7 +309,7 @@ export default function ChatRoom() {
           <h2 className="font-semibold text-white truncate">{matchName}</h2>
           <div className="flex items-center gap-2">
             {matchExpiresAt && getRemainingTime() && (
-              <p className="text-xs text-orange-400 font-medium">
+              <p className="text-xs text-indigo-400 font-medium">
                 Active for {getRemainingTime()}
               </p>
             )}
@@ -474,7 +474,10 @@ export default function ChatRoom() {
       </div>
 
       {/* Input - Fixed at bottom */}
-      <div className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 safe-area-inset-bottom">
+      <div 
+        className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      >
         {/* Message limit indicator (hidden for premium users) */}
         {remainingMessages < 5 && remainingMessages < 999 && (
           <div className="mb-2 px-2">
@@ -522,7 +525,7 @@ export default function ChatRoom() {
             />
             {!canSendMsg && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-xs text-red-600 font-medium bg-white/90 px-2 py-1 rounded">
+                <span className="text-xs text-red-400 font-medium bg-red-900/90 px-2 py-1 rounded">
                   Limit reached
                 </span>
               </div>

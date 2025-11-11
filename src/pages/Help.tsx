@@ -60,30 +60,32 @@ const Help: React.FC = () => {
 
   return (
     <PublicLayout>
-      <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-4xl mx-auto p-4">
+      <div className="min-h-screen bg-neutral-900 pb-20">
+        <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
-          <div className="mb-6">
+          <div className="flex items-center space-x-2 mb-6">
             <Button
               variant="ghost"
+              size="icon"
               onClick={() => navigate(-1)}
-              className="mb-4"
+              className="hover:bg-indigo-900/30 text-indigo-400"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Help Center</h1>
-            <p className="text-gray-600">Find answers to common questions and get support</p>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Help Center</h1>
+              <p className="text-neutral-300 mt-2">Find answers to common questions and get support</p>
+            </div>
           </div>
 
           {/* Search Bar */}
           <div className="mb-8">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search for help articles..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -91,18 +93,18 @@ const Help: React.FC = () => {
           {/* Help Categories */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {helpCategories.map((category, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
+              <Card key={index} className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
+                  <CardTitle className="flex items-center text-indigo-400">
                     <category.icon className="w-5 h-5 mr-2" />
                     {category.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{category.description}</p>
+                <CardContent className="pt-4">
+                  <p className="text-neutral-300 mb-4">{category.description}</p>
                   <ul className="space-y-2">
                     {category.items.map((item, itemIndex) => (
-                      <li key={itemIndex} className="text-sm text-gray-700">• {item}</li>
+                      <li key={itemIndex} className="text-sm text-neutral-300">• {item}</li>
                     ))}
                   </ul>
                 </CardContent>
@@ -111,11 +113,11 @@ const Help: React.FC = () => {
           </div>
 
           {/* FAQ Section */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Frequently Asked Questions</CardTitle>
+          <Card className="mb-8 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-indigo-400">Frequently Asked Questions</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <Accordion type="single" collapsible className="w-full">
                 {faqs.map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index}`}>
@@ -123,7 +125,7 @@ const Help: React.FC = () => {
                       {faq.question}
                     </AccordionTrigger>
                     <AccordionContent>
-                      <p className="text-gray-600">{faq.answer}</p>
+                      <p className="text-neutral-300">{faq.answer}</p>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -132,32 +134,32 @@ const Help: React.FC = () => {
           </Card>
 
           {/* Contact Support */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Still Need Help?</CardTitle>
+          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-indigo-400">Still Need Help?</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <Mail className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                  <h3 className="font-semibold mb-2">Email Support</h3>
-                  <p className="text-gray-600 mb-4">Get a response within 24 hours</p>
+                  <Mail className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <h3 className="font-semibold mb-2 text-white">Email Support</h3>
+                  <p className="text-neutral-300 mb-4">Get a response within 24 hours</p>
                   <Button onClick={() => window.location.href = 'mailto:support@mingle.com'}>
                     Send Email
                   </Button>
                 </div>
                 <div className="text-center">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
-                  <h3 className="font-semibold mb-2">Send Feedback</h3>
-                  <p className="text-gray-600 mb-4">Share your thoughts and suggestions</p>
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <h3 className="font-semibold mb-2 text-white">Send Feedback</h3>
+                  <p className="text-neutral-300 mb-4">Share your thoughts and suggestions</p>
                   <Button variant="outline" onClick={() => navigate('/feedback')}>
                     Give Feedback
                   </Button>
                 </div>
                 <div className="text-center">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                  <h3 className="font-semibold mb-2">Contact Support</h3>
-                  <p className="text-gray-600 mb-4">Reach out to our support team</p>
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <h3 className="font-semibold mb-2 text-white">Contact Support</h3>
+                  <p className="text-neutral-300 mb-4">Reach out to our support team</p>
                   <Button variant="outline" onClick={() => navigate('/contact')}>
                     Contact Us
                   </Button>

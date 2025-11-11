@@ -40,10 +40,12 @@ import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const SettingsPage: React.FC = () => {
   const { currentUser, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -259,7 +261,11 @@ const SettingsPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to export data:', error);
-      alert('Failed to export data. Please try again.');
+      toast({
+        title: "Failed to export data",
+        description: "Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -274,7 +280,11 @@ const SettingsPage: React.FC = () => {
         window.location.href = '/';
       } catch (error) {
         console.error('Failed to delete account:', error);
-        alert('Failed to delete account. Please try again.');
+        toast({
+          title: "Failed to delete account",
+          description: "Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -384,7 +394,11 @@ const SettingsPage: React.FC = () => {
               savePreferences();
             } else {
               // Show error or explanation
-              alert('Location permission is required to check in to venues and see people nearby. Please enable it in your browser settings.');
+              toast({
+                title: "Location permission required",
+                description: "Please enable location access in your browser settings to check in to venues and see people nearby.",
+                variant: "destructive",
+              });
             }
           },
           icon: locationSharing ? Wifi : WifiOff,
@@ -397,7 +411,11 @@ const SettingsPage: React.FC = () => {
                 setLocationSharing(true);
                 savePreferences();
               } else {
-                alert('Location permission is required. Please enable it in your browser settings.');
+                toast({
+                  title: "Location permission required",
+                  description: "Please enable location access in your browser settings.",
+                  variant: "destructive",
+                });
               }
             } else {
               setLocationSharing(false);
@@ -523,31 +541,29 @@ const SettingsPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-neutral-50 pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          {/* Back Button */}
-          <div className="mb-4">
+          {/* Header */}
+          <div className="flex items-center space-x-2 mb-6">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => navigate('/profile')}
-              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+              className="hover:bg-indigo-900/30 text-indigo-400"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Profile
+              <ArrowLeft className="h-5 w-5" />
             </Button>
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex-1"
+            >
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                Settings
+              </h1>
+              <p className="text-neutral-300 mt-2">Manage your account preferences and app settings</p>
+            </motion.div>
           </div>
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
-            <h1 className="text-heading-1 mb-2">
-              Settings
-            </h1>
-            <p className="text-body-secondary">Manage your account preferences and app settings</p>
-          </motion.div>
 
           {/* Settings Sections */}
           <div className="space-y-4">
@@ -558,11 +574,11 @@ const SettingsPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: sectionIndex * 0.1 }}
               >
-                <Card className="border border-neutral-200 bg-white shadow-sm hover:shadow-md transition-all">
-                  <CardHeader className="border-b border-neutral-200">
+                <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
+                  <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                     <CardTitle className="flex items-center text-heading-3">
-                      <section.icon className="w-5 h-5 mr-2 text-indigo-600" />
-                      <span className="text-neutral-900 font-semibold">
+                      <section.icon className="w-5 h-5 mr-2 text-indigo-400" />
+                      <span className="text-indigo-400 font-semibold">
                         {section.title}
                       </span>
                     </CardTitle>
@@ -571,19 +587,19 @@ const SettingsPage: React.FC = () => {
                     <div className="space-y-1">
                       {section.items.map((item, itemIndex) => (
                         <div key={itemIndex}>
-                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-indigo-50/50 transition-colors">
+                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-indigo-900/30 transition-colors">
                             <div className="flex items-center flex-1 min-w-0">
                               <div className={`p-2 rounded-lg mr-3 ${
                                 item.danger 
-                                  ? 'bg-red-100 text-red-600' 
-                                  : 'bg-indigo-100 text-indigo-600'
+                                  ? 'bg-red-900/50 text-red-400' 
+                                  : 'bg-indigo-900/50 text-indigo-400'
                               }`}>
                                 <item.icon className="w-4 h-4" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className={`font-semibold text-base ${
-                                    item.danger ? 'text-red-600' : 'text-neutral-800'
+                                    item.danger ? 'text-red-400' : 'text-white'
                                   }`}>
                                     {item.label}
                                   </span>
@@ -600,7 +616,7 @@ const SettingsPage: React.FC = () => {
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm text-neutral-600 mt-0.5">{item.description}</p>
+                                <p className="text-sm text-neutral-300 mt-0.5">{item.description}</p>
                               </div>
                             </div>
                             
@@ -617,8 +633,8 @@ const SettingsPage: React.FC = () => {
                                   onClick={item.action}
                                   className={`${
                                     item.danger 
-                                      ? 'text-red-600 hover:text-red-700 hover:bg-red-50' 
-                                      : 'text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50'
+                                      ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30' 
+                                      : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30'
                                   }`}
                                 >
                                   <ChevronRight className="w-5 h-5" />
@@ -627,7 +643,7 @@ const SettingsPage: React.FC = () => {
                             </div>
                           </div>
                           {itemIndex < section.items.length - 1 && (
-                            <Separator className="my-1 bg-neutral-200" />
+                            <Separator className="my-1 bg-neutral-700" />
                           )}
                         </div>
                       ))}
@@ -645,7 +661,7 @@ const SettingsPage: React.FC = () => {
             transition={{ delay: settingsSections.length * 0.1 }}
             className="mt-6"
           >
-            <Card className="border border-red-200 bg-red-50/30">
+            <Card className="border border-red-700 bg-red-900/30">
               <CardContent className="pt-6">
                 <Button
                   variant="outline"
@@ -661,7 +677,7 @@ const SettingsPage: React.FC = () => {
                       navigate('/');
                     }
                   }}
-                  className="w-full text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400 font-semibold"
+                  className="w-full text-red-400 border-red-700 hover:bg-red-900/50 hover:border-red-600 font-semibold"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Log Out

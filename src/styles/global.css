@@ -4,6 +4,10 @@ body, html {
   height: 100%;
   overflow-y: auto;
   -webkit-tap-highlight-color: transparent; /* Remove yellow highlight on tap */
+  /* Mobile optimizations */
+  touch-action: manipulation; /* Improve touch responsiveness */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scroll-behavior: smooth;
 }
 
 #root {
@@ -52,4 +56,34 @@ body, html {
 
 .card-transition:active {
   transform: scale(0.98);
+}
+
+/* Mobile-specific optimizations */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on interactive elements */
+button, [role="button"], a[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Prevent zoom on input focus (iOS Safari) */
+input, textarea, select {
+  font-size: 16px; /* Prevents iOS zoom on focus */
+}
+
+/* Ensure adequate touch targets (minimum 44x44px) */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Better touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  button:active, [role="button"]:active, a:active {
+    opacity: 0.8;
+  }
 }

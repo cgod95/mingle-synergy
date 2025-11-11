@@ -1,10 +1,11 @@
 import { useParams } from "react-router-dom";
 import { getVenue, getPeople } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
-import { checkInAt, getCheckedVenueId, setCurrentZone } from "../lib/checkinStore";
+import { getAllMatches } from "@/lib/matchesCompat";
+import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, Navigation, ArrowLeft, Sparkles } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
@@ -14,13 +15,6 @@ import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { canSeePeopleAtVenues } from "@/utils/locationPermission";
 import { logError } from "@/utils/errorHandler";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -74,21 +68,24 @@ export default function VenueDetails() {
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState<string | null>(null);
-  const [selectedZone, setSelectedZone] = useState<string>("");
   const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
+  const [mutualConnections, setMutualConnections] = useState<number>(0);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     setCheckedIn(getCheckedVenueId());
-    // Load current zone if checked in
-    if (getCheckedVenueId() === venue?.id) {
-      const savedZone = localStorage.getItem(`mingle:zone:${venue.id}`);
-      if (savedZone) {
-        setSelectedZone(savedZone);
-      }
+    
+    // Load mutual connections count
+    if (currentUser?.uid && venue?.id) {
+      getAllMatches(currentUser.uid).then(matches => {
+        const matchesAtVenue = matches.filter(m => m.venueId === venue.id);
+        setMutualConnections(matchesAtVenue.length);
+      }).catch(() => {
+        // Non-critical
+      });
     }
-  }, [venue?.id]);
+  }, [venue?.id, currentUser?.uid]);
 
   if (loadingVenue) {
     return (
@@ -164,7 +161,7 @@ export default function VenueDetails() {
     setTimeout(() => setToast(null), 1600);
   };
 
-  const handleLike = async (personId: string, personName: string) => {
+  const handleLike = async (personId: string) => {
     if (isLiking === personId) return;
     setIsLiking(personId);
     
@@ -210,10 +207,10 @@ export default function VenueDetails() {
               (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1200&auto=format&fit=crop";
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
             <div className="flex-1">
-              <h1 className="text-white text-heading-1 drop-shadow-lg mb-1">{venue.name}</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-lg mb-1">{venue.name}</h1>
               {venue.address && (
                 <div className="flex items-center space-x-1 text-white/90 text-sm mb-1">
                   <MapPin className="w-4 h-4" />
@@ -251,72 +248,33 @@ export default function VenueDetails() {
           </div>
         </div>
 
-        {/* Venue Zones - Context only (not filter) */}
-        {venue.zones && venue.zones.length > 0 && checkedIn === venue.id && (
-          <div className="px-6 pb-4">
-            <div className="bg-neutral-800 rounded-xl border border-indigo-700 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Navigation className="w-4 h-4 text-indigo-400" />
-                <span className="text-sm font-medium text-neutral-200">Your zone</span>
+        <div className="p-6 space-y-6">
+          {/* People here now section */}
+          <div className="bg-neutral-800 rounded-xl border-2 border-neutral-700 p-6 shadow-lg">
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-heading-2 text-white">People here now</h2>
+                {mutualConnections > 0 && (
+                  <Badge className="bg-indigo-600 text-white px-3 py-1">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    {mutualConnections} {mutualConnections === 1 ? 'match' : 'matches'} here
+                  </Badge>
+                )}
               </div>
-              <Select
-                value={selectedZone || undefined}
-                onValueChange={(value) => {
-                  setSelectedZone(value);
-                  setCurrentZone(venue.id, value);
-                  setToast(value ? `Updated to ${value}` : "Zone cleared");
-                  setTimeout(() => setToast(null), 1600);
-                }}
-              >
-                <SelectTrigger className="w-full bg-neutral-700 border-indigo-600 text-neutral-200">
-                  <SelectValue placeholder="Select your zone (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {venue.zones.map((zone) => (
-                    <SelectItem key={zone} value={zone}>
-                      {selectedZone === zone && "✓ "}
-                      {zone}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-neutral-400 mt-2">
-                This helps others know where you are in the venue
+              <p className="text-sm text-neutral-300 mb-3">
+                💡 Like someone to start a conversation. If they like you back, you'll match and can chat!
               </p>
-            </div>
-          </div>
-        )}
-
-        <div className="p-6">
-          {/* How Mingle Works Info Card */}
-          {checkedIn === venue.id && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 bg-indigo-900/30 rounded-xl border border-indigo-700 p-4"
-            >
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-indigo-600 flex-shrink-0">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-white mb-1">How Mingle Works</h3>
-                  <p className="text-sm text-neutral-300 leading-relaxed">
-                    <strong>Like someone</strong> to show interest. If they like you back, you'll <strong>match</strong> and can start chatting. 
-                    <strong>Chat to make plans</strong> to meet up in person. Match active while you're both checked in - 
-                    reconnect by checking in again!
+              
+              {/* Activity Feed - Less specific for privacy */}
+              {people.length > 0 && (
+                <div className="mb-4 p-3 bg-indigo-900/20 rounded-lg border border-indigo-700/30">
+                  <p className="text-xs text-indigo-300">
+                    <Sparkles className="w-3 h-3 inline mr-1" />
+                    {people.length} {people.length === 1 ? 'person' : 'people'} checked in recently
                   </p>
                 </div>
-              </div>
-            </motion.div>
-          )}
-
-          <div className="mb-6">
-            <h2 className="text-heading-2 mb-2 text-white">People here now</h2>
-            <p className="text-sm text-neutral-300">
-              💡 Like someone to start a conversation. If they like you back, you'll match and can chat!
-            </p>
-          </div>
+              )}
+            </div>
           {!canSeePeopleAtVenues() ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -381,7 +339,7 @@ export default function VenueDetails() {
               </p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {people.map((p) => (
                 <motion.div
                   key={p.id}
@@ -390,12 +348,11 @@ export default function VenueDetails() {
                   whileHover={{ scale: 1.05, y: -4 }}
                   className="bg-neutral-800 rounded-2xl border border-neutral-700 overflow-hidden shadow-md hover:shadow-xl transition-all relative"
                 >
-                  <div className="relative aspect-[3/4] overflow-hidden bg-neutral-200">
+                  <div className="relative aspect-square overflow-hidden bg-neutral-200">
                     <img
                       src={p.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop"}
                       alt={p.name}
                       className="w-full h-full object-cover object-center"
-                      style={{ objectFit: 'cover', objectPosition: 'center' }}
                       loading="lazy"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop";
@@ -415,24 +372,26 @@ export default function VenueDetails() {
                   </div>
                   <div className="p-4">
                     <div className="text-lg font-bold text-white mb-1">{p.name}</div>
-                    {p.bio && (
-                      <p className="text-sm text-neutral-300 mb-2 line-clamp-2">{p.bio}</p>
+                    {(p as any).bio && (
+                      <p className="text-sm text-neutral-300 mb-2 line-clamp-2">{(p as any).bio}</p>
                     )}
                     {/* Activity indicator */}
-                    {p.lastActive && (
+                    {(p as any).lastActive && typeof (p as any).lastActive === 'number' && (
                       <div className="flex items-center gap-1 mb-2">
                         <div className={`w-2 h-2 rounded-full ${
-                          Date.now() - p.lastActive < 300000 ? 'bg-indigo-500' : 
-                          Date.now() - p.lastActive < 1800000 ? 'bg-yellow-500' : 
+                          Date.now() - (p as any).lastActive < 300000 ? 'bg-indigo-500' : 
+                          Date.now() - (p as any).lastActive < 1800000 ? 'bg-yellow-500' : 
                           'bg-neutral-500'
                         }`} />
                         <span className="text-sm text-neutral-400">
-                          {Date.now() - p.lastActive < 300000 ? 'Active now' :
-                           Date.now() - p.lastActive < 1800000 ? `Active ${Math.floor((Date.now() - p.lastActive) / 60000)}m ago` :
+                          {Date.now() - (p as any).lastActive < 300000 ? 'Active now' :
+                           Date.now() - (p as any).lastActive < 1800000 ? `Active recently` :
                            'Earlier'}
                         </span>
-                        {p.zone && (
-                          <span className="text-sm text-indigo-400 ml-1">• {p.zone}</span>
+                        {isMatched(p.id) && (
+                          <Badge className="ml-2 bg-indigo-600 text-white text-xs px-2 py-0.5">
+                            Matched
+                          </Badge>
                         )}
                       </div>
                     )}
@@ -452,7 +411,7 @@ export default function VenueDetails() {
                         )}
                       </div>
                       <Button
-                        onClick={() => handleLike(p.id, p.name)}
+                        onClick={() => handleLike(p.id)}
                         size="sm"
                         className={`rounded-full text-xs h-8 px-4 transition-all shadow-sm ${
                           isLiked(p.id) || isMatched(p.id)
@@ -476,6 +435,7 @@ export default function VenueDetails() {
               ))}
             </div>
           )}
+          </div>
         </div>
       </div>
 

@@ -37,6 +37,9 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#F3643E",
-  "background_color": "#ffffff"
+  "orientation": "portrait",
+  "scope": "/",
+  "theme_color": "#171717",
+  "background_color": "#171717",
+  "categories": ["social", "dating"]
 }

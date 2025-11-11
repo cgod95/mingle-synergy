@@ -94,6 +94,7 @@ const BottomNav: React.FC = () => {
       animate={{ y: 0 }}
       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
       className="fixed bottom-0 left-0 right-0 bg-neutral-800/95 backdrop-blur-md border-t border-neutral-700 shadow-lg px-4 py-3 z-50"
+      style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map((item) => {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/context/AuthContext';
-import { Zap, MapPin, Users, Sparkles, QrCode } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import MingleMLogo from '@/components/ui/MingleMLogo';
 import { getVenues } from '@/lib/api';
 import { Card } from '@/components/ui/card';
@@ -26,10 +26,10 @@ export default function LandingPage() {
     const loadVenues = async () => {
       try {
         const loadedVenues = await getVenues();
-        // Show more venues for dynamic grid (6-8 venues)
+        // Show more venues for dynamic grid (8-10 venues to fill the page)
         const sortedVenues = loadedVenues
           .sort((a: Venue, b: Venue) => (b.checkInCount || 0) - (a.checkInCount || 0))
-          .slice(0, 8);
+          .slice(0, 10);
         setVenues(sortedVenues);
       } catch (error) {
         // Failed to load venues - non-critical
@@ -56,20 +56,16 @@ export default function LandingPage() {
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900" />
         
-        {/* Background Cards Grid - Mix of venues and people - exclude center area */}
+        {/* Background Cards Grid - Mix of venues and people - images visible all around */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-80">
-          {/* Exclusion zone for text area - prevents images in center */}
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="bg-neutral-900 w-full max-w-5xl h-[80vh] rounded-3xl" />
-          </div>
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-8 h-full relative z-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-8 h-full">
             {/* Venue cards */}
-            {venues.slice(0, 6).map((venue, index) => (
+            {venues.slice(0, 10).map((venue, index) => (
               <motion.div
                 key={`venue-${venue.id}`}
                 initial={{ opacity: 0, scale: 0.8, rotate: getRandomRotation(index) }}
                 animate={{ 
-                  opacity: 0.3,
+                  opacity: 0.45,
                   scale: 1,
                   rotate: getRandomRotation(index),
                   y: [0, -10, 0]
@@ -78,7 +74,7 @@ export default function LandingPage() {
                   duration: 0.6,
                   delay: index * 0.1,
                   y: {
-                    duration: 4,
+                    duration: 4 + (index % 3) * 0.5,
                     repeat: Infinity,
                     repeatType: "reverse",
                     delay: index * 0.2
@@ -108,12 +104,12 @@ export default function LandingPage() {
               </motion.div>
             ))}
             {/* People cards */}
-            {DEMO_PEOPLE.slice(0, 6).map((person, index) => (
+            {DEMO_PEOPLE.slice(0, 10).map((person, index) => (
               <motion.div
                 key={`person-${person.id}`}
                 initial={{ opacity: 0, scale: 0.8, rotate: getRandomRotation(index + 6) }}
                 animate={{ 
-                  opacity: 0.3,
+                  opacity: 0.45,
                   scale: 1,
                   rotate: getRandomRotation(index + 6),
                   y: [0, -10, 0]
@@ -122,7 +118,7 @@ export default function LandingPage() {
                   duration: 0.6,
                   delay: (index + 6) * 0.1,
                   y: {
-                    duration: 4,
+                    duration: 4.5 + (index % 3) * 0.5,
                     repeat: Infinity,
                     repeatType: "reverse",
                     delay: (index + 6) * 0.2
@@ -145,18 +141,52 @@ export default function LandingPage() {
                 </Card>
               </motion.div>
             ))}
+            {/* Additional 2 images for bottom right - repeating from existing */}
+            {DEMO_PEOPLE.slice(0, 2).map((person, index) => (
+              <motion.div
+                key={`person-extra-${index}`}
+                initial={{ opacity: 0, scale: 0.8, rotate: getRandomRotation(index + 16) }}
+                animate={{ 
+                  opacity: 0.45,
+                  scale: 1,
+                  rotate: getRandomRotation(index + 16),
+                  y: [0, -10, 0]
+                }}
+                transition={{ 
+                  duration: 0.6,
+                  delay: (index + 16) * 0.1,
+                  y: {
+                    duration: 4.5 + (index % 3) * 0.5,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: (index + 16) * 0.2
+                  }
+                }}
+                className="relative"
+                style={{ 
+                  transform: `rotate(${getRandomRotation(index + 16)}deg)`,
+                }}
+              >
+                <Card className="overflow-hidden bg-neutral-800 shadow-xl border-2 border-neutral-700">
+                  <div className="relative h-48 w-full overflow-hidden bg-neutral-800">
+                    <img
+                      src={person.photo}
+                      alt={person.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
 
-        {/* Hero Content - Centered with background block */}
+        {/* Hero Content - Centered with tight background block */}
         <div className="relative z-20 min-h-screen flex flex-col items-center justify-center text-center px-4 py-12">
-          {/* Background block for text readability - larger and more opaque */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-neutral-900/95 backdrop-blur-2xl rounded-3xl p-12 md:p-16 lg:p-20 max-w-5xl w-full mx-auto border-2 border-neutral-800 shadow-2xl" />
-          </div>
-          
-          {/* Content */}
-          <div className="relative z-30 max-w-5xl mx-auto w-full">
+          {/* Tight background block - minimal padding, images visible around */}
+          <div className="relative z-30 inline-block">
+            <div className="bg-neutral-900/95 backdrop-blur-2xl rounded-2xl px-8 py-12 md:px-12 md:py-16 border-2 border-neutral-800 shadow-2xl">
             {/* Logo and Large Hero Text */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -168,15 +198,12 @@ export default function LandingPage() {
               <div className="mb-6 flex justify-center">
                 <MingleMLogo size="lg" showText={false} className="text-white" />
               </div>
-              <h1 className="text-7xl md:text-8xl lg:text-9xl font-bold text-white mb-6">
+              <h1 className="text-5xl md:text-7xl lg:text-9xl font-bold text-white mb-6">
                 Mingle
               </h1>
               <div className="space-y-3">
-                <p className="text-xl md:text-2xl text-neutral-200 max-w-2xl mx-auto font-medium">
-                  Meet people at the places you already go
-                </p>
                 <p className="text-lg text-neutral-300 max-w-xl mx-auto">
-                  No swiping. No noise. Just real connections at real places.
+                  No more swiping. No more noise. Just meet people.
                 </p>
               </div>
             </motion.div>
@@ -190,43 +217,23 @@ export default function LandingPage() {
             >
               <Button
                 onClick={handleDemoMode}
-                className="bg-neutral-800/80 border-2 border-indigo-600/50 hover:border-indigo-500 hover:bg-neutral-800 text-white text-lg px-12 py-6 rounded-full shadow-lg font-semibold transform hover:scale-105 transition-all mb-4 backdrop-blur-sm"
+                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all mb-8 backdrop-blur-sm"
                 size="lg"
               >
-                <Sparkles className="w-6 h-6 mr-2 text-indigo-400" />
                 Try Demo Mode
               </Button>
-              <p className="text-sm text-neutral-300 mb-6">
-                Experience the full app instantly - no signup required
-              </p>
-              
-              {/* Features inline */}
-              <div className="flex flex-wrap justify-center gap-6 text-sm text-neutral-300">
-                <div className="flex items-center gap-2">
-                  <QrCode className="w-4 h-4 text-indigo-400" />
-                  <span>Scan & Check In</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-indigo-400" />
-                  <span>See Who's Here</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-indigo-400" />
-                  <span>Meet Tonight</span>
-                </div>
-              </div>
             </motion.div>
 
-            {/* Secondary Actions */}
+            {/* Secondary Actions - Centered */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 w-full max-w-md mx-auto"
+              className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
             >
               <Button 
                 asChild 
-                className="flex-1 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 font-semibold"
+                className="flex-1 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 font-semibold text-base"
               >
                 <Link to="/signup">
                   Create Account
@@ -235,13 +242,14 @@ export default function LandingPage() {
               <Button 
                 asChild 
                 variant="outline" 
-                className="flex-1 border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm bg-white/5"
+                className="flex-1 border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
               >
                 <Link to="/signin">
                   Sign In
                 </Link>
               </Button>
             </motion.div>
+            </div>
           </div>
         </div>
       </div>
