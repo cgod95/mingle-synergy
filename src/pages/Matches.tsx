@@ -175,7 +175,7 @@ export default function Matches() {
             <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-center gap-2">
               <Clock className="w-4 h-4 text-orange-600" />
               <span className="text-sm font-medium text-orange-700">
-                Earliest match expires in {countdown}
+                Match active for {countdown} - make plans to meet up tonight
               </span>
             </div>
           </motion.div>
@@ -265,7 +265,7 @@ export default function Matches() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-500 mt-0.5">•</span>
-                        <span><strong>Matches expire in 24 hours</strong> - reconnect by checking in again</span>
+                        <span><strong>Match active while you're both checked in</strong> - reconnect by checking in again</span>
                       </li>
                     </ul>
                   </div>
@@ -298,7 +298,7 @@ export default function Matches() {
             )}
 
             <p className="text-sm text-neutral-500">
-              💡 Matches last 24 hours. You can send 5 messages per match. Focus on meeting up in person!
+              💡 Match active while you're both checked in. Chat to make plans to meet up tonight!
             </p>
           </motion.div>
 

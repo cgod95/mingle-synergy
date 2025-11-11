@@ -492,8 +492,8 @@ export default function ChatRoom() {
                 'text-neutral-600'
               }`}>
                 {remainingMessages === 0 
-                  ? "Message limit reached" 
-                  : `${remainingMessages} message${remainingMessages !== 1 ? 's' : ''} remaining`}
+                  ? "Make plans to meet up" 
+                  : `Chat to coordinate meeting`}
               </span>
               {remainingMessages === 0 && (
                 <button

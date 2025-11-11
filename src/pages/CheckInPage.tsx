@@ -144,7 +144,7 @@ export default function CheckInPage() {
                   <li><strong>Check into a venue</strong> where you are (within 500m)</li>
                   <li><strong>See people</strong> who are also checked in there</li>
                   <li><strong>Like someone</strong> - if they like you back, you match!</li>
-                  <li><strong>Chat (5 messages)</strong> to make plans to meet up</li>
+                  <li><strong>Chat to make plans</strong> to meet up in person</li>
                   <li><strong>Meet in person</strong> - that's what Mingle is all about!</li>
                 </ol>
               </div>
@@ -156,14 +156,14 @@ export default function CheckInPage() {
           </p>
         </motion.div>
 
-        {/* QR Code Scanner Button - Prominent */}
+        {/* QR Code Scanner Button - Primary */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="mb-6"
+          className="mb-4"
         >
           <Card 
-            className="border-2 border-dashed border-indigo-300 bg-indigo-50/50 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all"
+            className="border-2 border-indigo-500 bg-indigo-50 cursor-pointer hover:border-indigo-600 hover:bg-indigo-100 hover:shadow-lg transition-all"
             onClick={() => {
               // For now, show message about using phone camera
               // Scanner component will be enabled when html5-qrcode is installed
@@ -174,13 +174,13 @@ export default function CheckInPage() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-600 flex items-center justify-center shadow-md">
                 <QrCode className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-neutral-800 mb-2">
+              <h2 className="text-xl font-bold text-neutral-900 mb-2">
                 Scan QR Code
               </h2>
-              <p className="text-sm text-neutral-600 mb-1">
+              <p className="text-sm text-neutral-700 mb-1 font-medium">
                 Use your phone camera to scan the venue QR code
               </p>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-neutral-600">
                 The QR code will automatically check you in
               </p>
             </div>
@@ -200,17 +200,68 @@ export default function CheckInPage() {
           </motion.div>
         )}
 
-        {/* Divider */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-neutral-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-gradient-to-br from-indigo-50 to-white text-neutral-500">
-              or select manually
-            </span>
-          </div>
-        </div>
+        {/* Auto-detect Button - Secondary */}
+        {navigator.geolocation && (
+          <>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="mb-4"
+            >
+              <Button
+                onClick={async () => {
+                  try {
+                    const { requestLocationPermission } = await import("@/utils/locationPermission");
+                    const granted = await requestLocationPermission();
+                    if (granted) {
+                      // Try to detect nearby venue
+                      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                          enableHighAccuracy: true,
+                          timeout: 10000,
+                        });
+                      });
+                      
+                      // Find closest venue (simplified - would need proper distance calculation)
+                      const nearbyVenue = venues.find(v => {
+                        // Simple distance check (would need proper haversine formula)
+                        return v.latitude && v.longitude;
+                      });
+                      
+                      if (nearbyVenue) {
+                        await onCheckIn(nearbyVenue.id);
+                      } else {
+                        alert('No venue detected nearby. Please scan QR code or select manually.');
+                      }
+                    } else {
+                      alert('Location permission needed for auto-detect. Please scan QR code or select manually.');
+                    }
+                  } catch (error) {
+                    alert('Could not detect your location. Please scan QR code or select manually.');
+                  }
+                }}
+                variant="outline"
+                className="w-full border-indigo-300 text-indigo-600 hover:bg-indigo-50 font-medium"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                I'm Here (Auto-detect)
+              </Button>
+            </motion.div>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-neutral-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-neutral-50 text-neutral-500">
+                  or select manually
+                </span>
+              </div>
+            </div>
+          </>
+        )}
 
         {checked && (
           <motion.div

@@ -288,7 +288,7 @@ export default function VenueDetails() {
                   <h3 className="font-semibold text-neutral-800 mb-1">How Mingle Works</h3>
                   <p className="text-sm text-neutral-600 leading-relaxed">
                     <strong>Like someone</strong> to show interest. If they like you back, you'll <strong>match</strong> and can start chatting. 
-                    You have <strong>5 messages</strong> to make plans to meet up in person. Matches expire after <strong>24 hours</strong> - 
+                    <strong>Chat to make plans</strong> to meet up in person. Match active while you're both checked in - 
                     reconnect by checking in again!
                   </p>
                 </div>

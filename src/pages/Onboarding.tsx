@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { notificationService } from '../services/notificationService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Bell, Check, ArrowLeft } from 'lucide-react';
+import { MapPin, Bell, ArrowLeft } from 'lucide-react';
 import { useOnboarding } from '@/context/OnboardingContext';
 import Layout from '@/components/Layout';
 import config from '@/config';
@@ -28,7 +28,7 @@ const Onboarding = () => {
     const hasStarted = localStorage.getItem('onboarding_started');
     if (!hasStarted) {
       analytics.track('onboarding_started', {
-        step: 'philosophy',
+        step: 'location',
         timestamp: Date.now(),
       });
       localStorage.setItem('onboarding_started', 'true');
@@ -202,26 +202,16 @@ const Onboarding = () => {
 
   const steps = [
     {
-      title: 'Our Philosophy',
-      description: 'Meet real people at real venues — not just another dating app.',
-      icon: <Check className="w-12 h-12 text-indigo-600" />,
-      action: () => {
-        localStorage.setItem('onboarding_last_step', 'philosophy');
-        setStep(step + 1);
-      },
-      canSkip: false,
-    },
-    {
       title: 'Enable Location',
-      description: 'We use your location to show you people nearby in real venues.',
-      icon: <MapPin className="w-12 h-12 text-purple-600" />,
+      description: 'We use your location to show you venues nearby and auto-detect where you are.',
+      icon: <MapPin className="w-12 h-12 text-indigo-600" />,
       action: requestLocationWithTimeout,
       canSkip: false,
     },
     {
       title: 'Enable Notifications',
       description: 'Get notified when someone likes you or when you match.',
-      icon: <Bell className="w-12 h-12 text-pink-600" />,
+      icon: <Bell className="w-12 h-12 text-indigo-600" />,
       action: handleNotificationPermission,
       canSkip: true,
     },

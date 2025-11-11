@@ -180,7 +180,7 @@ const Chat: React.FC = () => {
                   <input
                     type="text"
                     className="flex-1 rounded-2xl border border-neutral-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
-                    placeholder={`Type your message... (${messageLimit - myMessages.length} left)`}
+                    placeholder="Type your message... (Chat to coordinate meeting)"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}

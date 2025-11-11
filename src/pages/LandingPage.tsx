@@ -1,17 +1,44 @@
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/context/AuthContext';
-import { Sparkles, Zap } from 'lucide-react';
+import { Sparkles, Zap, MapPin, Users } from 'lucide-react';
+import { getVenues } from '@/lib/api';
+import { Card } from '@/components/ui/card';
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { createDemoUser } = useAuth();
+  const [venues, setVenues] = useState<any[]>([]);
+  const [loadingVenues, setLoadingVenues] = useState(true);
+
+  useEffect(() => {
+    const loadVenues = async () => {
+      try {
+        const loadedVenues = await getVenues();
+        // Show top 3-4 venues with highest check-in counts
+        const sortedVenues = loadedVenues
+          .sort((a, b) => (b.checkInCount || 0) - (a.checkInCount || 0))
+          .slice(0, 4);
+        setVenues(sortedVenues);
+      } catch (error) {
+        // Failed to load venues - non-critical
+      } finally {
+        setLoadingVenues(false);
+      }
+    };
+    loadVenues();
+  }, []);
 
   const handleDemoMode = () => {
     createDemoUser();
     navigate('/demo-welcome');
+  };
+
+  const handleCheckIn = () => {
+    navigate('/checkin');
   };
 
   return (
@@ -32,15 +59,69 @@ export default function LandingPage() {
           <Sparkles className="w-10 h-10 text-white" />
         </motion.div>
         <h1 className="text-5xl font-bold leading-tight text-neutral-900">
-          Welcome to Mingle
+          Meet people at the places you already go
         </h1>
         <p className="text-lg text-neutral-800 max-w-xl mb-2 font-medium">
-          The anti-dating app dating app. No swiping. No noise. Just meaningful encounters in real places.
+          No swiping. No noise. Just real connections at real places.
         </p>
+        {/* Venue Preview Section - Show nearby venues with live counts */}
+        {venues.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="w-full max-w-2xl"
+          >
+            <h2 className="text-xl font-semibold text-neutral-900 mb-4 text-center">
+              See who's at venues near you
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              {venues.map((venue, index) => (
+                <motion.div
+                  key={venue.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + index * 0.1 }}
+                >
+                  <Card className="border border-neutral-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer bg-white"
+                    onClick={handleCheckIn}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-neutral-900 text-base">{venue.name}</h3>
+                        {venue.checkInCount > 0 && (
+                          <div className="flex items-center gap-1 text-sm text-indigo-600">
+                            <Users className="w-4 h-4" />
+                            <span className="font-medium">{venue.checkInCount}</span>
+                          </div>
+                        )}
+                      </div>
+                      {venue.address && (
+                        <div className="flex items-center gap-1 text-xs text-neutral-500">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{venue.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <Button
+              onClick={handleCheckIn}
+              variant="outline"
+              className="w-full border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+            >
+              See all venues →
+            </Button>
+          </motion.div>
+        )}
+
+        {/* How Mingle Works - Below venues */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: venues.length > 0 ? 0.6 : 0.3 }}
           className="bg-white rounded-xl border border-neutral-200 p-5 max-w-xl shadow-md"
         >
           <div className="flex items-start gap-3">
@@ -50,11 +131,11 @@ export default function LandingPage() {
             <div className="flex-1">
               <h3 className="font-semibold text-neutral-800 mb-2">How Mingle Works</h3>
               <ol className="text-sm text-neutral-700 space-y-1.5 list-decimal list-inside">
-                <li><strong>Check into venues</strong> where you are (within 500m)</li>
+                <li><strong>Check into a venue</strong> where you are (scan QR code or auto-detect)</li>
                 <li><strong>See people</strong> who are also checked in there</li>
                 <li><strong>Like someone</strong> - if they like you back, you match!</li>
-                <li><strong>Chat (5 messages)</strong> to make plans to meet up</li>
-                <li><strong>Meet in person</strong> - that's what Mingle is all about!</li>
+                <li><strong>Chat to make plans</strong> to meet up in person</li>
+                <li><strong>Meet tonight</strong> - that's what Mingle is all about!</li>
               </ol>
             </div>
           </div>
@@ -132,8 +213,8 @@ export default function LandingPage() {
 
       {/* Footer Philosophy */}
       <footer className="text-center text-sm text-neutral-600 p-6 max-w-xl mx-auto">
-        <p className="font-medium">Built with a different philosophy.</p>
-        <p className="text-neutral-500 mt-1">Mingle isn't about chasing likes — it's about being present.</p>
+        <p className="font-medium">Built differently</p>
+        <p className="text-neutral-500 mt-1">Where proximity beats algorithms. Where places unlock people. Where real time beats whenever.</p>
       </footer>
     </Layout>
   );
