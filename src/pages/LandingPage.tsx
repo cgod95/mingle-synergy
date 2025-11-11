@@ -77,51 +77,56 @@ export default function LandingPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
             className="w-full max-w-2xl"
           >
-            <h2 className="text-xl font-semibold text-neutral-900 mb-4 text-center">
-              See who's at venues near you
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              {venues.map((venue, index) => (
-                <motion.div
-                  key={venue.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                >
-                  <Card className="border border-neutral-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer bg-white"
-                    onClick={handleCheckIn}
+            <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-neutral-900 mb-2 text-center">
+                See who's at venues near you
+              </h2>
+              <p className="text-sm text-neutral-600 text-center mb-4">
+                Check in to start meeting people
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                {venues.map((venue, index) => (
+                  <motion.div
+                    key={venue.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
                   >
-                    <div className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-neutral-900 text-base">{venue.name}</h3>
-                        {venue.checkInCount > 0 && (
-                          <div className="flex items-center gap-1 text-sm text-indigo-600">
-                            <Users className="w-4 h-4" />
-                            <span className="font-medium">{venue.checkInCount}</span>
+                    <Card className="border border-neutral-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer bg-white"
+                      onClick={handleCheckIn}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-neutral-900 text-base">{venue.name}</h3>
+                          {venue.checkInCount > 0 && (
+                            <div className="flex items-center gap-1 text-sm text-indigo-600">
+                              <Users className="w-4 h-4" />
+                              <span className="font-medium">{venue.checkInCount}</span>
+                            </div>
+                          )}
+                        </div>
+                        {venue.address && (
+                          <div className="flex items-center gap-1 text-xs text-neutral-500">
+                            <MapPin className="w-3 h-3" />
+                            <span className="truncate">{venue.address}</span>
                           </div>
                         )}
                       </div>
-                      {venue.address && (
-                        <div className="flex items-center gap-1 text-xs text-neutral-500">
-                          <MapPin className="w-3 h-3" />
-                          <span className="truncate">{venue.address}</span>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+              <Button
+                onClick={handleCheckIn}
+                variant="outline"
+                className="w-full border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+              >
+                See all venues →
+              </Button>
             </div>
-            <Button
-              onClick={handleCheckIn}
-              variant="outline"
-              className="w-full border-indigo-300 text-indigo-600 hover:bg-indigo-50"
-            >
-              See all venues →
-            </Button>
           </motion.div>
         )}
 

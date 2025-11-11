@@ -212,11 +212,7 @@ export default function Matches() {
                             {match.avatarUrl ? (
                               <AvatarImage 
                                 src={match.avatarUrl} 
-                                alt={match.displayName || "Match"} 
-                                className="object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = "";
-                                }}
+                                alt={match.displayName || "Match"}
                               />
                             ) : null}
                             <AvatarFallback className="bg-indigo-600 text-white font-bold text-2xl">
