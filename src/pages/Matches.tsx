@@ -408,13 +408,14 @@ export default function Matches() {
                               </div>
                             </div>
                             
-                            {/* Venue Info */}
+                            {/* Venue Info - PROMINENT */}
                             {match.venueName && (
-                              <div className="flex items-center gap-1.5 mb-2">
-                                <MapPin className="w-3.5 h-3.5 text-indigo-500" />
-                                <span className="text-xs font-medium text-indigo-600">
-                                  Met at {match.venueName}
+                              <div className="flex items-center gap-2 mb-2.5 px-2.5 py-1.5 bg-indigo-50 rounded-lg border border-indigo-200">
+                                <MapPin className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                                <span className="text-sm font-semibold text-indigo-700">
+                                  {match.venueName}
                                 </span>
+                                <span className="text-xs text-indigo-500">• Met here</span>
                               </div>
                             )}
                             

@@ -19,7 +19,7 @@ const Onboarding = () => {
   const [notificationStatus, setNotificationStatus] = useState<'pending' | 'granted' | 'denied' | 'unsupported'>('pending');
   const [startTime] = useState(Date.now());
   const navigate = useNavigate();
-  const { setOnboardingStepComplete, onboardingProgress } = useOnboarding();
+  const { setOnboardingStepComplete } = useOnboarding();
 
   const devBypass = config.DEMO_MODE || config.USE_MOCK;
 
@@ -99,9 +99,18 @@ const Onboarding = () => {
       (error) => {
         setLocationRequesting(false);
         if (error.code === 1) {
+          // Permission denied - allow user to continue with manual venue selection
           setLocationDenied(true);
+          localStorage.setItem('locationEnabled', 'denied');
+          localStorage.setItem('locationPermissionGranted', 'false');
+          // Allow user to continue - they can select venues manually
+          setTimeout(() => {
+            setStep(2); // Continue to notifications step
+          }, 1500);
         } else {
+          // Other error (timeout, etc.) - allow retry or continue
           setLocationError(true);
+          localStorage.setItem('locationEnabled', 'error');
         }
       },
       {
@@ -222,7 +231,7 @@ const Onboarding = () => {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-white flex items-center justify-center p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -250,6 +259,28 @@ const Onboarding = () => {
                 <p className="text-neutral-700">{currentStep.description}</p>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
+                {step === 1 && locationDenied && (
+                  <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="text-yellow-600 mb-2">⚠ Location access denied</div>
+                    <p className="text-sm text-neutral-600">You can still use Mingle by selecting venues manually.</p>
+                  </div>
+                )}
+                
+                {step === 1 && locationError && !locationDenied && (
+                  <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="text-red-600 mb-2">⚠ Location error</div>
+                    <p className="text-sm text-neutral-600">Unable to get your location. You can select venues manually.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={requestLocationWithTimeout}
+                      className="mt-2"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                )}
+                
                 {step === 2 && getNotificationStepContent()}
 
                 {step < steps.length - 1 && (
@@ -258,7 +289,22 @@ const Onboarding = () => {
                     className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
                     disabled={step === 1 && locationRequesting}
                   >
-                    {step === 2 && notificationStatus === 'granted' ? 'Continue' : 'Continue'}
+                    {step === 1 && (locationDenied || locationError) ? 'Continue Anyway' : 
+                     step === 2 && notificationStatus === 'granted' ? 'Continue' : 'Continue'}
+                  </Button>
+                )}
+                
+                {step === 1 && (locationDenied || locationError) && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setLocationDenied(false);
+                      setLocationError(false);
+                      setStep(2);
+                    }}
+                    className="w-full border-2 border-indigo-200 hover:bg-indigo-50"
+                  >
+                    Continue Without Location
                   </Button>
                 )}
 

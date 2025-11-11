@@ -24,7 +24,7 @@ import services from '..';
 import { FirestoreMatch } from '@/types/match';
 import { firestore } from '@/firebase';
 import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
-import { logError } from '@/utils/errorHandler';
+import { logError, ErrorSeverity } from '@/utils/errorHandler';
 import { FEATURE_FLAGS } from '@/lib/flags';
 
 // Use single source of truth for match expiry (24 hours)
@@ -128,7 +128,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         const { trackMatchCreated } = await import('../specAnalytics');
         trackMatchCreated(newDocRef.id, user1Id, user2Id, venueId);
       } catch (error) {
-        logError(error as Error, { source: 'matchService', action: 'trackMatchCreated', matchId: newDocRef.id }, 'warning');
+        logError(error as Error, { source: 'matchService', action: 'trackMatchCreated', matchId: newDocRef.id }, ErrorSeverity.WARNING);
       }
       
       return newDocRef.id;
@@ -220,7 +220,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
           const { trackReconnectRequested } = await import('../specAnalytics');
           trackReconnectRequested(matchId, userId);
         } catch (error) {
-          logError(error as Error, { source: 'matchService', action: 'trackReconnectRequested', matchId, userId }, 'warning');
+          logError(error as Error, { source: 'matchService', action: 'trackReconnectRequested', matchId, userId }, ErrorSeverity.WARNING);
         }
         
         // Increment rematch count for both users
@@ -234,7 +234,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
           const { trackReconnectAccepted } = await import('../specAnalytics');
           trackReconnectAccepted(newMatchId, user1Id, user2Id);
         } catch (error) {
-          logError(error as Error, { source: 'matchService', action: 'trackReconnectAccepted', newMatchId, user1Id, user2Id }, 'warning');
+          logError(error as Error, { source: 'matchService', action: 'trackReconnectAccepted', newMatchId, user1Id, user2Id }, ErrorSeverity.WARNING);
         }
         
         // Mark old match as reconnected
@@ -248,7 +248,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
           const { trackReconnectRequested } = await import('../specAnalytics');
           trackReconnectRequested(matchId, userId);
         } catch (error) {
-          logError(error as Error, { source: 'matchService', action: 'trackReconnectRequested', matchId, userId }, 'warning');
+          logError(error as Error, { source: 'matchService', action: 'trackReconnectRequested', matchId, userId }, ErrorSeverity.WARNING);
         }
       }
       
@@ -708,11 +708,11 @@ export const getAllMatchesForUser = async (userId: string) => {
   const matches = [];
 
   for (const match of allMatches) {
-    const data = match.data();
-    matches.push({ id: match.id, ...data });
+    const data = match.data() as FirestoreMatch;
+    matches.push({ ...data, id: match.id }); // Ensure id from document takes precedence
   }
 
-  return matches.sort((a, b) => b.timestamp - a.timestamp);
+  return matches.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 };
 
 /**
