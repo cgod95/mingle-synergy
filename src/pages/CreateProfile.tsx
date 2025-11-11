@@ -166,9 +166,9 @@ export default function CreateProfile() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-xl">
-          <CardHeader className="text-center space-y-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-2 border-neutral-200 bg-white shadow-xl">
+          <CardHeader className="text-center space-y-2 border-b border-neutral-200">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">
@@ -179,7 +179,7 @@ export default function CreateProfile() {
                 <div className="w-8 h-8 rounded-full bg-indigo-200 text-indigo-600 flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+            <CardTitle className="text-2xl text-neutral-900 font-bold">
               Create Profile
             </CardTitle>
             <p className="text-sm text-neutral-700">Step 1 of 3: Tell us about you</p>
@@ -286,14 +286,14 @@ export default function CreateProfile() {
               <Button
                 variant="outline"
                 onClick={() => navigate('/onboarding')}
-                className="flex-1 border-2 border-indigo-200 hover:bg-indigo-50"
+                className="flex-1 border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
               <Button
                 onClick={handleSubmit}
-                className="flex-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
                 disabled={!name.trim() || !bio.trim() || bio.trim().length < 10 || saving}
               >
                 {saving ? (

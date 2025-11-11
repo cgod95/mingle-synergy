@@ -163,18 +163,18 @@ export default function Matches() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
-        {/* Countdown Timer Banner - Fixed at top */}
+      <div className="min-h-screen bg-neutral-50 pb-20">
+        {/* Countdown Timer Banner - More subtle */}
         {earliestExpiry && countdown && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white shadow-lg"
+            className="sticky top-0 z-10 bg-orange-50 border-b border-orange-200"
           >
-            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-center gap-2">
-              <Clock className="w-5 h-5 animate-pulse" />
-              <span className="font-bold text-lg">
-                Your earliest match expires in {countdown}
+            <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-orange-600" />
+              <span className="text-sm font-medium text-orange-700">
+                Earliest match expires in {countdown}
               </span>
             </div>
           </motion.div>
@@ -187,16 +187,16 @@ export default function Matches() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                <h1 className="text-3xl font-bold text-neutral-900 mb-1">
                   Matches
                 </h1>
-                <p className="text-lg text-neutral-600">Your conversations</p>
+                <p className="text-base text-neutral-600">Your conversations</p>
               </div>
               {totalMatches > 0 && (
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-3 py-1">
+                  <Badge className="bg-indigo-600 text-white px-3 py-1">
                     <Sparkles className="w-3 h-3 mr-1" />
                     {activeMatches} active
                   </Badge>
@@ -210,7 +210,7 @@ export default function Matches() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl p-4 text-white shadow-lg"
+                  className="bg-indigo-600 rounded-xl p-4 text-white shadow-md"
                 >
                   <div className="text-2xl font-bold">{totalMatches}</div>
                   <div className="text-sm opacity-90">Total</div>
@@ -219,19 +219,19 @@ export default function Matches() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl p-4 text-white shadow-lg"
+                  className="bg-white border border-neutral-200 rounded-xl p-4 text-neutral-900 shadow-sm"
                 >
                   <div className="text-2xl font-bold">{activeMatches}</div>
-                  <div className="text-sm opacity-90">Active</div>
+                  <div className="text-sm text-neutral-600">Active</div>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-gradient-to-br from-neutral-400 to-neutral-500 rounded-xl p-4 text-white shadow-lg"
+                  className="bg-white border border-neutral-200 rounded-xl p-4 text-neutral-900 shadow-sm"
                 >
                   <div className="text-2xl font-bold">{expiredMatches}</div>
-                  <div className="text-sm opacity-90">Expired</div>
+                  <div className="text-sm text-neutral-600">Expired</div>
                 </motion.div>
               </div>
             )}
@@ -241,10 +241,10 @@ export default function Matches() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-5"
+                className="mb-6 bg-indigo-50 rounded-xl border border-indigo-200 p-5"
               >
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-indigo-600 flex-shrink-0">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
@@ -285,8 +285,8 @@ export default function Matches() {
                       size="sm"
                       className={
                         filter === filterType
-                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0'
-                          : ''
+                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-0'
+                          : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50'
                       }
                     >
                       {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
@@ -314,11 +314,11 @@ export default function Matches() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center shadow-lg"
+                  className="w-24 h-24 mx-auto mb-6 rounded-full bg-indigo-100 flex items-center justify-center shadow-md"
                 >
-                  <Heart className="w-12 h-12 text-indigo-400" />
+                  <Heart className="w-12 h-12 text-indigo-600" />
                 </motion.div>
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                <h3 className="text-2xl font-bold text-neutral-900 mb-2">
                   No matches yet
                 </h3>
                 <p className="text-neutral-600 mb-1">Check into a venue to start meeting people!</p>
@@ -327,7 +327,7 @@ export default function Matches() {
                 </p>
                 <Button
                   onClick={() => navigate('/checkin')}
-                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-lg"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
                   size="lg"
                 >
                   Find Venues
@@ -353,18 +353,18 @@ export default function Matches() {
                       whileTap={matchExpired ? {} : { scale: 0.98 }}
                     >
                       <Card
-                        className={`cursor-pointer transition-all border-2 overflow-hidden ${
+                        className={`cursor-pointer transition-all border overflow-hidden ${
                           matchExpired
-                            ? "opacity-60 border-neutral-200 bg-gradient-to-br from-neutral-50 to-neutral-100"
+                            ? "opacity-60 border-neutral-200 bg-white"
                             : isExpiringSoon
-                            ? "border-orange-300 bg-gradient-to-br from-orange-50/80 to-red-50/80 hover:shadow-xl hover:border-orange-400"
-                            : "border-indigo-200 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 hover:shadow-xl hover:border-indigo-400"
+                            ? "border-orange-300 bg-orange-50/50 hover:shadow-md hover:border-orange-400"
+                            : "border-neutral-200 bg-white hover:shadow-md hover:border-indigo-300"
                         }`}
                         onClick={() => handleMatchClick(match.id)}
                       >
                         <div className="flex items-center gap-4 px-6 py-5">
-                          {/* Avatar with gradient ring */}
-                          <Avatar className="h-20 w-20 flex-shrink-0 ring-4 ring-offset-2 ring-indigo-200/50">
+                          {/* Avatar */}
+                          <Avatar className="h-20 w-20 flex-shrink-0 ring-2 ring-offset-2 ring-indigo-100">
                             {match.avatarUrl ? (
                               <AvatarImage 
                                 src={match.avatarUrl} 
@@ -375,7 +375,7 @@ export default function Matches() {
                                 }}
                               />
                             ) : null}
-                            <AvatarFallback className="bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 text-white font-bold text-2xl">
+                            <AvatarFallback className="bg-indigo-600 text-white font-bold text-2xl">
                               {(match.displayName || "M").charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
@@ -388,7 +388,7 @@ export default function Matches() {
                                   {match.displayName || "Match"}
                                 </h3>
                                 {match.unreadCount && match.unreadCount > 0 && (
-                                  <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2.5 py-0.5 animate-pulse">
+                                  <Badge className="bg-indigo-600 text-white text-xs px-2.5 py-0.5">
                                     {match.unreadCount}
                                   </Badge>
                                 )}
@@ -410,7 +410,7 @@ export default function Matches() {
                             
                             {/* Venue Info - PROMINENT */}
                             {match.venueName && (
-                              <div className="flex items-center gap-2 mb-2.5 px-2.5 py-1.5 bg-indigo-50 rounded-lg border border-indigo-200">
+                              <div className="flex items-center gap-2 mb-2.5 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-200">
                                 <MapPin className="w-4 h-4 text-indigo-600 flex-shrink-0" />
                                 <span className="text-sm font-semibold text-indigo-700">
                                   {match.venueName}
@@ -445,7 +445,7 @@ export default function Matches() {
                               </div>
                             ) : !isExpiringSoon && (
                               <div className="mt-1">
-                                <Badge variant="outline" className="text-xs text-indigo-600 border-indigo-300 bg-indigo-50/50">
+                                <Badge variant="outline" className="text-xs text-neutral-600 border-neutral-300 bg-neutral-50">
                                   <Clock className="w-3 h-3 mr-1" />
                                   {remainingTime} left
                                 </Badge>
@@ -454,7 +454,7 @@ export default function Matches() {
                           </div>
 
                           {/* Arrow */}
-                          <ArrowRight className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                          <ArrowRight className="w-5 h-5 text-neutral-400 flex-shrink-0" />
                         </div>
                       </Card>
                     </motion.div>

@@ -93,7 +93,7 @@ const BottomNav: React.FC = () => {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-white via-indigo-50/30 to-purple-50/30 backdrop-blur-md border-t-2 border-indigo-200 shadow-lg px-4 py-3 z-50"
+      className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200 shadow-lg px-4 py-3 z-50"
     >
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map((item) => {
@@ -145,7 +145,7 @@ const BottomNav: React.FC = () => {
               {active && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full"
+                  className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-indigo-600 rounded-full"
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ duration: 0.2 }}

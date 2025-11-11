@@ -178,9 +178,9 @@ export default function Preferences() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white pb-20">
-        <Card className="w-full max-w-md mx-auto mt-6 border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-xl">
-          <CardHeader className="text-center space-y-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
+      <div className="min-h-screen bg-neutral-50 pb-20">
+        <Card className="w-full max-w-md mx-auto mt-6 border-2 border-neutral-200 bg-white shadow-xl">
+          <CardHeader className="text-center space-y-2 border-b border-neutral-200">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">
@@ -191,7 +191,7 @@ export default function Preferences() {
                 <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+            <CardTitle className="text-2xl text-neutral-900 font-bold">
               Set Your Preferences
             </CardTitle>
             <p className="text-sm text-neutral-700">Step 3 of 3: You can update these anytime in settings.</p>
@@ -253,7 +253,7 @@ export default function Preferences() {
                 variant="outline"
                 onClick={() => navigate('/photo-upload')}
                 disabled={saving}
-                className="flex-1 border-2 border-indigo-200 hover:bg-indigo-50"
+                className="flex-1 border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
@@ -261,7 +261,7 @@ export default function Preferences() {
               <Button
                 onClick={handleSubmit}
                 disabled={saving || minAge > maxAge}
-                className="flex-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
               >
                 {saving ? (
                   <span className="flex items-center justify-center">

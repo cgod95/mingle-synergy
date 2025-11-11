@@ -117,15 +117,15 @@ const Chat: React.FC = () => {
   return (
     <>
       <div className="max-w-xl mx-auto p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Chat</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-neutral-900">Chat</h2>
           {!isExpired && otherUser && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowWeMetModal(true)}
               disabled={weMetStatus === "confirming" || weMetStatus === "confirmed"}
-              className="text-green-600 border-green-300 hover:bg-green-50"
+              className="text-green-700 border-green-300 hover:bg-green-50"
             >
               {weMetStatus === "confirming" 
                 ? "Confirming..." 
@@ -148,21 +148,26 @@ const Chat: React.FC = () => {
               <ExpiredMatchNotice name={otherUser.name || 'your match'} />
             )}
 
-            <div className="bg-white rounded-lg border p-4 h-96 overflow-y-auto mb-4">
+            <div className="bg-white rounded-xl border border-neutral-200 p-4 h-96 overflow-y-auto mb-4">
               {match.messages.length === 0 && (
-                <p className="text-gray-400 italic">No messages yet</p>
-              )}
-              {match.messages.map((msg, i) => (
-                <div key={i} className={`mb-3 ${msg.senderId === currentUser?.uid ? 'text-right' : 'text-left'}`}>
-                  <div className={`inline-block px-4 py-2 rounded-lg ${
-                    msg.senderId === currentUser?.uid 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {msg.text}
-                  </div>
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-neutral-400 italic">No messages yet. Start the conversation!</p>
                 </div>
-              ))}
+              )}
+              {match.messages.map((msg, i) => {
+                const isSent = msg.senderId === currentUser?.uid;
+                return (
+                  <div key={i} className={`flex mb-3 ${isSent ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
+                      isSent 
+                        ? 'bg-indigo-600 text-white rounded-tr-sm' 
+                        : 'bg-neutral-100 text-neutral-900 rounded-tl-sm'
+                    }`}>
+                      <p className="text-sm leading-relaxed">{msg.text}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {isExpired ? (
@@ -170,23 +175,29 @@ const Chat: React.FC = () => {
             ) : !canSend ? (
               <MessageLimitNotice />
             ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 border rounded px-3 py-2"
-                  placeholder={`Type your message... (${messageLimit - myMessages.length} left)`}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  disabled={sending}
-                />
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-                  onClick={handleSend}
-                  disabled={sending || !message.trim()}
-                >
-                  {sending ? 'Sending...' : 'Send'}
-                </button>
+              <div className="bg-white border-t border-neutral-200 p-4">
+                <div className="flex items-end gap-2">
+                  <input
+                    type="text"
+                    className="flex-1 rounded-2xl border border-neutral-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
+                    placeholder={`Type your message... (${messageLimit - myMessages.length} left)`}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    disabled={sending}
+                  />
+                  <Button
+                    onClick={handleSend}
+                    disabled={sending || !message.trim()}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-10 h-10 p-0 flex-shrink-0"
+                  >
+                    {sending ? (
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
           </>

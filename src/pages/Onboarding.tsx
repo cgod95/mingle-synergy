@@ -231,7 +231,7 @@ const Onboarding = () => {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -241,19 +241,19 @@ const Onboarding = () => {
             transition={{ duration: 0.3 }}
             className="w-full max-w-md"
           >
-            <Card className="w-full border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-xl">
-              <CardHeader className="text-center space-y-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
+            <Card className="w-full border-2 border-neutral-200 bg-white shadow-xl">
+              <CardHeader className="text-center space-y-4 border-b border-neutral-200">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                   className="flex justify-center"
                 >
-                  <div className="p-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100">
+                  <div className="p-4 rounded-full bg-indigo-100">
                     {currentStep.icon}
                   </div>
                 </motion.div>
-                <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+                <CardTitle className="text-2xl text-neutral-900 font-bold">
                   {currentStep.title}
                 </CardTitle>
                 <p className="text-neutral-700">{currentStep.description}</p>
@@ -286,7 +286,7 @@ const Onboarding = () => {
                 {step < steps.length - 1 && (
                   <Button
                     onClick={currentStep.action}
-                    className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
                     disabled={step === 1 && locationRequesting}
                   >
                     {step === 1 && (locationDenied || locationError) ? 'Continue Anyway' : 
@@ -302,7 +302,7 @@ const Onboarding = () => {
                       setLocationError(false);
                       setStep(2);
                     }}
-                    className="w-full border-2 border-indigo-200 hover:bg-indigo-50"
+                    className="w-full border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
                   >
                     Continue Without Location
                   </Button>
@@ -311,7 +311,7 @@ const Onboarding = () => {
                 {step === 2 && currentStep.canSkip && (
                   <Button
                     variant="outline"
-                    className="w-full border-2 border-indigo-200 hover:bg-indigo-50"
+                    className="w-full border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
                     onClick={handleSkip}
                   >
                     Skip for now

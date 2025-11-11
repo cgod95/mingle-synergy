@@ -102,7 +102,7 @@ export default function CheckInPage() {
   const preselect = qrVenueId || params.get("id");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+    <div className="min-h-screen bg-neutral-50 pb-20">
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Back Button - only show if not in demo mode or if user came from landing */}
@@ -132,10 +132,10 @@ export default function CheckInPage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mt-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl border-2 border-indigo-200 p-4"
+            className="mt-4 bg-indigo-50 rounded-xl border border-indigo-200 p-4"
           >
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0">
+              <div className="p-2 rounded-lg bg-indigo-600 flex-shrink-0">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
@@ -163,7 +163,7 @@ export default function CheckInPage() {
           className="mb-6"
         >
           <Card 
-            className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-50 to-purple-50 cursor-pointer hover:shadow-xl transition-all"
+            className="border-2 border-dashed border-indigo-300 bg-indigo-50/50 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all"
             onClick={() => {
               // For now, show message about using phone camera
               // Scanner component will be enabled when html5-qrcode is installed
@@ -171,7 +171,7 @@ export default function CheckInPage() {
             }}
           >
             <div className="p-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-600 flex items-center justify-center shadow-md">
                 <QrCode className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-xl font-bold text-neutral-800 mb-2">
@@ -264,13 +264,13 @@ export default function CheckInPage() {
               <Card
                 className={`cursor-pointer transition-all h-full overflow-hidden ${
                   preselect === v.id
-                    ? "border-2 border-indigo-500 shadow-xl bg-gradient-to-br from-indigo-50 to-purple-50"
-                    : "border border-neutral-200 hover:border-indigo-300 hover:shadow-xl bg-white"
+                    ? "border-2 border-indigo-500 shadow-md bg-indigo-50"
+                    : "border border-neutral-200 hover:border-indigo-300 hover:shadow-md bg-white"
                 }`}
                 onClick={() => onCheckIn(v.id)}
               >
                 {/* Venue Image */}
-                <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400">
+                <div className="relative h-48 w-full overflow-hidden bg-neutral-200">
                   {v.image ? (
                     <img
                       src={v.image}
@@ -302,7 +302,7 @@ export default function CheckInPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full text-indigo-600 hover:bg-indigo-50 font-medium"
+                    className="w-full text-indigo-600 hover:bg-indigo-50 font-medium border-0"
                   >
                     Check In →
                   </Button>
