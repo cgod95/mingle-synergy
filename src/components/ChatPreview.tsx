@@ -3,17 +3,8 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, MapPin, Clock } from 'lucide-react';
+import { MapPin, Clock } from 'lucide-react';
 import { Message } from '@/types';
-import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { formatDistanceToNow } from 'date-fns';
-import { mockMessages } from '@/data/mock';
-
-interface MatchData {
-  id: string;
-  displayName: string;
-}
 
 interface ChatPreviewProps {
   matchId: string;
@@ -30,7 +21,6 @@ interface ChatPreviewProps {
 
 const ChatPreview: React.FC<ChatPreviewProps> = ({
   matchId,
-  userId,
   userName,
   userPhoto,
   lastMessage,

@@ -4,7 +4,7 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import { useAuth } from "./AuthContext";
 import config from "../config";
-import onboardingService, { OnboardingStepId, ONBOARDING_STEPS } from "@/services/firebase/onboardingService";
+import onboardingService, { OnboardingStepId } from "@/services/firebase/onboardingService";
 
 export type OnboardingProgress = {
   email: boolean;
@@ -21,13 +21,6 @@ const defaultProgress: OnboardingProgress = {
 };
 
 // Map Firebase step IDs to our simple boolean progress keys
-const STEP_TO_KEY: Record<OnboardingStepId, keyof OnboardingProgress> = {
-  profile: 'profile',
-  photos: 'photo',
-  preferences: 'preferences',
-  complete: 'preferences', // Complete means all steps done
-};
-
 const KEY_TO_STEP: Record<keyof OnboardingProgress, OnboardingStepId | null> = {
   email: null, // Email is handled separately (auth)
   profile: 'profile',
@@ -41,6 +34,7 @@ type OnboardingContextType = {
   getNextOnboardingStep: () => keyof OnboardingProgress | null;
   isOnboardingComplete: boolean;
   resetOnboarding: () => void;
+  isLoading: boolean;
 };
 
 const OnboardingContext = createContext<OnboardingContextType>({
@@ -49,6 +43,7 @@ const OnboardingContext = createContext<OnboardingContextType>({
   getNextOnboardingStep: () => null,
   isOnboardingComplete: false,
   resetOnboarding: () => {},
+  isLoading: true,
 });
 
 export const OnboardingProvider = ({ children }: { children: React.ReactNode }) => {
@@ -60,7 +55,6 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const loadProgress = async () => {
       setIsLoading(true);
-      
       // Demo mode: auto-complete all onboarding steps
       if (config.DEMO_MODE || !currentUser?.uid) {
         // In demo mode, auto-complete all steps for instant access
@@ -77,9 +71,8 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
           localStorage.setItem('profileComplete', 'true');
         } catch (error) {
           console.error('Error saving demo onboarding:', error);
-        } finally {
-          setIsLoading(false);
         }
+        setIsLoading(false);
         return;
       }
 
@@ -178,11 +171,43 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     return null;
   };
 
+  // Enhanced completion check: verify actual data exists (photos + bio)
+  const [hasRequiredData, setHasRequiredData] = React.useState<boolean | null>(null);
+  
+  // Check if user actually has photos and bio
+  React.useEffect(() => {
+    const checkRequiredData = async () => {
+      if (config.DEMO_MODE || !currentUser?.uid) {
+        setHasRequiredData(true); // Demo mode bypasses checks
+        return;
+      }
+
+      try {
+        const { userService } = await import('@/services');
+        const profile = await userService.getUserProfile(currentUser.uid);
+        
+        if (profile) {
+          const hasPhotos = Array.isArray(profile.photos) && profile.photos.length > 0;
+          const hasBio = !!profile.bio && profile.bio.trim().length >= 10;
+          setHasRequiredData(hasPhotos && hasBio);
+        } else {
+          setHasRequiredData(false);
+        }
+      } catch (error) {
+        console.error('Error checking required data:', error);
+        setHasRequiredData(false);
+      }
+    };
+
+    checkRequiredData();
+  }, [currentUser?.uid, onboardingProgress]);
+
   const isOnboardingComplete = Object.values(onboardingProgress).every(Boolean) &&
+    (hasRequiredData === true || config.DEMO_MODE) &&
     (config.DEMO_MODE 
       ? localStorage.getItem('onboardingComplete') === 'true' && 
         localStorage.getItem('profileComplete') === 'true'
-      : true); // In Firebase mode, we trust the progress state
+      : true);
 
   const resetOnboarding = async () => {
     setOnboardingProgress(defaultProgress);
@@ -204,6 +229,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     getNextOnboardingStep,
     isOnboardingComplete,
     resetOnboarding,
+    isLoading,
   };
 
   return (

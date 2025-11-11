@@ -6,6 +6,7 @@ import { saveToStorage, getFromStorage } from '@/utils/localStorageUtils';
 import { isOnline } from '@/utils/networkMonitor';
 import { getAuth } from 'firebase/auth';
 import config from '@/config';
+import { logError, logUserAction } from '@/utils/errorHandler';
 
 // Cache key constants
 const CACHE_KEYS = {
@@ -193,7 +194,6 @@ class FirebaseVenueService implements VenueService {
     try {
       // Check network status first
       if (!isOnline()) {
-        console.log('Offline: returning cached venues');
         const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
         if (cachedVenues.length > 0) {
           return cachedVenues;
@@ -212,7 +212,7 @@ class FirebaseVenueService implements VenueService {
       
       return venues;
     } catch (error) {
-      console.error('Error fetching venues:', error);
+      logError(error as Error, { source: 'venueService', action: 'getVenues' });
       
       // Fallback to cached data if available
       const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
@@ -234,7 +234,6 @@ class FirebaseVenueService implements VenueService {
     try {
       // Check network status first
       if (!isOnline()) {
-        console.log('Offline: checking for cached venue');
         const cachedVenue = getFromStorage<Venue | null>(`${CACHE_KEYS.VENUE_PREFIX}${id}`, null);
         if (cachedVenue) {
           return cachedVenue;
@@ -245,7 +244,6 @@ class FirebaseVenueService implements VenueService {
       const venueDoc = await getDoc(venueDocRef);
       
       if (!venueDoc.exists()) {
-        console.log(`No venue found with id: ${id}`);
         return null;
       }
       
@@ -256,7 +254,7 @@ class FirebaseVenueService implements VenueService {
       
       return venue;
     } catch (error) {
-      console.error('Error fetching venue by ID:', error);
+      logError(error as Error, { source: 'venueService', action: 'getVenueById', venueId: id });
       
       // Fallback to cached data
       const cachedVenue = getFromStorage<Venue | null>(`${CACHE_KEYS.VENUE_PREFIX}${id}`, null);
@@ -287,9 +285,9 @@ class FirebaseVenueService implements VenueService {
       });
       
       await batch.commit();
-      console.log(`User ${userId} checked in to venue ${venueId}`);
+      logUserAction('venue_checkin', { userId, venueId });
     } catch (error) {
-      console.error('Error checking in to venue:', error);
+      logError(error as Error, { source: 'venueService', action: 'checkInToVenue', userId, venueId });
       throw new Error('Failed to check in to venue');
     }
   }
@@ -330,9 +328,9 @@ class FirebaseVenueService implements VenueService {
       });
       
       await batch.commit();
-      console.log(`User ${userId} checked out from venue ${currentVenue}`);
+      logUserAction('venue_checkout', { userId, venueId: currentVenue });
     } catch (error) {
-      console.error('Error checking out from venue:', error);
+      logError(error as Error, { source: 'venueService', action: 'checkOutFromVenue', userId, venueId: currentVenue });
       throw new Error('Failed to check out from venue');
     }
   }
@@ -368,7 +366,7 @@ class FirebaseVenueService implements VenueService {
         return distance <= radiusKm;
       });
     } catch (error) {
-      console.error('Error fetching nearby venues:', error);
+      logError(error as Error, { source: 'venueService', action: 'getNearbyVenues', latitude, longitude, radiusKm });
       return [];
     }
   }
@@ -403,7 +401,7 @@ class FirebaseVenueService implements VenueService {
       // Flatten results
       return chunkedResults.flat();
     } catch (error) {
-      console.error('Error fetching venues by IDs:', error);
+      logError(error as Error, { source: 'venueService', action: 'getVenuesByIds', venueIds });
       return [];
     }
   }
@@ -436,7 +434,7 @@ class FirebaseVenueService implements VenueService {
         ...doc.data()
       } as UserProfile));
     } catch (error) {
-      console.error('Error fetching users at venue:', error);
+      logError(error as Error, { source: 'venueService', action: 'getUsersAtVenue', venueId });
       return [];
     }
   }

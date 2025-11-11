@@ -18,7 +18,9 @@ export default function SignIn() {
   const handleSignIn = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/venues');
+      // After sign in, ProtectedRoute will handle onboarding redirect if needed
+      // Otherwise, go to check-in page
+      navigate('/checkin');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }

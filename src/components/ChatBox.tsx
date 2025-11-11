@@ -7,7 +7,7 @@ type ChatBoxProps = {
   existingMessages: { senderId: string; text: string; timestamp: number }[];
 };
 
-export default function ChatBox({ matchId, currentUserId, existingMessages }: ChatBoxProps) {
+export default function ChatBox({ matchId, currentUserId }: ChatBoxProps) {
   const [message, setMessage] = useState('');
   const [canSend, setCanSend] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +18,7 @@ export default function ChatBox({ matchId, currentUserId, existingMessages }: Ch
         const allowed = await canSendMessage(matchId, currentUserId);
         setCanSend(allowed);
       } catch (error) {
-        console.error('Error checking message limit:', error);
+        logError(error as Error, { context: 'ChatBox.checkMessageLimit', matchId, userId: currentUserId });
         setCanSend(false);
       }
     };

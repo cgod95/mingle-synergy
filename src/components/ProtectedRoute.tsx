@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
       const stepRoutes: Record<string, string> = {
         email: '/signin',
         profile: '/create-profile',
-        photo: '/upload-photos',
+        photo: '/photo-upload',
         preferences: '/preferences',
       };
       const redirectPath = stepRoutes[nextStep] || '/onboarding';

@@ -20,6 +20,7 @@ import MessageLimitModal from "@/components/ui/MessageLimitModal";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { retryWithMessage, isNetworkError } from "@/utils/retry";
+import { logError } from "@/utils/errorHandler";
 
 // Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
 const CONVERSATION_STARTERS = [
@@ -101,7 +102,7 @@ export default function ChatRoom() {
           }
         }
       } catch (error) {
-        console.error('Error loading match info:', error);
+        logError(error as Error, { context: 'ChatRoom.loadMatchInfo', matchId });
       }
     };
     loadMatchInfo();
@@ -209,7 +210,7 @@ export default function ChatRoom() {
       if (!canSend) {
         toast({
           title: "Message limit reached",
-          description: "You've sent all 3 messages. Wait for a reply or reconnect at a venue.",
+          description: "You've sent all 5 messages. Wait for a reply or reconnect at a venue.",
           variant: "destructive",
         });
         setShowMessageLimitModal(true);
@@ -251,7 +252,7 @@ export default function ChatRoom() {
       setShowStarters(false); // Hide starters after first message
       inputRef.current?.focus();
     } catch (error) {
-      console.error('[ChatRoom] Error sending message:', error);
+      logError(error as Error, { context: 'ChatRoom.onSend', matchId, userId: currentUser?.uid || 'unknown' });
       const errorObj = error instanceof Error ? error : new Error('Failed to send message');
       setSendError(errorObj);
       
@@ -353,7 +354,7 @@ export default function ChatRoom() {
             <div className="flex items-start gap-2">
               <Sparkles className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-xs font-medium text-neutral-700 mb-1">You have 3 messages to make plans</p>
+                <p className="text-xs font-medium text-neutral-700 mb-1">You have 5 messages to make plans</p>
                 <p className="text-xs text-neutral-600">Focus on meeting up in person - that's what Mingle is all about!</p>
               </div>
             </div>
@@ -482,7 +483,7 @@ export default function ChatRoom() {
       {/* Input - Fixed at bottom */}
       <div className="bg-white border-t border-neutral-200 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 safe-area-inset-bottom">
         {/* Message limit indicator (hidden for premium users) */}
-        {remainingMessages < 3 && remainingMessages < 999 && (
+        {remainingMessages < 5 && remainingMessages < 999 && (
           <div className="mb-2 px-2">
             <div className="flex items-center justify-between text-xs">
               <span className={`font-medium ${
@@ -515,7 +516,7 @@ export default function ChatRoom() {
               placeholder={
                 !canSendMsg 
                   ? "Message limit reached" 
-                  : remainingMessages < 3 
+                  : remainingMessages < 5 
                   ? `Type a message... (${remainingMessages} left)`
                   : "Type a message..."
               }
@@ -555,7 +556,7 @@ export default function ChatRoom() {
         </form>
         
         {/* Helpful tip */}
-        {remainingMessages > 0 && remainingMessages < 3 && (
+        {remainingMessages > 0 && remainingMessages < 5 && (
           <p className="text-xs text-neutral-500 mt-2 px-2 text-center">
             💡 Tip: Focus on meeting up in person rather than long conversations
           </p>

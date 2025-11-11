@@ -3,13 +3,11 @@ import { Phone, Instagram, Send, X } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import OptimizedImage from '@/components/shared/OptimizedImage';
-import { trackContactShared } from '@/services/appAnalytics';
-import matchService, { removeLikeBetweenUsers } from '@/services/firebase/matchService';
+import analytics from '@/services/appAnalytics';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { FirestoreMatch } from '@/types/match';
-import { useNavigate } from 'react-router-dom';
+import { logError } from '@/utils/errorHandler';
 
 // Define ContactInfo type
 export type ContactInfo = {
@@ -38,7 +36,6 @@ export type MatchCardProps = {
   };
   onShareContact: (matchId: string, contactInfo: ContactInfo) => Promise<boolean>;
   onReconnectRequest?: () => void;
-  onWeMetClick?: () => void;
 };
 
 // Helper function to calculate time remaining
@@ -53,12 +50,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
   match, 
   user, 
   onShareContact,
-  onReconnectRequest,
-  onWeMetClick
+  onReconnectRequest
 }) => {
   const { toast } = useToast();
   const { currentUser } = useUser();
-  const navigate = useNavigate();
   const [contactType, setContactType] = useState<'phone' | 'instagram' | 'snapchat' | 'custom'>('phone');
   const [contactValue, setContactValue] = useState('');
   const [isSharing, setIsSharing] = useState(false);
@@ -67,7 +62,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   
   const [message, setMessage] = useState('');
   const [sentMessage, setSentMessage] = useState(localStorage.getItem(`sent_message_${match.id}`) || '');
-  const [receivedMessage, setReceivedMessage] = useState(localStorage.getItem(`received_message_${match.id}`) || '');
+  const receivedMessage = localStorage.getItem(`received_message_${match.id}`) || '';
   const [showMessageForm, setShowMessageForm] = useState(false);
   
   // Initialize remaining time state
@@ -87,21 +82,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
   
   // Calculate if match is expired
   const isExpired = remaining === 0;
-  
-  // Get the other user's ID
-  const otherUserId = match.userId1 === currentUser?.id ? match.userId2 : match.userId1;
-
-  // Function to remove likes between users (optional: fully reset like state)
-  const handleRemoveLikeBetweenUsers = async (userId1: string, userId2: string) => {
-    try {
-      // Call the actual function from the match service
-      await removeLikeBetweenUsers(userId1, userId2);
-      return true;
-    } catch (error) {
-      console.error('Error removing like between users:', error);
-      return false;
-    }
-  };
 
   const handleReconnect = async () => {
     if (!match?.id || !currentUser?.id) return;
@@ -159,7 +139,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         throw new Error("Failed to request reconnect");
       }
     } catch (error) {
-      console.error('Error reconnecting:', error);
+      logError(error as Error, { context: 'MatchCard.handleReconnect', matchId: match.id });
       toast({
         title: "Failed to reconnect",
         description: error instanceof Error ? error.message : "Please try again later.",
@@ -199,13 +179,13 @@ const MatchCard: React.FC<MatchCardProps> = ({
       const success = await onShareContact(match.id, contactInfo);
       
       if (success) {
-        trackContactShared(match.id);
+        analytics.track('contact_shared', { matchId: match.id });
         setShowForm(false);
       } else {
         setValidationError('Something went wrong. Please try again.');
       }
     } catch (error) {
-      console.error('Error sharing contact:', error);
+      logError(error as Error, { context: 'MatchCard.handleSubmit', matchId: match.id });
       setValidationError('Failed to share contact info. Please try again.');
     } finally {
       setIsSharing(false);

@@ -27,32 +27,6 @@ interface MatchingResponse {
   processingTime: number;
 }
 
-interface WorkerMessage {
-  type: string;
-  data: unknown;
-  id?: string;
-}
-
-interface MatchingData {
-  users: UserData[];
-  preferences: UserPreferences;
-  algorithm: string;
-}
-
-interface UserData {
-  id: string;
-  name: string;
-  age: number;
-  interests: string[];
-  location: { lat: number; lng: number };
-}
-
-interface UserPreferences {
-  ageRange: { min: number; max: number };
-  maxDistance: number;
-  interests: string[];
-}
-
 // Calculate distance between two points
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371; // Earth's radius in km
@@ -117,7 +91,6 @@ function calculateCompatibilityScore(user1: User, user2: User): { score: number;
 
 // Main matching algorithm
 function calculateMatches(users: User[], currentUserId: string): MatchResult[] {
-  const startTime = performance.now();
   const currentUser = users.find(u => u.id === currentUserId);
   
   if (!currentUser) {
@@ -144,8 +117,6 @@ function calculateMatches(users: User[], currentUserId: string): MatchResult[] {
   // Sort by score (highest first)
   matches.sort((a, b) => b.score - a.score);
   
-  const processingTime = performance.now() - startTime;
-  
   return matches.slice(0, 10); // Return top 10 matches
 }
 
@@ -168,17 +139,4 @@ self.addEventListener('message', (event: MessageEvent<MatchingRequest & { startT
 });
 
 // Export for TypeScript
-export type { MatchingRequest, MatchingResponse, User, MatchResult };
-
-const handleMatchingRequest = (data: MatchingData) => {
-  const { users, preferences, algorithm } = data;
-  
-  // Process matching based on algorithm
-  const results = processMatching(users, preferences, algorithm);
-  
-  self.postMessage({
-    type: 'MATCHING_RESULTS',
-    data: results,
-    id: currentRequestId
-  });
-}; 
+export type { MatchingRequest, MatchingResponse, User, MatchResult }; 

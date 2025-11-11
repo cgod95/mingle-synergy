@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { Sparkles, Heart, MapPin, MessageCircle, Zap } from 'lucide-react';
 import config from '@/config';
+import { logError } from '@/utils/errorHandler';
 
 export default function DemoWelcome() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function DemoWelcome() {
         ensureDemoLikesSeed();
         ensureDemoThreadsSeed();
       } catch (error) {
-        console.warn('Failed to seed demo data:', error);
+        logError(error as Error, { source: 'DemoWelcome', action: 'seedDemoData' });
       }
     }
   }, [currentUser, setOnboardingStepComplete]);
@@ -138,4 +139,8 @@ export default function DemoWelcome() {
     </div>
   );
 }
+
+
+
+
 

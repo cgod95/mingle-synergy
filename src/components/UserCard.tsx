@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { UserProfile } from '@/types/UserProfile';
 import { checkForMatchAndCreate, likeUser } from '@/services/firebase/userService';
 import { useUser } from '@/hooks/useUser';
+import { logError } from '@/utils/errorHandler';
 
 type UserCardProps = {
   user: UserProfile;
@@ -19,7 +20,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
       await checkForMatchAndCreate(currentUser, user.id);
       setIsLiked(true);
     } catch (error) {
-      console.error('Error liking user:', error);
+      logError(error as Error, { source: 'UserCard', action: 'likeUser', targetUserId: user.id });
     }
   };
 

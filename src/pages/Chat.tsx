@@ -12,6 +12,8 @@ import { LoadingSpinner, PageError } from '@/components/StatusFallbacks';
 import { ErrorAlert } from '@/components/FeedbackUtils';
 import WeMetConfirmationModal from '@/components/WeMetConfirmationModal';
 import { Button } from '@/components/ui/button';
+import { logError } from '@/utils/errorHandler';
+import { FEATURE_FLAGS } from '@/lib/flags';
 
 const Chat: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -43,11 +45,11 @@ const Chat: React.FC = () => {
           const userProfile = await userService.getUserProfile(otherUserId);
           setOtherUser(userProfile);
         } catch (error) {
-          console.error('Error fetching other user profile:', error);
+          logError(error as Error, { source: 'Chat', action: 'fetchOtherUserProfile', matchId, otherUserId });
         }
       } catch (err) {
         setError('Failed to load match.');
-        console.error('Error fetching match:', err);
+        logError(err as Error, { source: 'Chat', action: 'fetchMatch', matchId });
       } finally {
         setLoading(false);
       }
@@ -70,7 +72,7 @@ const Chat: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message.';
       setError(errorMessage);
-      console.error('Error sending message:', err);
+      logError(err as Error, { source: 'Chat', action: 'sendMessage', matchId });
     } finally {
       setSending(false);
     }
@@ -94,14 +96,15 @@ const Chat: React.FC = () => {
       // You could add a success toast here
       setTimeout(() => setWeMetStatus("idle"), 2000);
     } catch (err) {
-      console.error("Error confirming we met:", err);
+      logError(err as Error, { source: 'Chat', action: 'confirmWeMet', matchId });
       setWeMetStatus("error");
     }
   };
 
   const isExpired = match && Date.now() - match.timestamp > 3 * 60 * 60 * 1000;
   const myMessages = match?.messages?.filter(m => m.senderId === currentUser?.uid) ?? [];
-  const canSend = !isExpired && myMessages.length < 3;
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+  const canSend = !isExpired && myMessages.length < messageLimit;
 
   if (!matchId) {
     return <PageError error="Invalid match ID." />;
@@ -171,7 +174,7 @@ const Chat: React.FC = () => {
                 <input
                   type="text"
                   className="flex-1 border rounded px-3 py-2"
-                  placeholder={`Type your message... (${3 - myMessages.length} left)`}
+                  placeholder={`Type your message... (${messageLimit - myMessages.length} left)`}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}

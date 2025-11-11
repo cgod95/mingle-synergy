@@ -8,7 +8,7 @@ export const FEATURE_FLAGS = {
   ALLOW_REMOTE_RECONNECT_CHAT: import.meta.env.VITE_ALLOW_REMOTE_RECONNECT_CHAT === 'true', // default: OFF
   LIMIT_MESSAGES_PER_USER: (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') 
     ? -1 // Unlimited in demo mode
-    : parseInt(import.meta.env.VITE_LIMIT_MESSAGES_PER_USER || '3', 10), // default: 3
+    : parseInt(import.meta.env.VITE_LIMIT_MESSAGES_PER_USER || '5', 10), // default: 5
 
   // UI & Privacy
   BLUR_PHOTOS_UNTIL_MATCH: import.meta.env.VITE_BLUR_PHOTOS_UNTIL_MATCH === 'true', // default: OFF

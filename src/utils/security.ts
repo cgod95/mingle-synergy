@@ -669,32 +669,5 @@ interface SecurityConfig {
   blockedPatterns: RegExp[];
 }
 
-const validateAndSanitizeInput = (input: string, config: SecurityConfig): ValidationResult => {
-  const errors: string[] = [];
-  let sanitizedData: Record<string, unknown> = {};
-
-  // Check length
-  if (input.length > config.maxInputLength) {
-    errors.push(`Input exceeds maximum length of ${config.maxInputLength} characters`);
-  }
-
-  // Check for blocked patterns
-  const hasBlockedPattern = config.blockedPatterns.some(pattern => pattern.test(input));
-  if (hasBlockedPattern) {
-    errors.push('Input contains blocked content');
-  }
-
-  // Sanitize HTML
-  const sanitizedInput = DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: config.allowedTags,
-    ALLOWED_ATTR: []
-  });
-
-  sanitizedData = { sanitizedInput };
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-    sanitizedData
-  };
-}; 
+// Note: validateAndSanitizeInput function removed - DOMPurify not available in this environment
+// If HTML sanitization is needed, use a different approach or install dompurify package 

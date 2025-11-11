@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { mockVenues } from '@/data/mock';
 import { mockUsers } from '@/data/mock';
 
 interface CheckInButtonProps {
@@ -135,7 +134,7 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
       // Update user's current venue in mock data
       const userIndex = mockUsers.findIndex(u => u.id === currentUser.uid);
       if (userIndex !== -1) {
-        mockUsers[userIndex].currentVenue = undefined;
+        delete mockUsers[userIndex].currentVenue;
         mockUsers[userIndex].isCheckedIn = false;
       }
 

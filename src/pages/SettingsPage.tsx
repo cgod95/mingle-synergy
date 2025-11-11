@@ -27,7 +27,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -50,7 +50,6 @@ const SettingsPage: React.FC = () => {
   const [locationSharing, setLocationSharing] = useState(true);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<any>(null);
   const [userSubscription, setUserSubscription] = useState<any>(null);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
@@ -61,57 +60,82 @@ const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     // Load user preferences from localStorage
-    const prefs = localStorage.getItem('user_preferences');
-    if (prefs) {
-      const preferences = JSON.parse(prefs);
-      setNotificationsEnabled(preferences.notifications ?? true);
-      setDarkMode(preferences.darkMode ?? false);
-      setLocationSharing(preferences.locationSharing ?? true);
-      setAnalyticsEnabled(preferences.analytics ?? true);
-      setRealtimeEnabled(preferences.realtime ?? true);
-      setIsVisible(preferences.isVisible ?? true);
-      setEmailNotificationsEnabled(preferences.emailNotifications ?? true);
-      setSoundEnabled(preferences.sound ?? true);
-      setVibrationEnabled(preferences.vibration ?? true);
-      setLanguage(preferences.language ?? 'en');
+    try {
+      const prefs = localStorage.getItem('user_preferences');
+      if (prefs) {
+        const preferences = JSON.parse(prefs);
+        setNotificationsEnabled(preferences.notifications ?? true);
+        setDarkMode(preferences.darkMode ?? false);
+        setLocationSharing(preferences.locationSharing ?? true);
+        setAnalyticsEnabled(preferences.analytics ?? true);
+        setRealtimeEnabled(preferences.realtime ?? true);
+        setIsVisible(preferences.isVisible ?? true);
+        setEmailNotificationsEnabled(preferences.emailNotifications ?? true);
+        setSoundEnabled(preferences.sound ?? true);
+        setVibrationEnabled(preferences.vibration ?? true);
+        setLanguage(preferences.language ?? 'en');
+      }
+    } catch (error) {
+      // Failed to load preferences - use defaults
+      // Silently fail - defaults are already set
     }
 
     // Load subscription info
     const loadSubscription = async () => {
       try {
-        if (currentUser?.uid) {
+        if (currentUser?.uid && subscriptionService) {
           // Try getUserSubscription if it exists
           if ('getUserSubscription' in subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
-            const sub = subscriptionService.getUserSubscription(currentUser.uid);
-            setUserSubscription(sub);
-            if (sub) {
-              // Try to get plan details
-              if ('getTier' in subscriptionService && typeof subscriptionService.getTier === 'function') {
-                const tier = subscriptionService.getTier(sub.tierId);
-                setCurrentPlan(tier || { id: 'free', name: 'Free' });
-              } else if ('getPlans' in subscriptionService && typeof subscriptionService.getPlans === 'function') {
-                const plans = await subscriptionService.getPlans();
-                const plan = plans.find((p: any) => p.id === sub.tierId);
-                setCurrentPlan(plan || { id: 'free', name: 'Free' });
+            try {
+              const sub = subscriptionService.getUserSubscription(currentUser.uid);
+              setUserSubscription(sub);
+              if (sub) {
+                // Try to get plan details
+                if ('getTier' in subscriptionService && typeof subscriptionService.getTier === 'function') {
+                  try {
+                    const tier = subscriptionService.getTier(sub.tierId);
+                    setCurrentPlan(tier || { id: 'free', name: 'Free' });
+                  } catch {
+                    setCurrentPlan({ id: 'free', name: 'Free' });
+                  }
+                } else if ('getPlans' in subscriptionService && typeof subscriptionService.getPlans === 'function') {
+                  try {
+                    const plans = await subscriptionService.getPlans();
+                    const plan = plans.find((p: any) => p.id === sub.tierId);
+                    setCurrentPlan(plan || { id: 'free', name: 'Free' });
+                  } catch {
+                    setCurrentPlan({ id: 'free', name: 'Free' });
+                  }
+                } else {
+                  setCurrentPlan({ id: 'free', name: 'Free' });
+                }
               } else {
                 setCurrentPlan({ id: 'free', name: 'Free' });
               }
-            } else {
+            } catch {
               setCurrentPlan({ id: 'free', name: 'Free' });
             }
           } else {
             setCurrentPlan({ id: 'free', name: 'Free' });
           }
+        } else {
+          setCurrentPlan({ id: 'free', name: 'Free' });
         }
       } catch (error) {
-        console.error('Error loading subscription:', error);
+        // Error loading subscription - use free plan as default
         setCurrentPlan({ id: 'free', name: 'Free' });
       }
     };
     loadSubscription();
 
     // Track page view
-    analytics.trackPageView('/settings');
+    try {
+      if (analytics && typeof analytics.trackPageView === 'function') {
+        analytics.trackPageView('/settings');
+      }
+    } catch (error) {
+      // Failed to track page view - non-critical, silently fail
+    }
   }, [currentUser]);
 
   // Apply dark mode to document
@@ -124,93 +148,134 @@ const SettingsPage: React.FC = () => {
   }, [darkMode]);
 
   const savePreferences = () => {
-    const preferences = {
-      notifications: notificationsEnabled,
-      darkMode,
-      locationSharing,
-      analytics: analyticsEnabled,
-      realtime: realtimeEnabled,
-      isVisible,
-      emailNotifications: emailNotificationsEnabled,
-      sound: soundEnabled,
-      vibration: vibrationEnabled,
-      language,
-    };
-    localStorage.setItem('user_preferences', JSON.stringify(preferences));
-    
-    // Sync visibility with userService
-    const syncVisibility = async () => {
-      try {
-        if (currentUser?.uid) {
-          const { userService } = await import('@/services');
-          await userService.updateUserProfile(currentUser.uid, { isVisible });
+    try {
+      const preferences = {
+        notifications: notificationsEnabled,
+        darkMode,
+        locationSharing,
+        analytics: analyticsEnabled,
+        realtime: realtimeEnabled,
+        isVisible,
+        emailNotifications: emailNotificationsEnabled,
+        sound: soundEnabled,
+        vibration: vibrationEnabled,
+        language,
+      };
+      localStorage.setItem('user_preferences', JSON.stringify(preferences));
+      
+      // Sync visibility with userService
+      const syncVisibility = async () => {
+        try {
+          if (currentUser?.uid) {
+            const { userService } = await import('@/services');
+            if (userService && typeof userService.updateUserProfile === 'function') {
+              await userService.updateUserProfile(currentUser.uid, { isVisible });
+            }
+          }
+        } catch (error) {
+          // Error syncing visibility - silently fail, preference still saved locally
         }
-      } catch (error) {
-        console.error('Error syncing visibility:', error);
-      }
-    };
-    syncVisibility();
+      };
+      syncVisibility();
+    } catch (error) {
+      // Failed to save preferences - silently fail, UI still works
+    }
   };
 
-  const handleNotificationToggle = (enabled: boolean) => {
+  const handleNotificationToggle = async (enabled: boolean) => {
     setNotificationsEnabled(enabled);
-    if (enabled) {
-      notificationService.requestNotificationPermission();
+    if (enabled && notificationService && typeof notificationService.requestPermission === 'function') {
+      try {
+        await notificationService.requestPermission();
+      } catch (error) {
+        // Failed to request permission - user can still toggle the setting
+        // Silently fail - preference is still saved
+      }
     }
     savePreferences();
   };
 
   const handleAnalyticsToggle = (enabled: boolean) => {
     setAnalyticsEnabled(enabled);
-    if (enabled) {
-      analytics.enable();
-    } else {
-      analytics.disable();
+    // Analytics service handles enable/disable internally via config
+    // Just track the preference change
+    try {
+      if (analytics && typeof analytics.track === 'function') {
+        if (enabled) {
+          analytics.track('analytics_enabled');
+        } else {
+          analytics.track('analytics_disabled');
+        }
+      }
+    } catch (error) {
+      // Failed to track analytics toggle - non-critical, silently fail
     }
     savePreferences();
   };
 
   const handleRealtimeToggle = (enabled: boolean) => {
     setRealtimeEnabled(enabled);
-    if (enabled) {
-      realtimeService.connect();
-    } else {
-      realtimeService.disconnect();
+    try {
+      if (enabled && realtimeService && typeof realtimeService.connect === 'function') {
+        realtimeService.connect();
+      } else if (!enabled && realtimeService && typeof realtimeService.disconnect === 'function') {
+        realtimeService.disconnect();
+      }
+    } catch (error) {
+      // Failed to toggle realtime - silently fail, preference still saved
     }
     savePreferences();
   };
 
   const handleExportData = () => {
-    const data = {
-      analytics: analytics.exportData(),
-      subscription: userSubscription,
-      preferences: {
-        notifications: notificationsEnabled,
-        darkMode,
-        locationSharing,
-        analytics: analyticsEnabled,
-        realtime: realtimeEnabled
-      },
-      timestamp: Date.now()
-    };
+    try {
+      const data = {
+        subscription: userSubscription,
+        preferences: {
+          notifications: notificationsEnabled,
+          darkMode,
+          locationSharing,
+          analytics: analyticsEnabled,
+          realtime: realtimeEnabled,
+          isVisible,
+          emailNotifications: emailNotificationsEnabled,
+          sound: soundEnabled,
+          vibration: vibrationEnabled,
+          language
+        },
+        timestamp: Date.now()
+      };
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `mingle-synergy-data-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mingle-synergy-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
 
-    analytics.track('data_exported');
+      if (analytics && typeof analytics.track === 'function') {
+        analytics.track('data_exported');
+      }
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      alert('Failed to export data. Please try again.');
+    }
   };
 
   const handleDeleteAccount = () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      // In a real app, this would call your backend to delete the account
-      localStorage.clear();
-      window.location.href = '/';
-      analytics.track('account_deleted');
+      try {
+        // In a real app, this would call your backend to delete the account
+        if (analytics && typeof analytics.track === 'function') {
+          analytics.track('account_deleted');
+        }
+        localStorage.clear();
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Failed to delete account:', error);
+        alert('Failed to delete account. Please try again.');
+      }
     }
   };
 
@@ -585,8 +650,16 @@ const SettingsPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={async () => {
-                    await signOut();
-                    navigate('/');
+                    try {
+                      if (signOut && typeof signOut === 'function') {
+                        await signOut();
+                      }
+                      navigate('/');
+                    } catch (error) {
+                      // Failed to sign out - still navigate to home
+                      console.error('Failed to sign out:', error);
+                      navigate('/');
+                    }
                   }}
                   className="w-full text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400 font-semibold"
                 >

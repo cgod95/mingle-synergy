@@ -25,7 +25,7 @@
 
 4. **Messaging**
    - Chat interface working
-   - Message limits enforced (3 per user per match)
+   - Message limits enforced (5 per user per match)
    - Real-time updates working
 
 5. **Safety Features**

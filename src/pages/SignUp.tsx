@@ -16,7 +16,8 @@ export default function SignUp() {
     setErr(null);
     try {
       await signUpUser(email, password);
-      nav("/venues");
+      // New users should go through onboarding flow
+      nav("/onboarding");
     } catch (e: any) {
       setErr(e?.message || "Failed to sign up");
     } finally {

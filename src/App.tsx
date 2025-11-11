@@ -17,6 +17,9 @@ const ChatRoomGuard = lazy(() => import("./pages/ChatRoomGuard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 const ProfileUpload = lazy(() => import("./pages/ProfileUpload"));
+const CreateProfile = lazy(() => import("./pages/CreateProfile"));
+const PhotoUpload = lazy(() => import("./pages/PhotoUpload"));
+const Preferences = lazy(() => import("./pages/Preferences"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Verification = lazy(() => import("./pages/Verification"));
@@ -64,6 +67,9 @@ function AppRoutes() {
         <Route path="/signup" element={<SignUp />} />
         {/* Onboarding / auth */}
         <Route path="/upload" element={<AuthRoute><ProfileUpload /></AuthRoute>} />
+        <Route path="/create-profile" element={<AuthRoute><CreateProfile /></AuthRoute>} />
+        <Route path="/photo-upload" element={<AuthRoute><PhotoUpload /></AuthRoute>} />
+        <Route path="/preferences" element={<AuthRoute><Preferences /></AuthRoute>} />
         {/* App shell */}
         <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
           <Route path="/checkin" element={<CheckInPage />} />

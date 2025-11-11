@@ -104,3 +104,5 @@ export function formatDemoFreeRemaining(window: DemoFreeWindow): string {
   return `${window.minutesRemaining}m`;
 }
 
+
+

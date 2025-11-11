@@ -49,7 +49,7 @@ async function isPremiumUser(userId: string): Promise<boolean> {
 }
 
 /**
- * Check if user can send more messages (3 message limit)
+ * Check if user can send more messages (5 message limit)
  * Premium users bypass this check
  */
 export async function canSendMessage(matchId: string, userId: string): Promise<boolean> {
@@ -59,7 +59,8 @@ export async function canSendMessage(matchId: string, userId: string): Promise<b
   }
   
   const count = getMessageCount(matchId, userId);
-  return count < 3;
+  const messageLimit = 5; // Use feature flag in production
+  return count < messageLimit;
 }
 
 /**
@@ -73,7 +74,8 @@ export async function getRemainingMessages(matchId: string, userId: string): Pro
   }
   
   const count = getMessageCount(matchId, userId);
-  return Math.max(0, 3 - count);
+  const messageLimit = 5; // Use feature flag in production
+  return Math.max(0, messageLimit - count);
 }
 
 /**

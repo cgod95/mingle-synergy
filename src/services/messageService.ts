@@ -18,6 +18,7 @@ import { UserProfile } from "@/types/services";
 import { FirestoreMatch } from "@/types/match";
 import { FEATURE_FLAGS } from "@/lib/flags";
 import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
+import { logError } from '@/utils/errorHandler';
 
 export interface Message {
   id: string;
@@ -140,7 +141,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
     const snapshot = await getDocs(q);
     return snapshot.size < messageLimit;
   } catch (error) {
-    console.error('Error checking message limit:', error);
+    logError(error as Error, { source: 'messageService', action: 'canSendMessage', matchId, senderId });
     return false;
   }
 };
@@ -178,7 +179,7 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
         const { trackMessageSent } = await import('./specAnalytics');
         trackMessageSent(matchId, senderId, text.length);
       } catch (error) {
-        console.warn('Failed to track message_sent event:', error);
+        logError(error as Error, { source: 'messageService', action: 'trackMessageSent', matchId, senderId });
       }
 };
 
@@ -195,7 +196,7 @@ export const getMessageCount = async (matchId: string, senderId: string): Promis
     const snapshot = await getDocs(q);
     return snapshot.size;
   } catch (error) {
-    console.error('Error getting message count:', error);
+    logError(error as Error, { source: 'messageService', action: 'getMessageCount', matchId, senderId });
     return 0;
   }
 };
@@ -361,7 +362,7 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
     // Sort by last message time (most recent first)
     return chatPreviews.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
   } catch (error) {
-    console.error("Error fetching user chats:", error);
+    logError(error as Error, { source: 'messageService', action: 'getUserChats', userId });
     throw new Error("Failed to fetch chats");
   }
 };
@@ -421,6 +422,6 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     
     await batch.commit();
   } catch (error) {
-    console.error('Error marking messages as read:', error);
+    logError(error as Error, { source: 'messageService', action: 'markMessagesAsRead', matchId, userId });
   }
 }; 

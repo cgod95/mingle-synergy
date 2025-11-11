@@ -53,7 +53,7 @@ export default function LandingPage() {
                 <li><strong>Check into venues</strong> where you are (within 500m)</li>
                 <li><strong>See people</strong> who are also checked in there</li>
                 <li><strong>Like someone</strong> - if they like you back, you match!</li>
-                <li><strong>Chat (3 messages)</strong> to make plans to meet up</li>
+                <li><strong>Chat (5 messages)</strong> to make plans to meet up</li>
                 <li><strong>Meet in person</strong> - that's what Mingle is all about!</li>
               </ol>
             </div>
@@ -99,6 +99,34 @@ export default function LandingPage() {
               Sign In
             </Link>
           </Button>
+          
+          {/* Test Onboarding Option - Only visible in demo mode */}
+          {import.meta.env.VITE_DEMO_MODE === 'true' && (
+            <>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-neutral-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-neutral-500">Test</span>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  // Set flag to test onboarding flow
+                  localStorage.setItem('testOnboarding', 'true');
+                  navigate('/signup');
+                }}
+                variant="outline"
+                className="w-full border-2 border-purple-200 hover:bg-purple-50 text-purple-700"
+              >
+                Test Onboarding Flow
+              </Button>
+              <p className="text-xs text-neutral-500 text-center">
+                Test the real signup/onboarding process (bypasses demo shortcuts)
+              </p>
+            </>
+          )}
         </div>
       </motion.div>
 

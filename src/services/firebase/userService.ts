@@ -14,6 +14,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from '../../firebase';
 import { UserProfile, UserService } from '@/types/services';
+import { logError } from '@/utils/errorHandler';
 
 type PartialUserProfile = Partial<UserProfile>;
 
@@ -34,7 +35,7 @@ class FirebaseUserService implements UserService {
         return null;
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      logError(error as Error, { source: 'userService', action: 'getUserProfile', userId });
       return null;
     }
   }
@@ -44,7 +45,7 @@ class FirebaseUserService implements UserService {
       const userRef = doc(firestore, 'users', userId);
       await updateDoc(userRef, updates);
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      logError(error as Error, { source: 'userService', action: 'updateUserProfile', userId });
       throw new Error('Failed to update profile. Please try again.');
     }
   }
@@ -54,7 +55,7 @@ class FirebaseUserService implements UserService {
       const userRef = doc(firestore, 'users', userId);
       await setDoc(userRef, data);
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      logError(error as Error, { source: 'userService', action: 'createUserProfile', userId });
       throw new Error('Failed to create profile. Please try again.');
     }
   }
@@ -70,7 +71,7 @@ class FirebaseUserService implements UserService {
   async deleteUser(userId: string): Promise<void> {
     // Note: In production, you might want to use a Cloud Function to handle user deletion
     // as it requires special permissions and cleanup of related data
-    console.warn('User deletion not implemented - use Cloud Functions for production');
+    logError(new Error('User deletion not implemented'), { source: 'userService', action: 'deleteUser', userId }, 'warning');
   }
 
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
@@ -84,7 +85,7 @@ class FirebaseUserService implements UserService {
         ...doc.data()
       } as UserProfile));
     } catch (error) {
-      console.error('Error fetching users at venue:', error);
+      logError(error as Error, { source: 'userService', action: 'getUsersAtVenue', venueId });
       return [];
     }
   }
@@ -102,7 +103,7 @@ class FirebaseUserService implements UserService {
       
       return [];
     } catch (error) {
-      console.error('Error fetching reconnect requests:', error);
+      logError(error as Error, { source: 'userService', action: 'getReconnectRequests', userId });
       return [];
     }
   }
@@ -124,7 +125,7 @@ class FirebaseUserService implements UserService {
       // Remove likes between users to allow fresh matching
       await this.removeLikesBetweenUsers(userId, requesterId);
     } catch (error) {
-      console.error('Error accepting reconnect request:', error);
+      logError(error as Error, { source: 'userService', action: 'acceptReconnectRequest', userId, requesterId });
       throw error;
     }
   }
@@ -143,7 +144,7 @@ class FirebaseUserService implements UserService {
         likes: arrayRemove(userId1)
       });
     } catch (error) {
-      console.error('Error removing likes between users:', error);
+      logError(error as Error, { source: 'userService', action: 'removeLikesBetweenUsers', userId1, userId2 });
     }
   }
 
@@ -155,7 +156,7 @@ class FirebaseUserService implements UserService {
         reconnectRequests: arrayUnion(fromUserId)
       });
     } catch (error) {
-      console.error('Error sending reconnect request:', error);
+      logError(error as Error, { source: 'userService', action: 'sendReconnectRequest', fromUserId, toUserId });
       throw error;
     }
   }
@@ -184,7 +185,7 @@ class FirebaseUserService implements UserService {
       
       return downloadURL;
     } catch (error) {
-      console.error('Error uploading profile photo:', error);
+      logError(error as Error, { source: 'userService', action: 'uploadProfilePhoto', userId });
       throw error;
     }
   }

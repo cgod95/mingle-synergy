@@ -9,9 +9,6 @@ import {
   MapPin, 
   MessageCircle, 
   Heart, 
-  Zap, 
-  Star, 
-  CheckCircle,
   ArrowRight,
   Info,
   Play

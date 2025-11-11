@@ -290,3 +290,5 @@ VITE_ENABLE_PUSH_NOTIFICATIONS=true
 
 **For Beta Launch:** Set `VITE_DEMO_MODE=true` and `VITE_DEMO_FREE_ACCESS_DAYS=7` for beta testers.
 
+
+

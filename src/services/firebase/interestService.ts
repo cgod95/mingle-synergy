@@ -17,6 +17,7 @@ import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
 import { InterestService } from '@/types/services';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
 import services from '..';
+import { logError } from '@/utils/errorHandler';
 
 class FirebaseInterestService extends FirebaseServiceBase implements InterestService {
   private getInterestsCollection() {
@@ -92,7 +93,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
       
       return true;
     } catch (error) {
-      console.error('Error expressing interest:', error);
+      logError(error as Error, { source: 'interestService', action: 'expressInterest', userId, targetUserId, venueId });
       throw error;
     }
   }
@@ -147,7 +148,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
         return 3;
       }
     } catch (error) {
-      console.error('Error getting likes remaining:', error);
+      logError(error as Error, { source: 'interestService', action: 'getLikesRemaining', userId, venueId });
       
       // If error occurred, try local storage
       const storedLikes = localStorage.getItem(`likes_${userId}_${venueId}`);
@@ -204,7 +205,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
       
       return true;
     } catch (error) {
-      console.error('Error decrementing likes:', error);
+      logError(error as Error, { source: 'interestService', action: 'decrementLikesRemaining', userId, venueId });
       throw error;
     }
   }
@@ -235,7 +236,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
       
       return true;
     } catch (error) {
-      console.error('Error resetting likes:', error);
+      logError(error as Error, { source: 'interestService', action: 'resetLikes', userId, venueId });
       throw error;
     }
   }

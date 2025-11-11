@@ -10,6 +10,7 @@ import { GridSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { MapPin, Users, Clock } from 'lucide-react';
 import VenueCard from '@/components/VenueCard';
+import { logError } from '@/utils/errorHandler';
 
 export default function VenueList() {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -25,7 +26,7 @@ export default function VenueList() {
         // Use mock data directly in demo mode
         setVenues(mockVenues);
       } catch (err) {
-        console.error('Error fetching venues:', err);
+        logError(err as Error, { source: 'VenueList', action: 'fetchVenues' });
         setError('Failed to load venues');
       } finally {
         setLoading(false);
@@ -47,7 +48,7 @@ export default function VenueList() {
       });
       navigate(`/venue/${venueId}`);
     } catch (error) {
-      console.error('Check-in failed:', error);
+      logError(error as Error, { source: 'VenueList', action: 'handleCheckIn', venueId });
       // Show error toast
       toast({
         title: "Check-in failed",

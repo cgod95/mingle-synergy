@@ -1,4 +1,6 @@
 import { getPerson } from './demoPeople';
+import { listMatches } from './likesStore';
+import { ensureChat } from './chatStore';
 
 export type Match = {
   id: string;
@@ -22,40 +24,77 @@ export const MATCH_TTL_MS = MATCH_EXPIRY_MS; // Alias for compatibility
 const DEMO: Record<string, Match[]> = Object.create(null);
 
 function seedIfNeeded(userId: string) {
-  if (DEMO[userId]?.length) return;
   const now = Date.now();
   
+  // Get matches from likesStore (mutual likes)
+  const matchedIds = listMatches();
+  
   // Get demo people for matches - use actual demo people data
-  // Try to find people by name (case-insensitive)
   const rose = getPerson('rose') || getPerson('ava') || getPerson('sophia') || getPerson('mila');
   const sam = getPerson('sam') || getPerson('jay') || getPerson('lucas') || getPerson('ethan');
   
-  DEMO[userId] = [
-    {
-      id: "mx_1",
+  // Build matches from likesStore matches
+  // Use a stable ID based on partnerId to avoid creating new matches on every call
+  const matchesFromLikes: Match[] = matchedIds.map((partnerId, index) => {
+    const person = getPerson(partnerId);
+    const venues = ['1', '2', '3', '4', '5', '6'];
+    const venueNames = ['Neon Garden', 'Club Aurora', 'The Roastery', 'Sunset Lounge', 'The Warehouse', 'Garden Bistro'];
+    const venueIndex = index % venues.length;
+    
+    // Ensure chat exists for this match
+    ensureChat(partnerId, { name: person?.name });
+    
+    // Check if this match already exists in DEMO to preserve its createdAt and expiresAt
+    const existingMatch = DEMO[userId]?.find(m => m.partnerId === partnerId);
+    const createdAt = existingMatch?.createdAt || (now - (index * 5 * 60_000));
+    const expiresAt = existingMatch?.expiresAt || (createdAt + MATCH_EXPIRY_MS);
+    
+    return {
+      id: `mx_${partnerId}`, // Stable ID based on partnerId
       userId,
-      partnerId: rose?.id || "u_rose",
-      createdAt: now - 5 * 60_000,
-      expiresAt: now + 2 * 60 * 60_000, // 2h left
-      displayName: rose?.name || "Rose",
-      avatarUrl: rose?.photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop",
-      unreadCount: 1,
-      venueName: "Neon Garden",
-      venueId: "1",
-    },
-    {
-      id: "mx_2",
-      userId,
-      partnerId: sam?.id || "u_sam",
-      createdAt: now - 60 * 60_000,
-      expiresAt: now + 90 * 60_000, // 1.5h left
-      displayName: sam?.name || "Sam",
-      avatarUrl: sam?.photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
-      unreadCount: 0,
-      venueName: "Club Aurora",
-      venueId: "2",
-    },
-  ];
+      partnerId,
+      createdAt,
+      expiresAt,
+      displayName: person?.name || partnerId,
+      avatarUrl: person?.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
+      unreadCount: existingMatch?.unreadCount || 0,
+      venueName: venueNames[venueIndex],
+      venueId: venues[venueIndex],
+    };
+  });
+  
+  // If no matches from likesStore, seed some demo matches
+  if (matchesFromLikes.length === 0 && !DEMO[userId]?.length) {
+    DEMO[userId] = [
+      {
+        id: "mx_1",
+        userId,
+        partnerId: rose?.id || "u_rose",
+        createdAt: now - 5 * 60_000,
+        expiresAt: now + 2 * 60 * 60_000, // 2h left
+        displayName: rose?.name || "Rose",
+        avatarUrl: rose?.photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop",
+        unreadCount: 1,
+        venueName: "Neon Garden",
+        venueId: "1",
+      },
+      {
+        id: "mx_2",
+        userId,
+        partnerId: sam?.id || "u_sam",
+        createdAt: now - 60 * 60_000,
+        expiresAt: now + 90 * 60_000, // 1.5h left
+        displayName: sam?.name || "Sam",
+        avatarUrl: sam?.photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+        unreadCount: 0,
+        venueName: "Club Aurora",
+        venueId: "2",
+      },
+    ];
+  } else {
+    // Use matches from likesStore
+    DEMO[userId] = matchesFromLikes;
+  }
 }
 
 /**

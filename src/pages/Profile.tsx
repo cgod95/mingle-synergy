@@ -1,14 +1,16 @@
 // 🧠 Purpose: Implement static Profile page to display current user info.
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Settings, LogOut, Edit } from 'lucide-react';
+import { Settings, LogOut, Edit } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import BottomNav from '@/components/BottomNav';
+import { logError } from '@/utils/errorHandler';
+import { UserProfileSkeleton } from '@/components/ui/EnhancedLoadingStates';
 
 export default function Profile() {
   const { currentUser, signOut } = useAuth();
@@ -24,18 +26,20 @@ export default function Profile() {
         return;
       }
       
+      setLoading(true);
       try {
         const { userService } = await import('@/services');
         const profile = await userService.getUserProfile(currentUser.uid);
         if (profile) {
-          setProfileData({
-            displayName: profile.displayName,
-            name: profile.name,
-            bio: profile.bio
-          });
+          // Filter out undefined values to satisfy exactOptionalPropertyTypes
+          const data: { displayName?: string; name?: string; bio?: string } = {};
+          if (profile.displayName !== undefined) data.displayName = profile.displayName;
+          if (profile.name !== undefined) data.name = profile.name;
+          if (profile.bio !== undefined) data.bio = profile.bio;
+          setProfileData(data);
         }
       } catch (error) {
-        console.error('Error loading profile:', error);
+        logError(error as Error, { context: 'Profile.loadProfile', userId: currentUser?.uid || 'unknown' });
       } finally {
         setLoading(false);
       }
@@ -45,6 +49,17 @@ export default function Profile() {
   }, [currentUser]);
 
   if (!currentUser) return null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <UserProfileSkeleton />
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">

@@ -12,6 +12,7 @@ import { sendEmailVerification } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { toast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { logError } from '@/utils/errorHandler';
 
 export default function Verification() {
   const { currentUser } = useAuth();
@@ -38,7 +39,7 @@ export default function Verification() {
           await currentUser.reload();
           setEmailVerified(currentUser.emailVerified || false);
         } catch (error) {
-          console.error('Error reloading user:', error);
+          logError(error as Error, { source: 'Verification', action: 'reloadUser' });
         }
       }
 
@@ -49,7 +50,7 @@ export default function Verification() {
         const userProfile = await userService.getUserById(currentUser.uid);
         setSelfieVerified(userProfile?.flags?.isVerified || false);
       } catch (error) {
-        console.error('Error checking selfie verification:', error);
+        logError(error as Error, { source: 'Verification', action: 'checkSelfieVerification' });
       }
 
       setCheckingStatus(false);
@@ -70,7 +71,7 @@ export default function Verification() {
             });
           }
         } catch (error) {
-          console.error('Error checking verification status:', error);
+          logError(error as Error, { source: 'Verification', action: 'checkVerificationStatus' });
         }
       }
     }, 5000);
@@ -90,7 +91,7 @@ export default function Verification() {
         description: 'Please check your inbox and click the verification link.',
       });
     } catch (error: any) {
-      console.error('Error sending verification email:', error);
+      logError(error as Error, { source: 'Verification', action: 'sendEmailVerification' });
       toast({
         title: 'Error',
         description: error.message || 'Failed to send verification email. Please try again.',
@@ -127,7 +128,7 @@ export default function Verification() {
         });
       }, 1000);
     } catch (error: any) {
-      console.error('Error submitting selfie:', error);
+      logError(error as Error, { source: 'Verification', action: 'submitSelfie' });
       toast({
         title: 'Error',
         description: 'Failed to submit selfie. Please try again.',

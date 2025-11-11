@@ -57,3 +57,5 @@ echo ""
 echo "Target: < 1MB total"
 echo "Current: $TOTAL_SIZE"
 
+
+

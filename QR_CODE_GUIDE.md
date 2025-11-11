@@ -226,3 +226,5 @@ https://mingle.app/checkin?venueId=1&source=qr
 
 **Next:** Generate QR codes for your closed beta event venue!
 
+
+

@@ -3,6 +3,7 @@ import { UserProfile } from '@/types/services';
 import { useAuth } from '@/context/AuthContext';
 import services from '@/services';
 import { canRematch, createRematch } from '@/services/firebase/matchService';
+import { logError } from '@/utils/errorHandler';
 
 type Props = {
   users: UserProfile[];
@@ -43,7 +44,7 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
       await services.interest.expressInterest(currentUser.uid, targetUserId, venueId);
       setLikedIds(prev => [...prev, targetUserId]);
     } catch (err) {
-      console.error('Like failed:', err);
+      logError(err as Error, { source: 'VenueUserGrid', action: 'handleLike', targetUserId, venueId });
     }
   };
 
@@ -59,7 +60,7 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
       // Add to liked users to show the new match
       setLikedIds(prev => [...prev, targetUserId]);
     } catch (err) {
-      console.error('Rematch failed:', err);
+      logError(err as Error, { source: 'VenueUserGrid', action: 'handleRematch', targetUserId, venueId });
     } finally {
       setLoading(prev => ({ ...prev, [targetUserId]: false }));
     }

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { X, Camera, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { logError } from '@/utils/errorHandler';
 
 interface QRCodeScannerProps {
   onScanSuccess: (venueId: string) => void;
@@ -55,7 +56,7 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
         setScanning(true);
         setError(null);
       } catch (err: any) {
-        console.error('Error starting QR scanner:', err);
+        logError(err as Error, { source: 'QRCodeScanner', action: 'startScanning' });
         
         // Check if it's a permission error
         if (err.name === 'NotAllowedError' || err.message?.includes('permission')) {

@@ -37,7 +37,7 @@ export default function MessageLimitModal({
           <DialogDescription className="pt-2">
             {isLimitReached ? (
               <>
-                You've sent all 3 messages for this match. To continue chatting, you can:
+                You've sent all 5 messages for this match. To continue chatting, you can:
                 <ul className="list-disc list-inside mt-3 space-y-1 text-sm">
                   <li>Wait for a reply from your match</li>
                   <li>Reconnect when you're both at the same venue again</li>

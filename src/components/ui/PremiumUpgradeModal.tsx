@@ -4,6 +4,7 @@ import { Button } from './button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
 import { subscriptionService } from '@/services';
+import { logError, logUserAction } from '@/utils/errorHandler';
 
 interface PremiumUpgradeModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
           : [];
         setPlans(plansData.filter((plan: any) => plan.id !== 'free'));
       } catch (error) {
-        console.error('Error loading plans:', error);
+        logError(error as Error, { source: 'PremiumUpgradeModal', action: 'loadPlans' });
         setPlans([]);
       }
     };
@@ -59,16 +60,16 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
       // Handle subscription creation - check which method exists
       if ('createSubscription' in subscriptionService && typeof subscriptionService.createSubscription === 'function') {
         // Real service - would need userId and paymentMethodId
-        console.log('Subscription creation requires user authentication');
+        logUserAction('createSubscription', { source: 'PremiumUpgradeModal', note: 'requires user authentication' });
         // In a real app, you'd get userId from auth context and handle payment
       } else {
         // Mock service - just close modal for demo
-        console.log('Mock subscription - would create subscription for plan:', selectedPlan);
+        logUserAction('createSubscription', { source: 'PremiumUpgradeModal', plan: selectedPlan, note: 'mock subscription' });
       }
       onClose();
       // Show success message or redirect
     } catch (error) {
-      console.error('Subscription error:', error);
+      logError(error as Error, { source: 'PremiumUpgradeModal', action: 'handleSubscribe', plan: selectedPlan });
     } finally {
       setIsLoading(false);
     }

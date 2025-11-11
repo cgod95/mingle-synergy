@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, HeartOff } from 'lucide-react';
+import { logError } from '@/utils/errorHandler';
 
 interface LikeButtonProps {
   isLiked: boolean;
@@ -14,7 +15,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({ isLiked, onToggle }) => {
     try {
       await onToggle();
     } catch (error) {
-      console.error('Failed to toggle like:', error);
+      logError(error as Error, { source: 'LikeButton', action: 'handleClick' });
     } finally {
       setLoading(false);
     }

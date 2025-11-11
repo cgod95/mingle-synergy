@@ -48,7 +48,7 @@ export default function Matches() {
           ensureDemoLikesSeed();
           ensureDemoThreadsSeed();
         } catch (error) {
-          console.warn('Failed to seed demo data:', error);
+          // Failed to seed demo data - non-critical
         }
       }
       
@@ -88,7 +88,7 @@ export default function Matches() {
           setEarliestExpiry(null);
         }
       } catch (error) {
-        console.error('Error fetching matches:', error);
+        logError(error as Error, { context: 'Matches.fetchMatches', userId: currentUser?.uid || 'unknown' });
       } finally {
         setIsLoading(false);
       }
@@ -260,7 +260,7 @@ export default function Matches() {
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-500 mt-0.5">•</span>
-                        <span><strong>Chat (3 messages)</strong> to make plans to meet up</span>
+                        <span><strong>Chat (5 messages)</strong> to make plans to meet up</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-indigo-500 mt-0.5">•</span>
@@ -297,7 +297,7 @@ export default function Matches() {
             )}
 
             <p className="text-sm text-neutral-500">
-              💡 Matches last 24 hours. You can send 3 messages per match. Focus on meeting up in person!
+              💡 Matches last 24 hours. You can send 5 messages per match. Focus on meeting up in person!
             </p>
           </motion.div>
 

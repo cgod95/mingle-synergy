@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/Layout";
+import { logError } from "@/utils/errorHandler";
 
 export default function ProfileEdit() {
   const [name, setName] = useState("");
@@ -37,7 +38,7 @@ export default function ProfileEdit() {
           setBio("");
         }
       } catch (error) {
-        console.error('Error loading profile:', error);
+        logError(error as Error, { context: 'ProfileEdit.loadProfile', userId: currentUser?.uid || 'unknown' });
         // Fallback to currentUser data
         setName(currentUser.name || "");
         setBio("");
@@ -62,7 +63,7 @@ export default function ProfileEdit() {
       // Navigate to profile page - it will reload data automatically
       navigate("/profile");
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logError(error as Error, { context: 'ProfileEdit.handleSave', userId: currentUser?.uid || 'unknown' });
       alert('Failed to update profile. Please try again.');
     } finally {
       setSaving(false);

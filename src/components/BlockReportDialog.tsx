@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { blockUser, reportUser } from '@/lib/block';
 import { useAuth } from '@/context/AuthContext';
+import { logError } from '@/utils/errorHandler';
 
 interface BlockReportDialogProps {
   userId: string;
@@ -56,7 +57,7 @@ export function BlockReportDialog({
       
       onClose();
     } catch (error) {
-      console.error('Error blocking user:', error);
+      logError(error as Error, { source: 'BlockReportDialog', action: 'blockUser', targetUserId: userId });
       toast({
         title: "Error",
         description: "Failed to block user. Please try again.",
@@ -87,7 +88,7 @@ export function BlockReportDialog({
       setReportReason('');
       onClose();
     } catch (error) {
-      console.error('Error reporting user:', error);
+      logError(error as Error, { source: 'BlockReportDialog', action: 'reportUser', targetUserId: userId });
       toast({
         title: "Error",
         description: "Failed to submit report. Please try again.",

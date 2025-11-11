@@ -67,3 +67,5 @@ All routes are properly defined and protected. Navigation flows work correctly.
 - Chat route bypasses AppShell for full-screen experience
 - Fallback route ensures no broken links
 
+
+

@@ -19,9 +19,27 @@ service cloud.firestore {
     }
 
     // User profiles - users can read/write their own document
+    // Enforce bio (min 10 chars) and photos (at least 1) for profile updates
     match /users/{uid} {
       allow read: if isSelf(uid);
-      allow write: if isSelf(uid);
+      allow create: if isSelf(uid);
+      
+      // Update: validate bio and photos if they're being updated
+      allow update: if isSelf(uid) && (
+        // If bio/photos aren't being changed, allow update
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['bio', 'photos']) ||
+        // If bio/photos are being changed, validate them
+        (
+          // Bio validation: if bio field exists and is a string, it must be at least 10 chars
+          (!('bio' in request.resource.data) || 
+           !(request.resource.data.bio is string) || 
+           request.resource.data.bio.size() >= 10) &&
+          // Photos validation: if photos field exists and is a list, it must have at least 1 item
+          (!('photos' in request.resource.data) || 
+           !(request.resource.data.photos is list) || 
+           request.resource.data.photos.size() > 0)
+        )
+      );
     }
 
     // Onboarding progress - users can read/write their own onboarding progress

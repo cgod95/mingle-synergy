@@ -24,6 +24,8 @@ import services from '..';
 import { FirestoreMatch } from '@/types/match';
 import { firestore } from '@/firebase';
 import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
+import { logError } from '@/utils/errorHandler';
+import { FEATURE_FLAGS } from '@/lib/flags';
 
 // Use single source of truth for match expiry (24 hours)
 const MATCH_EXPIRY_TIME = MATCH_EXPIRY_MS;
@@ -126,12 +128,12 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         const { trackMatchCreated } = await import('../specAnalytics');
         trackMatchCreated(newDocRef.id, user1Id, user2Id, venueId);
       } catch (error) {
-        console.warn('Failed to track match_created event:', error);
+        logError(error as Error, { source: 'matchService', action: 'trackMatchCreated', matchId: newDocRef.id }, 'warning');
       }
       
       return newDocRef.id;
     } catch (error) {
-      console.error('Error creating match:', error);
+      logError(error as Error, { source: 'matchService', action: 'createMatch', user1Id, user2Id, venueId });
       throw error;
     }
   }
@@ -218,7 +220,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
           const { trackReconnectRequested } = await import('../specAnalytics');
           trackReconnectRequested(matchId, userId);
         } catch (error) {
-          console.warn('Failed to track reconnect_requested event:', error);
+          logError(error as Error, { source: 'matchService', action: 'trackReconnectRequested', matchId, userId }, 'warning');
         }
         
         // Increment rematch count for both users
@@ -232,7 +234,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
           const { trackReconnectAccepted } = await import('../specAnalytics');
           trackReconnectAccepted(newMatchId, user1Id, user2Id);
         } catch (error) {
-          console.warn('Failed to track reconnect_accepted event:', error);
+          logError(error as Error, { source: 'matchService', action: 'trackReconnectAccepted', newMatchId, user1Id, user2Id }, 'warning');
         }
         
         // Mark old match as reconnected
@@ -246,13 +248,13 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
           const { trackReconnectRequested } = await import('../specAnalytics');
           trackReconnectRequested(matchId, userId);
         } catch (error) {
-          console.warn('Failed to track reconnect_requested event:', error);
+          logError(error as Error, { source: 'matchService', action: 'trackReconnectRequested', matchId, userId }, 'warning');
         }
       }
       
       return true;
     } catch (error) {
-      console.error('Error requesting reconnect:', error);
+      logError(error as Error, { source: 'matchService', action: 'requestReconnect', matchId, userId });
       throw error;
     }
   }
@@ -281,7 +283,8 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     }
 
     const messagesFromSender = match.messages.filter(msg => msg.senderId === senderId);
-    if (messagesFromSender.length >= 3) {
+    const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+    if (messagesFromSender.length >= messageLimit) {
       throw new Error('Message limit reached');
     }
 
@@ -341,7 +344,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       const matchRef = doc(firestore, 'matches', matchId);
       await deleteDoc(matchRef);
     } catch (error) {
-      console.error('Error deleting match:', error);
+      logError(error as Error, { source: 'matchService', action: 'deleteMatch', matchId });
       throw error;
     }
   }
@@ -367,24 +370,32 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         return;
       }
 
-      // Check if target user has already liked current user
-      const targetUserMatches = await this.getMatches(targetUserId);
-      const targetUserLikedCurrent = targetUserMatches.find(match => 
-        (match.userId1 === currentUserId && match.userId2 === targetUserId) ||
-        (match.userId1 === targetUserId && match.userId2 === currentUserId)
-      );
+      // Check if target user has already liked current user (check likes, not matches)
+      // Use the likes collection to check for mutual likes
+      const likesRef = collection(firestore, 'likes');
+      const targetUserLikesRef = doc(likesRef, targetUserId);
+      const targetUserLikesSnap = await getDoc(targetUserLikesRef);
+      
+      const targetUserLikes = targetUserLikesSnap.exists() 
+        ? targetUserLikesSnap.data()?.likes || [] 
+        : [];
+      
+      const isMutual = targetUserLikes.includes(currentUserId);
 
-      if (targetUserLikedCurrent) {
+      if (isMutual) {
         // Mutual like detected - create a match
         const venue = await this.getVenueName(venueId);
         await this.createMatch(currentUserId, targetUserId, venueId, venue);
       } else {
-        // Create a one-way like (potential match)
-        const venue = await this.getVenueName(venueId);
-        await this.createMatch(currentUserId, targetUserId, venueId, venue);
+        // One-way like - just record the like, don't create match yet
+        // Store the like in the likes collection
+        const currentUserLikesRef = doc(likesRef, currentUserId);
+        await setDoc(currentUserLikesRef, { 
+          likes: arrayUnion(targetUserId) 
+        }, { merge: true });
       }
     } catch (error) {
-      console.error('Error liking user:', error);
+      logError(error as Error, { source: 'matchService', action: 'likeUser', currentUserId, targetUserId, venueId });
       throw error;
     }
   }
@@ -401,7 +412,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       }
       return 'Unknown Venue';
     } catch (error) {
-      console.error('Error getting venue name:', error);
+      logError(error as Error, { source: 'matchService', action: 'getVenueName', venueId });
       return 'Unknown Venue';
     }
   }
@@ -443,7 +454,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       return docRef.id;
     } catch (error) {
-      console.error('Error creating mutual match:', error);
+      logError(error as Error, { source: 'matchService', action: 'createMatchIfMutual', userId1, userId2, venueId });
       throw error;
     }
   }
@@ -495,7 +506,7 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
       }
     }
   } catch (error) {
-    console.error('Error in mutual like detection:', error);
+    logError(error as Error, { source: 'matchService', action: 'likeUserWithMutualDetection', fromUserId, toUserId, venueId });
     throw error;
   }
 };
@@ -520,7 +531,8 @@ export const sendMessage = async (
 
   // Message limit per user
   const userMessages = matchData.messages.filter(m => m.senderId === senderId);
-  if (userMessages.length >= 3) throw new Error("Message limit reached");
+  const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+  if (userMessages.length >= messageLimit) throw new Error("Message limit reached");
 
   await updateDoc(matchRef, {
     messages: arrayUnion({
@@ -673,7 +685,7 @@ export const createRematch = async (uid1: string, uid2: string, venueId: string)
     const newDocRef = await addDoc(matchRef, newMatch);
     return newDocRef.id;
   } catch (error) {
-    console.error('Error creating rematch:', error);
+    logError(error as Error, { source: 'matchService', action: 'createRematch', uid1, uid2, venueId });
     throw error;
   }
 };
@@ -796,7 +808,7 @@ export async function confirmWeMet(matchId: string, userId: string): Promise<voi
     // For example, increment a "successful meets" counter on user profiles
     
   } catch (error) {
-    console.error('Error confirming we met:', error);
+    logError(error as Error, { source: 'matchService', action: 'confirmWeMet', matchId, userId });
     throw error;
   }
 }

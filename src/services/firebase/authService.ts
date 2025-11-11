@@ -12,6 +12,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase/config';
 import { AuthService, UserCredential } from '@/types/services';
 import { logError } from '@/utils/errorHandler';
+import { logUserAction } from '@/utils/errorHandler';
 
 const errorMessages: Record<string, string> = {
   'auth/email-already-in-use': 'This email is already in use. Please try signing in instead.',
@@ -30,16 +31,14 @@ interface FirebaseErrorWithCode extends Error {
 class FirebaseAuthService implements AuthService {
   async signIn(email: string, password: string): Promise<UserCredential> {
     try {
-      console.log('Attempting sign in for:', email);
+      logUserAction('sign_in_attempt', { email });
       
       try {
         const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-        console.log('Available sign in methods:', signInMethods);
         if (signInMethods.length === 0) {
           throw new Error('No account found with this email. Would you like to sign up instead?');
         }
       } catch (error: unknown) {
-        console.warn('Failed to check if user exists:', error);
         const firebaseError = error as FirebaseErrorWithCode;
         if (firebaseError.code && firebaseError.code !== 'auth/user-not-found') {
           throw error;
@@ -47,12 +46,12 @@ class FirebaseAuthService implements AuthService {
       }
       
       const credential = await firebaseSignInWithEmailAndPassword(auth, email, password);
-      console.log('Sign in successful for user:', credential.user.uid);
+      logUserAction('sign_in_success', { userId: credential.user.uid });
       
       const userDoc = await getDoc(doc(firestore, 'users', credential.user.uid));
       
       if (!userDoc.exists()) {
-        console.log('Creating new user profile in Firestore');
+        logUserAction('create_user_profile', { userId: credential.user.uid });
         await setDoc(doc(firestore, 'users', credential.user.uid), {
           email,
           id: credential.user.uid,
@@ -74,8 +73,7 @@ class FirebaseAuthService implements AuthService {
         }
       };
     } catch (error: unknown) {
-      console.error('Sign in error:', error);
-      logError(error as Error, { source: 'auth', action: 'signIn' });
+      logError(error as Error, { source: 'auth', action: 'signIn', email });
       
       const firebaseError = error as FirebaseErrorWithCode;
       const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to sign in. Please check your credentials and try again.';
@@ -119,7 +117,7 @@ class FirebaseAuthService implements AuthService {
         }
       };
     } catch (error: unknown) {
-      console.error('Sign up error:', error);
+      logError(error as Error, { source: 'auth', action: 'signUp', email });
       
       const firebaseError = error as FirebaseErrorWithCode;
       const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to sign up. Please try again.';
@@ -135,7 +133,7 @@ class FirebaseAuthService implements AuthService {
     try {
       await firebaseSendPasswordResetEmail(auth, email);
     } catch (error: unknown) {
-      console.error('Password reset error:', error);
+      logError(error as Error, { source: 'auth', action: 'sendPasswordResetEmail', email });
       
       const firebaseError = error as FirebaseErrorWithCode;
       const errorMessage = errorMessages[firebaseError.code || ''] || 'Failed to send password reset email. Please try again.';
@@ -149,7 +147,7 @@ class FirebaseAuthService implements AuthService {
 
   onAuthStateChanged(callback: (user: User | null) => void): () => void {
     if (!auth) {
-      console.warn('Auth not initialized, using mock implementation');
+      logError(new Error('Auth not initialized'), { source: 'auth', action: 'onAuthStateChanged' });
       return () => {};
     }
     return firebaseOnAuthStateChanged(auth, callback);

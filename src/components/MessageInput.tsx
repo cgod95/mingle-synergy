@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { mockMessages } from '@/data/mock';
 import { Message } from '@/types';
+import { logUserAction } from '@/utils/errorHandler';
 
 interface MessageInputProps {
   matchId: string;
@@ -30,7 +31,8 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
       const userMessages = mockMessages.filter(
         msg => msg.matchId === matchId && msg.senderId === currentUser.uid
       );
-      const remaining = Math.max(0, 3 - userMessages.length);
+      const messageLimit = 5; // Use feature flag in production
+      const remaining = Math.max(0, messageLimit - userMessages.length);
       const canSendMessages = remaining > 0;
       
       setCanSend(canSendMessages);
@@ -59,7 +61,7 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
 
       // In a real app, this would be saved to the backend
       // For now, we'll just simulate the success
-      console.log('Message sent:', newMessage);
+      logUserAction('message_sent', { matchId, messageLength: text.trim().length });
       
       setText('');
       onMessageSent();

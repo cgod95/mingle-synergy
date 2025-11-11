@@ -29,8 +29,12 @@ export function ensureDemoLikesSeed() {
   const s = load();
   if (!s.likedMe.length) {
     // Seed more mutual likes for richer demo experience
-    // First 8 people already like you (for instant matches)
-    const mutualLikes = ["ava", "jay", "lucas", "sophia", "mila", "ethan", "zoe", "liam"];
+    // Increased from 8 to 15 people who already like you (for instant matches)
+    // This gives ~60% match rate when you like someone
+    const mutualLikes = [
+      "ava", "jay", "lucas", "sophia", "mila", "ethan", "zoe", "liam",
+      "noah", "mia", "oliver", "isla", "emma", "james", "charlotte"
+    ];
     s.likedMe = mutualLikes;
     save(s);
   }
@@ -40,8 +44,43 @@ export function ensureDemoLikesSeed() {
 export function likePerson(id: string): boolean {
   const s = load();
   if (!s.mine.includes(id)) s.mine.push(id);
-  const mutual = s.likedMe.includes(id);
-  if (mutual && !s.matches.includes(id)) s.matches.push(id);
+  
+  // Check if they already like you (instant match)
+  let mutual = s.likedMe.includes(id);
+  
+  // If not already mutual, add probability-based matching (60% chance)
+  // This makes the demo more engaging with more matches
+  if (!mutual && !s.matches.includes(id)) {
+    const matchProbability = 0.6; // 60% chance of match
+    if (Math.random() < matchProbability) {
+      // They like you back! Create mutual like
+      if (!s.likedMe.includes(id)) {
+        s.likedMe.push(id);
+      }
+      mutual = true;
+    }
+  }
+  
+  if (mutual && !s.matches.includes(id)) {
+    s.matches.push(id);
+    // Ensure chat is created when match happens
+    try {
+      const { ensureChat } = require('./chatStore');
+      const { getPerson } = require('./demoPeople');
+      const person = getPerson(id);
+      ensureChat(id, { name: person?.name });
+      
+      // Add a welcome message
+      const { appendMessage } = require('./chatStore');
+      appendMessage(id, { 
+        sender: "system", 
+        ts: Date.now(), 
+        text: "You matched! 🎉 Start chatting to make plans to meet up!" 
+      });
+    } catch (error) {
+      // Non-critical - chat creation failed
+    }
+  }
   save(s);
   return mutual;
 }

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { logError } from '@/utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -27,7 +28,7 @@ class ErrorBoundaryClass extends Component<Props & { navigate: (path: string) =>
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logError(error, { source: 'ErrorBoundary', componentStack: errorInfo.componentStack });
     
     this.setState({
       error,
@@ -38,9 +39,6 @@ class ErrorBoundaryClass extends Component<Props & { navigate: (path: string) =>
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-
-    // In a production app, you would send this to your error reporting service
-    // Example: Sentry.captureException(error, { extra: errorInfo });
   }
 
   handleRetry = () => {

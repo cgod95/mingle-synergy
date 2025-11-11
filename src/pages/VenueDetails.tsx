@@ -13,6 +13,7 @@ import BottomNav from "@/components/BottomNav";
 import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { canSeePeopleAtVenues } from "@/utils/locationPermission";
+import { logError } from "@/utils/errorHandler";
 import {
   Select,
   SelectContent,
@@ -37,17 +38,30 @@ function Toast({ text }: { text: string }) {
 export default function VenueDetails() {
   const { id } = useParams<{ id: string }>();
   const [venue, setVenue] = useState<any>(null);
+  const [loadingVenue, setLoadingVenue] = useState(true);
+  const [venueError, setVenueError] = useState<Error | null>(null);
   
   useEffect(() => {
     if (id) {
+      setLoadingVenue(true);
+      setVenueError(null);
       getVenue(id)
         .then(venue => {
-          console.log('[VenueDetails] Loaded venue:', id, venue ? venue.name : 'not found');
           setVenue(venue);
+          if (!venue) {
+            setVenueError(new Error('Venue not found'));
+          }
         })
         .catch(error => {
-          console.error('[VenueDetails] Error loading venue:', id, error);
+          logError(error instanceof Error ? error : new Error('Failed to load venue'), { 
+            context: 'VenueDetails.loadVenue', 
+            venueId: id 
+          });
+          setVenueError(error instanceof Error ? error : new Error('Failed to load venue'));
           setVenue(null);
+        })
+        .finally(() => {
+          setLoadingVenue(false);
         });
     }
   }, [id]);
@@ -75,7 +89,33 @@ export default function VenueDetails() {
     }
   }, [venue?.id]);
 
-  if (!venue) return <div className="p-4">Venue not found</div>;
+  if (loadingVenue) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-neutral-600">Loading venue...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (venueError || !venue) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Venue Not Found</h2>
+          <p className="text-gray-600 mb-4">
+            {venueError?.message || 'The venue you\'re looking for doesn\'t exist or has been removed.'}
+          </p>
+          <Button onClick={() => navigate('/checkin')} variant="default">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Venues
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleCheckIn = async () => {
     // Check location permission first
@@ -116,7 +156,7 @@ export default function VenueDetails() {
       const { trackUserCheckedIn } = await import("@/services/specAnalytics");
       trackUserCheckedIn(venue.id, venue.name);
     } catch (error) {
-      console.warn('Failed to track user_checked_in event:', error);
+      // Failed to track check-in event - non-critical
     }
     
     setToast(`Checked in to ${venue.name}`);
@@ -248,7 +288,7 @@ export default function VenueDetails() {
                   <h3 className="font-semibold text-neutral-800 mb-1">How Mingle Works</h3>
                   <p className="text-sm text-neutral-600 leading-relaxed">
                     <strong>Like someone</strong> to show interest. If they like you back, you'll <strong>match</strong> and can start chatting. 
-                    You have <strong>3 messages</strong> to make plans to meet up in person. Matches expire after <strong>24 hours</strong> - 
+                    You have <strong>5 messages</strong> to make plans to meet up in person. Matches expire after <strong>24 hours</strong> - 
                     reconnect by checking in again!
                   </p>
                 </div>

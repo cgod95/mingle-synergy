@@ -11,6 +11,8 @@ import config from "@/config";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { RetryButton } from "@/components/ui/RetryButton";
 import { retryWithMessage, isNetworkError } from "@/utils/retry";
+import { logError } from "@/utils/errorHandler";
+import { VenueCardSkeleton } from "@/components/ui/LoadingStates";
 
 const ACTIVE_KEY = "mingle_active_venue";
 
@@ -40,7 +42,7 @@ export default function CheckInPage() {
       const venue = venues.find(v => v.id === id);
       trackUserCheckedIn(id, venue?.name || id);
     } catch (error) {
-      console.warn('Failed to track user_checked_in event:', error);
+      // Failed to track check-in event - non-critical
     }
     
     navigate(`/venues/${id}`);
@@ -56,7 +58,6 @@ export default function CheckInPage() {
         { operationName: 'loading venues', maxRetries: 3 }
       );
       
-      console.log('[CheckInPage] Loaded venues:', loadedVenues.length);
       setVenues(loadedVenues);
       
       // Auto-check-in if coming from QR code URL
@@ -76,7 +77,7 @@ export default function CheckInPage() {
                 trackUserCheckedIn(qrVenueId, venue.name);
               });
             } catch (error) {
-              console.warn('Failed to track user_checked_in event:', error);
+              // Failed to track check-in event - non-critical
             }
             
             navigate(`/venues/${qrVenueId}`);
@@ -84,7 +85,9 @@ export default function CheckInPage() {
         }
       }
     } catch (error) {
-      console.error('[CheckInPage] Error loading venues:', error);
+      logError(error instanceof Error ? error : new Error('Failed to load venues'), { 
+        context: 'CheckInPage.loadVenues' 
+      });
       setVenueError(error instanceof Error ? error : new Error('Failed to load venues'));
       setVenues([]);
     } finally {
@@ -141,7 +144,7 @@ export default function CheckInPage() {
                   <li><strong>Check into a venue</strong> where you are (within 500m)</li>
                   <li><strong>See people</strong> who are also checked in there</li>
                   <li><strong>Like someone</strong> - if they like you back, you match!</li>
-                  <li><strong>Chat (3 messages)</strong> to make plans to meet up</li>
+                  <li><strong>Chat (5 messages)</strong> to make plans to meet up</li>
                   <li><strong>Meet in person</strong> - that's what Mingle is all about!</li>
                 </ol>
               </div>
@@ -240,9 +243,10 @@ export default function CheckInPage() {
         )}
 
         {loadingVenues && venues.length === 0 && !venueError && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-neutral-600">Loading venues...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <VenueCardSkeleton key={i} index={i} />
+            ))}
           </div>
         )}
 

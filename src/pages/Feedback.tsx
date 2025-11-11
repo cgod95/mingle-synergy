@@ -6,6 +6,7 @@ import { feedbackRepo } from "@/services/feedbackRepo";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import BottomNav from "@/components/BottomNav";
+import { logError } from "@/utils/errorHandler";
 
 type FeedbackItem = { id?: string; message: string; createdAt: number; from?: string | null };
 
@@ -26,7 +27,7 @@ export default function Feedback() {
       const all = await feedbackRepo.list();
       setItems(all);
     } catch (error) {
-      console.error('Error loading feedback:', error);
+      logError(error as Error, { source: 'Feedback', action: 'loadFeedback' });
     }
   }
 
@@ -42,7 +43,7 @@ export default function Feedback() {
       setTimeout(() => setBanner(null), 2000);
       await loadFeedback(); // Reload to show new feedback
     } catch (error) {
-      console.error('Error saving feedback:', error);
+      logError(error as Error, { source: 'Feedback', action: 'saveFeedback' });
       setBanner("❌ Failed to save feedback. Please try again.");
       setTimeout(() => setBanner(null), 2000);
     } finally {
