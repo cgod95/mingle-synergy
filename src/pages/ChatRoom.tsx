@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Send, MoreVertical, Sparkles, Heart } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import MingleLogo from "@/components/ui/MingleLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -181,7 +182,7 @@ export default function ChatRoom() {
 
   if (!matchId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 p-4 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 text-center">
           <p className="text-neutral-600">Chat not found.</p>
           <Button onClick={() => navigate(-1)} className="mt-4" variant="outline">
@@ -277,18 +278,13 @@ export default function ChatRoom() {
   };
 
       return (
-        <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50 z-50">
+        <div className="fixed inset-0 flex flex-col bg-neutral-50 z-50">
           <div className="max-w-md mx-auto w-full h-full flex flex-col bg-white shadow-xl">
             <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
             {/* Mingle Branding */}
             <div className="bg-white/80 backdrop-blur-md border-b border-neutral-200 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
-              <Link to="/matches" className="flex items-center space-x-2 group">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                  <Heart className="w-4 h-4 text-white fill-white" />
-                </div>
-                <span className="text-lg font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Mingle
-                </span>
+              <Link to="/matches" className="group">
+                <MingleLogo size="sm" showText={true} />
               </Link>
             </div>
           {/* Header */}
@@ -301,11 +297,11 @@ export default function ChatRoom() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <Avatar className="h-10 w-10 ring-2 ring-indigo-100">
+        <Avatar className="h-10 w-10 ring-2 ring-[#FFE5E5] rounded-md">
           {matchAvatar ? (
-            <AvatarImage src={matchAvatar} alt={matchName} />
+            <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
           ) : null}
-          <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white">
+          <AvatarFallback className="bg-[#FF6B6B] text-white rounded-md">
             {matchName.charAt(0)}
           </AvatarFallback>
         </Avatar>
@@ -346,10 +342,10 @@ export default function ChatRoom() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-xl border border-indigo-200 p-3"
+            className="mb-4 bg-[#FFE5E5] rounded-xl border border-[#FFB3B3] p-3"
           >
             <div className="flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+              <Sparkles className="w-4 h-4 text-[#FF6B6B] mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-xs font-medium text-neutral-700 mb-1">You have 5 messages to make plans</p>
                 <p className="text-xs text-neutral-600">Focus on meeting up in person - that's what Mingle is all about!</p>
@@ -366,7 +362,7 @@ export default function ChatRoom() {
             className="mb-4"
           >
             <div className="flex items-center gap-2 mb-3 px-2">
-              <Sparkles className="w-4 h-4 text-indigo-500" />
+              <Sparkles className="w-4 h-4 text-[#FF6B6B]" />
               <p className="text-sm font-medium text-neutral-600">Try a conversation starter</p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -380,7 +376,7 @@ export default function ChatRoom() {
                     setShowStarters(false);
                     inputRef.current?.focus();
                   }}
-                  className="px-4 py-2 text-sm bg-white border-2 border-indigo-200 rounded-full text-neutral-700 hover:border-indigo-400 hover:bg-indigo-50 transition-all"
+                  className="px-4 py-2 text-sm bg-white border-2 border-[#FFB3B3] rounded-full text-neutral-700 hover:border-[#FF6B6B] hover:bg-[#FFE5E5] transition-all"
                 >
                   {starter}
                 </motion.button>
@@ -401,11 +397,11 @@ export default function ChatRoom() {
             >
               {/* Avatar for their messages */}
               {m.sender === "them" && (
-                <Avatar className="h-8 w-8 flex-shrink-0">
+                <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
                   {matchAvatar ? (
-                    <AvatarImage src={matchAvatar} alt={matchName} />
+                    <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
                   ) : null}
-                  <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white text-xs">
+                  <AvatarFallback className="bg-[#FF6B6B] text-white text-xs rounded-md">
                     {matchName.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -414,7 +410,7 @@ export default function ChatRoom() {
               <div
                 className={`max-w-[75%] sm:max-w-[70%] rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 shadow-sm ${
                   m.sender === "you"
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-br-sm"
+                    ? "bg-[#FF6B6B] text-white rounded-br-sm"
                     : "bg-white border-2 border-neutral-200 text-neutral-700 rounded-bl-sm"
                 }`}
               >
@@ -426,8 +422,8 @@ export default function ChatRoom() {
 
               {/* Avatar for your messages (smaller, optional) */}
               {m.sender === "you" && (
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-xs">
+                <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
+                  <AvatarFallback className="bg-[#FF8C42] text-white text-xs rounded-md">
                     {currentUser?.name?.charAt(0) || "Y"}
                   </AvatarFallback>
                 </Avatar>
@@ -444,11 +440,11 @@ export default function ChatRoom() {
             exit={{ opacity: 0 }}
             className="flex items-center gap-2 px-2"
           >
-            <Avatar className="h-8 w-8 flex-shrink-0">
+            <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
               {matchAvatar ? (
-                <AvatarImage src={matchAvatar} alt={matchName} />
+                <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
               ) : null}
-              <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-400 text-white text-xs">
+              <AvatarFallback className="bg-[#FF6B6B] text-white text-xs rounded-md">
                 {matchName.charAt(0)}
               </AvatarFallback>
             </Avatar>
@@ -495,7 +491,7 @@ export default function ChatRoom() {
               {remainingMessages === 0 && (
                 <button
                   onClick={() => setShowMessageLimitModal(true)}
-                  className="text-indigo-600 hover:text-indigo-700 underline text-xs"
+                  className="text-[#FF6B6B] hover:text-[#FF5252] underline text-xs"
                 >
                   Learn more
                 </button>
@@ -518,7 +514,7 @@ export default function ChatRoom() {
                   : "Type a message..."
               }
               disabled={!canSendMsg}
-              className={`w-full rounded-full border-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm ${
+              className={`w-full rounded-full border-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FF6B6B] focus:border-transparent shadow-sm ${
                 !canSendMsg 
                   ? 'border-red-200 bg-red-50 text-neutral-400 cursor-not-allowed' 
                   : 'border-neutral-300 bg-white'
@@ -535,7 +531,7 @@ export default function ChatRoom() {
           <Button
             type="submit"
             disabled={!text.trim() || !canSendMsg || sending}
-            className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0"
+            className="rounded-full bg-[#FF6B6B] hover:bg-[#FF5252] text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0"
             size="icon"
             title={!canSendMsg ? "Message limit reached. Reconnect at a venue to continue chatting." : sending ? "Sending..." : ""}
           >

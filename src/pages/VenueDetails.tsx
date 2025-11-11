@@ -376,7 +376,7 @@ export default function VenueDetails() {
               </p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {people.map((p) => (
                 <motion.div
                   key={p.id}

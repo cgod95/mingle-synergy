@@ -2,8 +2,8 @@
 // Displays Mingle logo/branding in top left across all pages
 
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import MingleLogo from '@/components/ui/MingleLogo';
 
 export default function MingleHeader() {
   return (
@@ -17,23 +17,9 @@ export default function MingleHeader() {
           <Link
             to="/checkin"
             aria-label="Mingle - Go to check in"
-            className="flex items-center space-x-2 group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-md p-1"
+            className="group focus:outline-none focus:ring-2 focus:ring-[#FF6B6B] focus:ring-offset-2 rounded-md p-1"
           >
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-                <Heart className="w-5 h-5 text-white fill-white" />
-              </div>
-            </motion.div>
-            <motion.span
-              className="text-xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent"
-              whileHover={{ scale: 1.05 }}
-            >
-              Mingle
-            </motion.span>
+            <MingleLogo size="md" showText={true} />
           </Link>
         </div>
       </div>

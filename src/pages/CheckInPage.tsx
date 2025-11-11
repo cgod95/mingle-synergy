@@ -174,7 +174,7 @@ export default function CheckInPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+              className="text-[#FF6B6B] hover:text-[#FF5252] hover:bg-[#FFE5E5]"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -190,7 +190,7 @@ export default function CheckInPage() {
             <h1 className="text-heading-1 mb-2">Venues</h1>
             <p className="text-body-secondary mb-3">Check in to see who's here. Scan a QR code or select a venue below.</p>
             <div className="flex items-center gap-2 text-sm text-neutral-600">
-              <MapPin className="w-4 h-4 text-indigo-600" />
+              <MapPin className="w-4 h-4 text-[#FF6B6B]" />
               <span>Showing venues closest to you</span>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function CheckInPage() {
           className="mb-4"
         >
           <Card 
-            className="border-2 border-indigo-500 bg-indigo-50 cursor-pointer hover:border-indigo-600 hover:bg-indigo-100 hover:shadow-lg transition-all"
+            className="border-2 border-[#FF6B6B] bg-[#FFE5E5] cursor-pointer hover:border-[#FF5252] hover:bg-[#FFB3B3] hover:shadow-lg transition-all"
             onClick={() => {
               // For now, show message about using phone camera
               // Scanner component will be enabled when html5-qrcode is installed
@@ -211,7 +211,7 @@ export default function CheckInPage() {
             }}
           >
             <div className="p-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-600 flex items-center justify-center shadow-md">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#FF6B6B] flex items-center justify-center shadow-md">
                 <QrCode className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-xl font-bold text-neutral-900 mb-2">
@@ -232,9 +232,9 @@ export default function CheckInPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl"
+            className="mb-4 p-4 bg-[#FFE5E5] border border-[#FFB3B3] rounded-xl"
           >
-            <p className="text-sm text-indigo-700 font-medium">
+            <p className="text-sm text-[#FF5252] font-medium">
               📱 Scanned QR code for {venues.find(v => v.id === qrVenueId)?.name || "venue"} - Checking you in...
             </p>
           </motion.div>
@@ -283,7 +283,7 @@ export default function CheckInPage() {
                     }
                   }}
                   variant="outline"
-                  className="w-full border-0 text-indigo-600 hover:bg-indigo-50 font-medium"
+                  className="w-full border-0 text-[#FF6B6B] hover:bg-[#FFE5E5] font-medium"
                 >
                   <MapPin className="w-4 h-4 mr-2" />
                   I'm Here (Auto-detect)
@@ -364,8 +364,8 @@ export default function CheckInPage() {
                 <Card
                   className={`cursor-pointer transition-all h-full overflow-hidden ${
                     preselect === v.id
-                      ? "border-2 border-indigo-500 shadow-md bg-indigo-50"
-                      : "border border-neutral-200 hover:border-indigo-300 hover:shadow-md bg-white"
+                      ? "border-2 border-[#FF6B6B] shadow-md bg-[#FFE5E5]"
+                      : "border border-neutral-200 hover:border-[#FFB3B3] hover:shadow-md bg-white"
                   }`}
                   onClick={() => onCheckIn(v.id)}
                 >
@@ -389,7 +389,7 @@ export default function CheckInPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     {distanceText && (
                       <div className="absolute top-3 right-3">
-                        <Badge className="bg-white/90 backdrop-blur-sm border-0 text-indigo-600 font-medium shadow-md">
+                        <Badge className="bg-white/90 backdrop-blur-sm border-0 text-[#FF6B6B] font-medium shadow-md">
                           {distanceText}
                         </Badge>
                       </div>
@@ -397,25 +397,29 @@ export default function CheckInPage() {
                   </div>
                   
                   <div className="p-5">
-                    <h3 className="font-bold text-neutral-900 text-lg mb-1">{v.name}</h3>
-                    {v.address && (
-                      <div className="flex items-center space-x-1 text-sm text-neutral-500 mb-2">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span className="truncate">{v.address}</span>
-                      </div>
-                    )}
-                    {v.openingHours && (
-                      <p className="text-xs text-neutral-500 mb-2">{v.openingHours}</p>
+                    <h3 className="font-bold text-neutral-900 text-lg mb-2">{v.name}</h3>
+                    {(v.openingHours || v.address) && (
+                      <p className="text-xs text-neutral-600 mb-2">
+                        {v.openingHours && (
+                          <>
+                            {v.openingHours.includes('until') || v.openingHours.includes('Closes') 
+                              ? v.openingHours.replace(/Closes|Open until/gi, 'Open until').trim()
+                              : `Open until ${v.openingHours}`}
+                            {v.address && ' • '}
+                          </>
+                        )}
+                        {v.address}
+                      </p>
                     )}
                     {v.checkInCount !== undefined && v.checkInCount > 0 && (
-                      <div className="mb-3 text-sm font-medium text-indigo-600">
+                      <div className="mb-3 text-sm font-medium text-[#FF6B6B]">
                         {v.checkInCount} {v.checkInCount === 1 ? 'person' : 'people'} here
                       </div>
                     )}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full text-indigo-600 hover:bg-indigo-50 font-medium border-0"
+                      className="w-full text-[#FF6B6B] hover:bg-[#FFE5E5] font-medium border-0"
                     >
                       Check In →
                     </Button>

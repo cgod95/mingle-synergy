@@ -85,7 +85,7 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-3 gap-4">
       {otherUsers.map((user) => {
         const isRematchable = rematchableUsers.includes(user.id);
         const isLiked = likedIds.includes(user.id);
