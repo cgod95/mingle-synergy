@@ -8,7 +8,6 @@ import { useOnboarding } from '../context/OnboardingContext';
 import config from '../config';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, loading] = useAuthState(auth);
   const { currentUser } = useUser();
   const { isOnboardingComplete, getNextOnboardingStep } = useOnboarding();
 
@@ -23,7 +22,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <>{children}</>;
   }
 
-  // Normal Firebase auth flow
+  // Normal Firebase auth flow - only use Firebase hooks if not in demo mode
+  const [user, loading] = useAuthState(auth || null);
   if (loading) return <div className="p-4">Loading...</div>;
   if (!user) return <Navigate to="/signin" replace />;
   

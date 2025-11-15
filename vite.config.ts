@@ -27,8 +27,9 @@ export default defineConfig({
     }),
   ],
   server: {
+    port: 5173,
     hmr: {
-      clientPort: 5179,
+      port: 5173,
     },
   },
   resolve: {
