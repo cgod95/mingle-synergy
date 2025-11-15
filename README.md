@@ -58,11 +58,12 @@ A modern, real-time social networking application that connects people at venues
    
    Update `.env` with your configuration (see Environment Variables section below).
 
-4. **Firebase Setup**
-   - Create a new Firebase project
+4. **Firebase Setup** (Optional for Demo Mode)
+   - **For Production:** Create a new Firebase project
    - Enable Authentication, Firestore, and Functions
    - Configure security rules
    - Set up hosting (optional)
+   - **For Demo Mode:** Firebase setup is not required - the app will skip Firebase initialization automatically
 
 5. **Run Development Server**
    ```bash
@@ -87,9 +88,11 @@ The application uses the following environment variables. Copy `.env.example` to
 ### Development Settings
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `VITE_DEMO_MODE` | Enable demo mode with mock data | `false` |
+| `VITE_DEMO_MODE` | Enable demo mode with mock data (Firebase not required) | `false` |
 | `VITE_USE_MOCK` | Use mock services instead of Firebase | `false` |
 | `VITE_ENVIRONMENT` | Application environment | `development` |
+
+**Note:** When `VITE_DEMO_MODE=true` or running in development mode (`MODE=development`), Firebase initialization is completely skipped. No Firebase credentials are needed and the app uses UserContext for authentication instead of Firebase Auth.
 
 ### Firebase Emulator Settings (Local Development)
 | Variable | Description | Default |

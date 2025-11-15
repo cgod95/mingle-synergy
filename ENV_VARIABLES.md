@@ -42,6 +42,12 @@ VITE_DEMO_MODE=true
 # (MODE=development) even if VITE_DEMO_MODE is not set
 ```
 
+**Important:** When demo mode is enabled:
+- Firebase initialization is **completely skipped** - no Firebase credentials needed
+- Authentication uses UserContext instead of Firebase Auth
+- All services use mock implementations
+- No Firebase errors will occur even without Firebase configuration
+
 ### Demo Free Access Window
 ```bash
 # Option 1: Set specific expiry date (ISO format)
@@ -261,18 +267,27 @@ VITE_ENABLE_PUSH_NOTIFICATIONS=true
 1. **Demo Mode Defaults:**
    - Automatically enabled when `MODE=development`
    - Unlimited messages, matches, and features
-   - No Firebase required
+   - **No Firebase required** - Firebase initialization is completely skipped in demo mode
+   - Uses UserContext for authentication instead of Firebase Auth
+   - All Firebase-related errors are prevented when demo mode is active
 
-2. **Variable Prefix:**
+2. **Firebase Initialization:**
+   - Firebase only initializes when:
+     - `VITE_DEMO_MODE` is not `true` AND
+     - `MODE` is not `development` AND
+     - Valid Firebase credentials (`VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_PROJECT_ID`) are provided
+   - In demo mode, Firebase exports (`auth`, `firestore`, `storage`) will be `null` and components handle this gracefully
+
+3. **Variable Prefix:**
    - All variables must start with `VITE_` to be exposed to the client
    - Variables without `VITE_` prefix are not accessible in the browser
 
-3. **Security:**
+4. **Security:**
    - Never commit `.env` files to git
    - Use `.env.example` as a template
    - Firebase API keys are safe to expose (they're public keys)
 
-4. **Defaults:**
+5. **Defaults:**
    - Most variables have sensible defaults
    - Demo mode is auto-enabled in development
    - Check `src/config.ts` and `src/lib/flags.ts` for defaults
