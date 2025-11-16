@@ -1,7 +1,7 @@
 // Real-time service for live updates and data synchronization
 
 import { analytics } from './analytics';
-import { config } from '@/config';
+import config from '@/config';
 
 export interface RealtimeEvent {
   type: string;
