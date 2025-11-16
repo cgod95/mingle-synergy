@@ -1,61 +1,147 @@
-import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+// 🧠 Purpose: Create the SignUp page to allow new users to create accounts. Matches SignIn page design with dark theme.
+
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Layout from '@/components/Layout';
+import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 
 export default function SignUp() {
   const { signUpUser } = useAuth();
-  const nav = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setErr(null);
+    setError(null);
+    
+    // Basic validation
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setBusy(false);
+      return;
+    }
+
     try {
       await signUpUser(email, password);
       // New users should go through onboarding flow
-      nav("/onboarding");
+      navigate('/onboarding');
     } catch (e: any) {
-      setErr(e?.message || "Failed to sign up");
+      // Provide user-friendly error messages
+      const errorMessage = e?.message || 'Failed to sign up';
+      if (errorMessage.includes('email-already-in-use')) {
+        setError('This email is already registered. Please sign in instead.');
+      } else if (errorMessage.includes('invalid-email')) {
+        setError('Please enter a valid email address.');
+      } else if (errorMessage.includes('weak-password')) {
+        setError('Password is too weak. Please use a stronger password.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <main style={{ padding: 24, maxWidth: 420, margin: "0 auto" }}>
-      <h1>Create account</h1>
-      <form onSubmit={submit} style={{ display: "grid", gap: 12, marginTop: 16 }}>
-        <input
-          placeholder="Email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: 10 }}
-        />
-        <input
-          placeholder="Password (min 6 chars)"
-          type="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={6}
-          required
-          style={{ padding: 10 }}
-        />
-        <button type="submit" disabled={busy} style={{ padding: 10 }}>
-          {busy ? "Creating…" : "Create account"}
-        </button>
-        {err && <div style={{ color: "crimson", fontSize: 12 }}>{err}</div>}
-      </form>
-      <p style={{ marginTop: 12 }}>
-        Have an account? <Link to="/signin">Sign in</Link>
-      </p>
-    </main>
+    <Layout>
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-sm"
+        >
+          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+            <CardHeader className="text-center space-y-2 pb-6">
+              <CardTitle className="text-2xl font-bold text-white">Create account</CardTitle>
+              <p className="text-sm text-neutral-400">Join Mingle and start meeting people</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-neutral-300">Email</label>
+                  <Input 
+                    placeholder="Enter your email" 
+                    type="email"
+                    autoComplete="email"
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
+                    required
+                    disabled={busy}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-neutral-300">Password</label>
+                  <Input 
+                    placeholder="Password (min 6 characters)" 
+                    type="password"
+                    autoComplete="new-password"
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)}
+                    minLength={6}
+                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
+                    required
+                    disabled={busy}
+                  />
+                  <p className="text-xs text-neutral-500">Must be at least 6 characters</p>
+                </div>
+                
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg"
+                  >
+                    <p className="text-sm text-red-400">{error}</p>
+                  </motion.div>
+                )}
+                
+                <Button 
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={busy || !email.trim() || !password.trim()}
+                >
+                  {busy ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    'Create account'
+                  )}
+                </Button>
+              </form>
+              
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-neutral-700"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-4 bg-neutral-800 text-neutral-500">Already have an account?</span>
+                </div>
+              </div>
+              
+              <Button
+                asChild
+                variant="outline"
+                className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
+              >
+                <Link to="/signin">Sign in</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </Layout>
   );
 }

@@ -114,6 +114,13 @@ export default function Matches() {
     return `${minutes}m`;
   };
 
+  // Get expiry color based on remaining time
+  const getExpiryColor = (remainingSeconds: number): string => {
+    if (remainingSeconds < 30 * 60) return 'text-red-400 border-red-500 bg-red-900/30'; // < 30 min - red
+    if (remainingSeconds < 60 * 60) return 'text-orange-400 border-orange-500 bg-orange-900/30'; // < 1 hour - orange
+    return 'text-green-400 border-green-500 bg-green-900/20'; // > 1 hour - green
+  };
+
   const handleMatchClick = (matchId: string) => {
     navigate(`/chat/${matchId}`);
   };
@@ -243,9 +250,12 @@ export default function Matches() {
                 <div className="space-y-3">
                   <AnimatePresence>
                     {activeMatchesList.map((match, index) => {
+                  const remainingSeconds = getRemainingSeconds(match);
                   const remainingTime = formatRemainingTime(match.expiresAt);
-                  const isExpiringSoon = getRemainingSeconds(match) < 30 * 60; // Less than 30 minutes
+                  const isExpiringSoon = remainingSeconds < 30 * 60; // Less than 30 minutes
+                  const isExpiringVerySoon = remainingSeconds < 15 * 60; // Less than 15 minutes
                   const matchExpired = isExpired(match);
+                  const expiryColor = getExpiryColor(remainingSeconds);
                   
                   return (
                     <motion.div
@@ -261,9 +271,11 @@ export default function Matches() {
                         className={`cursor-pointer transition-all border overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
                           matchExpired
                             ? "opacity-60 border-neutral-700 bg-neutral-800/50"
+                            : isExpiringVerySoon
+                            ? "border-red-500 bg-red-900/10 hover:shadow-lg hover:border-red-400"
                             : isExpiringSoon
-                            ? "border-orange-500 bg-orange-900/20 hover:shadow-md hover:border-orange-400"
-                            : "border-neutral-700 bg-neutral-800 hover:shadow-lg hover:border-indigo-500"
+                            ? "border-orange-500 bg-orange-900/10 hover:shadow-lg hover:border-orange-400"
+                            : "border-neutral-700 bg-neutral-800 hover:shadow-xl hover:border-indigo-500"
                         }`}
                         onClick={() => handleMatchClick(match.id)}
                         onKeyDown={(e) => {
@@ -277,49 +289,61 @@ export default function Matches() {
                         aria-label={`Match with ${match.displayName || 'Match'}`}
                       >
                         <div className="flex items-center gap-4 px-4 py-4 md:px-6 md:py-6">
-                          {/* Avatar */}
-                            <Avatar className="h-20 w-20 flex-shrink-0 ring-2 ring-offset-2 ring-offset-neutral-800 ring-indigo-500">
-                            {match.avatarUrl ? (
-                              <AvatarImage 
-                                src={match.avatarUrl} 
-                                alt={match.displayName || "Match"}
-                              />
-                            ) : null}
-                            <AvatarFallback className="bg-indigo-600 text-white font-bold text-2xl">
-                              {(match.displayName || "M").charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
+                          {/* Avatar - Enhanced with unread indicator */}
+                          <div className="relative flex-shrink-0">
+                            <Avatar className={`h-20 w-20 flex-shrink-0 ring-2 ring-offset-2 ring-offset-neutral-800 ${
+                              match.unreadCount && match.unreadCount > 0 
+                                ? 'ring-indigo-500' 
+                                : 'ring-neutral-600'
+                            }`}>
+                              {match.avatarUrl ? (
+                                <AvatarImage 
+                                  src={match.avatarUrl} 
+                                  alt={match.displayName || "Match"}
+                                />
+                              ) : null}
+                              <AvatarFallback className="bg-indigo-600 text-white font-bold text-2xl">
+                                {(match.displayName || "M").charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            {match.unreadCount && match.unreadCount > 0 && (
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-neutral-800">
+                                <span className="text-xs font-bold text-white">{match.unreadCount}</span>
+                              </div>
+                            )}
+                          </div>
 
                           {/* Content */}
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <h3 className="font-bold text-xl text-white truncate">
+                                <h3 className={`font-bold text-xl truncate ${
+                                  match.unreadCount && match.unreadCount > 0 
+                                    ? 'text-white' 
+                                    : 'text-neutral-200'
+                                }`}>
                                   {match.displayName || "Match"}
                                 </h3>
                                 {match.isNew && (
-                                  <Badge className="bg-purple-600 text-white text-xs px-2 py-0.5 animate-pulse">
+                                  <Badge className="bg-purple-600 text-white text-xs px-2 py-0.5 shadow-lg">
                                     <Star className="w-3 h-3 mr-1" />
                                     New
                                   </Badge>
                                 )}
-                                {match.unreadCount && match.unreadCount > 0 && (
-                                  <Badge className="bg-indigo-600 text-white text-xs px-2.5 py-0.5">
-                                    {match.unreadCount}
-                                  </Badge>
-                                )}
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
-                                {isExpiringSoon && !matchExpired && (
-                                  <Badge variant="destructive" className="text-xs animate-pulse">
+                                {!matchExpired && (
+                                  <Badge className={`text-xs border ${expiryColor} ${
+                                    isExpiringVerySoon ? 'animate-pulse' : ''
+                                  }`}>
                                     <Clock className="w-3 h-3 mr-1" />
                                     {remainingTime}
                                   </Badge>
                                 )}
                                 {match.lastMessageTime && (
-                                <span className="text-xs text-neutral-400 font-medium">
-                                  {timeAgo(match.lastMessageTime)}
-                                </span>
+                                  <span className="text-xs text-neutral-400 font-medium whitespace-nowrap">
+                                    {timeAgo(match.lastMessageTime)}
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -327,7 +351,11 @@ export default function Matches() {
                             {/* Last Message Preview - PRIORITIZED */}
                             {match.lastMessage ? (
                               <div className="mb-2">
-                                <p className="text-sm text-neutral-200 line-clamp-2 font-medium">
+                                <p className={`text-sm line-clamp-2 ${
+                                  match.unreadCount && match.unreadCount > 0
+                                    ? 'text-white font-semibold'
+                                    : 'text-neutral-300 font-medium'
+                                }`}>
                                   {match.lastMessage}
                                 </p>
                               </div>
@@ -339,15 +367,15 @@ export default function Matches() {
                             
                             {/* Venue Info - SECONDARY - Reduced weight */}
                             {match.venueName && (
-                              <div className="inline-flex items-center gap-1.5 mb-2 px-2 py-1 bg-indigo-900/20 rounded-md border border-indigo-700/50">
+                              <div className="inline-flex items-center gap-1.5 mb-2 px-2 py-1 bg-indigo-900/10 rounded-md border border-indigo-700/30">
                                 <MapPin className="w-3 h-3 text-indigo-400 flex-shrink-0" />
-                                <span className="text-xs text-indigo-300">
+                                <span className="text-xs text-indigo-300/80">
                                   Met at {match.venueName}
                                 </span>
                               </div>
                             )}
 
-                            {/* Time Remaining Badge */}
+                            {/* Time Remaining Badge - Only show if not expired and not expiring soon */}
                             {matchExpired ? (
                               <div className="mt-2 flex items-center gap-2">
                                 <Badge variant="outline" className="text-xs text-neutral-500 border-neutral-600 bg-neutral-800">
@@ -368,7 +396,7 @@ export default function Matches() {
                               </div>
                             ) : !isExpiringSoon && (
                               <div className="mt-1">
-                                <Badge variant="outline" className="text-xs text-neutral-300 border-neutral-600 bg-neutral-800/50">
+                                <Badge variant="outline" className="text-xs text-green-400 border-green-600 bg-green-900/20">
                                   <Clock className="w-3 h-3 mr-1" />
                                   Active for {remainingTime}
                                 </Badge>
@@ -377,7 +405,11 @@ export default function Matches() {
                           </div>
 
                           {/* Arrow */}
-                          <ArrowRight className="w-5 h-5 text-neutral-400 flex-shrink-0" />
+                          <ArrowRight className={`w-5 h-5 flex-shrink-0 ${
+                            match.unreadCount && match.unreadCount > 0
+                              ? 'text-indigo-400'
+                              : 'text-neutral-500'
+                          }`} />
                         </div>
                       </Card>
                     </motion.div>

@@ -1,5 +1,6 @@
-import { doc, updateDoc, increment, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
+// Firebase imports removed - notificationService works with localStorage in demo mode
+// import { doc, updateDoc, increment, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
+// import { firestore } from '@/firebase/config';
 import { analytics } from './analytics';
 import { advancedFeatures } from './advancedFeatures';
 

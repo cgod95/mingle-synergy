@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { FirestoreMatch } from "@/types/match";
 import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
+import config from "@/config";
 
 const MATCH_EXPIRATION_HOURS = 3; // Keep for compatibility, but use MATCH_EXPIRY_MS for calculations
 
@@ -20,6 +21,13 @@ export function useRealtimeMatches(): FirestoreMatch[] {
 
   useEffect(() => {
     if (!currentUser?.uid) return;
+    
+    // CRITICAL: Guard against null Firebase in demo mode
+    if (!db) {
+      // In demo mode, Firebase is null - return empty array
+      setMatches([]);
+      return;
+    }
 
     const matchRef = collection(db, "matches");
     const q = query(

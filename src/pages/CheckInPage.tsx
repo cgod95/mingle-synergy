@@ -222,7 +222,7 @@ export default function CheckInPage() {
             className="w-full max-w-md"
           >
             <Card 
-              className="border-2 border-indigo-600 bg-gradient-to-br from-indigo-900/40 to-purple-900/30 cursor-pointer hover:border-indigo-500 hover:from-indigo-900/50 hover:to-purple-900/40 hover:shadow-xl transition-all relative"
+              className="border-2 border-indigo-600 bg-gradient-to-br from-indigo-900/40 to-purple-900/30 cursor-pointer hover:border-indigo-500 hover:from-indigo-900/50 hover:to-purple-900/40 hover:shadow-xl transition-all relative group"
               onClick={() => {
                 // For now, show message about using phone camera
                 // Scanner component will be enabled when html5-qrcode is installed
@@ -234,7 +234,7 @@ export default function CheckInPage() {
               aria-label="Scan QR code to check in"
             >
               <div className="px-6 py-6 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <QrCode className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-white mb-2">
@@ -269,7 +269,7 @@ export default function CheckInPage() {
               className="w-full max-w-md"
             >
               <Card
-                className="border-2 border-indigo-600/70 bg-indigo-900/20 cursor-pointer hover:border-indigo-500 hover:bg-indigo-900/30 hover:shadow-lg transition-all relative"
+                className="border-2 border-indigo-600/70 bg-indigo-900/20 cursor-pointer hover:border-indigo-500 hover:bg-indigo-900/30 hover:shadow-lg transition-all relative group"
                 onClick={async () => {
                   setIsCheckingIn(true);
                   try {
@@ -323,7 +323,7 @@ export default function CheckInPage() {
                 aria-label="Auto check-in using location"
               >
                 <div className="px-6 py-5 text-center">
-                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-indigo-600/80 flex items-center justify-center shadow-md">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-indigo-600/80 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
                     <MapPin className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-lg font-bold text-white mb-1.5">
@@ -435,6 +435,29 @@ export default function CheckInPage() {
               <VenueCardSkeleton key={i} index={i} />
             ))}
           </div>
+        )}
+
+        {!loadingVenues && !venueError && venues.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-8 bg-neutral-800 rounded-xl border-2 border-neutral-700 text-center"
+          >
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-900 flex items-center justify-center">
+              <MapPin className="w-8 h-8 text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">No venues found nearby</h3>
+            <p className="text-sm text-neutral-300 mb-4">
+              We couldn't find any venues in your area. Try scanning a QR code at a venue or check back later.
+            </p>
+            <Button
+              onClick={() => loadVenues()}
+              variant="outline"
+              className="border-indigo-600 text-indigo-400 hover:bg-indigo-900/30"
+            >
+              Refresh
+            </Button>
+          </motion.div>
         )}
 
         {!loadingVenues && venues.length > 0 && (

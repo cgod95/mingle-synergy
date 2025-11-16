@@ -74,27 +74,27 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+        <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-2 border-neutral-700 bg-neutral-800 shadow-xl">
             <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
+              <div className="mx-auto w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mb-4 ring-2 ring-red-900/50">
+                <AlertTriangle className="w-8 h-8 text-red-400" />
               </div>
-              <CardTitle className="text-xl text-gray-900">
+              <CardTitle className="text-xl text-white font-bold">
                 Oops! Something went wrong
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-600 text-center">
-                We encountered an unexpected error. Don't worry, it's not your fault!
+              <p className="text-neutral-300 text-center">
+                We encountered an unexpected error. Don't worry, it's not your fault! Try refreshing the page or going back.
               </p>
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="bg-gray-100 p-3 rounded-lg">
-                  <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
+                <details className="bg-neutral-900/50 p-3 rounded-lg border border-neutral-700">
+                  <summary className="cursor-pointer text-sm font-medium text-neutral-400 hover:text-neutral-300 mb-2">
                     Error Details (Development)
                   </summary>
-                  <pre className="text-xs text-red-600 overflow-auto">
+                  <pre className="text-xs text-red-400 overflow-auto mt-2 max-h-40">
                     {this.state.error.toString()}
                     {this.state.errorInfo?.componentStack}
                   </pre>
@@ -105,7 +105,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button 
                   onClick={this.handleRetry}
                   disabled={this.state.isRetrying}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg"
                 >
                   {this.state.isRetrying ? (
                     <>
@@ -123,7 +123,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button 
                   variant="outline" 
                   onClick={this.handleGoBack}
-                  className="w-full"
+                  className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Go Back
@@ -132,7 +132,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button 
                   variant="outline" 
                   onClick={this.handleGoHome}
-                  className="w-full"
+                  className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
                 >
                   <Home className="w-4 h-4 mr-2" />
                   Go Home

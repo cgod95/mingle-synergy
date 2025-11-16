@@ -42,4 +42,7 @@ if (!isDemoMode && config.FIREBASE_API_KEY && config.FIREBASE_PROJECT_ID) {
 //   }
 // });
 
-export { app, auth, firestore, storage };
+// Export db as alias for firestore for backward compatibility
+const db = firestore;
+
+export { app, auth, firestore, storage, db };

@@ -112,3 +112,5 @@ VITE_FIREBASE_PROJECT_ID=your-project-id
 - See `README.md` for setup instructions
 - Demo mode automatically enabled when `MODE=development` even without `VITE_DEMO_MODE=true`
 
+
+

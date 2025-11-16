@@ -32,9 +32,12 @@ class AnalyticsService {
       this.enabled = true;
       this.loadPostHog();
     } else {
-      this.provider = 'none';
-      this.enabled = false;
-      console.log('[Analytics] Analytics disabled - no provider configured');
+        this.provider = 'none';
+        this.enabled = false;
+        // Only log in development mode with verbose flag
+        if (import.meta.env.DEV && import.meta.env.VITE_VERBOSE_LOGS === 'true') {
+          console.log('[Analytics] Analytics disabled - no provider configured');
+        }
     }
   }
 

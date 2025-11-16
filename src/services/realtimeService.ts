@@ -1,6 +1,7 @@
 // Real-time service for live updates and data synchronization
 
 import { analytics } from './analytics';
+import { config } from '@/config';
 
 export interface RealtimeEvent {
   type: string;
@@ -40,6 +41,11 @@ class RealtimeService {
   }
 
   private simulateRealtimeUpdates(): void {
+    // Skip in demo mode - prevents unnecessary event emissions and re-renders
+    if (config.DEMO_MODE) {
+      return;
+    }
+    
     // Simulate periodic updates
     setInterval(() => {
       // Simulate new matches

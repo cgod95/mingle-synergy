@@ -50,6 +50,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
   const { currentUser } = useAuth();
   const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress>(defaultProgress);
   const [isLoading, setIsLoading] = useState(true);
+  const isInternalUpdate = React.useRef(false); // Prevent localStorage loop
 
   // Load onboarding progress on mount and when user changes
   useEffect(() => {
@@ -111,8 +112,14 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     loadProgress();
   }, [currentUser?.uid]);
 
-  // Save to localStorage for demo mode
+  // Save to localStorage for demo mode - PREVENT LOOP
   useEffect(() => {
+    // Skip if this update came from storage event (to prevent loop)
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
+    }
+    
     if (config.DEMO_MODE || !currentUser?.uid) {
       try {
         localStorage.setItem('onboardingProgress', JSON.stringify(onboardingProgress));
@@ -127,8 +134,10 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     if (!config.DEMO_MODE) return;
 
     const handleStorage = (event: StorageEvent) => {
+      // Only handle events from OTHER tabs/windows, not this one
       if (event.key === 'onboardingProgress' && event.newValue) {
         try {
+          isInternalUpdate.current = true; // Mark as internal update to prevent save loop
           setOnboardingProgress(JSON.parse(event.newValue));
         } catch (error) {
           console.error('Error parsing storage event:', error);
@@ -181,6 +190,9 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
         setHasRequiredData(true); // Demo mode bypasses checks
         return;
       }
+      
+      // Skip check if still loading initial state
+      if (isLoading) return;
 
       try {
         const { userService } = await import('@/services');
@@ -200,7 +212,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     };
 
     checkRequiredData();
-  }, [currentUser?.uid, onboardingProgress]);
+  }, [currentUser?.uid, isLoading]); // Only check when user changes or loading completes
 
   const isOnboardingComplete = Object.values(onboardingProgress).every(Boolean) &&
     (hasRequiredData === true || config.DEMO_MODE) &&

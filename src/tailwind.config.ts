@@ -153,30 +153,58 @@ export default {
       typography: {
         'heading-1': {
           css: {
-            fontSize: '2rem',
-            lineHeight: '2.5rem',
-            fontWeight: '700',
+            fontSize: '2.25rem',
+            lineHeight: '2.75rem',
+            fontWeight: '800',
+            letterSpacing: '-0.02em',
           },
         },
         'heading-2': {
           css: {
+            fontSize: '1.875rem',
+            lineHeight: '2.25rem',
+            fontWeight: '700',
+            letterSpacing: '-0.01em',
+          },
+        },
+        'heading-3': {
+          css: {
             fontSize: '1.5rem',
             lineHeight: '2rem',
             fontWeight: '600',
+            letterSpacing: '-0.01em',
           },
         },
         'body': {
           css: {
             fontSize: '1rem',
+            lineHeight: '1.625rem',
+            fontWeight: '400',
+            letterSpacing: '0.01em',
+          },
+        },
+        'body-secondary': {
+          css: {
+            fontSize: '0.9375rem',
             lineHeight: '1.5rem',
             fontWeight: '400',
+            letterSpacing: '0.01em',
           },
         },
         'caption': {
           css: {
             fontSize: '0.875rem',
+            lineHeight: '1.375rem',
+            fontWeight: '400',
+            letterSpacing: '0.01em',
+          },
+        },
+        'small': {
+          css: {
+            fontSize: '0.75rem',
             lineHeight: '1.25rem',
             fontWeight: '400',
+            letterSpacing: '0.02em',
           },
         },
       },
