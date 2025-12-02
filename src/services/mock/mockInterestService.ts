@@ -1,10 +1,7 @@
 
 import { Interest } from '@/types';
-import { getFromStorage, saveToStorage, getInterests, saveInterests } from '@/utils/localStorageUtils';
+import { getFromStorage, getInterests, saveInterests } from '@/utils/localStorageUtils';
 import { InterestService } from '@/types/services';
-
-// Use mock implementation by default
-const USE_MOCK = true;
 
 class MockInterestService implements InterestService {
   // Get remaining likes for a user at a specific venue
