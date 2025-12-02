@@ -15,7 +15,7 @@ const VENUES: Venue[] = [
   {
     id: "club-aurora",
     name: "Club Aurora",
-    image: "https://images.unsplash.com/photo-1566737236500-c8ac43014b67?q=80&w=1200&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1200&auto=format&fit=crop",
     address: "12 Aurora Ave",
   },
   {

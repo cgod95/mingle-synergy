@@ -49,6 +49,10 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'], // Include framer-motion but force it to use same React
     force: true, // Force re-optimization
+    esbuildOptions: {
+      // Force React to be treated as external/common
+      mainFields: ['module', 'main'],
+    },
   },
   build: {
     commonjsOptions: {
@@ -58,12 +62,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Don't split React - keep it in main bundle
+          // CRITICAL: Keep React together - don't split it
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'react-vendor';
           }
-          // Exclude framer-motion from bundling to prevent React instance conflicts
-          // If needed elsewhere, it will be loaded separately
+          // CRITICAL: Keep framer-motion with React to prevent multiple instances
+          if (id.includes('node_modules/framer-motion')) {
+            return 'react-vendor'; // Put it in same chunk as React
+          }
           if (id.includes('node_modules/firebase')) {
             return 'firebase-vendor';
           }

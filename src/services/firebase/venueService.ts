@@ -97,7 +97,7 @@ const mockVenues: Venue[] = [
     city: 'Sydney',
     latitude: -33.8888,
     longitude: 151.2093,
-    image: 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=800&h=600&fit=crop',
+    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop',
     checkInCount: 65,
     expiryTime: 120,
     zones: ['main-floor', 'mezzanine', 'vip'],
