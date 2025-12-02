@@ -9,7 +9,11 @@ function read(): DemoState {
 function write(s: DemoState) { localStorage.setItem(KEY, JSON.stringify(s)); }
 
 export function getCurrentVenueId(): string | undefined { return read().currentVenueId; }
-export function setCurrentVenue(id: string | undefined) { const s = read(); s.currentVenueId = id; write(s); }
+export function setCurrentVenue(id: string | undefined): void { 
+  const s = read(); 
+  s.currentVenueId = id; 
+  write(s); 
+}
 
 export function markFeedback() { const s = read(); s.lastFeedbackAt = Date.now(); write(s); }
 export function getLastFeedbackAt(): number | undefined { return read().lastFeedbackAt; }

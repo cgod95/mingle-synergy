@@ -228,11 +228,11 @@ export class PrivacyManager {
   // Data deletion
   async deleteUserData(): Promise<void> {
     // Clear local storage
-    const keysToRemove = Array.from(localStorage.keys()).filter((key: string) => 
+    const keysToRemove = Object.keys(localStorage).filter((key) => 
       key.startsWith('user_') || key.startsWith('match_') || key.startsWith('message_')
     );
     
-    keysToRemove.forEach((key: string) => localStorage.removeItem(key));
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
     
     // Clear privacy settings
     this.settings.clear();
@@ -601,9 +601,9 @@ export const validateInput = (schema: Record<string, { required?: boolean; minLe
 
 // Secure Storage
 export const secureStorage = {
-  setItem: (key: string, value: string): void => {
+  setItem: async (key: string, value: string): Promise<void> => {
     try {
-      const encrypted = encryptData(value, import.meta.env.VITE_STORAGE_KEY || 'default-key');
+      const encrypted = await encryptData(value, import.meta.env.VITE_STORAGE_KEY || 'default-key');
       localStorage.setItem(key, encrypted);
     } catch (error) {
       console.error('Failed to encrypt data:', error);
@@ -656,18 +656,6 @@ export const auditLog = (action: string, details: Record<string, unknown>): void
   
   localStorage.setItem('auditLogs', JSON.stringify(logs));
 };
-
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  sanitizedData: Record<string, unknown>;
-}
-
-interface SecurityConfig {
-  maxInputLength: number;
-  allowedTags: string[];
-  blockedPatterns: RegExp[];
-}
 
 // Note: validateAndSanitizeInput function removed - DOMPurify not available in this environment
 // If HTML sanitization is needed, use a different approach or install dompurify package 

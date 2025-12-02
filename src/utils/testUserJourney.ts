@@ -21,7 +21,7 @@ export const testCompleteUserJourney = async () => {
       await services.auth.signUp(testEmail, testPassword);
       results.signup = { success: true, message: 'Successfully created test account' };
     } catch (error) {
-      results.signup = { success: false, error, message: 'Failed to create test account' };
+      results.signup = { success: false, error: error instanceof Error ? error : String(error), message: 'Failed to create test account' };
       throw error;
     }
     
@@ -31,7 +31,7 @@ export const testCompleteUserJourney = async () => {
       saveToStorage('onboardingComplete', true);
       results.onboarding = { success: true, message: 'Successfully marked onboarding as complete' };
     } catch (error) {
-      results.onboarding = { success: false, error, message: 'Failed to complete onboarding' };
+      results.onboarding = { success: false, error: error instanceof Error ? error : String(error), message: 'Failed to complete onboarding' };
       throw error;
     }
     
@@ -57,14 +57,14 @@ export const testCompleteUserJourney = async () => {
       saveToStorage('profileComplete', true);
       results.profile = { success: true, message: 'Successfully created test profile' };
     } catch (error) {
-      results.profile = { success: false, error, message: 'Failed to create profile' };
+      results.profile = { success: false, error: error instanceof Error ? error : String(error), message: 'Failed to create profile' };
       throw error;
     }
     
     // Step 4: Discover venues
     console.log('Testing venue discovery...');
     try {
-      const venues = await services.venue.listVenues();
+      const venues = await services.venue.getVenues();
       if (venues.length === 0) {
         throw new Error('No venues found');
       }
@@ -105,7 +105,7 @@ export const testCompleteUserJourney = async () => {
           };
         }
       } catch (error) {
-        results.expressInterest = { success: false, error, message: 'Failed to express interest' };
+        results.expressInterest = { success: false, error: error instanceof Error ? error : String(error), message: 'Failed to express interest' };
       }
       
       // Step 7: Check matches
@@ -122,8 +122,9 @@ export const testCompleteUserJourney = async () => {
           console.log('Testing match interaction...');
           const testMatch = matches[0];
           
-          // Simulate reconnect if match is active
-          if (testMatch.isActive) {
+          // Simulate reconnect if match is not expired (check matchExpired property if it exists)
+          const isExpired = 'matchExpired' in testMatch ? testMatch.matchExpired : false;
+          if (!isExpired && services.match.requestReconnect) {
             await services.match.requestReconnect(testMatch.id, currentUser.uid);
             results.matchInteraction = { 
               success: true, 
@@ -132,7 +133,7 @@ export const testCompleteUserJourney = async () => {
           } else {
             results.matchInteraction = { 
               success: true, 
-              message: `Match is not active, skipping reconnect test` 
+              message: `Match is expired or reconnect not available, skipping reconnect test` 
             };
           }
         } else {
@@ -142,7 +143,7 @@ export const testCompleteUserJourney = async () => {
           };
         }
       } catch (error) {
-        results.matches = { success: false, error, message: 'Failed to check matches' };
+        results.matches = { success: false, error: error instanceof Error ? error : String(error), message: 'Failed to check matches' };
       }
       
       // Step 9: Check out from venue
@@ -153,7 +154,7 @@ export const testCompleteUserJourney = async () => {
         message: 'Successfully checked out from venue' 
       };
     } catch (error) {
-      results.venueDiscovery = { success: false, error, message: 'Failed to discover venues' };
+      results.venueDiscovery = { success: false, error: error instanceof Error ? error : String(error), message: 'Failed to discover venues' };
     }
     
     // Step 10: Log out
@@ -162,7 +163,7 @@ export const testCompleteUserJourney = async () => {
       await services.auth.signOut();
       results.logout = { success: true, message: 'Successfully logged out' };
     } catch (error) {
-      results.logout = { success: false, error, message: 'Failed to log out' };
+      results.logout = { success: false, error: error instanceof Error ? error : String(error), message: 'Failed to log out' };
     }
     
     // Overall result

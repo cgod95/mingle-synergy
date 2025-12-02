@@ -1,5 +1,4 @@
 import { getPerformance, trace } from 'firebase/performance';
-import { firestore as db } from '@/firebase/config';
 import { logError } from './errorHandler';
 // import { analytics } from '@/firebase/config';
 // import { logEvent } from 'firebase/analytics';

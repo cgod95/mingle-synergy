@@ -3,9 +3,8 @@ import { collection, getDocs, limit, query, addDoc, deleteDoc } from 'firebase/f
 import { ref, getDownloadURL, uploadString, deleteObject } from 'firebase/storage';
 import { signInAnonymously } from 'firebase/auth';
 import { analytics } from '@/services/analytics';
-import subscriptionService from '@/services/subscriptionService';
+import { subscriptionService } from '@/services';
 import { notificationService } from '@/services/notificationService';
-import { realtimeService } from '@/services/realtimeService';
 
 interface VerificationResult {
   success: boolean;
@@ -438,7 +437,12 @@ class DeploymentVerifier {
 
   private async checkBusinessFeatures(): Promise<void> {
     // Subscription system
-    const plans = subscriptionService.getPlans();
+    let plans: unknown[] = [];
+    if ('getTiers' in subscriptionService && typeof subscriptionService.getTiers === 'function') {
+      plans = subscriptionService.getTiers();
+    } else if ('getPlans' in subscriptionService && typeof subscriptionService.getPlans === 'function') {
+      plans = await subscriptionService.getPlans();
+    }
     this.addCheck({
       name: 'Subscription System',
       category: 'important',

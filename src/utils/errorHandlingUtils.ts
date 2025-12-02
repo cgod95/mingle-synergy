@@ -28,8 +28,16 @@ export const handleAppError = (
   // Convert to Error object if it's not already
   const errorObj = error instanceof Error ? error : new Error(String(error));
   
-  // Log the error with context
-  logError(errorObj, context);
+  // Log the error with context - convert ErrorContext to Record<string, string | number | boolean>
+  const logContext: Record<string, string | number | boolean> = {
+    source: context.source,
+    ...(context.action && { action: context.action }),
+    ...(context.userId && { userId: context.userId }),
+    ...(context.additionalData && Object.fromEntries(
+      Object.entries(context.additionalData).map(([k, v]) => [k, String(v)])
+    ))
+  };
+  logError(errorObj, logContext);
   
   // Log to console in development
   if (import.meta.env.DEV) {

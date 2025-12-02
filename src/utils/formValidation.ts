@@ -1,7 +1,6 @@
 // Comprehensive form validation utilities to prevent validation bugs
 
 import { useState } from 'react';
-import { validatePassword, validateEmail } from './security';
 
 export interface ValidationRule {
   required?: boolean;
