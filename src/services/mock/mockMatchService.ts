@@ -2,7 +2,10 @@
 import { MatchService } from '@/types/services';
 import type { FirestoreMatch } from '@/types/match';
 import { matches } from '@/data/mockData';
+<<<<<<< HEAD
 import type { Match } from '@/types/services';
+=======
+>>>>>>> origin/main
 
 // Calculate time remaining until match expires
 export const calculateTimeRemaining = (expiresAt: number): string => {
