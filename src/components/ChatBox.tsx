@@ -18,7 +18,7 @@ export default function ChatBox({ matchId, currentUserId }: ChatBoxProps) {
         const allowed = await canSendMessage(matchId, currentUserId);
         setCanSend(allowed);
       } catch (error) {
-        logError(error as Error, { context: 'ChatBox.checkMessageLimit', matchId, userId: currentUserId });
+        console.error('Error checking message limit:', error);
         setCanSend(false);
       }
     };
