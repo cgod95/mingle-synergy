@@ -67,11 +67,12 @@ class DemoNotificationService {
       const types: DemoNotification['type'][] = ['match', 'message', 'checkin', 'system'];
       const randomType = types[Math.floor(Math.random() * types.length)];
       
-      const messages = {
+      const messages: Record<string, string[]> = {
         match: ['New Match! 🎉', 'You matched with someone new'],
         message: ['New Message', 'You have an unread message'],
         checkin: ['Check-in Reminder', 'Don\'t forget to check in at venues'],
         system: ['Welcome to Mingle!', 'Start meeting people at venues near you'],
+        reconnect: ['Reconnect Request', 'Someone wants to reconnect with you'],
       };
 
       const randomMessages = messages[randomType];

@@ -2,6 +2,7 @@
 import { MatchService } from '@/types/services';
 import type { FirestoreMatch } from '@/types/match';
 import { matches } from '@/data/mockData';
+import type { Match } from '@/types/services';
 
 // Calculate time remaining until match expires
 export const calculateTimeRemaining = (expiresAt: number): string => {
@@ -52,7 +53,7 @@ class MockMatchService implements MatchService {
     // Find all matches where the user is involved
     return matches.filter(
       match => (match.userId === userId || match.matchedUserId === userId) && match.isActive
-    ) as FirestoreMatch[];
+    ) as unknown as FirestoreMatch[];
   }
 
   async createMatch(

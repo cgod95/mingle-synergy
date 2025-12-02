@@ -26,10 +26,10 @@ class FirebaseUserService implements UserService {
       if (userSnap.exists()) {
         const userData = userSnap.data();
         return { 
-          id: userSnap.id, 
           uid: userSnap.id, // Set uid to the document ID
           displayName: userData.displayName || userData.name, // Use displayName if available, fallback to name
-          ...(userData as UserProfile) 
+          ...(userData as UserProfile),
+          id: userSnap.id // id comes last to override any id from userData
         };
       } else {
         return null;
@@ -71,7 +71,13 @@ class FirebaseUserService implements UserService {
   async deleteUser(userId: string): Promise<void> {
     // Note: In production, you might want to use a Cloud Function to handle user deletion
     // as it requires special permissions and cleanup of related data
-    logError(new Error('User deletion not implemented'), { source: 'userService', action: 'deleteUser', userId }, 'warning');
+    logError(new Error('User deletion not implemented'), { source: 'userService', action: 'deleteUser', userId });
+  }
+
+  async completeOnboarding(userId: string): Promise<void> {
+    // Onboarding completion is handled by onboardingService
+    // This method exists for interface compatibility
+    // The actual completion is tracked in the onboarding collection
   }
 
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {

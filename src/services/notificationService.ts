@@ -199,6 +199,34 @@ class NotificationService {
   }
 
   // Send match notification
+  async notifyNewMatch(matchData: {
+    userId: string;
+    matchId: string;
+    otherUserId: string;
+    compatibility?: number;
+    mutualInterests?: string[];
+  }): Promise<void> {
+    // Get user names for notification
+    try {
+      const { userService } = await import('@/services');
+      const otherUser = await userService.getUserProfile(matchData.otherUserId);
+      const otherUserName = otherUser?.name || 'Someone';
+      
+      await this.sendMatchNotification({
+        matchId: matchData.matchId,
+        matchedUserName: otherUserName,
+        venueName: 'your venue' // Could be enhanced to get actual venue name
+      });
+    } catch (error) {
+      // Fallback if user lookup fails
+      await this.sendMatchNotification({
+        matchId: matchData.matchId,
+        matchedUserName: 'Someone',
+        venueName: 'your venue'
+      });
+    }
+  }
+
   async sendMatchNotification(matchData: {
     matchId: string;
     matchedUserName: string;

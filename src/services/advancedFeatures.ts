@@ -163,7 +163,7 @@ class AdvancedFeaturesService {
       }
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey
+        applicationServerKey: applicationServerKey as BufferSource
       });
       console.log('Push subscription created:', subscription);
       return subscription;

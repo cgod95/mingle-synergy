@@ -191,6 +191,10 @@ class FirebaseVenueService implements VenueService {
     return collection(firestore, 'venues');
   }
   
+  async listVenues(): Promise<Venue[]> {
+    return this.getVenues();
+  }
+
   async getVenues(): Promise<Venue[]> {
     // Return mock data in demo mode
     if (config.DEMO_MODE) {
@@ -360,7 +364,16 @@ class FirebaseVenueService implements VenueService {
       await batch.commit();
       logUserAction('venue_checkout', { userId, venueId: currentVenue });
     } catch (error) {
-      logError(error as Error, { source: 'venueService', action: 'checkOutFromVenue', userId, venueId: currentVenue });
+      // Get currentVenue for error logging
+      let currentVenueForError: string | undefined;
+      try {
+        const userDocRef = doc(firestore, 'users', userId);
+        const userDoc = await getDoc(userDocRef);
+        currentVenueForError = userDoc.exists() ? (userDoc.data()?.currentVenue as string | undefined) : undefined;
+      } catch {
+        // Ignore error getting venue for logging
+      }
+      logError(error as Error, { source: 'venueService', action: 'checkOutFromVenue', userId, venueId: currentVenueForError || 'unknown' });
       throw new Error('Failed to check out from venue');
     }
   }
@@ -437,7 +450,7 @@ class FirebaseVenueService implements VenueService {
       // Flatten results
       return chunkedResults.flat();
     } catch (error) {
-      logError(error as Error, { source: 'venueService', action: 'getVenuesByIds', venueIds });
+      logError(error as Error, { source: 'venueService', action: 'getVenuesByIds', venueIdsCount: venueIds.length });
       return [];
     }
   }

@@ -2,7 +2,7 @@
 import { firestore } from '@/firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ContactInfo } from '@/types/contactInfo';
-import { trackContactShared } from '@/services/appAnalytics';
+import { analytics } from '@/services/appAnalytics';
 import { logError } from '@/utils/errorHandler';
 
 class ContactService {
@@ -12,16 +12,16 @@ class ContactService {
       
       await updateDoc(matchRef, {
         contactShared: true,
-        contactInfo: contactInfo
+        contactInfo: JSON.stringify(contactInfo)
       });
       
       // Track analytics event
-      trackContactShared(matchId);
+      analytics.track('contact_shared', { matchId });
       
       return true;
     } catch (error) {
       console.error('Error sharing contact info:', error);
-      logError(error as Error, { matchId, contactInfo });
+      logError(error as Error, { matchId });
       return false;
     }
   }

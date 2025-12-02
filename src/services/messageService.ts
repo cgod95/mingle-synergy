@@ -87,10 +87,11 @@ export const sendMessageWithLimit = async ({
   }
 
   // In demo mode, use localStorage-based chatStore instead of Firestore
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
   if (isDemoMode) {
     const { appendMessage } = await import('@/lib/chatStore');
     appendMessage(matchId, {
-      sender: 'you',
+      sender: 'me',
       ts: Date.now(),
       text: message,
     });

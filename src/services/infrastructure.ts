@@ -262,7 +262,7 @@ class InfrastructureService {
     };
 
     const cutoff = now - timeRanges[timeRange];
-    return this.performanceData.filter(metric => metric.timestamp >= cutoff);
+    return this.performanceData.filter(metric => metric.timestamp !== undefined && metric.timestamp >= cutoff);
   }
 
   // Alerting

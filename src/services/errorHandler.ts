@@ -1,4 +1,4 @@
-import { trackError } from './appAnalytics';
+import { analytics } from './appAnalytics';
 import { logError } from '@/utils/errorHandler';
 
 interface ErrorWithCode extends Error {
@@ -46,16 +46,13 @@ class ErrorHandler {
   trackApplicationError(error: Error, source = 'application', additionalData?: Record<string, unknown>) {
     const errorWithCode = error as ErrorWithCode;
     
-    // Track with Firebase Analytics
-    trackError(
-      errorWithCode.code || error.name || 'unknown',
-      error.message,
-      {
-        source,
-        stack: error.stack,
-        ...additionalData
-      }
-    );
+    // Track with Analytics
+    analytics.track('error', {
+      error_code: errorWithCode.code || error.name || 'unknown',
+      error_message: error.message,
+      source,
+      ...additionalData
+    });
     
     // Also log with Sentry
     logError(error, {

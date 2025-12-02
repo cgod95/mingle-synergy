@@ -378,7 +378,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       // Check if target user has already liked current user (check likes, not matches)
       // Use the likes collection to check for mutual likes
       if (!firestore) {
-        return false;
+        return;
       }
       
       const likesRef = collection(firestore, 'likes');
