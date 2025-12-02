@@ -8,6 +8,11 @@ import { UserProfile } from "@/types/services";
  */
 export const fetchReconnectRequests = async (currentUserId: string): Promise<UserProfile[]> => {
   try {
+    // Return empty array if firestore is not available
+    if (!firestore) {
+      return [];
+    }
+    
     const requestsRef = collection(firestore, "users", currentUserId, "reconnectRequests");
     const snapshot = await getDocs(requestsRef);
     const users: UserProfile[] = [];
@@ -37,6 +42,11 @@ export const fetchReconnectRequests = async (currentUserId: string): Promise<Use
  */
 export const fetchAcceptedReconnects = async (currentUserId: string): Promise<Array<{user: UserProfile, reconnectedAt: Date}>> => {
   try {
+    // Return empty array if firestore is not available
+    if (!firestore) {
+      return [];
+    }
+    
     const acceptedRef = collection(firestore, "users", currentUserId, "acceptedReconnects");
     const snapshot = await getDocs(acceptedRef);
     const reconnectData: Array<{user: UserProfile, reconnectedAt: Date}> = [];
@@ -75,6 +85,11 @@ export const acceptReconnectRequest = async (
   otherUserId: string
 ): Promise<void> => {
   try {
+    // Return early if firestore is not available
+    if (!firestore) {
+      return;
+    }
+    
     const requestRef = doc(firestore, "users", currentUserId, "reconnectRequests", otherUserId);
     const reverseRef = doc(firestore, "users", otherUserId, "reconnectRequests", currentUserId);
 
@@ -108,6 +123,11 @@ export const sendReconnectRequest = async (
   toUserId: string
 ): Promise<void> => {
   try {
+    // Return early if firestore is not available
+    if (!firestore) {
+      return;
+    }
+    
     const requestRef = doc(firestore, "users", toUserId, "reconnectRequests", fromUserId);
     const reverseRef = doc(firestore, "users", fromUserId, "reconnectRequests", toUserId);
 
@@ -126,6 +146,11 @@ export const sendReconnectRequest = async (
  */
 export const hasReconnectRequests = async (userId: string): Promise<boolean> => {
   try {
+    // Return false if firestore is not available
+    if (!firestore) {
+      return false;
+    }
+    
     const requestsRef = collection(firestore, "users", userId, "reconnectRequests");
     const snapshot = await getDocs(requestsRef);
     return !snapshot.empty;

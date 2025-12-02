@@ -1,6 +1,6 @@
 // 🧠 Purpose: Implement static Profile page to display current user info.
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -195,7 +195,7 @@ export default function Profile() {
             </Button>
             <Button
               variant="ghost"
-              onClick={() => navigate('/profile/edit')}
+              onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
               className="w-full h-12 text-neutral-300 hover:bg-neutral-800 hover:text-white"
               aria-label="Edit photos"
             >

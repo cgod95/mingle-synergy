@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
 
 export const AuthNavigationContext = createContext<((navigate: (path: string) => void) => void) | undefined>(undefined);
 

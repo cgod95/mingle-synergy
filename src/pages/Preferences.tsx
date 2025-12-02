@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
@@ -13,6 +13,7 @@ import { mockUsers } from '@/data/mock';
 import { ArrowLeft } from 'lucide-react';
 import analytics from '@/services/appAnalytics';
 import { logError } from '@/utils/errorHandler';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const ageOptions = Array.from({ length: 83 }, (_, i) => i + 18); // ages 18–100
 const genderOptions = ['Women', 'Men', 'Everyone'];
@@ -167,10 +168,7 @@ export default function Preferences() {
     return (
       <Layout>
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-neutral-600">Loading preferences...</p>
-          </div>
+          <LoadingSpinner size="lg" message="Loading preferences..." />
         </div>
       </Layout>
     );
@@ -260,17 +258,11 @@ export default function Preferences() {
               </Button>
               <Button
                 onClick={handleSubmit}
+                loading={saving}
                 disabled={saving || minAge > maxAge}
                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
               >
-                {saving ? (
-                  <span className="flex items-center justify-center">
-                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                    Saving...
-                  </span>
-                ) : (
-                  'Finish Onboarding'
-                )}
+                {saving ? 'Saving...' : 'Finish Onboarding'}
               </Button>
             </div>
             

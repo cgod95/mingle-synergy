@@ -18,9 +18,12 @@
     <meta name="twitter:description" content="Meet people at the places you already love." />
     <meta name="twitter:image" content="/og-image.png" />
     <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="/logo192.png" />
-    <meta name="theme-color" content="#171717" />
+    <meta name="theme-color" content="#9333EA" />
+    <!-- Content Security Policy for XSS protection -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.sentry.io wss://*.firebaseio.com; frame-src 'self';" />
     <!-- Mobile Web App Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <!-- Apple Mobile Web App Meta Tags (for iOS compatibility) -->

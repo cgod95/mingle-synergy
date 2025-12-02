@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import config from '@/config'
 import { useToast } from '@/components/ui/use-toast'
 import ExpiredMatchNotice from '@/components/ExpiredMatchNotice'
 import ReconnectionPrompt from '@/components/ReconnectionPrompt'
@@ -101,6 +102,18 @@ export default function ChatPage() {
     if (!matchId || !currentUser?.uid || isExpired) return
 
     // Simulate real-time updates
+    // CRITICAL: Disabled in demo mode - messages are loaded from localStorage, no need for 1-second polling
+    // This interval was causing constant re-renders
+    if (config.DEMO_MODE) {
+      // In demo mode, just load messages once
+      const matchMessages = mockMessages.filter(msg => msg.matchId === matchId);
+      const count = matchMessages.filter(msg => msg.senderId === currentUser.uid).length;
+      setUserMessageCount(count);
+      setCanSend(count < 3);
+      setMessages(matchMessages);
+      return;
+    }
+    
     const interval = setInterval(() => {
       const matchMessages = mockMessages.filter(msg => msg.matchId === matchId)
       const count = matchMessages.filter(msg => msg.senderId === currentUser.uid).length

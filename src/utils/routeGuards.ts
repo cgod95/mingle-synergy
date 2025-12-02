@@ -7,7 +7,7 @@ export const requireOnboarding = (to: string): string => {
   const profileComplete = localStorage.getItem('profileComplete') === 'true';
   
   if (!onboardingComplete) {
-    return '/onboarding';
+    return '/create-profile';
   } else if (!profileComplete) {
     return '/profile/edit';
   }

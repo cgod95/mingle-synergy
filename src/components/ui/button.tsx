@@ -1,10 +1,10 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { type VariantProps } from "class-variance-authority"
-import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "./button-constants"
+import { InlineSpinner } from "./LoadingSpinner"
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -20,45 +20,30 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // Always pass a single child to Slot
     const content = loading ? (
       <span className="flex items-center justify-center">
-        <motion.div
-          className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-        />
-        <motion.span
-          initial={{ opacity: 0.7 }}
-          animate={{ opacity: 0.7 }}
-          transition={{ duration: 0.2 }}
-        >
+        <InlineSpinner size="sm" className="mr-2" />
+        <span>
           {children}
-        </motion.span>
+        </span>
       </span>
     ) : (
-      <motion.span
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-      >
+      <span>
         {children}
-      </motion.span>
+      </span>
     );
 
     return (
-      <motion.div
-        whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
-        whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
-        transition={{ duration: 0.1 }}
+      <Comp
+        className={cn(
+          buttonVariants({ variant, size, className }), 
+          "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+          !disabled && !loading && "transition-transform hover:scale-[1.02] active:scale-[0.98]"
+        )}
+        ref={ref}
+        disabled={disabled || loading}
+        {...props}
       >
-        <Comp
-          className={cn(buttonVariants({ variant, size, className }), "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2")}
-          ref={ref}
-          disabled={disabled || loading}
-          {...props}
-        >
-          {content}
-        </Comp>
-      </motion.div>
+        {content}
+      </Comp>
     )
   }
 )

@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { seedDemoMatchesIfEmpty, Person } from "../lib/matchStore";
 import { demoPeople } from "../lib/demoPeople";
+import { authService } from "@/services";
+import config from "@/config";
 
 type User = { id: string; name: string; email?: string; uid?: string } | null;
 type Ctx = {
@@ -11,6 +13,8 @@ type Ctx = {
   logout: () => void;
   signOut: () => void; // Alias for compatibility
   createDemoUser: () => void;
+  signUpUser: (email: string, password: string) => Promise<void>;
+  signInUser: (email: string, password: string) => Promise<void>;
 };
 
 const Context = createContext<Ctx | null>(null);
@@ -18,6 +22,8 @@ const KEY = "mingle:user";
 
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<User>(null);
+  // Use ref to track user ID for stable comparison
+  const userIdRef = useRef<string | null>(null);
 
   // one-time load
   useEffect(() => {
@@ -30,14 +36,44 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
           parsed.uid = parsed.id;
         }
         setUser(parsed);
+        userIdRef.current = parsed?.id || parsed?.uid || null;
       }
     } catch {}
   }, []);
 
-  const login = async (u: NonNullable<User>) => {
+  // Firebase auth state listener (only in Firebase mode)
+  useEffect(() => {
+    if (!config.DEMO_MODE && authService.onAuthStateChanged) {
+      const unsubscribe = authService.onAuthStateChanged((firebaseUser) => {
+        if (firebaseUser) {
+          const user: User = {
+            id: firebaseUser.uid,
+            uid: firebaseUser.uid,
+            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+            email: firebaseUser.email || undefined,
+          };
+          setUser(user);
+          userIdRef.current = user.id;
+          try {
+            localStorage.setItem(KEY, JSON.stringify(user));
+          } catch {}
+        } else {
+          setUser(null);
+          userIdRef.current = null;
+          try {
+            localStorage.removeItem(KEY);
+          } catch {}
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
+  const login = useCallback(async (u: NonNullable<User>) => {
     // Ensure uid exists for compatibility
     const userWithUid = { ...u, uid: u.uid || u.id };
     setUser(userWithUid);
+    userIdRef.current = userWithUid.id || userWithUid.uid || null;
     try { localStorage.setItem(KEY, JSON.stringify(userWithUid)); } catch {}
     
     // Track user signed up event per spec section 9 (if new user)
@@ -48,14 +84,15 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     } catch (error) {
       // Silently fail if analytics not available
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
+    userIdRef.current = null;
     try { localStorage.removeItem(KEY); } catch {}
-  };
+  }, []);
 
-  const createDemoUser = () => {
+  const createDemoUser = useCallback(() => {
     const demoUser: User = {
       id: `demo_${Date.now()}`,
       uid: `demo_${Date.now()}`,
@@ -67,17 +104,97 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     try {
       localStorage.setItem('mingle:demo_user', 'true');
     } catch {}
-  };
+  }, [login]);
 
+  const signUpUser = useCallback(async (email: string, password: string) => {
+    try {
+      if (config.DEMO_MODE) {
+        // Demo mode: create user in localStorage
+        // Check if user already exists
+        const existingUser = localStorage.getItem(KEY);
+        if (existingUser) {
+          const parsed = JSON.parse(existingUser);
+          if (parsed.email === email) {
+            throw new Error('This email is already registered. Please sign in instead.');
+          }
+        }
+
+        const newUser: User = {
+          id: `user_${Date.now()}`,
+          uid: `user_${Date.now()}`,
+          name: email.split('@')[0],
+          email: email,
+        };
+        await login(newUser);
+        localStorage.setItem('onboardingComplete', 'false');
+      } else {
+        // Firebase mode: use authService
+        const credential = await authService.signUp(email, password);
+        const firebaseUser: User = {
+          id: credential.user.uid,
+          uid: credential.user.uid,
+          name: credential.user.displayName || email.split('@')[0],
+          email: credential.user.email || email,
+        };
+        await login(firebaseUser);
+        localStorage.setItem('onboardingComplete', 'false');
+      }
+    } catch (error: any) {
+      // Re-throw with user-friendly message
+      throw error;
+    }
+  }, [login]);
+
+  const signInUser = useCallback(async (email: string, password: string) => {
+    try {
+      if (config.DEMO_MODE) {
+        // Demo mode: simple check against localStorage
+        const stored = localStorage.getItem(KEY);
+        if (!stored) {
+          throw new Error('No account found with this email. Please sign up instead.');
+        }
+        const parsed = JSON.parse(stored);
+        if (parsed.email !== email) {
+          throw new Error('No account found with this email. Please sign up instead.');
+        }
+        // In demo mode, we don't validate password - just log them in
+        await login(parsed);
+      } else {
+        // Firebase mode: use authService
+        const credential = await authService.signIn(email, password);
+        const firebaseUser: User = {
+          id: credential.user.uid,
+          uid: credential.user.uid,
+          name: credential.user.displayName || email.split('@')[0],
+          email: credential.user.email || email,
+        };
+        await login(firebaseUser);
+      }
+    } catch (error: any) {
+      throw error;
+    }
+  }, [login]);
+
+  // Create stable currentUser reference - only recreate when user ID changes
+  const currentUser = useMemo(() => {
+    if (!user) return null;
+    return { ...user, uid: user.uid || user.id };
+  }, [user?.id, user?.uid]); // Only depend on ID/UID, not whole user object
+
+  // CRITICAL: Memoize value based on user ID only, not whole objects
+  // Don't include currentUser in dependencies since it's derived from user
+  // This prevents re-renders when user object reference changes but ID stays the same
   const value = useMemo(() => ({
     user,
-    currentUser: user ? { ...user, uid: user.uid || user.id } : null,
+    currentUser,
     isAuthenticated: !!user,
     login,
     logout,
     signOut: logout, // Alias for compatibility
     createDemoUser,
-  }), [user]);
+    signUpUser,
+    signInUser,
+  }), [user?.id, user?.uid, login, logout, createDemoUser, signUpUser, signInUser]); // Only depend on user IDs, not currentUser (it's derived)
 
   return <Context.Provider value={value}>{children}</Context.Provider>;
 };

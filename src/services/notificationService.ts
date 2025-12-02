@@ -141,7 +141,7 @@ class NotificationService {
       timestamp: Date.now()
     });
 
-    // Navigate to relevant page
+    // Navigate to relevant page (service class workaround - can't use React Router navigate)
     if (notification.actionUrl) {
       window.location.href = notification.actionUrl;
     }

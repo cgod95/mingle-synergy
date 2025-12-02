@@ -1,25 +1,21 @@
 import * as React from "react"
-import { motion, HTMLMotionProps } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  Omit<HTMLMotionProps<"div">, "ref"> & {
+  React.HTMLAttributes<HTMLDivElement> & {
     hover?: boolean
     delay?: number
   }
 >(({ className, hover = false, delay = 0, ...props }, ref) => (
-  <motion.div
+  <div
     ref={ref}
     className={cn(
       "rounded-lg border bg-card text-card-foreground shadow-sm",
+      hover && "transition-transform hover:-translate-y-0.5 hover:shadow-lg",
       className
     )}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay }}
-    whileHover={hover ? { y: -2, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" } : undefined}
     {...props}
   />
 ))

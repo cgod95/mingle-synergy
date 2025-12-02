@@ -1,9 +1,9 @@
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getVenue, getPeople } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { getAllMatches } from "@/lib/matchesCompat";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
-import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -168,7 +168,7 @@ export default function VenueDetails() {
     // Simulate API delay for better UX
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    const matched = likePerson(personId);
+    const matched = await likePerson(personId);
     setIsLiking(null);
     
     // Show notification on card

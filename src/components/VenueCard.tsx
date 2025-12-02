@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { motion } from 'framer-motion';
+// Removed motion import to prevent flickering from animations
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Clock } from 'lucide-react';
@@ -68,13 +68,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
   };
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
-      whileHover={{ y: -2 }}
-      className="w-full"
-    >
+    <div className="w-full">
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
@@ -118,48 +112,43 @@ const VenueCard: React.FC<VenueCardProps> = ({
 
         <CardContent className="pt-0">
           {venue.description && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-sm text-muted-foreground mb-4 line-clamp-2"
-            >
+            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
               {venue.description}
-            </motion.p>
+            </p>
           )}
 
-          <div className="flex space-x-2">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onSelect(venue.id)}
-                className="flex-1"
-              >
-                View Details
-              </Button>
-            </motion.div>
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onSelect(venue.id)}
+              className="w-full"
+            >
+              View Details
+            </Button>
             
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                size="sm"
-                onClick={handleCheckIn}
-                disabled={isCheckedIn}
-                className="flex-1"
-              >
-                {isCheckedIn ? (
-                  <>
-                    <Clock className="w-4 h-4 mr-1" />
-                    Checked In
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="w-4 h-4 mr-1" />
-                    Check In
-                  </>
-                )}
-              </Button>
-            </motion.div>
+            <Button
+              size="lg"
+              onClick={handleCheckIn}
+              disabled={isCheckedIn}
+              className={`w-full font-semibold min-h-[48px] ${
+                isCheckedIn 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg'
+              }`}
+            >
+              {isCheckedIn ? (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Checked In
+                </>
+              ) : (
+                <>
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Check In Here
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -193,8 +182,9 @@ const VenueCard: React.FC<VenueCardProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </div>
   );
 };
 
-export default VenueCard;
+// Memoize to prevent unnecessary re-renders when parent re-renders
+export default React.memo(VenueCard);

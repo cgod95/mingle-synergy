@@ -183,8 +183,23 @@ export const getUserFriendlyErrorMessage = (error: Error | unknown): string => {
 // Per spec section 9: Error tracking with tracesSampleRate: 0.1
 export const initErrorTracking = (): void => {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
+  const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  
   if (!dsn) {
-    console.warn('Sentry DSN not configured. Error tracking disabled.');
+    if (isProduction && !isDemoMode) {
+      // In production (non-demo), warn about missing Sentry DSN
+      console.warn('⚠️  WARNING: Sentry DSN not configured in production. Error tracking disabled.');
+    } else {
+      // In development/demo mode, silently skip Sentry
+      console.warn('Sentry DSN not configured. Error tracking disabled.');
+    }
+    return;
+  }
+  
+  // Validate DSN format in production
+  if (isProduction && !dsn.startsWith('https://')) {
+    console.error('❌ ERROR: Invalid Sentry DSN format. Must start with https://');
     return;
   }
 

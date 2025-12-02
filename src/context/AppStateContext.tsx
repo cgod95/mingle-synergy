@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { Interest, Match, User } from '../types';
 import { getInterests, getMatches } from '../utils/localStorageUtils';
 import services from '../services';
@@ -79,7 +79,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } else {
       setInterests(getInterests(currentUser?.id || 'default'));
     }
-  }, [currentUser]);
+  }, [currentUser?.id]); // CRITICAL: Only depend on ID, not whole object to prevent re-renders
   
   useEffect(() => {
     const savedMatches = localStorage.getItem('matches');
@@ -88,7 +88,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } else {
       setMatches(getMatches(currentUser?.id || 'default'));
     }
-  }, [currentUser]);
+  }, [currentUser?.id]); // CRITICAL: Only depend on ID, not whole object to prevent re-renders
   
   useEffect(() => {
     const savedLikedUsers = localStorage.getItem('likedUsers');
@@ -98,9 +98,16 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   // Persist to localStorage on change
+  // CRITICAL: Use ref to track previous ID to prevent unnecessary saves
+  const prevUserIdRef = React.useRef<string | null>(currentUser?.id || null);
   useEffect(() => {
-    if (currentUser) localStorage.setItem('currentUser', JSON.stringify(currentUser));
-  }, [currentUser]);
+    const currentUserId = currentUser?.id || null;
+    // Only save if user ID actually changed, not on object reference changes
+    if (currentUserId !== prevUserIdRef.current && currentUser) {
+      prevUserIdRef.current = currentUserId;
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    }
+  }, [currentUser?.id, currentUser]); // Depend on ID for re-runs, but check object for saving
   
   useEffect(() => {
     localStorage.setItem('interests', JSON.stringify(interests));

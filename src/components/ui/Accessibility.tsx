@@ -10,20 +10,16 @@ import {
   Keyboard,
   Accessibility
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useKeyboardNavigation, getAriaLabel } from './accessibility-utils';
 
 // Skip to main content link
 export const SkipToMainContent: React.FC = () => (
-  <motion.a
+  <a
     href="#main-content"
     className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
-    initial={{ opacity: 0, y: -10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.2 }}
   >
     Skip to main content
-  </motion.a>
+  </a>
 );
 
 // Screen reader only text

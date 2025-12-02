@@ -13,7 +13,7 @@ export default function PublicVenue() {
       <main style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
         <h1>Venue not found</h1>
         <p>We couldn’t find that venue.</p>
-        <p><Link to="/venues">Browse venues</Link></p>
+        <p><Link to="/checkin">Browse venues</Link></p>
       </main>
     );
   }
@@ -70,7 +70,7 @@ export default function PublicVenue() {
         >
           Open in app
         </Link>
-        <Link to="/venues" style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #ddd" }}>
+        <Link to="/checkin" style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #ddd" }}>
           Browse more venues
         </Link>
       </div>

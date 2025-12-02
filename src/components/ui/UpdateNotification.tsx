@@ -35,6 +35,7 @@ const UpdateNotification = () => {
       'App Updated',
       { body: 'Your app has been updated to the latest version.' }
     );
+    // Reload page to apply service worker updates
     window.location.reload();
   };
   

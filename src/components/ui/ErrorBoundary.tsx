@@ -60,6 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoHome = () => {
+    // Use href assignment for proper navigation (class component workaround)
     window.location.href = '/';
   };
 

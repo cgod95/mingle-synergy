@@ -41,6 +41,11 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
    * Get all active matches for a user
    */
   public async getMatches(userId: string): Promise<FirestoreMatch[]> {
+    // Return empty array if firestore is not available
+    if (!firestore) {
+      return [];
+    }
+    
     const matchesRef = collection(firestore, "matches");
     const now = Date.now();
 
@@ -77,7 +82,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     venueName: string
   ): Promise<string> {
     try {
-      if (!this.isFirebaseAvailable()) {
+      if (!this.isFirebaseAvailable() || !firestore) {
         throw new Error('Cannot create match while offline');
       }
       
@@ -372,6 +377,10 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       // Check if target user has already liked current user (check likes, not matches)
       // Use the likes collection to check for mutual likes
+      if (!firestore) {
+        return false;
+      }
+      
       const likesRef = collection(firestore, 'likes');
       const targetUserLikesRef = doc(likesRef, targetUserId);
       const targetUserLikesSnap = await getDoc(targetUserLikesRef);
@@ -424,6 +433,10 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     try {
       if (!this.isFirebaseAvailable()) {
         throw new Error('Cannot create match while offline');
+      }
+
+      if (!firestore) {
+        throw new Error('Firestore not available');
       }
 
       const matchRef = collection(firestore, 'matches');
@@ -544,6 +557,10 @@ export const sendMessage = async (
 };
 
 export const cleanupExpiredMatches = async (): Promise<void> => {
+  if (!firestore) {
+    return;
+  }
+  
   const matchRef = collection(firestore, "matches");
   const snapshot = await getDocs(matchRef);
   const now = Date.now();
@@ -567,6 +584,10 @@ export const isMatchExpired = (match: FirestoreMatch): boolean => {
 };
 
 export const deleteExpiredMatches = async (userId: string) => {
+  if (!firestore) {
+    return;
+  }
+  
   const q = query(collection(firestore, "matches"), where("userId1", "==", userId));
   const snapshot = await getDocs(q);
 
@@ -581,6 +602,10 @@ export const deleteExpiredMatches = async (userId: string) => {
 };
 
 export const getActiveMatches = async (userId: string): Promise<FirestoreMatch[]> => {
+  if (!firestore) {
+    return [];
+  }
+  
   const matchesRef = collection(firestore, "matches");
   const now = Date.now();
 
@@ -615,6 +640,10 @@ export const removeLikeBetweenUsers = async (uid1: string, uid2: string) => {
 };
 
 export const getPreviousMatch = async (uid1: string, uid2: string): Promise<FirestoreMatch | null> => {
+  if (!firestore) {
+    return null;
+  }
+  
   const matchesRef = collection(firestore, "matches");
   const now = Date.now();
 
@@ -658,7 +687,7 @@ export const canRematch = async (uid1: string, uid2: string): Promise<boolean> =
 
 export const createRematch = async (uid1: string, uid2: string, venueId: string): Promise<string | null> => {
   try {
-    if (!isFirebaseAvailable()) {
+    if (!isFirebaseAvailable() || !firestore) {
       throw new Error('Cannot create rematch while offline');
     }
 
@@ -694,6 +723,10 @@ export const createRematch = async (uid1: string, uid2: string, venueId: string)
  * Get all matches for a user (both active and expired)
  */
 export const getAllMatchesForUser = async (userId: string) => {
+  if (!firestore) {
+    return [];
+  }
+  
   const matchesRef = collection(firestore, 'matches');
   
   // Query for matches where user is userId1
@@ -719,6 +752,10 @@ export const getAllMatchesForUser = async (userId: string) => {
  * Get all active (non-expired) matches for a user and delete expired ones.
  */
 export const getActiveMatchesForUser = async (userId: string) => {
+  if (!firestore) {
+    return [];
+  }
+  
   const now = Date.now();
   const threeHoursInMs = 3 * 60 * 60 * 1000;
 

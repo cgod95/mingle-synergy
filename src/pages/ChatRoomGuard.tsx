@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 const RealChatRoom = React.lazy(() => import("./ChatRoom"));
 
 export default function ChatRoomGuard() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const userId = currentUser?.uid || localStorage.getItem("userId") || "demo_user";
@@ -16,25 +16,40 @@ export default function ChatRoomGuard() {
   const [ok, setOk] = React.useState(false);
 
   React.useEffect(() => {
+    // Guard: ensure we have required values before proceeding
+    if (!id || typeof navigate !== 'function') {
+      return;
+    }
+
     let alive = true;
     (async () => {
-      const all = await getActiveMatches(userId);
-      const match = all.find(m => m.id === id);
-      if (!alive) return;
-      if (!match) {
-        if (all.length) {
-          toast("Previous chat isn’t available; opening your active chat.");
-          navigate(`/chat/${all[0].id}`, { replace: true });
-          setOk(true);
+      try {
+        const all = await getActiveMatches(userId);
+        const match = all.find(m => m.id === id);
+        if (!alive) return;
+        if (!match) {
+          if (all.length) {
+            toast("Previous chat isn't available; opening your active chat.");
+            navigate(`/chat/${all[0].id}`, { replace: true });
+            setOk(true);
+          } else {
+            toast("No active chats right now.");
+            navigate("/matches", { replace: true });
+            setOk(false);
+          }
         } else {
-          toast("No active chats right now.");
-          navigate("/matches", { replace: true });
-          setOk(false);
+          setOk(true);
         }
-      } else {
-        setOk(true);
+      } catch (error) {
+        console.error("Error loading chat:", error);
+        toast("Error loading chat.");
+        navigate("/matches", { replace: true });
+        setOk(false);
+      } finally {
+        if (alive) {
+          setReady(true);
+        }
       }
-      setReady(true);
     })();
     return () => { alive = false; };
   }, [id, navigate, userId]);

@@ -13,6 +13,7 @@ import { getUsersAtVenue } from '@/data/mock';
 import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 import OptimizedImage from '@/components/shared/OptimizedImage';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface VenueUser {
   id: string;
@@ -37,13 +38,13 @@ const SimpleVenueView: React.FC = () => {
 
   useEffect(() => {
     if (!venueId) {
-      navigate('/venues');
+      navigate('/checkin');
       return;
     }
 
     const venueData = mockVenues.find(v => v.id === venueId);
     if (!venueData) {
-      navigate('/venues');
+      navigate('/checkin');
       return;
     }
 
@@ -112,7 +113,7 @@ const SimpleVenueView: React.FC = () => {
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900 mx-auto mb-4"></div>
+            <LoadingSpinner size="md" />
             <p className="text-neutral-600">Loading venue...</p>
           </div>
         </div>
@@ -126,7 +127,7 @@ const SimpleVenueView: React.FC = () => {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <p className="text-neutral-600 mb-4">Venue not found</p>
-            <Button onClick={() => navigate('/venues')}>Back to Venues</Button>
+            <Button onClick={() => navigate('/checkin')}>Back to Venues</Button>
           </div>
         </div>
       </Layout>
@@ -141,7 +142,7 @@ const SimpleVenueView: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/venues')}
+            onClick={() => navigate('/checkin')}
             className="p-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -177,7 +178,7 @@ const SimpleVenueView: React.FC = () => {
                 key={user.id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >

@@ -1,17 +1,15 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Skeleton } from './skeleton';
 import { Card, CardContent, CardHeader } from './card';
+import { LoadingSpinner } from './LoadingSpinner';
 
-// Skeleton animation
+// Skeleton animation component
 const SkeletonPulse: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ 
   className = '', 
   style 
 }) => (
-  <motion.div
-    animate={{ opacity: [0.5, 1, 0.5] }}
-    transition={{ duration: 1.5, repeat: Infinity }}
-    className={`bg-neutral-200 rounded ${className}`}
+  <div
+    className={`bg-neutral-200 rounded animate-pulse ${className}`}
     style={style}
   />
 );
@@ -38,11 +36,9 @@ export const UserCardSkeleton: React.FC = () => (
 
 // Venue card skeleton
 export const VenueCardSkeleton: React.FC<{ index?: number }> = ({ index = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay: index * 0.1 }}
-    className="w-full"
+  <div
+    className="w-full opacity-0 animate-fade-in"
+    style={{ animationDelay: `${index * 100}ms` }}
   >
     <Card>
       <CardHeader className="pb-3">
@@ -70,16 +66,14 @@ export const VenueCardSkeleton: React.FC<{ index?: number }> = ({ index = 0 }) =
         </div>
       </CardContent>
     </Card>
-  </motion.div>
+  </div>
 );
 
 // Match card skeleton
 export const MatchCardSkeleton: React.FC<{ index?: number }> = ({ index = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay: index * 0.1 }}
-    className="w-full"
+  <div
+    className="w-full opacity-0 animate-fade-in"
+    style={{ animationDelay: `${index * 100}ms` }}
   >
     <Card>
       <CardHeader className="pb-3">
@@ -108,7 +102,7 @@ export const MatchCardSkeleton: React.FC<{ index?: number }> = ({ index = 0 }) =
         </div>
       </CardContent>
     </Card>
-  </motion.div>
+  </div>
 );
 
 // Message skeleton
@@ -231,11 +225,7 @@ export const InfiniteScrollLoader: React.FC<{ isLoading: boolean }> = ({ isLoadi
   return (
     <div className="flex justify-center items-center py-8">
       <div className="flex items-center space-x-2">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full"
-        />
+        <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
         <span className="text-neutral-500 text-sm">Loading more...</span>
       </div>
     </div>
@@ -248,11 +238,7 @@ export const FullPageLoader: React.FC<{ message?: string }> = ({
 }) => (
   <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
     <div className="text-center space-y-4">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full mx-auto"
-      />
+      <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full mx-auto animate-spin" />
       <p className="text-neutral-600">{message}</p>
     </div>
   </div>
@@ -280,17 +266,9 @@ export const LoadingButton: React.FC<{
     className={`relative ${className}`}
   >
     {isLoading && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="absolute inset-0 flex items-center justify-center"
-      >
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-        />
-      </motion.div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      </div>
     )}
     <span className={isLoading ? 'opacity-0' : ''}>
       {isLoading ? loadingText : children}
@@ -324,11 +302,9 @@ export const ContentSkeleton: React.FC<{ lines?: number }> = ({ lines = 3 }) => 
 
 // Skeleton for ChatPreview
 export const ChatPreviewSkeleton: React.FC<{ index?: number }> = ({ index = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.3, delay: index * 0.05 }}
-    className="w-full"
+  <div
+    className="w-full opacity-0 animate-fade-in"
+    style={{ animationDelay: `${index * 50}ms` }}
   >
     <Card>
       <CardContent className="p-4">
@@ -344,17 +320,12 @@ export const ChatPreviewSkeleton: React.FC<{ index?: number }> = ({ index = 0 })
         </div>
       </CardContent>
     </Card>
-  </motion.div>
+  </div>
 );
 
 // Skeleton for UserProfile
 export const UserProfileSkeleton: React.FC = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-    className="space-y-6"
-  >
+  <div className="space-y-6 opacity-0 animate-fade-in">
     <div className="text-center space-y-4">
       <SkeletonPulse className="h-24 w-24 rounded-full mx-auto" />
       <div className="space-y-2">
@@ -378,67 +349,40 @@ export const UserProfileSkeleton: React.FC = () => (
         <SkeletonPulse className="h-6 w-18" />
       </div>
     </div>
-  </motion.div>
+  </div>
 );
 
 // Skeleton for MessageList
 export const MessageListSkeleton: React.FC = () => (
   <div className="space-y-4">
     {[1, 2, 3, 4, 5].map((i) => (
-      <motion.div
+      <div
         key={i}
-        initial={{ opacity: 0, x: i % 2 === 0 ? 20 : -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: i * 0.1 }}
-        className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}
+        className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'} opacity-0 animate-fade-in`}
+        style={{ animationDelay: `${i * 100}ms` }}
       >
         <div className={`max-w-xs ${i % 2 === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted'} rounded-lg p-3`}>
           <SkeletonPulse className={`h-4 w-32 ${i % 2 === 0 ? 'bg-primary-foreground/20' : ''}`} />
           <SkeletonPulse className={`h-3 w-24 mt-2 ${i % 2 === 0 ? 'bg-primary-foreground/20' : ''}`} />
         </div>
-      </motion.div>
+      </div>
     ))}
   </div>
 );
 
-// Loading spinner with text
-export const LoadingSpinner: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="flex flex-col items-center justify-center p-8 space-y-4"
-  >
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-      className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
-    />
-    <motion.p
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.2 }}
-      className="text-sm text-muted-foreground"
-    >
-      {message}
-    </motion.p>
-  </motion.div>
-);
+// Loading spinner with text - re-export from standardized component
+export { LoadingSpinner } from './LoadingSpinner';
 
-// Pulse loading animation
+// Pulse loading animation - CSS-based for performance
 export const PulseLoader: React.FC = () => (
   <div className="flex space-x-1">
     {[0, 1, 2].map((i) => (
-      <motion.div
+      <div
         key={i}
-        className="w-2 h-2 bg-primary rounded-full"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.5, 1, 0.5]
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          delay: i * 0.2
+        className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"
+        style={{
+          animationDelay: `${i * 0.2}s`,
+          animationDuration: '0.8s',
         }}
       />
     ))}

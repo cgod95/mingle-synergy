@@ -88,7 +88,7 @@ export function useVenues(): VenueHookReturn {
     });
     
     // Navigate back to venues list
-    navigate('/venues');
+    navigate('/checkin');
   };
 
   return {

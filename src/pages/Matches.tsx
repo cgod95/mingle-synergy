@@ -3,12 +3,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles } from "lucide-react";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
 import { timeAgo } from "@/lib/timeago";
 import { useAuth } from "@/context/AuthContext";
+import config from "@/config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -98,9 +98,13 @@ export default function Matches() {
 
     fetchMatches();
     // Refresh every 30 seconds
-    const interval = setInterval(fetchMatches, 30000);
-    return () => clearInterval(interval);
-  }, [currentUser]);
+    // CRITICAL: Disabled in demo mode to prevent periodic re-renders
+    // In demo mode, matches are loaded from localStorage and don't need polling
+    const interval = config.DEMO_MODE ? null : setInterval(fetchMatches, 30000);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [currentUser?.uid]); // CRITICAL: Only depend on user ID, not whole object
 
 
   const formatRemainingTime = (expiresAt: number): string => {
@@ -162,11 +166,7 @@ export default function Matches() {
       <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
+          <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -175,17 +175,12 @@ export default function Matches() {
                 <p className="text-neutral-300 mt-2">Your conversations</p>
               </div>
               {totalMatches > 0 && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-                  className="flex items-center gap-2"
-                >
+                <div className="flex items-center gap-2">
                   <Badge className="bg-indigo-600 text-white px-4 py-1.5 text-sm font-semibold shadow-lg">
                     <Sparkles className="w-4 h-4 mr-1.5" />
                     {activeMatches} active
                   </Badge>
-                </motion.div>
+                </div>
               )}
             </div>
 
@@ -228,8 +223,8 @@ export default function Matches() {
                   </div>
                 </div>
               </div>
-            )}
-          </motion.div>
+              )}
+          </div>
 
           {isLoading ? (
             <MatchListSkeleton />
@@ -248,8 +243,7 @@ export default function Matches() {
               {/* Active Matches */}
               {activeMatchesList.length > 0 && (
                 <div className="space-y-3">
-                  <AnimatePresence>
-                    {activeMatchesList.map((match, index) => {
+                  {activeMatchesList.map((match, index) => {
                   const remainingSeconds = getRemainingSeconds(match);
                   const remainingTime = formatRemainingTime(match.expiresAt);
                   const isExpiringSoon = remainingSeconds < 30 * 60; // Less than 30 minutes
@@ -258,15 +252,7 @@ export default function Matches() {
                   const expiryColor = getExpiryColor(remainingSeconds);
                   
                   return (
-                    <motion.div
-                      key={match.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ delay: index * 0.05 }}
-                      whileHover={matchExpired ? {} : { scale: 1.01, y: -2 }}
-                      whileTap={matchExpired ? {} : { scale: 0.98 }}
-                    >
+                    <div key={match.id}>
                       <Card
                         className={`cursor-pointer transition-all border overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
                           matchExpired
@@ -296,16 +282,16 @@ export default function Matches() {
                                 ? 'ring-indigo-500' 
                                 : 'ring-neutral-600'
                             }`}>
-                              {match.avatarUrl ? (
-                                <AvatarImage 
-                                  src={match.avatarUrl} 
-                                  alt={match.displayName || "Match"}
-                                />
-                              ) : null}
-                              <AvatarFallback className="bg-indigo-600 text-white font-bold text-2xl">
-                                {(match.displayName || "M").charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                            {match.avatarUrl ? (
+                              <AvatarImage 
+                                src={match.avatarUrl} 
+                                alt={match.displayName || "Match"}
+                              />
+                            ) : null}
+                            <AvatarFallback className="bg-indigo-600 text-white font-bold text-2xl">
+                              {(match.displayName || "M").charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
                             {match.unreadCount && match.unreadCount > 0 && (
                               <div className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-neutral-800">
                                 <span className="text-xs font-bold text-white">{match.unreadCount}</span>
@@ -342,8 +328,8 @@ export default function Matches() {
                                 )}
                                 {match.lastMessageTime && (
                                   <span className="text-xs text-neutral-400 font-medium whitespace-nowrap">
-                                    {timeAgo(match.lastMessageTime)}
-                                  </span>
+                                  {timeAgo(match.lastMessageTime)}
+                                </span>
                                 )}
                               </div>
                             </div>
@@ -412,10 +398,9 @@ export default function Matches() {
                           }`} />
                         </div>
                       </Card>
-                    </motion.div>
+                    </div>
                   );
                     })}
-                  </AnimatePresence>
                 </div>
               )}
 
@@ -439,18 +424,12 @@ export default function Matches() {
                   </Button>
                   
                   {showExpired && (
-                    <AnimatePresence>
+                    <>
                       {expiredMatchesList.map((match, index) => {
                         const matchExpired = true;
                         
                         return (
-                          <motion.div
-                            key={match.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ delay: index * 0.05 }}
-                          >
+                          <div key={match.id}>
                             <Card
                               className="cursor-pointer transition-all border overflow-hidden opacity-60 border-neutral-700 bg-neutral-800/50"
                               onClick={() => handleMatchClick(match.id)}
@@ -498,10 +477,10 @@ export default function Matches() {
                                 <ArrowRight className="w-5 h-5 text-neutral-500 flex-shrink-0" />
                               </div>
                             </Card>
-                          </motion.div>
+                          </div>
                         );
                       })}
-                    </AnimatePresence>
+                    </>
                   )}
                 </div>
               )}

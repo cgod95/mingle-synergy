@@ -9,7 +9,7 @@ export default function BottomTab() {
       <div className="mx-auto flex w-full max-w-6xl px-2">
         <NavLink to="/checkin" className={({isActive}) => item(isActive)}>Check In</NavLink>
         <NavLink to="/matches" className={({isActive}) => item(isActive)}>Matches</NavLink>
-        <NavLink to="/chat" className={({isActive}) => item(isActive)}>Chat</NavLink>
+        <NavLink to="/matches" className={({isActive}) => item(isActive)}>Chat</NavLink>
         <NavLink to="/profile" className={({isActive}) => item(isActive)}>Profile</NavLink>
       </div>
     </nav>

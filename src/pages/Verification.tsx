@@ -1,7 +1,7 @@
 // Verification Page - Email and optional selfie verification
 // Per spec section 3.2: "Verification (lightweight): Email and optional selfie, not public badges—just safety improvements"
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';

@@ -76,6 +76,11 @@ class FirebaseUserService implements UserService {
 
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
     try {
+      // Return empty array if firestore is not available
+      if (!firestore) {
+        return [];
+      }
+      
       const usersRef = collection(firestore, 'users');
       const q = query(usersRef, where('currentVenue', '==', venueId));
       const snapshot = await getDocs(q);

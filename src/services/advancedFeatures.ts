@@ -258,6 +258,11 @@ class AdvancedFeaturesService {
 
   // Real-time Updates
   private initializeRealTimeUpdates(): void {
+    // Skip initialization in demo mode to prevent unnecessary warnings
+    if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
+      return;
+    }
+    
     // Initialize WebSocket connections for different update types
     this.connectToRealTimeService('match');
     this.connectToRealTimeService('message');

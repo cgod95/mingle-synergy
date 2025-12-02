@@ -1,5 +1,5 @@
 // src/pages/CreateProfile.tsx
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase';
@@ -285,7 +285,7 @@ export default function CreateProfile() {
             <div className="flex space-x-3">
               <Button
                 variant="outline"
-                onClick={() => navigate('/onboarding')}
+                onClick={() => navigate('/signup')}
                 className="flex-1 border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -293,12 +293,12 @@ export default function CreateProfile() {
               </Button>
               <Button
                 onClick={handleSubmit}
+                loading={saving}
                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
                 disabled={!name.trim() || !bio.trim() || bio.trim().length < 10 || saving}
               >
                 {saving ? (
                   <span className="flex items-center justify-center">
-                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
                     {retryCount > 0 ? `Retrying... (${retryCount})` : 'Saving...'}
                   </span>
                 ) : (

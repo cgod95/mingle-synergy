@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import { MapPin, CheckCircle2, ArrowLeft, QrCode } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { Button } from "@/components/ui/button";
@@ -44,6 +43,10 @@ export default function CheckInPage() {
   const [venueError, setVenueError] = useState<Error | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
+  
+  // Add refs to prevent duplicate concurrent calls
+  const loadingRef = useRef(false);
+  const lastLoadKeyRef = useRef<string>("");
 
   // Get venueId from QR code URL params
   const qrVenueId = params.get("venueId");
@@ -78,7 +81,23 @@ export default function CheckInPage() {
     navigate(`/venues/${id}`);
   };
 
-  const loadVenues = async () => {
+  // Memoize loadVenues to prevent recreation and use stable dependencies
+  const loadVenues = useCallback(async () => {
+    // Create a unique key for this load attempt
+    const loadKey = `${qrVenueId || ''}-${source || ''}-${currentUser?.uid || 'none'}`;
+    
+    // Prevent duplicate concurrent calls
+    if (loadingRef.current) {
+      return;
+    }
+    
+    // Prevent duplicate calls with same parameters
+    if (lastLoadKeyRef.current === loadKey) {
+      return;
+    }
+    
+    loadingRef.current = true;
+    lastLoadKeyRef.current = loadKey;
     setLoadingVenues(true);
     setVenueError(null);
     
@@ -169,12 +188,13 @@ export default function CheckInPage() {
       setVenues([]);
     } finally {
       setLoadingVenues(false);
+      loadingRef.current = false;
     }
-  };
+  }, [qrVenueId, source, currentUser?.uid]); // Use uid instead of whole currentUser object
 
   useEffect(() => {
     loadVenues();
-  }, [qrVenueId, source, currentUser, navigate]);
+  }, [loadVenues]); // Only depend on memoized function
 
   const preselect = qrVenueId || params.get("id");
 
@@ -196,11 +216,7 @@ export default function CheckInPage() {
             </Button>
           </div>
         )}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
+        <div className="mb-6">
           <div className="mb-6">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">Venues</h1>
             <p className="text-neutral-300 mb-3">Check in with the QR code at the venue, auto check-in, or choose from the venues below.</p>
@@ -209,18 +225,14 @@ export default function CheckInPage() {
               <span>Showing venues closest to you</span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Check-in Options - Uniform Cards */}
         <div className="flex flex-col items-center gap-4 mb-6 relative">
           {/* Connecting visual element */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-px h-8 bg-gradient-to-b from-indigo-600/50 via-purple-600/50 to-transparent pointer-events-none z-0" />
           {/* QR Code Scanner Button - Primary */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md"
-          >
+          <div className="w-full max-w-md">
             <Card 
               className="border-2 border-indigo-600 bg-gradient-to-br from-indigo-900/40 to-purple-900/30 cursor-pointer hover:border-indigo-500 hover:from-indigo-900/50 hover:to-purple-900/40 hover:shadow-xl transition-all relative group"
               onClick={() => {
@@ -245,29 +257,20 @@ export default function CheckInPage() {
                 </p>
               </div>
             </Card>
-          </motion.div>
+          </div>
 
         {/* Show message if coming from QR code */}
         {source === "qr" && qrVenueId && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 bg-indigo-900/30 border border-indigo-700 rounded-xl"
-          >
+          <div className="mb-4 p-4 bg-indigo-900/30 border border-indigo-700 rounded-xl">
             <p className="text-sm text-indigo-300 font-medium">
               📱 Scanned QR code for {venues.find(v => v.id === qrVenueId)?.name || "venue"} - Checking you in...
             </p>
-          </motion.div>
+          </div>
         )}
 
           {/* Auto-detect Button - Secondary */}
           {navigator.geolocation && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="w-full max-w-md"
-            >
+            <div className="w-full max-w-md">
               <Card
                 className="border-2 border-indigo-600/70 bg-indigo-900/20 cursor-pointer hover:border-indigo-500 hover:bg-indigo-900/30 hover:shadow-lg transition-all relative group"
                 onClick={async () => {
@@ -339,7 +342,7 @@ export default function CheckInPage() {
                   </div>
                 )}
               </Card>
-            </motion.div>
+            </div>
           )}
         </div>
 
@@ -400,22 +403,14 @@ export default function CheckInPage() {
         )}
 
         {checked && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-4 p-4 bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-indigo-900/40 border-2 border-indigo-600/50 rounded-xl flex items-center space-x-3 shadow-lg"
-          >
+          <div className="mb-4 p-4 bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-indigo-900/40 border-2 border-indigo-600/50 rounded-xl flex items-center space-x-3 shadow-lg">
             <CheckCircle2 className="w-6 h-6 text-indigo-400 flex-shrink-0" />
             <p className="text-sm text-indigo-300 font-semibold">You're checked in! Browse people at your venue.</p>
-          </motion.div>
+          </div>
         )}
 
         {venueError && venues.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-6 bg-neutral-800 rounded-xl border-2 border-red-700 text-center"
-          >
+          <div className="mb-6 p-6 bg-neutral-800 rounded-xl border-2 border-red-700 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900 flex items-center justify-center">
               <MapPin className="w-8 h-8 text-red-400" />
             </div>
@@ -426,7 +421,7 @@ export default function CheckInPage() {
                 : venueError.message || 'Something went wrong. Please try again.'}
             </p>
             <RetryButton onRetry={loadVenues} isLoading={loadingVenues} />
-          </motion.div>
+          </div>
         )}
 
         {loadingVenues && venues.length === 0 && !venueError && (
@@ -438,11 +433,7 @@ export default function CheckInPage() {
         )}
 
         {!loadingVenues && !venueError && venues.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-8 bg-neutral-800 rounded-xl border-2 border-neutral-700 text-center"
-          >
+          <div className="mb-6 p-8 bg-neutral-800 rounded-xl border-2 border-neutral-700 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-900 flex items-center justify-center">
               <MapPin className="w-8 h-8 text-indigo-400" />
             </div>
@@ -457,7 +448,7 @@ export default function CheckInPage() {
             >
               Refresh
             </Button>
-          </motion.div>
+          </div>
         )}
 
         {!loadingVenues && venues.length > 0 && (
@@ -470,18 +461,13 @@ export default function CheckInPage() {
               : null;
             
             return (
-              <motion.div
-                key={v.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.98 }}
-              >
+              <div key={v.id}>
                 <Card
-                  className={`cursor-pointer transition-all h-full overflow-hidden relative border border-neutral-700 hover:border-indigo-500 hover:shadow-md bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
-                    preselect === v.id ? "border-2 border-indigo-600 shadow-md bg-indigo-900/30" : ""
-                  }`}
+                  className={`cursor-pointer transition-all h-full overflow-hidden relative border-2 ${
+                    preselect === v.id 
+                      ? "border-indigo-600 shadow-lg bg-indigo-900/30 ring-2 ring-indigo-500" 
+                      : "border-neutral-700 hover:border-indigo-500 hover:shadow-lg bg-neutral-800"
+                  } focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900`}
                   onClick={() => onCheckIn(v.id)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -493,6 +479,12 @@ export default function CheckInPage() {
                   role="button"
                   aria-label={`Check in to ${v.name}`}
                 >
+                  {/* Prominent "Tap to Check In" indicator */}
+                  <div className="absolute top-2 right-2 z-20">
+                    <Badge className="bg-indigo-600 text-white font-bold shadow-xl px-3 py-1.5 text-xs border-2 border-indigo-400 animate-pulse">
+                      Tap to Check In
+                    </Badge>
+                  </div>
                   {/* Venue Image */}
                   <div className="relative h-48 w-full overflow-hidden bg-neutral-200 aspect-square">
                     {v.image ? (
@@ -581,15 +573,19 @@ export default function CheckInPage() {
                       </div>
                     )}
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full text-indigo-400 hover:bg-indigo-900/30 font-medium border-0"
+                      size="lg"
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-xl min-h-[48px] mt-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onCheckIn(v.id);
+                      }}
                     >
-                      Check In →
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Check In Here
                     </Button>
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
         </div>

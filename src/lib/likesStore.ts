@@ -41,7 +41,7 @@ export function ensureDemoLikesSeed() {
 }
 
 /** Send a like. Returns true if mutual like (i.e., a match). */
-export function likePerson(id: string): boolean {
+export async function likePerson(id: string): Promise<boolean> {
   const s = load();
   if (!s.mine.includes(id)) s.mine.push(id);
   
@@ -65,13 +65,13 @@ export function likePerson(id: string): boolean {
     s.matches.push(id);
     // Ensure chat is created when match happens
     try {
-      const { ensureChat } = require('./chatStore');
-      const { getPerson } = require('./demoPeople');
+      const { ensureChat } = await import('./chatStore');
+      const { getPerson } = await import('./demoPeople');
       const person = getPerson(id);
       ensureChat(id, { name: person?.name });
       
       // Add a welcome message
-      const { appendMessage } = require('./chatStore');
+      const { appendMessage } = await import('./chatStore');
       appendMessage(id, { 
         sender: "system", 
         ts: Date.now(), 

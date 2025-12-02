@@ -5,6 +5,7 @@
  */
 
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +26,7 @@ export default function MessageLimitModal({
   onClose,
   remainingMessages,
 }: MessageLimitModalProps) {
+  const navigate = useNavigate();
   const isLimitReached = remainingMessages === 0;
 
   return (
@@ -64,7 +66,8 @@ export default function MessageLimitModal({
             <Button
               onClick={() => {
                 // Navigate to venues to reconnect
-                window.location.href = '/checkin';
+                navigate('/checkin');
+                onClose();
               }}
               className="flex-1 bg-indigo-600 hover:bg-indigo-700"
             >

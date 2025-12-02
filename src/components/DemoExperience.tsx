@@ -72,7 +72,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
     if (onAction) {
       onAction();
     } else {
-      navigate('/onboarding');
+      navigate('/create-profile');
     }
   };
 
@@ -148,7 +148,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
       <motion.section
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.8 }}
+        transition={{ delay: 0.1, duration: 0.2 }}
         className="py-16 bg-gradient-to-r from-gray-50 via-blue-50 to-blue-100"
       >
         <div className="container mx-auto px-4">

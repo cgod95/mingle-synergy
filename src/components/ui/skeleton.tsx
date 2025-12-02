@@ -1,16 +1,13 @@
+import * as React from "react"
 import { cn } from "@/lib/utils"
-import { motion, HTMLMotionProps } from "framer-motion"
 
 function Skeleton({
   className,
   ...props
-}: Omit<HTMLMotionProps<"div">, "ref">) {
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <motion.div
+    <div
       className={cn("animate-pulse rounded-md bg-muted", className)}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
       {...props}
     />
   )

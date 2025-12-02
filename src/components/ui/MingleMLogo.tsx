@@ -1,5 +1,4 @@
 // Mingle "M" Monogram Logo
-import { motion } from 'framer-motion';
 
 interface MingleMLogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -28,22 +27,19 @@ const logoSizeMap = {
 export default function MingleMLogo({ size = 'md', showText = true, className = '' }: MingleMLogoProps) {
   return (
     <div className={`flex items-center space-x-2 ${className}`}>
-      <motion.div
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.95 }}
-        className={`${sizeMap[size]} rounded-lg bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 flex items-center justify-center shadow-lg`}
+      <div
+        className={`${sizeMap[size]} rounded-lg bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95`}
       >
         <span className={`${logoSizeMap[size]} font-bold text-white`}>
           M
         </span>
-      </motion.div>
+      </div>
       {showText && (
-        <motion.span
-          className={`${textSizeMap[size]} font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent`}
-          whileHover={{ scale: 1.05 }}
+        <span
+          className={`${textSizeMap[size]} font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent transition-transform hover:scale-105`}
         >
           Mingle
-        </motion.span>
+        </span>
       )}
     </div>
   );

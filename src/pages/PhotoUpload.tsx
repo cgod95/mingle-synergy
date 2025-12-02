@@ -1,7 +1,6 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Camera, Upload, X, CheckCircle2, ArrowLeft } from 'lucide-react';
-import userService from '@/services/firebase/userService';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,8 @@ import { logError } from '@/utils/errorHandler';
 
 export default function PhotoUpload() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromProfile = location.state?.from === 'profile';
   const { currentUser } = useAuth();
   const { setOnboardingStepComplete } = useOnboarding();
   const { toast } = useToast();
@@ -98,6 +99,7 @@ export default function PhotoUpload() {
         });
       }, 200);
 
+      const { userService } = await import('@/services');
       await userService.uploadProfilePhoto(currentUser.uid, file);
       
       clearInterval(progressInterval);
@@ -121,7 +123,7 @@ export default function PhotoUpload() {
 
       // Navigate to next step after a brief delay
       setTimeout(() => {
-        navigate('/preferences');
+        navigate(fromProfile ? '/profile' : '/preferences');
       }, 1500);
     } catch (error: any) {
       logError(error as Error, { 

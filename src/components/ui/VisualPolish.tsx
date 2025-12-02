@@ -48,6 +48,10 @@ export const RippleButton: React.FC<RippleButtonProps> = ({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || loading) return;
 
+    // Call onClick immediately for responsive feel
+    onClick?.();
+
+    // Add ripple effect after (non-blocking)
     const button = buttonRef.current;
     if (!button) return;
 
@@ -63,12 +67,10 @@ export const RippleButton: React.FC<RippleButtonProps> = ({
 
     setRipples(prev => [...prev, newRipple]);
 
-    // Remove ripple after animation
+    // Remove ripple after animation (reduced duration for speed)
     setTimeout(() => {
       setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id));
-    }, 600);
-
-    onClick?.();
+    }, 300);
   };
 
   // NEW: Keyboard accessibility
@@ -112,17 +114,9 @@ export const RippleButton: React.FC<RippleButtonProps> = ({
       )}
     >
       {loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute inset-0 flex items-center justify-center bg-inherit"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: easeInOut }}
-            className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
-          />
-        </motion.div>
+        <div className="absolute inset-0 flex items-center justify-center bg-inherit">
+          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        </div>
       )}
       
       <span className={cn(loading && 'opacity-0')}>
@@ -134,7 +128,7 @@ export const RippleButton: React.FC<RippleButtonProps> = ({
           key={ripple.id}
           initial={{ scale: 0, opacity: 0.5 }}
           animate={{ scale: 4, opacity: 0 }}
-          transition={{ duration: 0.6, ease: easeInOut }}
+          transition={{ duration: 0.3, ease: easeInOut }}
           className="absolute rounded-full bg-white/30 pointer-events-none"
           style={{
             left: ripple.x - 10,
@@ -591,7 +585,7 @@ const shimmerVariants = {
   shimmer: {
     x: [-200, 200],
     transition: {
-      duration: 1.5,
+      duration: 0.8,
       repeat: Infinity,
       ease: easeInOut
     }
@@ -611,21 +605,23 @@ export function AnimatedCard({
   animationDelay = 0,
   className = "" 
 }: VisualPolishProps) {
+  // CRITICAL: Temporarily disabled framer-motion to prevent React instance conflicts
+  // Use CSS-based animations instead
   return (
-    <motion.div
-      variants={itemVariants}
-      initial="hidden"
-      animate="visible"
-      transition={{ delay: animationDelay }}
-      whileHover={hoverVariants[hoverEffect]}
-      className={className}
+    <div
+      className={cn(
+        className,
+        "transition-all duration-300",
+        hoverEffect === 'lift' && "hover:-translate-y-1 hover:shadow-lg"
+      )}
+      style={{ animationDelay: `${animationDelay}ms` }}
     >
       <Card className="overflow-hidden">
         <CardContent className="p-6">
           {children}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
@@ -725,7 +721,7 @@ export function ProgressRing({
       className="transform -rotate-90"
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.2 }}
     >
       <circle
         cx={size / 2}

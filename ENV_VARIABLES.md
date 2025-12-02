@@ -158,6 +158,18 @@ VITE_VAPID_PUBLIC_KEY=your-vapid-public-key
 VITE_ANALYTICS_ID=your-analytics-id
 ```
 
+### Sentry Error Tracking
+```bash
+# Sentry DSN for error tracking (required for production)
+VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+
+# Enable Sentry in development mode (default: false, auto-enabled in production)
+VITE_ENABLE_SENTRY=false
+
+# Sentry environment tag (default: uses VITE_ENVIRONMENT or MODE)
+VITE_SENTRY_ENVIRONMENT=development
+```
+
 ---
 
 ## 🧪 Development & Testing

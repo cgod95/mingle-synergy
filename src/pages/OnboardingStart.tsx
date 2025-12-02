@@ -11,7 +11,7 @@ export default function OnboardingStart() {
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.2 }}
           className="text-3xl font-bold text-center text-gray-900"
         >
           Mingle
@@ -20,7 +20,7 @@ export default function OnboardingStart() {
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6 }}
+          transition={{ delay: 0.05, duration: 0.2 }}
           className="text-center text-gray-600 text-base"
         >
           The anti-dating app dating app.
@@ -34,7 +34,7 @@ export default function OnboardingStart() {
       {/* Sticky CTA */}
       <div className="p-6 sticky bottom-0 bg-white border-t">
         <button
-          onClick={() => navigate('/onboarding')}
+          onClick={() => navigate('/signup')}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition"
         >
           Get Started

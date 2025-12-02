@@ -3,11 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Heart, User, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
-import { motion } from 'framer-motion';
 import config from '@/config';
 
 // BottomNav: Main navigation bar for user-facing pages with red notification badges
-// Routes match App.tsx: /checkin, /matches, /chats, /profile
+// Routes match App.tsx: /checkin, /matches, /profile
 // Hidden during onboarding (except demo mode) - only shows after profile + photo complete
 const BottomNav: React.FC = () => {
   const { currentUser } = useAuth();
@@ -64,10 +63,11 @@ const BottomNav: React.FC = () => {
     // Initial load
     updateUnreadCount();
 
-    // In demo mode, poll for updates (since we don't have real-time subscriptions)
-    if (config.DEMO_MODE) {
-      intervalId = setInterval(updateUnreadCount, 2000); // Check every 2 seconds
-    }
+    // DISABLED: Polling interval was causing flickering every 2 seconds
+    // In demo mode, we only update on mount to prevent constant re-renders
+    // if (config.DEMO_MODE) {
+    //   intervalId = setInterval(updateUnreadCount, 2000); // Check every 2 seconds
+    // }
     
     return () => {
       if (unsubscribe) unsubscribe();
@@ -89,10 +89,7 @@ const BottomNav: React.FC = () => {
   };
 
   return (
-    <motion.nav
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
+    <nav
       className="fixed bottom-0 left-0 right-0 bg-neutral-800/95 backdrop-blur-md border-t border-neutral-700 shadow-lg px-4 py-3 z-50"
       style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
@@ -103,59 +100,41 @@ const BottomNav: React.FC = () => {
           const showBadge = item.showBadge && unreadCount > 0;
           
           return (
-            <motion.button
+            <button
               key={item.path}
               onClick={() => navigate(item.path)}
               aria-label={`Navigate to ${item.label}${showBadge ? ` (${unreadCount} unread)` : ''}`}
               aria-current={active ? 'page' : undefined}
               className="relative flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
             >
-              <motion.div
-                animate={{
-                  color: active ? '#6366F1' : '#6B7280',
-                  scale: active ? 1.15 : 1
-                }}
-                transition={{ duration: 0.2 }}
-                className="relative"
+              <div
+                className={`relative ${active ? 'text-indigo-500 scale-110' : 'text-neutral-500'}`}
               >
                 <Icon size={24} strokeWidth={active ? 2.5 : 2} />
                 {/* Red notification badge - iOS/Android style */}
                 {showBadge && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
+                  <div
                     className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-lg border-2 border-white"
                   >
                     {unreadCount > 99 ? '99+' : unreadCount}
-                  </motion.div>
+                  </div>
                 )}
-              </motion.div>
-              <motion.span
-                animate={{
-                  color: active ? '#6366F1' : '#6B7280',
-                }}
-                transition={{ duration: 0.2 }}
-                className={`text-xs ${active ? 'font-bold' : 'font-medium'}`}
+              </div>
+              <span
+                className={`text-xs ${active ? 'font-bold text-indigo-500' : 'font-medium text-neutral-500'}`}
               >
                 {item.label}
-              </motion.span>
+              </span>
               {active && (
-                <motion.div
-                  layoutId="activeTab"
+                <div
                   className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-indigo-600 rounded-full"
-                  initial={{ opacity: 0, scaleX: 0 }}
-                  animate={{ opacity: 1, scaleX: 1 }}
-                  transition={{ duration: 0.2 }}
                 />
               )}
-            </motion.button>
+            </button>
           );
         })}
       </div>
-    </motion.nav>
+    </nav>
   );
 };
 

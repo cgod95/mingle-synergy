@@ -28,8 +28,11 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    strictPort: false, // Allow Vite to use next available port if 5173 is taken
     hmr: {
-      port: 5173,
+      // Don't specify port - let Vite use the same port as the server
+      // This prevents "ws://localhost:undefined" errors when port changes
+      protocol: 'ws',
     },
   },
   resolve: {
@@ -38,11 +41,13 @@ export default defineConfig({
       // Force single React instance - CRITICAL for fixing hooks errors
       'react': path.resolve(__dirname, './node_modules/react'),
       'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+      // CRITICAL: Force framer-motion to use the same React instance
+      'framer-motion': path.resolve(__dirname, './node_modules/framer-motion'),
     },
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom', 'framer-motion'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'], // Include framer-motion but force it to use same React
     force: true, // Force re-optimization
   },
   build: {
@@ -57,10 +62,8 @@ export default defineConfig({
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'react-vendor';
           }
-          if (id.includes('node_modules/framer-motion')) {
-            // Force framer-motion to use same React instance
-            return 'react-vendor';
-          }
+          // Exclude framer-motion from bundling to prevent React instance conflicts
+          // If needed elsewhere, it will be loaded separately
           if (id.includes('node_modules/firebase')) {
             return 'firebase-vendor';
           }

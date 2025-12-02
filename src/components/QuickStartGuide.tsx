@@ -35,7 +35,7 @@ export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
       title: "Check Into Venues",
       description: "Find and check into venues near you to see who's there",
       action: "Go to Venues",
-      actionLink: "/venues",
+      actionLink: "/checkin",
       demoInfo: "5 demo venues available"
     },
     {
@@ -43,7 +43,7 @@ export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
       title: "Browse People",
       description: "See profiles of people who are checked in at the same venue",
       action: "View Venue",
-      actionLink: "/venues",
+      actionLink: "/checkin",
       demoInfo: "20+ mock users to explore"
     },
     {
@@ -51,7 +51,7 @@ export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
       title: "Like & Match",
       description: "Like someone you're interested in. If they like you back, it's a match!",
       action: "Start Matching",
-      actionLink: "/venues",
+      actionLink: "/checkin",
       demoInfo: "Simulated matching system"
     },
     {
@@ -142,7 +142,7 @@ export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
                       className="bg-blue-600 h-2 rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-                      transition={{ duration: 0.5 }}
+                      transition={{ duration: 0.2 }}
                     />
                   </div>
                 </div>

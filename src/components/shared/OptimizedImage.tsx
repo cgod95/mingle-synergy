@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 
 interface OptimizedImageProps {
@@ -23,15 +23,18 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState<string>('');
+  const errorHandledRef = useRef(false); // Prevent multiple error handlers
 
   useEffect(() => {
-    // Reset states when src changes
+    // Reset refs and states when src changes
+    errorHandledRef.current = false;
     setIsLoading(true);
     setError(false);
     
     // If src is null or undefined, use fallback immediately
     if (!src) {
       setCurrentSrc(fallback);
+      setIsLoading(false);
       return;
     }
     
@@ -41,38 +44,29 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   }, [src, width, fallback]);
 
   const handleLoad = () => {
-    setIsLoading(false);
+    if (!errorHandledRef.current) {
+      setIsLoading(false);
+    }
   };
 
   const handleError = () => {
-    // If the main image fails, try to load the fallback
+    if (errorHandledRef.current) return; // Already handled
+    
+    errorHandledRef.current = true;
+    
     if (currentSrc !== fallback) {
-      console.warn(`Failed to load image: ${currentSrc}, trying fallback`);
       setCurrentSrc(fallback);
-      
-      // Create an image element to preload the fallback
-      const imgElement = new Image();
-      imgElement.src = fallback;
-      imgElement.onload = () => {
-        setIsLoading(false);
-        setError(false);
-      };
-      imgElement.onerror = () => {
-        setIsLoading(false);
-        setError(true);
-        console.warn(`Failed to load fallback image: ${fallback}`);
-      };
+      setIsLoading(false);
+      setError(false);
     } else {
-      // Both main and fallback failed
       setIsLoading(false);
       setError(true);
-      console.warn(`Failed to load fallback image: ${fallback}`);
     }
   };
 
   return (
     <div className={`relative ${className}`}>
-      {isLoading && (
+      {isLoading && !error && (
         <div className="absolute inset-0 bg-bg-tertiary flex items-center justify-center">
           <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
@@ -91,7 +85,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             height={height}
             onLoad={handleLoad}
             onError={handleError}
-            className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 w-full h-full object-cover`}
+            className={`${isLoading ? 'opacity-0' : 'opacity-100'} w-full h-full object-cover`}
+            // Removed transition-opacity duration-300 to prevent flickering
             data-original-src={src || ''}
             fetchPriority="high"
           />
@@ -103,7 +98,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             height={height}
             onLoad={handleLoad}
             onError={handleError}
-            className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 w-full h-full object-cover`}
+            className={`${isLoading ? 'opacity-0' : 'opacity-100'} w-full h-full object-cover`}
+            // Removed transition-opacity duration-300 to prevent flickering
             data-original-src={src || ''}
             loading="lazy"
             decoding="async"

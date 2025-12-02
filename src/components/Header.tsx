@@ -1,16 +1,16 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '@/firebase';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import config from '@/config';
 import { useUser } from '../context/UserContext';
+import { useSafeAuthState } from '../hooks/useSafeAuthState';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, setCurrentUser } = useUser();
   
-  // In demo mode, use UserContext instead of Firebase
-  const [firebaseUser] = useAuthState(auth || null);
+  // Use safe wrapper that handles null auth gracefully
+  const [firebaseUser] = useSafeAuthState(auth);
   const user = config.DEMO_MODE ? currentUser : firebaseUser;
 
   const handleSignOut = async () => {
@@ -35,7 +35,7 @@ const Header: React.FC = () => {
         Signed in as {displayName}
       </div>
       <div className="flex space-x-4 items-center">
-        <Link to="/venues" className="text-blue-500 hover:underline">Venues</Link>
+        <Link to="/checkin" className="text-blue-500 hover:underline">Venues</Link>
         <Link to="/profile" className="text-blue-500 hover:underline">Profile</Link>
         <button onClick={handleSignOut} className="text-red-500 hover:underline">
           Sign Out

@@ -210,6 +210,54 @@ class MockUserService implements UserService {
   getReconnectRequests() { return Promise.resolve([]); }
   acceptReconnectRequest() { return Promise.resolve(); }
   sendReconnectRequest() { return Promise.resolve(); }
+
+  async uploadProfilePhoto(userId: string, file: File): Promise<string> {
+    // In demo mode, convert file to data URL and store in user profile
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          const dataUrl = e.target?.result as string;
+          
+          // Get current user profile
+          const currentProfile = await this.getUserProfile(userId);
+          const currentPhotos = currentProfile?.photos || [];
+          
+          // Add new photo to photos array
+          const updatedPhotos = [...currentPhotos, dataUrl];
+          
+          // Update user profile with new photo
+          await this.updateUserProfile(userId, {
+            photos: updatedPhotos
+          });
+          
+          // Also update localStorage for demo user
+          try {
+            const storedUser = localStorage.getItem('mingle:user');
+            if (storedUser) {
+              const parsed = JSON.parse(storedUser);
+              parsed.photos = updatedPhotos;
+              localStorage.setItem('mingle:user', JSON.stringify(parsed));
+            }
+          } catch (e) {
+            console.warn('[Mock] Could not update localStorage:', e);
+          }
+          
+          console.log(`[Mock] Uploaded photo for user ${userId}`);
+          resolve(dataUrl);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  }
 }
 
 export default new MockUserService();

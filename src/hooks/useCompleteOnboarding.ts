@@ -14,7 +14,7 @@ export const useCompleteOnboarding = () => {
     
     try {
       await userService.completeOnboarding(user.uid);
-      navigate("/venues");
+      navigate("/checkin");
     } catch (error) {
       console.error('Error completing onboarding:', error);
       // You might want to show a toast notification here

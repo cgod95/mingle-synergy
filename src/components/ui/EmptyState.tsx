@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
@@ -23,21 +22,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   className,
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={cn('text-center py-12 px-4', className)}
-    >
+    <div className={cn('text-center py-12 px-4', className)}>
       {Icon && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-          className="mx-auto w-16 h-16 bg-indigo-900/50 rounded-full flex items-center justify-center mb-4 ring-2 ring-indigo-900/30"
-        >
+        <div className="mx-auto w-16 h-16 bg-indigo-900/50 rounded-full flex items-center justify-center mb-4 ring-2 ring-indigo-900/30">
           <Icon className="w-8 h-8 text-indigo-400" />
-        </motion.div>
+        </div>
       )}
       <h3 className="text-2xl font-bold mb-2 text-white">{title}</h3>
       {description && (
@@ -51,7 +40,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           {action.label}
         </Button>
       )}
-    </motion.div>
+    </div>
   );
 };
 

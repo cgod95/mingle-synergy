@@ -499,6 +499,13 @@ class DataManagementService {
 export const dataManagement = new DataManagementService();
 
 // Auto-cleanup every hour
-setInterval(() => {
+// CRITICAL: Store interval ID for potential cleanup (though hourly cleanup is fine to leave running)
+// This interval runs infrequently (every hour) so it's less likely to cause re-render issues
+const cleanupInterval = setInterval(() => {
   dataManagement.cleanup();
-}, 60 * 60 * 1000); 
+}, 60 * 60 * 1000);
+
+// Export cleanup function for testing/debugging
+export const stopDataManagementCleanup = () => {
+  clearInterval(cleanupInterval);
+}; 

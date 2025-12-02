@@ -104,7 +104,7 @@ export function AnimatedListItem({ children }: { children: ReactNode }) {
 export function FadeIn({ 
   children, 
   delay = 0,
-  duration = 0.5
+  duration = 0.2
 }: { 
   children: ReactNode;
   delay?: number;
@@ -127,7 +127,7 @@ export function FadeIn({
 export function SlideUp({ 
   children, 
   delay = 0,
-  duration = 0.5
+  duration = 0.2
 }: { 
   children: ReactNode;
   delay?: number;
@@ -169,14 +169,10 @@ export function ScaleIn({
   );
 }
 
-// Loading spinner component
+// Loading spinner component - CSS-based for performance
 export function LoadingSpinner() {
   return (
-    <motion.div
-      className="w-6 h-6 border-2 border-neutral-300 border-t-purple-600 rounded-full"
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-    />
+    <div className="w-6 h-6 border-2 border-neutral-300 border-t-purple-600 rounded-full animate-spin" />
   );
 }
 

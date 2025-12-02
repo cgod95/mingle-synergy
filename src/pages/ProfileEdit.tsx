@@ -1,11 +1,11 @@
 // 🧠 Purpose: Implement ProfileEdit page to allow user to edit their name and bio.
 // --- File: /src/pages/ProfileEdit.tsx ---
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Camera, X, Upload } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/Layout";
 import { logError } from "@/utils/errorHandler";
@@ -14,11 +14,17 @@ import { useToast } from "@/hooks/use-toast";
 export default function ProfileEdit() {
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load existing profile
   useEffect(() => {
@@ -34,16 +40,19 @@ export default function ProfileEdit() {
         if (profile) {
           setName(profile.displayName || profile.name || currentUser.name || "");
           setBio(profile.bio || "");
+          setPhotos(profile.photos || []);
         } else {
           // Fallback to currentUser data
           setName(currentUser.name || "");
           setBio("");
+          setPhotos([]);
         }
       } catch (error) {
         logError(error as Error, { context: 'ProfileEdit.loadProfile', userId: currentUser?.uid || 'unknown' });
         // Fallback to currentUser data
         setName(currentUser.name || "");
         setBio("");
+        setPhotos([]);
       } finally {
         setLoading(false);
       }
@@ -51,6 +60,127 @@ export default function ProfileEdit() {
     
     loadProfile();
   }, [currentUser]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      // Validate file type
+      if (!selected.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid file type',
+          description: 'Please select an image file.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (selected.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: 'Please select an image smaller than 5MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      setFile(selected);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(selected);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setFile(null);
+    setPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUploadPhoto = async () => {
+    if (!file || !currentUser?.uid) {
+      toast({
+        title: 'No photo selected',
+        description: 'Please select a photo to upload.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const { userService } = await import('@/services');
+      
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      const photoUrl = await userService.uploadProfilePhoto(currentUser.uid, file);
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      // Add photo to photos array
+      setPhotos([...photos, photoUrl]);
+      setFile(null);
+      setPreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      toast({
+        title: 'Photo uploaded!',
+        description: 'Your photo has been uploaded successfully.',
+      });
+    } catch (error) {
+      logError(error as Error, { context: 'ProfileEdit.handleUploadPhoto', userId: currentUser?.uid || 'unknown' });
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload photo. Please try again.',
+        variant: 'destructive',
+      });
+      setUploadProgress(0);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveExistingPhoto = async (photoIndex: number) => {
+    if (!currentUser?.uid) return;
+    
+    try {
+      const updatedPhotos = photos.filter((_, index) => index !== photoIndex);
+      const { userService } = await import('@/services');
+      await userService.updateUserProfile(currentUser.uid, {
+        photos: updatedPhotos
+      });
+      setPhotos(updatedPhotos);
+      toast({
+        title: 'Photo removed',
+        description: 'Photo has been removed from your profile.',
+      });
+    } catch (error) {
+      logError(error as Error, { context: 'ProfileEdit.handleRemoveExistingPhoto', userId: currentUser?.uid || 'unknown' });
+      toast({
+        title: 'Failed to remove photo',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleSave = async () => {
     if (!currentUser?.uid) return;
@@ -60,7 +190,8 @@ export default function ProfileEdit() {
       const { userService } = await import('@/services');
       await userService.updateUserProfile(currentUser.uid, {
         displayName: name, // Use displayName, not name
-        bio
+        bio,
+        photos // Include photos in update
       });
       // Navigate to profile page - it will reload data automatically
       navigate("/profile");
@@ -111,7 +242,104 @@ export default function ProfileEdit() {
                 Edit Profile
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-6">
+            <CardContent className="space-y-6 pt-6">
+            {/* Photo Upload Section */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-white">Profile Photos</label>
+              
+              {/* Existing Photos */}
+              {photos.length > 0 && (
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  {photos.map((photo, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={photo}
+                        alt={`Profile ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border-2 border-neutral-600"
+                      />
+                      <button
+                        onClick={() => handleRemoveExistingPhoto(index)}
+                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Remove photo"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Photo Upload Area */}
+              <div className="border-2 border-dashed border-neutral-600 rounded-lg p-6 bg-neutral-700/50">
+                {preview ? (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={handleRemovePhoto}
+                        className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+                        aria-label="Remove preview"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {uploading && (
+                      <div className="space-y-2">
+                        <div className="w-full bg-neutral-600 rounded-full h-2">
+                          <div
+                            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                        <p className="text-sm text-neutral-400 text-center">{uploadProgress}%</p>
+                      </div>
+                    )}
+                    <Button
+                      onClick={handleUploadPhoto}
+                      disabled={uploading}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                    >
+                      {uploading ? (
+                        <span className="flex items-center justify-center">
+                          <Upload className="w-4 h-4 mr-2 animate-spin" />
+                          Uploading...
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Photo
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center w-full py-8 text-neutral-400 hover:text-white transition-colors"
+                      disabled={uploading}
+                    >
+                      <Camera className="w-12 h-12 mb-3" />
+                      <span className="text-sm font-medium">Click to upload a photo</span>
+                      <span className="text-xs mt-1">JPG, PNG up to 5MB</span>
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white">Name</label>
               <Input

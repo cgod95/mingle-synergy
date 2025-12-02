@@ -1,6 +1,6 @@
 // 🧠 Purpose: Create the SignUp page to allow new users to create accounts. Matches SignIn page design with dark theme.
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,7 @@ export default function SignUp() {
     try {
       await signUpUser(email, password);
       // New users should go through onboarding flow
-      navigate('/onboarding');
+      navigate('/create-profile');
     } catch (e: any) {
       // Provide user-friendly error messages
       const errorMessage = e?.message || 'Failed to sign up';
@@ -57,7 +57,7 @@ export default function SignUp() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.2 }}
           className="w-full max-w-sm"
         >
           <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
@@ -71,26 +71,26 @@ export default function SignUp() {
                   <label className="block text-sm font-medium text-neutral-300">Email</label>
                   <Input 
                     placeholder="Enter your email" 
-                    type="email"
-                    autoComplete="email"
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
                     className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
-                    required
+          required
                     disabled={busy}
-                  />
+        />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-neutral-300">Password</label>
                   <Input 
                     placeholder="Password (min 6 characters)" 
-                    type="password"
-                    autoComplete="new-password"
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)}
-                    minLength={6}
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={6}
                     className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
-                    required
+          required
                     disabled={busy}
                   />
                   <p className="text-xs text-neutral-500">Must be at least 6 characters</p>
@@ -120,7 +120,7 @@ export default function SignUp() {
                     'Create account'
                   )}
                 </Button>
-              </form>
+      </form>
               
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">

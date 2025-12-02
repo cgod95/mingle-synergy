@@ -1,10 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, lazy, Suspense, useState } from "react";
+import React, { useEffect, lazy, Suspense, useState, useRef } from "react";
 import AppShell from "./components/layout/AppShell";
+import config from "./config";
+import { LoadingSpinner as StandardLoadingSpinner } from './components/ui/LoadingSpinner';
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
 import MingleLoader from "./components/ui/MingleLoader";
+// Import ChatRoomGuard directly (not lazy) to avoid Router context timing issues with useNavigate
+import ChatRoomGuard from "./pages/ChatRoomGuard";
 
 // Lazy load pages for code splitting
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -14,7 +18,6 @@ const SignUp = lazy(() => import("./pages/SignUp"));
 const CheckInPage = lazy(() => import("./pages/CheckInPage"));
 const VenueDetails = lazy(() => import("./pages/VenueDetails"));
 const Matches = lazy(() => import("./pages/Matches"));
-const ChatRoomGuard = lazy(() => import("./pages/ChatRoomGuard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 const ProfileUpload = lazy(() => import("./pages/ProfileUpload"));
@@ -32,15 +35,18 @@ const About = lazy(() => import("./pages/About"));
 const Debug = lazy(() => import("./pages/Debug"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 
-// Loading component
-const PageLoader = () => (
-  <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-      <p className="text-neutral-600">Loading...</p>
+// Minimal loading component - uses standardized LoadingSpinner
+const PageLoader = () => {
+  // In demo mode, return null to prevent loading spinner flicker
+  if (config.DEMO_MODE) {
+    return null;
+  }
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center">
+      <StandardLoadingSpinner size="lg" message="Loading..." />
     </div>
-  </div>
-);
+  );
+};
 
 import { AuthProvider } from "./context/AuthContext";
 import { UserProvider } from "./context/UserContext.tsx";
@@ -52,10 +58,15 @@ import analytics from "./services/appAnalytics";
 
 function AppRoutes() {
   const location = useLocation();
+  const lastPathnameRef = React.useRef<string>('');
 
-  // Track page views
+  // Track page views - prevent duplicate tracking
   useEffect(() => {
-    analytics.page(location.pathname);
+    // Only track if pathname actually changed
+    if (lastPathnameRef.current !== location.pathname) {
+      lastPathnameRef.current = location.pathname;
+      analytics.page(location.pathname);
+    }
   }, [location.pathname]);
 
   return (
@@ -91,7 +102,15 @@ function AppRoutes() {
           <Route path="/debug" element={<Debug />} />
         </Route>
         {/* Chat room - full screen, bypasses AppShell */}
-        <Route path="/chat/:id" element={<ProtectedRoute><ChatRoomGuard /></ProtectedRoute>} />
+        {/* ChatRoomGuard must be inside Route to have Router context */}
+        <Route 
+          path="/chat/:id" 
+          element={
+            <ProtectedRoute>
+              <ChatRoomGuard />
+            </ProtectedRoute>
+          } 
+        />
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/checkin" replace />} />
       </Routes>
@@ -100,10 +119,17 @@ function AppRoutes() {
 }
 
 export default function App() {
-  const [isInitializing, setIsInitializing] = useState(true);
+  // Skip initialization delay in demo mode to prevent flickering
+  const [isInitializing, setIsInitializing] = useState(!config.DEMO_MODE);
 
   useEffect(() => {
-    // Simulate app initialization (like Tinder's loader)
+    // In demo mode, skip the initialization delay
+    if (config.DEMO_MODE) {
+      setIsInitializing(false);
+      return;
+    }
+
+    // Simulate app initialization (like Tinder's loader) - only in production
     const timer = setTimeout(() => {
       setIsInitializing(false);
     }, 1500); // Show loader for 1.5s minimum
@@ -120,7 +146,12 @@ export default function App() {
       <AuthProvider>
         <UserProvider>
           <OnboardingProvider>
-            <BrowserRouter>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
               <AppRoutes />
             </BrowserRouter>
             <Toaster />

@@ -103,9 +103,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Reconnect requests - authenticated users can read/write
+    // Reconnect requests - users can only read/write their own requests
     match /reconnectRequests/{requestId} {
-      allow read, write: if isSignedIn();
+      // Read: user must be either the sender or receiver
+      allow read: if isSignedIn() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      // Create: user must be the sender
+      allow create: if isSignedIn() && 
+        request.resource.data.fromUserId == request.auth.uid;
+      // Update/Delete: not allowed (reconnect requests are immutable)
+      allow update, delete: if false;
     }
 
     // Reports - users can write, only admins can read (read disabled for now)

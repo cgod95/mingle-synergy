@@ -1,8 +1,7 @@
 // Demo Welcome Screen - Introduces demo mode and auto-completes onboarding
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
@@ -16,10 +15,13 @@ export default function DemoWelcome() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { setOnboardingStepComplete } = useOnboarding();
+  const onboardingCompletedRef = useRef(false);
 
   useEffect(() => {
-    // Auto-complete all onboarding steps for demo user
-    if (config.DEMO_MODE && currentUser) {
+    // Auto-complete all onboarding steps for demo user - only once
+    if (config.DEMO_MODE && currentUser && !onboardingCompletedRef.current) {
+      onboardingCompletedRef.current = true; // Mark as completed to prevent re-runs
+      
       setOnboardingStepComplete('email');
       setOnboardingStepComplete('profile');
       setOnboardingStepComplete('photo');
@@ -30,16 +32,19 @@ export default function DemoWelcome() {
       localStorage.setItem('profileComplete', 'true');
       
       // Seed demo data (likes and conversations) when entering demo mode
-      try {
-        const { ensureDemoLikesSeed } = require('@/lib/likesStore');
-        const { ensureDemoThreadsSeed } = require('@/lib/chatStore');
-        ensureDemoLikesSeed();
-        ensureDemoThreadsSeed();
-      } catch (error) {
-        logError(error as Error, { source: 'DemoWelcome', action: 'seedDemoData' });
-      }
+      // Use dynamic imports to avoid require() errors in ESM
+      (async () => {
+        try {
+          const { ensureDemoLikesSeed } = await import('@/lib/likesStore');
+          const { ensureDemoThreadsSeed } = await import('@/lib/chatStore');
+          ensureDemoLikesSeed();
+          await ensureDemoThreadsSeed(); // Now async
+        } catch (error) {
+          logError(error as Error, { source: 'DemoWelcome', action: 'seedDemoData' });
+        }
+      })();
     }
-  }, [currentUser, setOnboardingStepComplete]);
+  }, [currentUser?.uid]); // Only depend on currentUser.uid, not setOnboardingStepComplete
 
   const handleEnterDemo = () => {
     // Navigate to check-in page - demo user has full access
@@ -52,11 +57,7 @@ export default function DemoWelcome() {
       <div className="flex items-center justify-center p-4 pt-8 min-h-[calc(100vh-4rem)]">
         <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Left Side - Philosophy/Education */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div>
             <Card className="border-2 border-neutral-700 shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
               <CardHeader className="space-y-4 pb-6">
                 <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
@@ -103,14 +104,10 @@ export default function DemoWelcome() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
           {/* Right Side - Demo Features */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
+          <div>
             <Card className="border-2 border-neutral-700 shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
               <CardHeader className="space-y-4 pb-6">
                 <div className="space-y-2">
@@ -175,7 +172,7 @@ export default function DemoWelcome() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

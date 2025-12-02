@@ -101,6 +101,7 @@ class AnalyticsService {
   private matchAnalytics: MatchAnalytics;
   private readonly storageKey = 'mingle_analytics_events';
   private readonly maxEvents = 1000; // Keep last 1000 events in memory
+  private timeOnSiteInterval: ReturnType<typeof setInterval> | null = null; // Track interval for cleanup
 
   constructor() {
     this.sessionId = this.generateSessionId();
@@ -137,10 +138,21 @@ class AnalyticsService {
     // Track page views
     this.trackPageView(window.location.pathname);
     
-    // Track time on site
-    setInterval(() => {
-      this.userBehavior.timeOnSite += 1;
-    }, 1000);
+    // Track time on site - store interval ID for cleanup
+    // CRITICAL: Only update internal state, don't trigger React re-renders
+    // DISABLED in demo/dev mode to prevent unnecessary intervals that could cause re-renders
+    // The 1-second interval is too frequent and can accumulate on HMR
+    // In production, this can be re-enabled if needed
+    const isDemoOrDev = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+    if (!isDemoOrDev) {
+      this.timeOnSiteInterval = setInterval(() => {
+        this.userBehavior.timeOnSite += 1;
+        // Only save to localStorage periodically (every 10 seconds) to avoid excessive writes
+        if (this.userBehavior.timeOnSite % 10 === 0) {
+          this.saveEvents();
+        }
+      }, 1000);
+    }
 
     // Track user interactions
     document.addEventListener('click', (e) => {
@@ -162,6 +174,16 @@ class AnalyticsService {
         this.track('scroll_depth', { depth: maxScrollDepth });
       }
     });
+  }
+  
+  // Cleanup method to stop all intervals and listeners
+  destroy(): void {
+    if (this.timeOnSiteInterval) {
+      clearInterval(this.timeOnSiteInterval);
+      this.timeOnSiteInterval = null;
+    }
+    // Note: Event listeners are global and would need to be tracked to remove them
+    // For now, we'll just clear the interval which is the main concern
   }
 
   // Core tracking methods
@@ -311,7 +333,8 @@ class AnalyticsService {
   // Send to analytics service (placeholder for production)
   private sendToAnalyticsService(event: AnalyticsEvent) {
     // In production, this would send to Firebase Analytics, Mixpanel, etc.
-    if (process.env.NODE_ENV === 'development') {
+    // Only log in development if verbose logs are enabled
+    if (process.env.NODE_ENV === 'development' && import.meta.env.VITE_VERBOSE_LOGS === 'true') {
       console.log('Analytics Event:', event);
     }
     

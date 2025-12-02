@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { imageService } from '../../services/ImageService';
 
 interface OptimizedImageProps {
@@ -24,41 +23,67 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [imgSrc, setImgSrc] = useState<string>('');
+  const errorHandledRef = useRef(false); // Prevent multiple error handlers
+  const loadingRef = useRef(false); // Prevent multiple loading states
   
   useEffect(() => {
-    // Reset state when src changes
+    // Reset refs when src changes
+    errorHandledRef.current = false;
+    loadingRef.current = false;
     setLoaded(false);
     setError(false);
     
     if (!src) {
-      // If no src, use initials placeholder
       const placeholder = imageService.generateInitialsPlaceholder(placeholderName || alt);
       setImgSrc(placeholder);
+      setLoaded(true); // Immediately show placeholder
       return;
     }
     
-    // Set src with improved loading
     setImgSrc(src);
     
-    // Preload the image
-    const img = new Image();
-    img.onload = () => {
-      setLoaded(true);
-      onLoad?.();
-    };
-    img.onerror = () => {
+    // Preload the image - only if not already loading
+    if (!loadingRef.current) {
+      loadingRef.current = true;
+      const img = new Image();
+      img.onload = () => {
+        if (!errorHandledRef.current) {
+          setLoaded(true);
+          setError(false);
+          onLoad?.();
+        }
+        loadingRef.current = false;
+      };
+      img.onerror = () => {
+        if (!errorHandledRef.current) {
+          errorHandledRef.current = true;
+          setError(true);
+          const placeholder = imageService.generateInitialsPlaceholder(placeholderName || alt);
+          setImgSrc(placeholder);
+          setLoaded(true); // Show placeholder immediately
+        }
+        loadingRef.current = false;
+      };
+      img.src = src;
+      
+      // Cleanup
+      return () => {
+        img.onload = null;
+        img.onerror = null;
+      };
+    }
+  }, [src, placeholderName, alt]); // Removed onLoad from deps to prevent re-runs
+  
+  const handleError = () => {
+    // Only handle error once
+    if (!errorHandledRef.current) {
+      errorHandledRef.current = true;
       setError(true);
       const placeholder = imageService.generateInitialsPlaceholder(placeholderName || alt);
       setImgSrc(placeholder);
-    };
-    img.src = src;
-    
-    // Cleanup
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [src, placeholderName, alt, onLoad]);
+      setLoaded(true); // Show placeholder immediately
+    }
+  };
   
   return (
     <div className={`relative ${className}`} style={{ width, height }}>
@@ -69,20 +94,17 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       <img
         src={imgSrc}
         alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${
+        className={`w-full h-full object-cover ${
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
+        // Removed transition-opacity to prevent flickering
         onLoad={() => {
-          setLoaded(true);
-          onLoad?.();
-        }}
-        onError={() => {
-          if (!error) {
-            setError(true);
-            const placeholder = imageService.generateInitialsPlaceholder(placeholderName || alt);
-            setImgSrc(placeholder);
+          if (!errorHandledRef.current) {
+            setLoaded(true);
+            onLoad?.();
           }
         }}
+        onError={handleError}
       />
     </div>
   );

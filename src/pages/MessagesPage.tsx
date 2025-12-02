@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ListSkeleton } from '@/components/ui/skeleton';
@@ -11,6 +11,7 @@ import BottomNav from '@/components/BottomNav';
 import { MessageCircle, Clock, MapPin } from 'lucide-react';
 
 export default function MessagesPage() {
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<Match[]>([]);
   const [matchedUsers, setMatchedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +102,7 @@ export default function MessagesPage() {
             <MessageCircle className="w-16 h-16 text-neutral-300 mx-auto" />
             <h3 className="text-lg font-semibold text-neutral-900">No messages yet</h3>
             <p className="text-neutral-600">Start matching to begin conversations!</p>
-            <Link to="/venues">
+            <Link to="/checkin">
               <Button>Explore Venues</Button>
             </Link>
           </div>

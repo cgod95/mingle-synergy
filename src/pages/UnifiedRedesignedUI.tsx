@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 const navItems = [
   { to: '/profile', icon: <User />, label: 'Profile' },
   { to: '/matches', icon: <Heart />, label: 'Matches' },
-  { to: '/chat', icon: <MessageCircle />, label: 'Chat' },
+  { to: '/matches', icon: <MessageCircle />, label: 'Chat' },
 ];
 
 export default function UnifiedRedesignedUI() {
@@ -19,7 +19,7 @@ export default function UnifiedRedesignedUI() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.2 }}
         className="max-w-md mx-auto"
       >
         <h1 className="text-3xl font-bold mb-4">Welcome to Mingle</h1>

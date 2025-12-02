@@ -63,6 +63,11 @@ export const sendMessageWithLimit = async ({
     const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
     
     if (!isDemoMode) {
+      // Check if firestore is available before using collection
+      if (!firestore) {
+        throw new Error('Firestore not available');
+      }
+      
       const messagesRef = collection(firestore, "messages");
       const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
         ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
@@ -92,6 +97,11 @@ export const sendMessageWithLimit = async ({
     return;
   }
 
+  // Check if firestore is available before using collection
+  if (!firestore) {
+    throw new Error('Firestore not available');
+  }
+  
   await addDoc(collection(firestore, "messages"), {
     matchId,
     senderId,
@@ -130,6 +140,11 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
   }
 
   try {
+    // Check if firestore is available
+    if (!firestore) {
+      return false;
+    }
+    
     const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
       ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
       : 3;
@@ -150,6 +165,11 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
  * Send a message, but prevent sending to expired matches (older than 3 hours)
  */
 export const sendMessage = async (matchId: string, senderId: string, text: string): Promise<void> => {
+  // Check if firestore is available
+  if (!firestore) {
+    throw new Error('Firestore not available');
+  }
+  
   const matchDoc = await getDoc(doc(firestore, "matches", matchId));
   if (!matchDoc.exists()) throw new Error("Match does not exist");
 
@@ -167,7 +187,7 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
     throw new Error("Message limit reached");
   }
 
-      await addDoc(collection(firestore, "messages"), {
+  await addDoc(collection(firestore, "messages"), {
         matchId,
         senderId,
         text,
@@ -188,6 +208,11 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
  */
 export const getMessageCount = async (matchId: string, senderId: string): Promise<number> => {
   try {
+    // Check if firestore is available
+    if (!firestore) {
+      return 0;
+    }
+    
     const q = query(
       collection(firestore, "messages"),
       where("matchId", "==", matchId),
@@ -241,6 +266,12 @@ export const subscribeToMessageLimit = (
     return () => {}; // No-op unsubscribe
   }
   
+  // Check if firestore is available
+  if (!firestore) {
+    callback(false, 0);
+    return () => {}; // Return no-op unsubscribe
+  }
+  
   const q = query(
     collection(firestore, "messages"),
     where("matchId", "==", matchId),
@@ -275,6 +306,11 @@ export interface ChatPreview {
  */
 export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
   try {
+    // Check if firestore is available
+    if (!firestore) {
+      return [];
+    }
+    
     // Get all matches for the user (where user is either userId1 or userId2)
     const matchesRef = collection(firestore, "matches");
     
@@ -375,6 +411,12 @@ export const subscribeToMessages = (
   matchId: string, 
   callback: (messages: Message[]) => void
 ) => {
+  // Check if firestore is available
+  if (!firestore) {
+    callback([]);
+    return () => {}; // Return no-op unsubscribe
+  }
+  
   const messagesRef = collection(firestore, "messages");
   const q = query(
     messagesRef,
@@ -399,6 +441,11 @@ export const subscribeToMessages = (
  */
 export const markMessagesAsRead = async (matchId: string, userId: string): Promise<void> => {
   try {
+    // Check if firestore is available
+    if (!firestore) {
+      return;
+    }
+    
     const messagesRef = collection(firestore, "messages");
     const q = query(
       messagesRef,

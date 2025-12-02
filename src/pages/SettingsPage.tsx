@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Settings, 
   User, 
@@ -10,7 +9,6 @@ import {
   Globe, 
   Moon, 
   Sun, 
-  Smartphone,
   Wifi,
   WifiOff,
   Eye,
@@ -52,8 +50,8 @@ const SettingsPage: React.FC = () => {
   const [locationSharing, setLocationSharing] = useState(true);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
-  const [currentPlan, setCurrentPlan] = useState<any>(null);
-  const [userSubscription, setUserSubscription] = useState<any>(null);
+  const [currentPlan, setCurrentPlan] = useState<{ id: string; name: string; description?: string } | null>(null);
+  const [userSubscription, setUserSubscription] = useState<{ tierId?: string } | null>(null);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
@@ -103,7 +101,7 @@ const SettingsPage: React.FC = () => {
                 } else if ('getPlans' in subscriptionService && typeof subscriptionService.getPlans === 'function') {
                   try {
                     const plans = await subscriptionService.getPlans();
-                    const plan = plans.find((p: any) => p.id === sub.tierId);
+                    const plan = plans.find((p: { id: string }) => p.id === sub.tierId);
                     setCurrentPlan(plan || { id: 'free', name: 'Free' });
                   } catch {
                     setCurrentPlan({ id: 'free', name: 'Free' });
@@ -277,7 +275,7 @@ const SettingsPage: React.FC = () => {
           analytics.track('account_deleted');
         }
         localStorage.clear();
-        window.location.href = '/';
+        navigate('/');
       } catch (error) {
         console.error('Failed to delete account:', error);
         toast({
@@ -553,27 +551,18 @@ const SettingsPage: React.FC = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex-1"
-            >
+            <div className="flex-1">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 Settings
               </h1>
               <p className="text-neutral-300 mt-2">Manage your account preferences and app settings</p>
-            </motion.div>
+            </div>
           </div>
 
           {/* Settings Sections */}
           <div className="space-y-4">
             {settingsSections.map((section, sectionIndex) => (
-              <motion.div
-                key={sectionIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: sectionIndex * 0.1 }}
-              >
+              <div key={sectionIndex}>
                 <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
                   <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                     <CardTitle className="flex items-center text-heading-3">
@@ -590,7 +579,7 @@ const SettingsPage: React.FC = () => {
                           <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-indigo-900/30 transition-colors">
                             <div className="flex items-center flex-1 min-w-0">
                               <div className={`p-2 rounded-lg mr-3 ${
-                                item.danger 
+                                'danger' in item && item.danger
                                   ? 'bg-red-900/50 text-red-400' 
                                   : 'bg-indigo-900/50 text-indigo-400'
                               }`}>
@@ -599,15 +588,15 @@ const SettingsPage: React.FC = () => {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className={`font-semibold text-base ${
-                                    item.danger ? 'text-red-400' : 'text-white'
+                                    'danger' in item && item.danger ? 'text-red-400' : 'text-white'
                                   }`}>
                                     {item.label}
                                   </span>
-                                  {item.badge && (
+                                  {'badge' in item && item.badge && (
                                     <Badge 
-                                      variant={item.badgeVariant as 'default' | 'secondary' | 'destructive' | 'outline'} 
+                                      variant={('badgeVariant' in item && item.badgeVariant) as 'default' | 'secondary' | 'destructive' | 'outline'} 
                                       className={
-                                        item.badgeVariant === 'default' 
+                                        'badgeVariant' in item && item.badgeVariant === 'default' 
                                           ? 'bg-indigo-600 text-white border-0'
                                           : ''
                                       }
@@ -621,7 +610,7 @@ const SettingsPage: React.FC = () => {
                             </div>
                             
                             <div className="flex items-center ml-4">
-                              {item.toggle !== undefined ? (
+                              {'toggle' in item && item.toggle !== undefined && 'onToggle' in item && item.onToggle ? (
                                 <Switch
                                   checked={item.toggle}
                                   onCheckedChange={item.onToggle}
@@ -632,7 +621,7 @@ const SettingsPage: React.FC = () => {
                                   size="sm"
                                   onClick={item.action}
                                   className={`${
-                                    item.danger 
+                                    'danger' in item && item.danger
                                       ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30' 
                                       : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30'
                                   }`}
@@ -650,17 +639,12 @@ const SettingsPage: React.FC = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* Logout Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: settingsSections.length * 0.1 }}
-            className="mt-6"
-          >
+          <div className="mt-6">
             <Card className="border border-red-700 bg-red-900/30">
               <CardContent className="pt-6">
                 <Button
@@ -684,7 +668,7 @@ const SettingsPage: React.FC = () => {
                 </Button>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
 
         {/* Premium Upgrade Modal */}

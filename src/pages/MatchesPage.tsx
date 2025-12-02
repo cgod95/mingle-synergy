@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MatchCard from '@/components/MatchCard';
 import BottomNav from '@/components/BottomNav';
 import { LoadingSpinner } from '@/components/StatusFallbacks';
@@ -21,6 +22,7 @@ interface DisplayMatchWithExpiry extends DisplayMatch {
 
 const MatchesPage = () => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<Match[]>([]);
   const [matchedUsers, setMatchedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,7 +113,7 @@ const MatchesPage = () => {
             <Heart className="w-16 h-16 text-neutral-300 mx-auto" />
             <h3 className="text-lg font-semibold text-neutral-900">No matches yet</h3>
             <p className="text-neutral-600">Start checking into venues to find connections!</p>
-            <Link to="/venues">
+            <Link to="/checkin">
               <Button>Explore Venues</Button>
             </Link>
           </div>

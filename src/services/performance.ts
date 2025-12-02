@@ -44,6 +44,7 @@ class PerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
   private budgets: PerformanceBudget[] = [];
   private observers: Map<string, PerformanceObserver> = new Map();
+  private intervals: Set<number> = new Set(); // Track all intervals for cleanup
   private isMonitoring = false;
 
   constructor() {
@@ -112,6 +113,12 @@ class PerformanceMonitor {
     if (!this.isMonitoring) return;
 
     this.isMonitoring = false;
+    
+    // Clear all intervals
+    for (const intervalId of this.intervals) {
+      clearInterval(intervalId);
+    }
+    this.intervals.clear();
     
     // Disconnect all observers
     for (const observer of this.observers.values()) {
@@ -202,9 +209,11 @@ class PerformanceMonitor {
     this.observers.set('layout-shift', observer);
 
     // Record cumulative layout shift periodically
-    setInterval(() => {
+    // FIX: Store interval ID for cleanup to prevent 5-second re-renders
+    const layoutShiftInterval = window.setInterval(() => {
       this.recordMetric('Cumulative Layout Shift', cumulativeLayoutShift, '', 'layout');
     }, 5000);
+    this.intervals.add(layoutShiftInterval);
   }
 
   // Long Tasks
@@ -245,7 +254,9 @@ class PerformanceMonitor {
     };
 
     // Record memory usage every 10 seconds
-    setInterval(recordMemory, 10000);
+    // FIX: Store interval ID for cleanup
+    const memoryInterval = window.setInterval(recordMemory, 10000);
+    this.intervals.add(memoryInterval);
     recordMemory(); // Initial recording
   }
 
@@ -510,6 +521,8 @@ class PerformanceMonitor {
 export const performanceMonitor = new PerformanceMonitor();
 
 // Auto-start monitoring in development
-if (import.meta.env.MODE === 'development') {
-  performanceMonitor.start();
-} 
+// TEMPORARILY DISABLED: Testing if performance monitor causes rapid re-renders
+// Re-enable after confirming UserContext fix resolves the issue
+// if (import.meta.env.MODE === 'development') {
+//   performanceMonitor.start();
+// } 

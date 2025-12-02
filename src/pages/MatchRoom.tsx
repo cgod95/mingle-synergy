@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import matchService from '@/services/firebase/matchService';
 import { FirestoreMatch } from '@/types/match';
 import { useAuth } from '@/context/AuthContext';
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 const MatchRoom: React.FC = () => {
   const { id: matchId } = useParams<{ id: string }>();
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [match, setMatch] = useState<FirestoreMatch | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +52,7 @@ const MatchRoom: React.FC = () => {
       <p className="mb-8 text-gray-600 text-center">
         You and Jamie both liked each other. Start chatting before the match expires!
       </p>
-      <Button onClick={() => (window.location.href = "/chat")}>
+      <Button onClick={() => navigate('/matches')}>
         Open Chat
       </Button>
     </div>

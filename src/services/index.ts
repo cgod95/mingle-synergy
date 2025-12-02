@@ -1,5 +1,6 @@
 // DEMO_MODE flag: set to true for demo/mock mode, false for Firebase backend
-export const DEMO_MODE = true;
+// CRITICAL: Use environment variable, not hardcoded value
+export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
 
 import FirebaseAuthService from './firebase/authService';
 import FirebaseUserService from './firebase/userService';

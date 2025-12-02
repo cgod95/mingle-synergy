@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { fetchReconnectRequests } from "@/services/reconnectRequestsService";
 import { UserProfile } from "@/types/services";
 import { useAuth } from "@/context/AuthContext";
+import config from "@/config";
 
 export const useReconnectRequests = () => {
   const { currentUser } = useAuth();
@@ -26,8 +27,11 @@ export const useReconnectRequests = () => {
 
   useEffect(() => {
     refreshRequests();
-    const interval = setInterval(refreshRequests, 30000);
-    return () => clearInterval(interval);
+    // Disable polling in demo mode to prevent flickering
+    if (!config.DEMO_MODE) {
+      const interval = setInterval(refreshRequests, 30000);
+      return () => clearInterval(interval);
+    }
   }, [refreshRequests]);
 
   return { requests, loading, error, refreshRequests };

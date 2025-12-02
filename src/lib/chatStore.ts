@@ -49,9 +49,9 @@ export function listThreads(): ChatThread[] {
 export const listConversations = listThreads;
 
 /** Seed demo threads with realistic dialogue (idempotent) */
-export function ensureDemoThreadsSeed() {
-  const { generateRealisticConversation } = require('./demoDialogue');
-  const { DEMO_PEOPLE } = require('./demoPeople');
+export async function ensureDemoThreadsSeed() {
+  const { generateRealisticConversation } = await import('./demoDialogue');
+  const { DEMO_PEOPLE } = await import('./demoPeople');
   
   // Create 10-15 matches with varied activity
   const now = Date.now();

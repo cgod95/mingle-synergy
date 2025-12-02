@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import config from "@/config";
 import { SmallLoadingSpinner } from "@/components/FeedbackUtils";
 import BottomNav from "@/components/BottomNav";
 import { Match, User, Message } from "@/types";
@@ -62,6 +63,15 @@ export default function ChatThreadPage() {
     if (!matchId) return;
 
     // Simulate real-time updates
+    // CRITICAL: Disabled in demo mode - messages are loaded from localStorage, no need for 1-second polling
+    // This interval was causing constant re-renders
+    if (config.DEMO_MODE) {
+      // In demo mode, just load messages once
+      const matchMessages = mockMessages.filter(msg => msg.matchId === matchId);
+      setMessages(matchMessages);
+      return;
+    }
+    
     const interval = setInterval(() => {
       const matchMessages = mockMessages.filter(msg => msg.matchId === matchId);
       setMessages(matchMessages);

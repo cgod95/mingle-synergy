@@ -6,7 +6,6 @@ import { sendMessage, confirmWeMet } from "@/services/firebase/matchService";
 import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageCircle, MapPin, Clock, Sparkles, MoreVertical } from 'lucide-react';
@@ -69,22 +68,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
-      whileHover={{ y: -4, scale: 1.01 }}
-      className="w-full"
-    >
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-200">
+    <div className="w-full">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-200 hover:-translate-y-1">
         <CardHeader className="pb-4 bg-indigo-50">
           <div className="flex items-center space-x-4">
-            <motion.div
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="relative"
-            >
+            <div className="relative transition-transform hover:scale-105 active:scale-95">
               <Avatar className="h-20 w-20 cursor-pointer ring-2 ring-white shadow-lg" onClick={() => onViewProfile(match.id)}>
                 <AvatarImage 
                   src={match.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop"} 
@@ -99,25 +87,17 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 </AvatarFallback>
               </Avatar>
               {match.isOnline && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"
-                />
+                <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm" />
               )}
               {isRematch && (
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  className="absolute -top-1 -right-1"
-                >
+                <div className="absolute -top-1 -right-1">
                   <Badge className="bg-indigo-600 text-white text-xs px-2 py-0.5">
                     <Sparkles className="w-3 h-3 mr-1" />
                     Rematch
                   </Badge>
-                </motion.div>
+                </div>
               )}
-            </motion.div>
+            </div>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
@@ -161,42 +141,26 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
         <CardContent className="pt-4 pb-4">
           {match.lastMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-100"
-            >
+            <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
               <div className="flex items-start space-x-2">
                 <MessageCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-neutral-700 line-clamp-2 font-medium">
                   {match.lastMessage.content}
                 </p>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {match.mutualInterests && match.mutualInterests.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="mb-4"
-            >
+            <div className="mb-4">
               <p className="text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wide">Common Interests</p>
               <div className="flex flex-wrap gap-2">
                 {match.mutualInterests.slice(0, 3).map((interest, idx) => (
-                  <motion.div
-                    key={interest}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.4 + idx * 0.1, type: "spring", stiffness: 200 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
+                  <div key={interest} className="transition-transform hover:scale-105">
                     <Badge className="bg-indigo-600 text-white text-xs px-3 py-1 shadow-sm">
                       {interest}
                     </Badge>
-                  </motion.div>
+                  </div>
                 ))}
                 {match.mutualInterests.length > 3 && (
                   <Badge variant="outline" className="text-xs px-3 py-1">
@@ -204,15 +168,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   </Badge>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
 
           <div className="flex space-x-3 pt-2">
-            <motion.div 
-              whileHover={{ scale: 1.03 }} 
-              whileTap={{ scale: 0.97 }}
-              className="flex-1"
-            >
+            <div className="flex-1 transition-transform hover:scale-105 active:scale-95">
               <Button
                 variant="outline"
                 size="sm"
@@ -221,13 +181,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
               >
                 View Profile
               </Button>
-            </motion.div>
+            </div>
             
-            <motion.div 
-              whileHover={{ scale: 1.03 }} 
-              whileTap={{ scale: 0.97 }}
-              className="flex-1"
-            >
+            <div className="flex-1 transition-transform hover:scale-105 active:scale-95">
               <Button
                 size="sm"
                 onClick={() => onSendMessage(match.id)}
@@ -236,7 +192,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Message
               </Button>
-            </motion.div>
+            </div>
           </div>
           
           {match.matchedAt && (
@@ -275,7 +231,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           />
         </>
       )}
-    </motion.div>
+    </div>
   );
 };
 

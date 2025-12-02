@@ -90,7 +90,7 @@ export default function ActiveVenue() {
 
   useEffect(() => {
     if (!venueId || !venue) {
-      navigate('/venues');
+      navigate('/checkin');
       return;
     }
 

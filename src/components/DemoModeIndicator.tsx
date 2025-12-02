@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Info, X, Sparkles, Users, MapPin, MessageCircle, Clock } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { getDemoFreeWindow, formatDemoFreeRemaining } from '@/utils/demoFree';
 import config from '@/config';
 
@@ -32,11 +31,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
 
   if (variant === 'compact') {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`fixed top-4 right-4 z-50 ${className}`}
-      >
+      <div className={`fixed top-4 right-4 z-50 ${className}`}>
         <Badge 
           variant="secondary" 
           className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200 cursor-pointer transition-colors"
@@ -52,15 +47,8 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
           )}
         </Badge>
         
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full right-0 mt-2 w-80"
-            >
+        {isExpanded && (
+          <div className="absolute top-full right-0 mt-2 w-80">
               <Card className="shadow-lg border-yellow-200 bg-yellow-50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -121,20 +109,15 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+          </div>
+        )}
+      </div>
     );
   }
 
   // Full variant for landing page or onboarding
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`w-full max-w-2xl mx-auto ${className}`}
-    >
+    <div className={`w-full max-w-2xl mx-auto ${className}`}>
       <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 shadow-lg">
         <CardHeader className="text-center pb-4">
           <div className="flex items-center justify-center mb-2">
@@ -194,7 +177,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 

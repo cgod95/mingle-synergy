@@ -2,14 +2,11 @@
 // Displays Mingle logo/branding in top left across all pages
 
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import MingleMLogo from '@/components/ui/MingleMLogo';
 
 export default function MingleHeader() {
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+    <header
       className="sticky top-0 z-50 bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800 shadow-sm"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,7 +20,7 @@ export default function MingleHeader() {
           </Link>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
 

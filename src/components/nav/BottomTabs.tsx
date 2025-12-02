@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 
 const items = [
-  { to: "/venues", label: "Venues", icon: "🏙️" },
+  { to: "/checkin", label: "Venues", icon: "🏙️" },
   { to: "/matches", label: "Matches", icon: "💫" },
-  { to: "/chat",    label: "Chat",    icon: "💬" },
+  { to: "/matches", label: "Chat",    icon: "💬" },
   { to: "/profile", label: "Profile", icon: "👤" },
 ];
 

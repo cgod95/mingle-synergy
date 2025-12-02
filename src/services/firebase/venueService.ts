@@ -183,12 +183,20 @@ const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): 
 };
 
 class FirebaseVenueService implements VenueService {
-  private venuesCollection = collection(firestore, 'venues');
+  // Lazy getter for venues collection - only creates when firestore is available
+  private getVenuesCollection() {
+    if (!firestore || config.DEMO_MODE) {
+      return null;
+    }
+    return collection(firestore, 'venues');
+  }
   
   async getVenues(): Promise<Venue[]> {
     // Return mock data in demo mode
     if (config.DEMO_MODE) {
-      return mockVenues;
+      // Return a sorted copy to ensure consistent ordering across calls
+      // This prevents non-deterministic ordering that can cause re-renders
+      return [...mockVenues].sort((a, b) => a.id.localeCompare(b.id));
     }
 
     try {
@@ -198,6 +206,12 @@ class FirebaseVenueService implements VenueService {
         if (cachedVenues.length > 0) {
           return cachedVenues;
         }
+      }
+
+      // Check if firestore is available before using collection
+      if (!firestore) {
+        const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+        return cachedVenues.length > 0 ? cachedVenues : mockVenues;
       }
 
       const venuesCollectionRef = collection(firestore, 'venues');
@@ -240,6 +254,12 @@ class FirebaseVenueService implements VenueService {
         }
       }
       
+      // Check if firestore is available before using doc
+      if (!firestore) {
+        const cachedVenue = getFromStorage<Venue | null>(`${CACHE_KEYS.VENUE_PREFIX}${id}`, null);
+        return cachedVenue || mockVenues.find(venue => venue.id === id) || null;
+      }
+      
       const venueDocRef = doc(firestore, 'venues', id);
       const venueDoc = await getDoc(venueDocRef);
       
@@ -264,6 +284,11 @@ class FirebaseVenueService implements VenueService {
 
   async checkInToVenue(userId: string, venueId: string): Promise<void> {
     try {
+      // In demo mode, just return without Firebase operations
+      if (!firestore || config.DEMO_MODE) {
+        return;
+      }
+      
       // First check out from any existing venue
       await this.checkOutFromVenue(userId);
       
@@ -294,6 +319,11 @@ class FirebaseVenueService implements VenueService {
 
   async checkOutFromVenue(userId: string): Promise<void> {
     try {
+      // In demo mode, just return without Firebase operations
+      if (!firestore || config.DEMO_MODE) {
+        return;
+      }
+      
       // First get the user to find their current venue
       const userDocRef = doc(firestore, 'users', userId);
       const userDoc = await getDoc(userDocRef);
@@ -384,6 +414,12 @@ class FirebaseVenueService implements VenueService {
         }
       }
       
+      // Check if firestore is available
+      if (!firestore) {
+        const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+        return cachedVenues.filter(venue => venueIds.includes(venue.id));
+      }
+
       // Firestore limits "in" queries to 10 items, so we need to chunk
       const chunkedResults = await Promise.all(
         // Split into chunks of 10
@@ -425,6 +461,11 @@ class FirebaseVenueService implements VenueService {
    */
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
     try {
+      // Return empty array in demo mode or if firestore is not available
+      if (!firestore || config.DEMO_MODE) {
+        return [];
+      }
+      
       const usersRef = collection(firestore, 'users');
       const q = query(usersRef, where('currentVenue', '==', venueId));
       const snapshot = await getDocs(q);
@@ -442,6 +483,11 @@ class FirebaseVenueService implements VenueService {
 
 // Simple standalone check-in function
 export const checkInToVenue = async (venueId: string): Promise<void> => {
+  // In demo mode, just return without Firebase operations
+  if (config.DEMO_MODE || !firestore) {
+    return;
+  }
+  
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -462,6 +508,11 @@ export const checkInToVenue = async (venueId: string): Promise<void> => {
 };
 
 export const getCheckedInUsers = async (venueId: string): Promise<UserProfile[]> => {
+  // Return empty array in demo mode or if firestore is not available
+  if (!firestore || config.DEMO_MODE) {
+    return [];
+  }
+  
   const usersRef = collection(firestore, 'users');
   const q = query(usersRef, where('checkedInVenues', 'array-contains', venueId));
   const snapshot = await getDocs(q);

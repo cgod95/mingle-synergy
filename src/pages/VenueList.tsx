@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { mockVenues } from '@/data/mock';
 import ErrorBoundary from '../components/ErrorBoundary';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Users, Clock } from 'lucide-react';
 import VenueCard from '@/components/VenueCard';
 import { logError } from '@/utils/errorHandler';
+import { isCheckedIn } from '@/lib/checkinStore';
 
 export default function VenueList() {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -108,7 +109,7 @@ export default function VenueList() {
                 venue={venue}
                 onSelect={(id) => navigate(`/simple-venue/${id}`)}
                 onCheckIn={(id) => handleCheckIn(id)}
-                isCheckedIn={false} // TODO: wire up real check-in state
+                isCheckedIn={isCheckedIn(venue.id)}
                 userCount={venue.checkInCount || 0}
                 index={idx}
               />

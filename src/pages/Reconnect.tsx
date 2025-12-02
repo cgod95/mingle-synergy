@@ -9,7 +9,7 @@ const Reconnect: React.FC = () => {
 
   const handleCheckIn = () => {
     // Redirect user to the venue check-in flow
-    navigate('/venues');
+    navigate('/checkin');
   };
 
   return (

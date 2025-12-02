@@ -66,7 +66,7 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <button 
-            onClick={() => navigate('/venues')}
+            onClick={() => navigate('/checkin')}
             className="mr-3 text-[#202020] hover:text-black btn-icon"
             aria-label="Back"
           >

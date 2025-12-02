@@ -17,6 +17,7 @@ export interface DemoNotification {
 class DemoNotificationService {
   private notifications: DemoNotification[] = [];
   private listeners: Set<(notifications: DemoNotification[]) => void> = new Set();
+  private notificationInterval: ReturnType<typeof setInterval> | null = null; // Track interval for cleanup
 
   constructor() {
     // Load from localStorage
@@ -61,7 +62,8 @@ class DemoNotificationService {
     });
 
     // Continue generating random notifications every 30-60 seconds
-    setInterval(() => {
+    // CRITICAL: Store interval ID for cleanup
+    this.notificationInterval = setInterval(() => {
       const types: DemoNotification['type'][] = ['match', 'message', 'checkin', 'system'];
       const randomType = types[Math.floor(Math.random() * types.length)];
       
@@ -77,6 +79,14 @@ class DemoNotificationService {
       
       this.createNotification(randomType, randomMessage, randomMessage);
     }, 30000 + Math.random() * 30000); // 30-60 seconds
+  }
+  
+  // Cleanup method to stop notification generation
+  stop(): void {
+    if (this.notificationInterval) {
+      clearInterval(this.notificationInterval);
+      this.notificationInterval = null;
+    }
   }
 
   createNotification(

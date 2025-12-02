@@ -10,9 +10,9 @@ export default function BottomTab() {
   return (
     <nav className="sticky bottom-0 inset-x-0 border-t bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70">
       <div className="mx-auto max-w-6xl grid grid-cols-4">
-        <NavLink to="/venues" className={({isActive}) => [itemBase, isActive?active:idle].join(" ")}>Venues</NavLink>
+        <NavLink to="/checkin" className={({isActive}) => [itemBase, isActive?active:idle].join(" ")}>Venues</NavLink>
         <NavLink to="/matches" className={({isActive}) => [itemBase, isActive?active:idle].join(" ")}>Matches</NavLink>
-        <NavLink to="/chat" className={({isActive}) => [itemBase, isActive?active:idle].join(" ")}>Chat</NavLink>
+        <NavLink to="/matches" className={({isActive}) => [itemBase, isActive?active:idle].join(" ")}>Chat</NavLink>
         <NavLink to="/profile" className={({isActive}) => [itemBase, isActive?active:idle].join(" ")}>Profile</NavLink>
       </div>
     </nav>

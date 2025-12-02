@@ -4,6 +4,15 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Read config from env (fallbacks keep demo mode from crashing)
+// CRITICAL: In production, validate required Firebase config
+if (import.meta.env.PROD) {
+  const required = ['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_PROJECT_ID'];
+  const missing = required.filter(key => !import.meta.env[key]);
+  if (missing.length) {
+    throw new Error(`Missing Firebase config in production: ${missing.join(', ')}`);
+  }
+}
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "demo.firebaseapp.com",
