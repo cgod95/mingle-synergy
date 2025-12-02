@@ -160,7 +160,7 @@ export class SubscriptionService {
 
   private async initializeStripe() {
     if (typeof window !== 'undefined' && window.Stripe) {
-      this.stripe = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      this._stripe = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
     }
   }
 

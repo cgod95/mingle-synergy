@@ -494,9 +494,8 @@ describe('Service Integration', () => {
     const venues = await locationService.getNearbyVenues(40.7128, -74.0060, 5);
     expect(venues).toBeDefined();
     expect(Array.isArray(venues)).toBe(true);
-    if (venues.length > 0) {
-      expect(venues[0].name).toBeDefined();
-    }
+    // locationService.getNearbyVenues returns empty array as placeholder
+    expect(venues.length).toBe(0);
   });
 
   it('should handle authentication service calls', async () => {

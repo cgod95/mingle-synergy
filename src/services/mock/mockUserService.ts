@@ -57,15 +57,13 @@ class MockUserService implements UserService {
     // Convert app User to UserProfile
     const userProfile: UserProfile = {
       id: user.id,
-      name: user.name || '',
-      displayName: user.name || '', // Add displayName for compatibility
-      photos: user.photos,
+      name: user.name || 'Demo User',
+      displayName: user.name || 'Demo User', // Add displayName for compatibility
+      photos: user.photos || [],
       bio: user.bio || '',
-      isCheckedIn: user.isCheckedIn,
-      currentVenue: user.currentVenue ?? undefined,
-      currentZone: user.currentZone ?? undefined,
-      isVisible: user.isVisible,
-      interests: user.interests,
+      isCheckedIn: user.isCheckedIn ?? false,
+      isVisible: user.isVisible ?? true,
+      interests: user.interests || [],
       gender: isValidGender(user.gender) ? user.gender : 'other',
       interestedIn: areValidGenders(user.interestedIn) ? user.interestedIn : ['other'],
       age: user.age || 25,
@@ -75,6 +73,13 @@ class MockUserService implements UserService {
       blockedUsers: user.blockedUsers || [],
       occupation: user.occupation || '',
     };
+    // Handle optional properties conditionally for exactOptionalPropertyTypes
+    if (user.currentVenue !== undefined) {
+      userProfile.currentVenue = user.currentVenue;
+    }
+    if (user.currentZone !== undefined) {
+      userProfile.currentZone = user.currentZone;
+    }
     
     return userProfile;
   }
@@ -128,12 +133,13 @@ class MockUserService implements UserService {
     }
     
     // Update the user with the provided data
-    users[userIndex] = {
+    const updatedUser = {
       ...users[userIndex],
       ...safeData,
       // Ensure name is updated if displayName was provided
-      name: safeData.displayName || safeData.name || users[userIndex].name,
+      name: safeData.displayName || safeData.name || users[userIndex].name || 'Demo User',
     };
+    users[userIndex] = updatedUser;
     
     console.log(`[Mock] Updated user ${userId} with:`, safeData);
   }
@@ -154,8 +160,20 @@ class MockUserService implements UserService {
     users.push({
       ...data,
       id: userId,
+      name: data.name || 'Demo User',
       gender: safeGender,
       interestedIn: safeInterestedIn,
+      age: data.age || 25,
+      bio: data.bio || '',
+      photos: data.photos || [],
+      isCheckedIn: data.isCheckedIn ?? false,
+      isVisible: data.isVisible ?? true,
+      interests: data.interests || [],
+      matches: data.matches || [],
+      likedUsers: data.likedUsers || [],
+      blockedUsers: data.blockedUsers || [],
+      ageRangePreference: data.ageRangePreference || { min: 18, max: 40 },
+      occupation: data.occupation || '',
     });
     
     console.log(`[Mock] Created new user profile for ${userId}`);

@@ -55,7 +55,7 @@ export class LocationService {
   }
   
   // Get nearby venues
-  async getNearbyVenues(lat: number, lng: number, radiusKm = 1) {
+  async getNearbyVenues(lat: number, lng: number, radiusKm = 1): Promise<never[]> {
     // Implement with GeoFirestore if available, or use simple distance calculation
     // This is a placeholder for the actual implementation
     return [];

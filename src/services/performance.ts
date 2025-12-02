@@ -296,9 +296,11 @@ class PerformanceMonitor {
       value,
       unit,
       timestamp: Date.now(),
-      category,
-      metadata
+      category
     };
+    if (metadata !== undefined) {
+      metric.metadata = metadata;
+    }
 
     this.metrics.push(metric);
     this.checkBudgetViolations(metric);

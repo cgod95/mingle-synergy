@@ -160,12 +160,22 @@ class NotificationService {
       const options: NotificationOptions = {
         body: config.body,
         icon: config.icon || '/logo192.png',
-        badge: config.badge,
-        tag: config.tag,
-        data: config.data,
-        requireInteraction: config.requireInteraction,
-        silent: config.silent
       };
+      if (config.badge) {
+        options.badge = config.badge;
+      }
+      if (config.tag) {
+        options.tag = config.tag;
+      }
+      if (config.data) {
+        options.data = config.data;
+      }
+      if (config.requireInteraction !== undefined) {
+        options.requireInteraction = config.requireInteraction;
+      }
+      if (config.silent !== undefined) {
+        options.silent = config.silent;
+      }
 
       // Add actions if supported
       if (config.actions && 'actions' in options) {
@@ -273,15 +283,14 @@ class NotificationService {
     venueName: string;
     userCount: number;
   }): Promise<void> {
-    const notification: Notification = {
+    const notification: NotificationData = {
       id: `venue_${venueData.venueId}`,
-      type: 'venue',
+      type: 'venue_activity',
       title: 'Venue Update',
-      message: `${venueData.userCount} people are now at ${venueData.venueName}`,
-      data: venueData,
+      body: `${venueData.userCount} people are now at ${venueData.venueName}`,
+      data: venueData as Record<string, string | number | boolean>,
       timestamp: Date.now(),
-      read: false,
-      actionUrl: `/venue/${venueData.venueId}`
+      read: false
     };
 
     this.addNotification(notification);
@@ -318,12 +327,32 @@ class NotificationService {
 
   // Get all notifications
   getNotifications(): Notification[] {
-    return [...this.notifications];
+    return this.notifications.map(n => this.convertToNotification(n));
   }
 
   // Get unread notifications
   getUnreadNotifications(): Notification[] {
-    return this.notifications.filter(n => !n.read);
+    return this.notifications
+      .filter(n => !n.read)
+      .map(n => this.convertToNotification(n));
+  }
+
+  // Convert NotificationData to Notification
+  private convertToNotification(data: NotificationData): Notification {
+    return {
+      id: data.id,
+      type: data.type === 'venue_activity' ? 'venue' : 
+            data.type === 'reconnect_request' ? 'reconnect' :
+            data.type === 'match_expiring' ? 'system' :
+            data.type === 'match' ? 'match' :
+            data.type === 'message' ? 'message' : 'system',
+      title: data.title,
+      message: data.body,
+      data: data.data as Record<string, unknown>,
+      timestamp: data.timestamp,
+      read: data.read,
+      actionUrl: data.type === 'venue_activity' && data.data?.venueId ? `/venue/${String(data.data.venueId)}` : undefined
+    };
   }
 
   // Mark notification as read
