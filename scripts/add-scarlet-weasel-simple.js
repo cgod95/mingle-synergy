@@ -11,6 +11,10 @@
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Firebase config - update with your actual values
 const firebaseConfig = {
