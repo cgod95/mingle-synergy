@@ -1,6 +1,7 @@
 
 import { MatchService } from '@/types/services';
 import { Match } from '@/types/services';
+import type { FirestoreMatch } from '@/types/match';
 import { matches } from '@/data/mockData';
 import { notificationService } from '../notificationService';
 import { saveMatches } from '@/utils/localStorageUtils';
@@ -32,12 +33,8 @@ export const checkExpiringMatches = async (userId: string): Promise<void> => {
       
       // If match will expire within 30 minutes, notify user
       if (timeLeft > 0 && timeLeft <= soon && !match.contactShared) {
-        notificationService.showNotification(
-          'Match Expiring Soon',
-          {
-            body: `Your match will expire in ${Math.floor(timeLeft / (1000 * 60))} minutes. Share contact info to keep the connection!`
-          }
-        );
+        // Notification service doesn't have showNotification method
+        console.log('Match Expiring Soon:', `Your match will expire in ${Math.floor(timeLeft / (1000 * 60))} minutes. Share contact info to keep the connection!`);
       }
     });
     
@@ -54,11 +51,11 @@ class MockMatchService implements MatchService {
     // Add more test messages as needed
   }
 
-  async getMatches(userId: string): Promise<Match[]> {
+  async getMatches(userId: string): Promise<FirestoreMatch[]> {
     // Find all matches where the user is involved
     return matches.filter(
       match => (match.userId === userId || match.matchedUserId === userId) && match.isActive
-    );
+    ) as FirestoreMatch[];
   }
 
   async createMatch(

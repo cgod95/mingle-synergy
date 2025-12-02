@@ -1,9 +1,6 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -46,5 +43,6 @@
     "env": {
       "NODE_ENV": "production"
     }
-  }
+  },
+  "installCommand": "pnpm install --no-frozen-lockfile"
 }

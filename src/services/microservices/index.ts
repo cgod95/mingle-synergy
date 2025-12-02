@@ -29,16 +29,14 @@ interface MicroserviceMessage {
   serviceId: string;
 }
 
-interface ServiceRegistry {
-  [key: string]: {
-    url: string;
-    health: 'healthy' | 'unhealthy';
-    lastCheck: number;
-  };
+interface ServiceInfo {
+  url: string;
+  health: 'healthy' | 'unhealthy';
+  lastCheck: number;
 }
 
 export class MicroserviceManager {
-  private services: ServiceRegistry = {};
+  private services: Map<string, ServiceInfo> = new Map();
   private messageQueue: MicroserviceMessage[] = [];
 
   register(service: ServiceConfig): void {
@@ -68,8 +66,8 @@ export class MicroserviceManager {
   }
 
   getAll(): ServiceConfig[] {
-    return Array.from(this.services.values()).map(service => ({
-      name: service.name,
+    return Array.from(this.services.entries()).map(([name, service]) => ({
+      name,
       url: service.url,
       healthCheck: '',
       timeout: 0,
@@ -291,10 +289,13 @@ class MicroserviceClient {
 
     for (const service of this.registry.getAll()) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         const response = await fetch(`${service.url}${service.healthCheck}`, {
           method: 'GET',
-          timeout: 5000,
+          signal: controller.signal,
         });
+        clearTimeout(timeoutId);
         
         const isHealthy = response.ok;
         results.set(service.name, isHealthy);

@@ -75,7 +75,7 @@ export const mockSubscriptionService = {
   getPlans: async () => mockPlans,
   
   // Add missing methods that SettingsPage expects
-  getUserSubscription: (userId: string) => {
+  getUserSubscription: (_userId: string) => {
     // In demo mode, return null (free tier) or mock premium subscription
     // Return null to show free tier by default
     return null;
