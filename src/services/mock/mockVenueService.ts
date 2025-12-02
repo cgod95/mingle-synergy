@@ -97,15 +97,15 @@ class MockVenueService implements VenueService {
       name: venue.name,
       address: venue.address || '',
       city: venue.city || 'Unknown City',
-      latitude: venue.latitude || 0,
-      longitude: venue.longitude || 0,
-      type: venue.type || 'other',
+      latitude: (venue as any).latitude || 0,
+      longitude: (venue as any).longitude || 0,
+      type: typeof venue.type === 'string' ? venue.type : 'other',
       checkInCount: venue.checkInCount || 0,
       expiryTime: venue.expiryTime || 120,
-      zones: venue.zones || [],
+      zones: Array.isArray(venue.zones) ? venue.zones.map(z => typeof z === 'string' ? z : z.id) : [],
       image: venue.image || '',
-      checkedInUsers: venue.checkedInUsers || [],
-      specials: venue.specials || []
+      checkedInUsers: (venue as any).checkedInUsers || [],
+      specials: venue.specials ? venue.specials.map(s => ({ title: s.title || '', description: s.description || '' })) : []
     };
   }
 }

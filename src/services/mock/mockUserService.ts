@@ -102,7 +102,7 @@ class MockUserService implements UserService {
         isVisible: data.isVisible !== undefined ? data.isVisible : true,
         interests: data.interests || [],
         gender: (data.gender && isValidGender(data.gender)) ? data.gender : 'other',
-        interestedIn: (data.interestedIn && areValidGenders(data.interestedIn)) ? data.interestedIn : ['other'],
+        interestedIn: (data.interestedIn && areValidGenders(data.interestedIn)) ? data.interestedIn as ('male' | 'female' | 'non-binary' | 'other')[] : ['other'] as ('male' | 'female' | 'non-binary' | 'other')[],
         age: data.age || 25,
         ageRangePreference: data.ageRangePreference || { min: 18, max: 40 },
         matches: data.matches || [],
