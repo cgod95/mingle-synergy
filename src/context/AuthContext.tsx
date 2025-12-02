@@ -93,23 +93,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   }, []);
 
   const createDemoUser = useCallback(() => {
-    // Don't create demo users if not in demo mode
-    if (!config.DEMO_MODE) {
-      console.warn('Cannot create demo user - not in demo mode');
-      return;
-    }
-    const demoUser: User = {
-      id: `demo_${Date.now()}`,
-      uid: `demo_${Date.now()}`,
-      name: 'Demo User',
-      email: 'demo@mingle.app',
-    };
-    login(demoUser);
-    // Mark as demo user
-    try {
-      localStorage.setItem('mingle:demo_user', 'true');
-    } catch {}
-  }, [login]);
+    // Demo user creation disabled for closed beta - users must sign up with Firebase
+    // This function is kept for compatibility but does nothing
+    console.warn('Demo user creation is disabled. Please sign up to create an account.');
+  }, []);
 
   const signUpUser = useCallback(async (email: string, password: string) => {
     try {

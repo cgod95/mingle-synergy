@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
-import { useAuth } from '@/context/AuthContext';
 import { MapPin } from 'lucide-react';
 import MingleMLogo from '@/components/ui/MingleMLogo';
 import { getVenues } from '@/lib/api';
@@ -20,7 +19,6 @@ interface Venue {
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { createDemoUser } = useAuth();
   const [venues, setVenues] = useState<Venue[]>([]);
 
   useEffect(() => {
@@ -39,8 +37,7 @@ export default function LandingPage() {
     loadVenues();
   }, []);
 
-  const handleDemoMode = () => {
-    createDemoUser();
+  const handleJoinClosedBeta = () => {
     navigate('/demo-welcome');
   };
 
@@ -209,23 +206,21 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Primary CTA Button - Show demo mode button only if demo mode is enabled */}
-            {config.DEMO_MODE && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="mb-8"
+            {/* Primary CTA Button */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="mb-8"
+            >
+              <Button
+                onClick={handleJoinClosedBeta}
+                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all mb-8 backdrop-blur-sm"
+                size="lg"
               >
-                <Button
-                  onClick={handleDemoMode}
-                  className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all mb-8 backdrop-blur-sm"
-                  size="lg"
-                >
-                  Try Demo Mode
-                </Button>
-              </motion.div>
-            )}
+                Join Closed Beta
+              </Button>
+            </motion.div>
 
             {/* Primary Actions - Show as primary CTA when not in demo mode */}
             <motion.div

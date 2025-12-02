@@ -47,18 +47,7 @@ export default function Matches() {
         return;
       }
       
-      // In demo mode, ensure data is seeded if matches list is empty
-      if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
-        try {
-          const { ensureDemoLikesSeed } = await import('@/lib/likesStore');
-          const { ensureDemoThreadsSeed } = await import('@/lib/chatStore');
-          ensureDemoLikesSeed();
-          ensureDemoThreadsSeed();
-        } catch (error) {
-          // Failed to seed demo data - non-critical
-        }
-      }
-      
+      // Demo data seeding removed for closed beta - using real Firebase data
       setIsLoading(true);
       try {
         // Get all matches (including expired) for display

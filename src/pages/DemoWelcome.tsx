@@ -1,54 +1,26 @@
-// Demo Welcome Screen - Introduces demo mode and auto-completes onboarding
+// Closed Beta Welcome Screen - Introduces closed beta experience
 
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
-import { useOnboarding } from '@/context/OnboardingContext';
 import { Heart, MapPin, MessageCircle, Zap } from 'lucide-react';
-import config from '@/config';
-import { logError } from '@/utils/errorHandler';
 import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function DemoWelcome() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { setOnboardingStepComplete } = useOnboarding();
-  const onboardingCompletedRef = useRef(false);
 
-  useEffect(() => {
-    // Auto-complete all onboarding steps for demo user - only once
-    if (config.DEMO_MODE && currentUser && !onboardingCompletedRef.current) {
-      onboardingCompletedRef.current = true; // Mark as completed to prevent re-runs
-      
-      setOnboardingStepComplete('email');
-      setOnboardingStepComplete('profile');
-      setOnboardingStepComplete('photo');
-      setOnboardingStepComplete('preferences');
-      
-      // Mark onboarding as complete in localStorage for demo mode
-      localStorage.setItem('onboardingComplete', 'true');
-      localStorage.setItem('profileComplete', 'true');
-      
-      // Seed demo data (likes and conversations) when entering demo mode
-      // Use dynamic imports to avoid require() errors in ESM
-      (async () => {
-        try {
-          const { ensureDemoLikesSeed } = await import('@/lib/likesStore');
-          const { ensureDemoThreadsSeed } = await import('@/lib/chatStore');
-          ensureDemoLikesSeed();
-          await ensureDemoThreadsSeed(); // Now async
-        } catch (error) {
-          logError(error as Error, { source: 'DemoWelcome', action: 'seedDemoData' });
-        }
-      })();
+  // Note: Demo data seeding removed - closed beta uses real Firebase data
+
+  const handleGetStarted = () => {
+    // Navigate to signup if not authenticated, otherwise to check-in
+    if (currentUser) {
+      navigate('/checkin');
+    } else {
+      navigate('/signup');
     }
-  }, [currentUser?.uid]); // Only depend on currentUser.uid, not setOnboardingStepComplete
-
-  const handleEnterDemo = () => {
-    // Navigate to check-in page - demo user has full access
-    navigate('/checkin');
   };
 
   return (
@@ -114,13 +86,13 @@ export default function DemoWelcome() {
                   <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
                     What You'll Experience
                   </CardTitle>
-                  <p className="text-sm text-indigo-300 font-medium">Demo Mode Preview</p>
+                  <p className="text-sm text-indigo-300 font-medium">Closed Beta</p>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="mb-4 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700/50">
                   <p className="text-sm text-neutral-200 text-center font-medium">
-                    8 venues • 26 active users • Real conversations
+                    Real venues • Real users • Real connections
                   </p>
                 </div>
                 <div className="space-y-4">
@@ -163,11 +135,11 @@ export default function DemoWelcome() {
 
                 <div className="pt-4">
                   <Button
-                    onClick={handleEnterDemo}
+                    onClick={handleGetStarted}
                     className="w-full md:w-auto md:min-w-[200px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg"
                     size="lg"
                   >
-                    Enter Demo Mode
+                    Get Started
                   </Button>
                 </div>
               </CardContent>

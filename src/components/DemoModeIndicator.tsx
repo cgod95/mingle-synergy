@@ -38,7 +38,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <Sparkles className="w-3 h-3 mr-1" />
-          Demo Mode
+          Closed Beta
           {freeWindow.isActive && freeWindow.expiresAt && (
             <span className="ml-2 flex items-center gap-1">
               <Clock className="w-3 h-3" />
@@ -54,7 +54,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-semibold text-yellow-800 flex items-center">
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Demo Mode Active
+                      Closed Beta
                     </CardTitle>
                     <Button
                       variant="ghost"
@@ -69,7 +69,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
                 <CardContent className="pt-0">
                   <div className="space-y-3 text-sm">
                     <p className="text-yellow-700">
-                      You're experiencing Mingle in demo mode with simulated data.
+                      You're experiencing Mingle in closed beta with real users and venues.
                     </p>
                     
                     {freeWindow.isActive && freeWindow.expiresAt && (
@@ -87,24 +87,16 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
                     <div className="space-y-2">
                       <div className="flex items-center text-yellow-700">
                         <Users className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>20+ mock users available</span>
+                        <span>Real users connecting</span>
                       </div>
                       <div className="flex items-center text-yellow-700">
                         <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>8 demo venues to explore</span>
+                        <span>Real venues to explore</span>
                       </div>
                       <div className="flex items-center text-yellow-700">
                         <MessageCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Simulated matches & messages</span>
+                        <span>Real matches & conversations</span>
                       </div>
-                    </div>
-                    
-                    <div className="pt-2 border-t border-yellow-200">
-                      <p className="text-xs text-yellow-600">
-                        <strong>Demo Credentials:</strong><br />
-                        Email: test@example.com<br />
-                        Password: password123
-                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -123,29 +115,29 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
           <div className="flex items-center justify-center mb-2">
             <Sparkles className="w-6 h-6 text-yellow-600 mr-2" />
             <CardTitle className="text-xl font-bold text-yellow-800">
-              Welcome to the Mingle Demo!
+              Welcome to Mingle Closed Beta!
             </CardTitle>
           </div>
           <p className="text-yellow-700">
-            Experience the anti-dating app with simulated data and features
+            Experience the anti-dating app with real users and venues
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-4">
             <div className="text-center p-3 bg-white/50 rounded-lg">
               <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-lg font-semibold text-slate-800">20+ Users</div>
-              <div className="text-sm text-slate-600">Mock profiles to explore</div>
+              <div className="text-lg font-semibold text-slate-800">Real Users</div>
+              <div className="text-sm text-slate-600">Connect with real people</div>
             </div>
             <div className="text-center p-3 bg-white/50 rounded-lg">
               <MapPin className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <div className="text-lg font-semibold text-slate-800">5 Venues</div>
-              <div className="text-sm text-slate-600">Demo locations to check in</div>
+              <div className="text-lg font-semibold text-slate-800">Real Venues</div>
+              <div className="text-sm text-slate-600">Check in at real locations</div>
             </div>
             <div className="text-center p-3 bg-white/50 rounded-lg">
               <MessageCircle className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-lg font-semibold text-slate-800">Full Chat</div>
-              <div className="text-sm text-slate-600">Simulated conversations</div>
+              <div className="text-lg font-semibold text-slate-800">Real Chat</div>
+              <div className="text-sm text-slate-600">Real conversations</div>
             </div>
           </div>
           
@@ -157,22 +149,22 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
             <div className="space-y-2 text-sm text-slate-700">
               <div className="flex items-start">
                 <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">1</span>
-                <span>Sign in with <code className="bg-slate-100 px-1 rounded text-xs">test@example.com</code> / <code className="bg-slate-100 px-1 rounded text-xs">password123</code></span>
+                <span>Create your account and complete your profile</span>
               </div>
               <div className="flex items-start">
                 <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">2</span>
-                <span>Complete your profile and preferences</span>
+                <span>Set your preferences and upload photos</span>
               </div>
               <div className="flex items-start">
                 <span className="bg-blue-100 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">3</span>
-                <span>Check into venues and start matching!</span>
+                <span>Check into venues and start matching with real people!</span>
               </div>
             </div>
           </div>
           
           <div className="text-center">
             <p className="text-xs text-yellow-600">
-              This is a demonstration of Mingle's core features. All data is simulated for demo purposes.
+              This is a closed beta of Mingle. You're connecting with real users at real venues.
             </p>
           </div>
         </CardContent>

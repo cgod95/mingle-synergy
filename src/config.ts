@@ -3,9 +3,9 @@ import type { AppConfig, FeatureFlags } from '@/types/common';
 
 // Validate production environment variables
 const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
-// Only enable demo mode if explicitly set OR in development (not production)
+// Enable demo mode if explicitly set OR in development mode
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || 
-  (import.meta.env.MODE === 'development' && !import.meta.env.PROD);
+  import.meta.env.MODE === 'development';
 
 if (isProduction && !isDemoMode) {
   // In production (non-demo), validate required Firebase variables
