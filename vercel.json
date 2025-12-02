@@ -47,5 +47,5 @@
       "NODE_ENV": "production"
     }
   },
-  "installCommand": "npm install"
+  "installCommand": "npm install --include=dev"
 }
