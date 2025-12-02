@@ -68,7 +68,7 @@ export interface PaymentMethod {
 }
 
 export class SubscriptionService {
-  private stripe: {
+  private _stripe: {
     createToken: (element: HTMLElement) => Promise<{ token?: { id: string }; error?: { message: string } }>;
     createPaymentMethod: (params: { type: string; card: HTMLElement }) => Promise<{ paymentMethod?: { id: string }; error?: { message: string } }>;
     confirmCardPayment: (clientSecret: string, params: { payment_method: string }) => Promise<{ paymentIntent?: { status: string }; error?: { message: string } }>;
@@ -213,7 +213,7 @@ export class SubscriptionService {
       // Check free tier limits
       const freeTier = this.getTier('free');
       const limit = freeTier?.limits[action] || 0;
-      return limit === -1 || subscription?.usage[action] < limit;
+      return limit === -1;
     }
 
     const tier = this.getTier(subscription.tierId);
@@ -260,7 +260,7 @@ export class SubscriptionService {
   async createSubscription(
     userId: string, 
     tierId: string, 
-    paymentMethodId: string
+    _paymentMethodId: string
   ): Promise<UserSubscription> {
     const tier = this.getTier(tierId);
     if (!tier) {

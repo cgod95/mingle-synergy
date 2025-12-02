@@ -187,7 +187,7 @@ class PerformanceMonitoringService {
     }
 
     // Error tracking
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', (_event) => {
       this.recordMetric({
         name: 'javascript_error',
         value: 1,
@@ -197,7 +197,7 @@ class PerformanceMonitoringService {
     });
 
     // Network errors
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', (_event) => {
       this.recordMetric({
         name: 'unhandled_promise_rejection',
         value: 1,

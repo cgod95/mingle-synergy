@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import colors from 'tailwindcss/colors';
 import tailwindcssAnimate from 'tailwindcss-animate';
 
 export default {

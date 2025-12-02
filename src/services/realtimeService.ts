@@ -19,7 +19,6 @@ export interface ConnectionStatus {
 
 class RealtimeService {
   private ws: WebSocket | null = null;
-  private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private eventListeners: Map<string, Set<(data: unknown) => void>> = new Map();
@@ -118,7 +117,7 @@ class RealtimeService {
   }
 
   // Connection management
-  async connect(url?: string): Promise<void> {
+  async connect(_url?: string): Promise<void> {
     if (this.isConnecting || this.connectionStatus.connected) {
       return;
     }
@@ -135,7 +134,7 @@ class RealtimeService {
       this.connectionStatus.connected = true;
       this.connectionStatus.lastConnected = Date.now();
       this.connectionStatus.reconnectAttempts = 0;
-      this.connectionStatus.error = undefined;
+      delete this.connectionStatus.error;
       
       this.startHeartbeat();
       this.emit('connected', { timestamp: Date.now() });

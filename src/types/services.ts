@@ -1,4 +1,3 @@
-import { Match as AppMatch, User as AppUser } from '@/types';
 import { FirestoreMatch } from '@/types/match';
 
 // Service layer interfaces for abstraction and testing

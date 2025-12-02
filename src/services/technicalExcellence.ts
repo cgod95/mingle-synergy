@@ -15,7 +15,7 @@ export interface TestResult {
   name: string;
   status: 'passed' | 'failed' | 'skipped';
   duration: number;
-  error?: string;
+  error?: string | undefined;
   timestamp: number;
 }
 
@@ -140,13 +140,16 @@ class TechnicalExcellenceService {
         
         const success = Math.random() > 0.1; // 90% success rate
         
-        results.push({
+        const result: TestResult = {
           name: testCase,
           status: success ? 'passed' : 'failed',
           duration: Date.now() - startTime,
-          error: success ? undefined : 'Test assertion failed',
           timestamp: Date.now()
-        });
+        };
+        if (!success) {
+          result.error = 'Test assertion failed';
+        }
+        results.push(result);
       } catch (error) {
         results.push({
           name: testCase,

@@ -11,7 +11,11 @@ function write(s: DemoState) { localStorage.setItem(KEY, JSON.stringify(s)); }
 export function getCurrentVenueId(): string | undefined { return read().currentVenueId; }
 export function setCurrentVenue(id: string | undefined): void { 
   const s = read(); 
-  s.currentVenueId = id; 
+  if (id !== undefined) {
+    s.currentVenueId = id;
+  } else {
+    delete s.currentVenueId;
+  }
   write(s); 
 }
 
