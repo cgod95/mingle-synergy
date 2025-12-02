@@ -93,6 +93,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   }, []);
 
   const createDemoUser = useCallback(() => {
+    // Don't create demo users if not in demo mode
+    if (!config.DEMO_MODE) {
+      console.warn('Cannot create demo user - not in demo mode');
+      return;
+    }
     const demoUser: User = {
       id: `demo_${Date.now()}`,
       uid: `demo_${Date.now()}`,

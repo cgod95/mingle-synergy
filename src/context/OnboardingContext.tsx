@@ -77,7 +77,12 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
         return;
       }
 
-      // Production mode: use Firebase
+      // Production mode: use Firebase (skip if demo user)
+      if (currentUser?.id?.startsWith('demo_')) {
+        setIsLoading(false);
+        return;
+      }
+      
       try {
         let firebaseProgress = await onboardingService.loadOnboardingProgress(currentUser.uid);
         
@@ -152,8 +157,8 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     const updatedProgress = { ...onboardingProgress, [step]: true };
     setOnboardingProgress(updatedProgress);
 
-    // Save to Firebase if in production mode
-    if (!config.DEMO_MODE && currentUser?.uid) {
+    // Save to Firebase if in production mode and not a demo user
+    if (!config.DEMO_MODE && currentUser?.uid && !currentUser?.id?.startsWith('demo_')) {
       const stepId = KEY_TO_STEP[step];
       if (stepId) {
         try {
@@ -226,7 +231,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     
     if (config.DEMO_MODE) {
       localStorage.setItem('onboardingProgress', JSON.stringify(defaultProgress));
-    } else if (currentUser?.uid) {
+    } else if (currentUser?.uid && !currentUser?.id?.startsWith('demo_')) {
       try {
         await onboardingService.resetOnboardingProgress(currentUser.uid);
       } catch (error) {

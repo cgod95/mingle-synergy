@@ -8,7 +8,9 @@ import { initErrorTracking } from "./utils/errorHandler";
 initErrorTracking();
 
 // Initialize demo services (only in demo mode)
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+// Only enable demo mode if explicitly set OR in development (not production)
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || 
+  (import.meta.env.MODE === 'development' && !import.meta.env.PROD);
 
 if (isDemoMode) {
   // Only initialize demo services in demo mode
