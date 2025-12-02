@@ -204,24 +204,32 @@ class MockUserService implements UserService {
     // Filter out users checked in at the specified venue
     return users
       .filter(user => user.isCheckedIn && user.currentVenue === venueId && user.isVisible)
-      .map(user => ({
-        id: user.id,
-        name: user.name || '',
-        photos: user.photos,
-        bio: user.bio || '',
-        isCheckedIn: user.isCheckedIn,
-        currentVenue: user.currentVenue,
-        currentZone: user.currentZone,
-        isVisible: user.isVisible,
-        interests: user.interests,
-        gender: isValidGender(user.gender) ? user.gender : 'other',
-        interestedIn: areValidGenders(user.interestedIn) ? user.interestedIn : ['other'],
-        age: user.age || 25,
-        ageRangePreference: user.ageRangePreference || { min: 18, max: 40 },
-        matches: user.matches || [],
-        likedUsers: user.likedUsers || [],
-        blockedUsers: user.blockedUsers || [],
-      }));
+      .map(user => {
+        const userProfile: UserProfile = {
+          id: user.id,
+          name: user.name || 'Demo User',
+          displayName: user.name || 'Demo User',
+          photos: user.photos || [],
+          bio: user.bio || '',
+          isCheckedIn: user.isCheckedIn ?? false,
+          isVisible: user.isVisible ?? true,
+          interests: user.interests || [],
+          gender: isValidGender(user.gender || '') ? (user.gender || 'other') : 'other',
+          interestedIn: areValidGenders(user.interestedIn || []) ? (user.interestedIn || ['other']) : ['other'],
+          age: user.age || 25,
+          ageRangePreference: user.ageRangePreference || { min: 18, max: 40 },
+          matches: user.matches || [],
+          likedUsers: user.likedUsers || [],
+          blockedUsers: user.blockedUsers || [],
+        };
+        if (user.currentVenue) {
+          userProfile.currentVenue = user.currentVenue;
+        }
+        if (user.currentZone) {
+          userProfile.currentZone = user.currentZone;
+        }
+        return userProfile;
+      });
   }
 
   // Add stubs for missing UserService methods

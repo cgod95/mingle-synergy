@@ -1,12 +1,17 @@
 import { VenueService, Venue, UserProfile } from '@/types/services';
 import { venues } from '@/data/mockData';
+import type { Venue as MockVenue } from '@/types';
 import { calculateDistance } from '@/utils/locationUtils';
 import { users } from '@/data/mockData';
 
 class MockVenueService implements VenueService {
   // Mock implementations to provide data for testing and development
-  async getVenues(): Promise<Venue[]> {
+  async listVenues(): Promise<Venue[]> {
     return venues.map(venue => this.transformToServiceVenue(venue));
+  }
+
+  async getVenues(): Promise<Venue[]> {
+    return this.listVenues();
   }
 
   async getVenueById(id: string): Promise<Venue | null> {
@@ -57,26 +62,36 @@ class MockVenueService implements VenueService {
     // In a real implementation, this would query users where currentVenue === venueId
     return users
       .filter(user => user.isCheckedIn && user.currentVenue === venueId)
-      .map(user => ({
-        id: user.id,
-        name: user.name,
-        age: user.age,
-        bio: user.bio,
-        photos: user.photos,
-        isCheckedIn: user.isCheckedIn,
-        isVisible: user.isVisible,
-        interests: user.interests,
-        gender: user.gender,
-        interestedIn: user.interestedIn,
-        ageRangePreference: user.ageRangePreference,
-        matches: user.matches || [],
-        likedUsers: user.likedUsers || [],
-        blockedUsers: user.blockedUsers || []
-      }));
+      .map(user => {
+        const userProfile: UserProfile = {
+          id: user.id,
+          name: user.name || 'Demo User',
+          displayName: user.name || 'Demo User',
+          age: user.age || 25,
+          bio: user.bio || '',
+          photos: user.photos || [],
+          isCheckedIn: user.isCheckedIn ?? false,
+          isVisible: user.isVisible ?? true,
+          interests: user.interests || [],
+          gender: (user.gender === 'male' || user.gender === 'female' || user.gender === 'non-binary' || user.gender === 'other') ? user.gender : 'other',
+          interestedIn: Array.isArray(user.interestedIn) && user.interestedIn.every(g => ['male', 'female', 'non-binary', 'other'].includes(g)) ? user.interestedIn as ('male' | 'female' | 'non-binary' | 'other')[] : ['other'],
+          ageRangePreference: user.ageRangePreference || { min: 18, max: 40 },
+          matches: user.matches || [],
+          likedUsers: user.likedUsers || [],
+          blockedUsers: user.blockedUsers || []
+        };
+        if (user.currentVenue) {
+          userProfile.currentVenue = user.currentVenue;
+        }
+        if (user.currentZone) {
+          userProfile.currentZone = user.currentZone;
+        }
+        return userProfile;
+      });
   }
 
   // Helper to transform mock venue data to match services Venue type
-  private transformToServiceVenue(venue: Venue): Venue {
+  private transformToServiceVenue(venue: MockVenue): Venue {
     return {
       id: venue.id,
       name: venue.name,
