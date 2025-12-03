@@ -165,12 +165,18 @@ export default function CreateProfile() {
       let errorMessage = 'Failed to save profile. Please try again.';
       
       if (err instanceof Error) {
-        if (err.message.includes('network') || err.message.includes('fetch')) {
+        const errorCode = (err as any).code || '';
+        const errorMsg = err.message || '';
+        
+        if (errorCode === 'permission-denied' || errorMsg.includes('permission') || errorMsg.includes('Permission')) {
+          errorMessage = 'Permission denied. Please ensure you are signed in and try again.';
+          logError(err, { source: 'CreateProfile', action: 'handleSubmit', errorCode });
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch') || errorCode.includes('unavailable')) {
           errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (err.message.includes('permission')) {
-          errorMessage = 'Permission denied. Please sign in again.';
+        } else if (errorMsg.includes('bio') && errorMsg.includes('10')) {
+          errorMessage = 'Bio must be at least 10 characters long.';
         } else {
-          errorMessage = err.message;
+          errorMessage = errorMsg || 'Failed to save profile. Please try again.';
         }
       }
       
