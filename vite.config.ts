@@ -44,10 +44,17 @@ export default defineConfig({
       // CRITICAL: Force framer-motion to use the same React instance
       'framer-motion': path.resolve(__dirname, './node_modules/framer-motion'),
     },
-    dedupe: ['react', 'react-dom', 'framer-motion'],
+    dedupe: ['react', 'react-dom', 'framer-motion', 'react-router-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'], // Include framer-motion but force it to use same React
+    include: [
+      'react', 
+      'react-dom', 
+      'react-router-dom', 
+      'framer-motion',
+      'react-firebase-hooks',
+      '@tanstack/react-query'
+    ],
     force: true, // Force re-optimization
     esbuildOptions: {
       // Force React to be treated as external/common
@@ -62,13 +69,23 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // CRITICAL: Keep React together - don't split it
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+          // CRITICAL: Keep ALL React-related packages together - don't split them
+          // This prevents multiple React instances which cause error #300
+          if (
+            id.includes('node_modules/react') || 
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react-router-dom') ||
+            id.includes('node_modules/framer-motion') ||
+            id.includes('node_modules/react-firebase-hooks') ||
+            id.includes('node_modules/@tanstack/react-query') ||
+            id.includes('node_modules/react-hook-form') ||
+            id.includes('node_modules/react-hot-toast') ||
+            id.includes('node_modules/react-day-picker') ||
+            id.includes('node_modules/react-resizable-panels') ||
+            id.includes('node_modules/react-helmet') ||
+            id.includes('node_modules/embla-carousel-react')
+          ) {
             return 'react-vendor';
-          }
-          // CRITICAL: Keep framer-motion with React to prevent multiple instances
-          if (id.includes('node_modules/framer-motion')) {
-            return 'react-vendor'; // Put it in same chunk as React
           }
           if (id.includes('node_modules/firebase')) {
             return 'firebase-vendor';
