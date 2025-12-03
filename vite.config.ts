@@ -44,12 +44,21 @@ export default defineConfig({
       // CRITICAL: Force framer-motion to use the same React instance
       'framer-motion': path.resolve(__dirname, './node_modules/framer-motion'),
     },
-    dedupe: ['react', 'react-dom', 'framer-motion', 'react-router-dom'],
+    dedupe: [
+      'react', 
+      'react-dom', 
+      'framer-motion', 
+      'react-router-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'scheduler'
+    ],
   },
   optimizeDeps: {
     include: [
       'react', 
-      'react-dom', 
+      'react-dom',
+      'react/jsx-runtime',
       'react-router-dom', 
       'framer-motion',
       'react-firebase-hooks',
@@ -66,9 +75,13 @@ export default defineConfig({
       include: [/node_modules/],
       transformMixedEsModules: true,
     },
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
+      rollupOptions: {
+        output: {
+          // Ensure consistent hashing for cache busting
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+          manualChunks: (id) => {
           // CRITICAL: Keep ALL React-related packages together - don't split them
           // This prevents multiple React instances which cause error #300
           if (
@@ -83,7 +96,8 @@ export default defineConfig({
             id.includes('node_modules/react-day-picker') ||
             id.includes('node_modules/react-resizable-panels') ||
             id.includes('node_modules/react-helmet') ||
-            id.includes('node_modules/embla-carousel-react')
+            id.includes('node_modules/embla-carousel-react') ||
+            id.includes('node_modules/scheduler') // React's internal scheduler
           ) {
             return 'react-vendor';
           }
@@ -97,5 +111,7 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000, // 1MB warning threshold
+    // Disable source maps in production to reduce bundle size and prevent DevTools conflicts
+    sourcemap: false,
   },
 })
