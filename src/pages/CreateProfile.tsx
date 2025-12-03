@@ -1,7 +1,7 @@
 // src/pages/CreateProfile.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -136,8 +136,25 @@ export default function CreateProfile() {
       await retryWithMessage(
         async () => {
           const ref = doc(firestore, 'users', auth.currentUser!.uid);
-          // Use merge: true to update existing document (created during sign-up) without overwriting
-          // This ensures we don't lose any existing data and handles the case where user doc already exists
+          
+          // Check if document exists - if not, create it first with basic user data
+          const userDoc = await getDoc(ref);
+          if (!userDoc.exists()) {
+            // Document doesn't exist - create it with basic user data first
+            // This handles the case where sign-up didn't create the document
+            await setDoc(ref, {
+              email: auth.currentUser!.email || '',
+              id: auth.currentUser!.uid,
+              createdAt: new Date().toISOString(),
+              photos: [],
+              isCheckedIn: false,
+              isVisible: true,
+              interests: []
+            });
+          }
+          
+          // Now update with profile data using merge: true
+          // This ensures we don't lose any existing data
           await setDoc(ref, profileData, { merge: true });
         },
         { 
