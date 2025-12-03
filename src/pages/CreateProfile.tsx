@@ -202,9 +202,9 @@ export default function CreateProfile() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-2 border-neutral-200 bg-white shadow-xl">
-          <CardHeader className="text-center space-y-2 border-b border-neutral-200">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-2 border-primary/20 bg-gradient-to-br from-background via-primary/5 to-primary/10 shadow-xl">
+          <CardHeader className="text-center space-y-2 border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">

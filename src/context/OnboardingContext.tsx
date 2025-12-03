@@ -162,18 +162,30 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
       const stepId = KEY_TO_STEP[step];
       if (stepId) {
         try {
+          // Don't pass stepData at all - let the service handle undefined properly
           await onboardingService.completeStep(currentUser.uid, stepId);
           
           // Check if all steps are complete and sync with user profile
           const allComplete = Object.values(updatedProgress).every(Boolean);
           if (allComplete) {
             await onboardingService.syncWithUserProfile(currentUser.uid);
+            // Mark as complete in localStorage to prevent redirect loops
+            localStorage.setItem('onboardingComplete', 'true');
+            localStorage.setItem('profileComplete', 'true');
           }
         } catch (error) {
           console.error('Error saving step to Firebase:', error);
           // Revert on error
           setOnboardingProgress(onboardingProgress);
+          throw error; // Re-throw so caller can handle
         }
+      }
+    } else {
+      // Demo mode: also mark localStorage
+      const allComplete = Object.values(updatedProgress).every(Boolean);
+      if (allComplete) {
+        localStorage.setItem('onboardingComplete', 'true');
+        localStorage.setItem('profileComplete', 'true');
       }
     }
   };

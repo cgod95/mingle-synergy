@@ -134,7 +134,12 @@ export default function Preferences() {
         await userService.updateUserProfile(currentUser.uid, updates);
       }
       
-      setOnboardingStepComplete('preferences');
+      // Mark preferences step as complete
+      await setOnboardingStepComplete('preferences');
+      
+      // Mark onboarding as complete in localStorage to prevent redirect loop
+      localStorage.setItem('onboardingComplete', 'true');
+      localStorage.setItem('profileComplete', 'true');
       
       // Track onboarding completion
       analytics.track('onboarding_completed', {
@@ -150,7 +155,7 @@ export default function Preferences() {
       
       // Navigate to check-in after a brief delay
       setTimeout(() => {
-        navigate('/checkin');
+        navigate('/checkin', { replace: true });
       }, 1000);
     } catch (error) {
       logError(error as Error, { context: 'Preferences.handleSubmit', userId: currentUser?.uid || 'unknown' });
@@ -176,9 +181,9 @@ export default function Preferences() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-neutral-50 pb-20">
-        <Card className="w-full max-w-md mx-auto mt-6 border-2 border-neutral-200 bg-white shadow-xl">
-          <CardHeader className="text-center space-y-2 border-b border-neutral-200">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-background pb-20">
+        <Card className="w-full max-w-md mx-auto mt-6 border-2 border-primary/20 bg-gradient-to-br from-background via-primary/5 to-primary/10 shadow-xl">
+          <CardHeader className="text-center space-y-2 border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">

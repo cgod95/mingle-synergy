@@ -115,7 +115,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button 
                   onClick={this.handleRetry}
                   disabled={this.state.isRetrying}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
                 >
                   {this.state.isRetrying ? (
                     <>
