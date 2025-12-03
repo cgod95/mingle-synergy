@@ -37,13 +37,17 @@
       (function() {
         if (typeof window === 'undefined') return;
         
-        // Create a proxy-based hook that prevents DevTools from working
-        // but allows property access to prevent "not extensible" errors
-        const hookProxy = new Proxy({
+        // Delete any existing hook first
+        try {
+          delete window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+        } catch (e) {}
+        
+        // Create a completely disabled hook object
+        const disabledHook = {
           isDisabled: true,
           renderers: new Map(),
           supportsFiber: false,
-          inject: function() {},
+          inject: function() { return false; },
           onCommitFiberRoot: function() {},
           onCommitFiberUnmount: function() {},
           checkDCE: function() {},
@@ -51,42 +55,44 @@
           _listeners: [],
           emit: function() {},
           on: function() {},
-          off: function() {}
-        }, {
-          set: function(target, prop, value) {
-            // Allow DevTools to set properties (prevents "not extensible" error)
-            // but keep isDisabled true and make methods no-ops
-            if (prop === 'isDisabled') {
-              target[prop] = true; // Always keep disabled
-              return true;
-            }
-            if (typeof value === 'function' && prop !== 'inject' && prop !== 'onCommitFiberRoot' && prop !== 'onCommitFiberUnmount') {
-              target[prop] = value; // Allow function assignment
-              return true;
-            }
-            target[prop] = value;
-            return true;
-          },
-          get: function(target, prop) {
-            // Return no-op functions for DevTools methods
-            if (prop === 'inject' || prop === 'onCommitFiberRoot' || prop === 'onCommitFiberUnmount' || prop === 'checkDCE') {
-              return function() {}; // Always return no-op
-            }
-            return target[prop];
-          }
-        });
+          off: function() {},
+          // Prevent any renderer registration
+          registerRenderer: function() { return -1; },
+          // Make all methods no-ops
+          onHook: function() {},
+          offHook: function() {}
+        };
         
-        // Set the hook - prevent overwriting but allow property access
+        // Freeze the hook to prevent modifications
+        try {
+          Object.freeze(disabledHook);
+        } catch (e) {}
+        
+        // Set the hook using defineProperty to prevent overwriting
         try {
           Object.defineProperty(window, '__REACT_DEVTOOLS_GLOBAL_HOOK__', {
-            value: hookProxy,
+            value: disabledHook,
             writable: false,
             configurable: false,
             enumerable: true
           });
         } catch (e) {
-          // Fallback if defineProperty fails
-          window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = hookProxy;
+          // Fallback: just set it normally
+          try {
+            window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = disabledHook;
+            Object.freeze(window.__REACT_DEVTOOLS_GLOBAL_HOOK__);
+          } catch (e2) {}
+        }
+        
+        // Also prevent DevTools extension from injecting
+        if (window.chrome && window.chrome.runtime) {
+          try {
+            Object.defineProperty(window, '__REACT_DEVTOOLS_EXTENSION__', {
+              value: undefined,
+              writable: false,
+              configurable: false
+            });
+          } catch (e) {}
         }
       })();
     </script>
