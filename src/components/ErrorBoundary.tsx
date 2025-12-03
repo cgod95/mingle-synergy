@@ -28,7 +28,7 @@ class ErrorBoundaryClass extends Component<Props & { navigate: (path: string) =>
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logError(error, { source: 'ErrorBoundary', componentStack: errorInfo.componentStack });
+    logError(error, { source: 'ErrorBoundary', componentStack: errorInfo.componentStack || '' });
     
     this.setState({
       error,

@@ -140,7 +140,7 @@ export default function CreateProfile() {
         { 
           operationName: 'saving profile',
           maxRetries: 3,
-          onRetry: (attempt) => setRetryCount(attempt)
+          onRetry: (attempt: number) => setRetryCount(attempt)
         }
       );
       

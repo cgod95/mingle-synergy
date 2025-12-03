@@ -12,12 +12,12 @@ import {
   TrendingUp,
   TrendingDown,
   Activity,
-  Badge,
   AlertTriangle,
   CheckCircle,
   X,
   RefreshCw
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 // Optimized image component with lazy loading
 export const OptimizedImage: React.FC<{

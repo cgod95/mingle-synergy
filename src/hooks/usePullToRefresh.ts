@@ -95,14 +95,14 @@ export const usePullToRefresh = ({
       indicatorEl.style.height = '0';
     }
     
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchstart', handleTouchStart as EventListener);
+    container.addEventListener('touchmove', handleTouchMove as EventListener, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd as unknown as EventListener);
     
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchstart', handleTouchStart as EventListener);
+      container.removeEventListener('touchmove', handleTouchMove as EventListener);
+      container.removeEventListener('touchend', handleTouchEnd as unknown as EventListener);
       
       if (document.body.contains(indicatorEl)) {
         document.body.removeChild(indicatorEl);

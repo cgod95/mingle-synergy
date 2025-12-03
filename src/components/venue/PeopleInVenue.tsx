@@ -9,7 +9,7 @@ export default function PeopleInVenue({ venueId }: { venueId: string }) {
   const [notice, setNotice] = useState("");
 
   const handleLike = (p: Person) => {
-    const avatar = p.photo || p.avatar || ''; // Use photo property from demoPeople Person type
+    const avatar = p.photo || (p as any).avatar || ''; // Use photo property from demoPeople Person type
     const matchId = ensureMatchFor("you", p.id, p.name, avatar, venueId);
     addMessage(matchId, { sender: "you", text: "👋 Hey " + p.name.split(" ")[0] + "!" });
     setNotice("Matched with " + p.name + ". Opening chat…");
@@ -37,7 +37,7 @@ export default function PeopleInVenue({ venueId }: { venueId: string }) {
         {people.map((p) => (
           <div key={p.id} style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 12, background: "#fff" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <img src={p.photo || p.avatar || ''} alt={p.name} width={48} height={48} style={{ borderRadius: "50%", border: "1px solid #eee" }} />
+              <img src={p.photo || (p as any).avatar || ''} alt={p.name} width={48} height={48} style={{ borderRadius: "50%", border: "1px solid #eee" }} />
               <div>
                 <div style={{ fontWeight: 600 }}>{p.name}</div>
                 <div style={{ fontSize: 12, color: "#6b7280" }}>{p.bio || "—"}</div>

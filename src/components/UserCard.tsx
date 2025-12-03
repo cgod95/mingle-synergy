@@ -29,7 +29,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
     try {
       // Get venueId from context or use a default - you may need to pass this as a prop
       const venueId = ''; // TODO: Get from context or props
-      await likeUserWithMutualDetection(currentUser.uid, user.id, venueId);
+      await likeUserWithMutualDetection(currentUser.uid || currentUser.id, user.id || user.uid || '', venueId);
       setIsLiked(true);
     } catch (error) {
       logError(error as Error, { source: 'UserCard', action: 'likeUser', targetUserId: user.id });

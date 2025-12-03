@@ -7,7 +7,9 @@ import { ArrowLeft, CreditCard, Calendar, DollarSign, CheckCircle, AlertCircle }
 import { useNavigate } from 'react-router-dom';
 import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
-import subscriptionService from '@/services/subscriptionService';
+import SubscriptionService from '@/services/subscriptionService';
+
+const subscriptionService = new SubscriptionService();
 
 interface SubscriptionTier {
   id: string;
@@ -49,7 +51,7 @@ const Billing: React.FC = () => {
       setTiers(availableTiers);
 
       // Load current subscription (mock data for now)
-      const mockCurrentTier = availableTiers.find(tier => tier.id === 'premium');
+      const mockCurrentTier = availableTiers.find((tier: SubscriptionTier) => tier.id === 'premium');
       setCurrentTier(mockCurrentTier || null);
 
       // Load billing history (mock data)

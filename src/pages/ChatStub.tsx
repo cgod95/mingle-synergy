@@ -12,15 +12,15 @@ export default function ChatStub() {
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <img
-              src={person.photo}
-              alt={person.name}
+              src={person.person.avatar || ''}
+              alt={person.person.name}
               width={48}
               height={48}
               style={{ borderRadius: "50%" }}
             />
             <div>
-              <div style={{ fontWeight: 600 }}>{person.name}</div>
-              <div style={{ fontSize: 13, color: "#666" }}>{person.age}</div>
+              <div style={{ fontWeight: 600 }}>{person.person.name}</div>
+              <div style={{ fontSize: 13, color: "#666" }}>{person.person.bio || ''}</div>
             </div>
           </div>
           <div style={{ marginTop: 16, padding: 12, border: "1px solid #eee", borderRadius: 12 }}>

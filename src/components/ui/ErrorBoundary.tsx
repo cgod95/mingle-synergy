@@ -44,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
       console.error('React Error #300 detected: Multiple React instances detected. Check build configuration.');
     }
     
-    logError(error, { source: 'ErrorBoundary', componentStack: errorInfo.componentStack });
+    logError(error, { source: 'ErrorBoundary', componentStack: errorInfo.componentStack || '' });
     
     this.setState({
       error,

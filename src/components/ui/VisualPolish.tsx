@@ -816,7 +816,7 @@ export function LoadingDots() {
   );
 }
 
-export function AnimatedList({ children }: { children: React.ReactNode }) {
+export function AnimatedListSimple({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
       variants={containerVariants}

@@ -2,6 +2,7 @@ import { FieldValue } from 'firebase/firestore';
 
 export interface UserProfile {
   id: string;
+  uid?: string; // alias for id for compatibility
   name: string;
   age: number;
   gender: string;

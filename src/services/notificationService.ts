@@ -66,8 +66,16 @@ class NotificationService {
     localStorage.setItem('mingle_notifications', JSON.stringify(this.notifications));
   }
 
-  private notifyListeners() {
-    this.listeners.forEach(listener => listener(this.notifications));
+  private notifyListeners(): void {
+    this.listeners.forEach(listener => listener([...this.notifications]));
+  }
+
+  private savePermission(): void {
+    try {
+      localStorage.setItem('mingle_notification_permission', this.permission);
+    } catch (error) {
+      console.error('Failed to save notification permission:', error);
+    }
   }
 
   // Initialize push notifications
@@ -446,6 +454,129 @@ class NotificationService {
   // Get current permission status
   getPermissionStatus(): NotificationPermission {
     return this.permission;
+  }
+
+  // Request notification permission
+  async requestNotificationPermission(): Promise<NotificationPermission> {
+    if (!this.isSupported) {
+      return 'denied';
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      this.permission = permission;
+      this.savePermission();
+      
+      if (permission === 'granted') {
+        analytics.track('notification_permission_granted', {
+          timestamp: Date.now()
+        });
+      }
+      
+      return permission;
+    } catch (error) {
+      console.error('Failed to request notification permission:', error);
+      return 'denied';
+    }
+  }
+
+  // Subscribe to notification updates
+  subscribe(callback: (notifications: NotificationData[]) => void): () => void {
+    this.listeners.push(callback);
+    
+    // Immediately call with current notifications
+    callback([...this.notifications]);
+    
+    // Return unsubscribe function
+    return () => {
+      const index = this.listeners.indexOf(callback);
+      if (index > -1) {
+        this.listeners.splice(index, 1);
+      }
+    };
+  }
+
+  // Notify all listeners
+  private notifyListeners(): void {
+    this.listeners.forEach(listener => listener([...this.notifications]));
+  }
+
+  // Clear all notifications (alias for clearAllNotifications)
+  clearAll(): void {
+    this.clearAllNotifications();
+  }
+
+  // Show notification (alias for sendLocalNotification)
+  async showNotification(title: string, options?: { body?: string; icon?: string; data?: Record<string, unknown> }): Promise<void> {
+    await this.sendLocalNotification({
+      title,
+      body: options?.body || '',
+      icon: options?.icon,
+      data: options?.data
+    });
+  }
+
+  // Notify venue activity
+  async notifyVenueActivity(data: { venueId: string; venueName: string; activity?: string; userCount?: number }): Promise<void> {
+    const notification: NotificationData = {
+      id: `venue_activity_${data.venueId}_${Date.now()}`,
+      type: 'venue_activity',
+      title: 'Venue Activity',
+      body: data.activity || `${data.userCount || 0} people are at ${data.venueName}`,
+      data: data as Record<string, string | number | boolean>,
+      timestamp: Date.now(),
+      read: false
+    };
+    this.addNotification(notification);
+    await this.sendLocalNotification({
+      title: 'Venue Activity',
+      body: data.activity || `${data.userCount || 0} people are at ${data.venueName}`,
+      icon: '/logo192.png',
+      tag: 'venue_activity',
+      data
+    });
+  }
+
+  // Notify venue check-in
+  async notifyVenueCheckIn(data: { venueId: string; venueName: string; peopleCount: number }): Promise<void> {
+    const notification: NotificationData = {
+      id: `checkin_${data.venueId}_${Date.now()}`,
+      type: 'venue_checkin',
+      title: 'Checked in!',
+      body: `${data.peopleCount} people are at ${data.venueName}`,
+      data: data as Record<string, string | number | boolean>,
+      timestamp: Date.now(),
+      read: false
+    };
+    this.addNotification(notification);
+    await this.sendLocalNotification({
+      title: 'Checked in!',
+      body: `${data.peopleCount} people are at ${data.venueName}`,
+      icon: '/logo192.png',
+      tag: 'checkin',
+      data
+    });
+  }
+
+  // Notify proximity alert
+  async notifyProximityAlert(data: { venueName: string; venueId: string; newPeopleCount: number }): Promise<void> {
+    const notification: NotificationData = {
+      id: `proximity_${data.venueId}_${Date.now()}`,
+      type: 'proximity_alert',
+      title: 'New people nearby!',
+      body: `${data.newPeopleCount} new ${data.newPeopleCount === 1 ? 'person' : 'people'} at ${data.venueName}`,
+      data: data as Record<string, string | number | boolean>,
+      timestamp: Date.now(),
+      read: false
+    };
+    this.addNotification(notification);
+    await this.sendLocalNotification({
+      title: 'New people nearby!',
+      body: `${data.newPeopleCount} new ${data.newPeopleCount === 1 ? 'person' : 'people'} at ${data.venueName}`,
+      icon: '/logo192.png',
+      tag: 'proximity',
+      data
+    });
   }
 }
 

@@ -5,7 +5,7 @@ import { getProfile, setPhotoUrl } from "../../lib/profileStore";
 
 export default function ProfilePhotoUploader() {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [preview, setPreview] = useState<string | undefined>(getProfile().photoUrl);
+  const [preview, setPreview] = useState<string | undefined>(getProfile().photoUrl || getProfile().photo);
   const [progress, setProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -21,8 +21,9 @@ export default function ProfilePhotoUploader() {
     const localUrl = URL.createObjectURL(file);
     setPreview(localUrl);
 
-    const { id } = getProfile();
-    const objectRef = ref(storage, `profiles/${id}.jpg`);
+    const profile = getProfile();
+    const profileId = profile.id || 'default';
+    const objectRef = ref(storage, `profiles/${profileId}.jpg`);
     const task = uploadBytesResumable(objectRef, file, { contentType: file.type || "image/jpeg" });
 
     setIsUploading(true);

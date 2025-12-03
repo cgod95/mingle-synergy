@@ -156,7 +156,7 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
 
                 <CardContent>
                   <ul className="space-y-3">
-                    {plan.features.map((feature, index) => (
+                    {plan.features.map((feature: string, index: number) => (
                       <li key={index} className="flex items-center">
                         <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
                         <span className="text-gray-700">{feature}</span>

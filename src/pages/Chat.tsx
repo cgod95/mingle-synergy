@@ -12,6 +12,7 @@ import { LoadingSpinner, PageError } from '@/components/StatusFallbacks';
 import { ErrorAlert } from '@/components/FeedbackUtils';
 import WeMetConfirmationModal from '@/components/WeMetConfirmationModal';
 import { Button } from '@/components/ui/button';
+import { Send } from 'lucide-react';
 import { logError } from '@/utils/errorHandler';
 import { FEATURE_FLAGS } from '@/lib/flags';
 
@@ -72,7 +73,7 @@ const Chat: React.FC = () => {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message.';
       setError(errorMessage);
-      logError(err as Error, { source: 'Chat', action: 'sendMessage', matchId });
+      logError(err as Error, { source: 'Chat', action: 'sendMessage', matchId: matchId || '' });
     } finally {
       setSending(false);
     }
