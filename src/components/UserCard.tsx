@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { UserProfile } from '@/types/UserProfile';
-import { checkForMatchAndCreate, likeUser } from '@/services/firebase/userService';
+import { likeUserWithMutualDetection, createMatchIfMutual } from '@/services/firebase/matchService';
 import { useUser } from '@/hooks/useUser';
 import { logError } from '@/utils/errorHandler';
 import { Card } from '@/components/ui/card';
@@ -23,12 +23,13 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
   const [isLiking, setIsLiking] = useState<boolean>(false);
 
   const handleLikeToggle = async () => {
-    if (isLiking || isLiked) return;
+    if (isLiking || isLiked || !currentUser) return;
     
     setIsLiking(true);
     try {
-      await likeUser(currentUser, user.id);
-      await checkForMatchAndCreate(currentUser, user.id);
+      // Get venueId from context or use a default - you may need to pass this as a prop
+      const venueId = ''; // TODO: Get from context or props
+      await likeUserWithMutualDetection(currentUser.uid, user.id, venueId);
       setIsLiked(true);
     } catch (error) {
       logError(error as Error, { source: 'UserCard', action: 'likeUser', targetUserId: user.id });

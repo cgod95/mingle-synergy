@@ -142,8 +142,9 @@ export default function ChatPage() {
       id: `msg_${Date.now()}`,
       matchId: match.id,
       senderId: currentUser.uid,
-      receiverId: otherUser?.id || '',
+      receiverId: match.matchedUserId || otherUser?.id || '',
       text: message.trim(),
+      content: message.trim(),
       timestamp: Date.now()
     }
 

@@ -56,6 +56,7 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
         senderId: currentUser.uid,
         receiverId: '', // Will be set by the parent component
         text: text.trim(),
+        content: text.trim(), // Add content property for compatibility
         timestamp: Date.now()
       };
 
