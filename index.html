@@ -36,8 +36,9 @@
       // This prevents installHook.js from causing multiple React instance conflicts
       (function() {
         if (typeof window !== 'undefined') {
-          // Create a no-op hook object to prevent DevTools from injecting
-          window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+          // Create a no-op hook object that is extensible (allows DevTools to add properties)
+          // but prevents DevTools from actually working by making all methods no-ops
+          const hook = {
             isDisabled: true,
             renderers: new Map(),
             supportsFiber: false,
@@ -46,8 +47,19 @@
             onCommitFiberUnmount: function() {},
             checkDCE: function() {}
           };
-          // Prevent DevTools from overwriting our hook
-          Object.freeze(window.__REACT_DEVTOOLS_GLOBAL_HOOK__);
+          
+          // Set the hook - don't freeze it, allow DevTools to add properties
+          // But prevent the window property from being overwritten
+          try {
+            Object.defineProperty(window, '__REACT_DEVTOOLS_GLOBAL_HOOK__', {
+              value: hook,
+              writable: false,
+              configurable: false
+            });
+          } catch (e) {
+            // Fallback if defineProperty fails - just set it normally
+            window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = hook;
+          }
         }
       })();
     </script>
