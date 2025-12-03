@@ -30,6 +30,27 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Mingle" />
+    <!-- CRITICAL: Disable React DevTools BEFORE React loads to prevent error #300 -->
+    <script>
+      // Disable React DevTools hook immediately - before any React code loads
+      // This prevents installHook.js from causing multiple React instance conflicts
+      (function() {
+        if (typeof window !== 'undefined') {
+          // Create a no-op hook object to prevent DevTools from injecting
+          window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+            isDisabled: true,
+            renderers: new Map(),
+            supportsFiber: false,
+            inject: function() {},
+            onCommitFiberRoot: function() {},
+            onCommitFiberUnmount: function() {},
+            checkDCE: function() {}
+          };
+          // Prevent DevTools from overwriting our hook
+          Object.freeze(window.__REACT_DEVTOOLS_GLOBAL_HOOK__);
+        }
+      })();
+    </script>
   </head>
 
   <body class="bg-stone-50 text-stone-900">
