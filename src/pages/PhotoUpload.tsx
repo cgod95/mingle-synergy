@@ -162,7 +162,7 @@ export default function PhotoUpload() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex flex-col justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-white flex flex-col justify-center p-4">
         <Card className="w-full max-w-md mx-auto border-2 border-primary/20 bg-gradient-to-br from-white via-primary/5 to-primary/10 shadow-xl">
           <CardHeader className="text-center space-y-2 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10 border-b border-primary/20">
             {/* Progress Indicator */}
@@ -175,7 +175,7 @@ export default function PhotoUpload() {
                 <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+            <CardTitle className="text-2xl bg-gradient-to-r from-primary via-primary/90 to-primary bg-clip-text text-transparent font-bold">
               Take Your Selfie
             </CardTitle>
             <p className="text-sm text-neutral-700">
