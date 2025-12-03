@@ -35,6 +35,15 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Check for React error #300 (multiple React instances)
+    const isReactError300 = error.message?.includes('Minified React error #300') ||
+                           error.message?.includes('Invalid hook call') ||
+                           error.stack?.includes('react-vendor');
+    
+    if (isReactError300) {
+      console.error('React Error #300 detected: Multiple React instances detected. Check build configuration.');
+    }
+    
     logError(error, { source: 'ErrorBoundary', componentStack: errorInfo.componentStack });
     
     this.setState({

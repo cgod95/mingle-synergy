@@ -132,3 +132,4 @@ Since the script needs real Firebase credentials, **add the venue manually**:
 3. Check Firebase Console → Firestore → users collection
 4. Verify Firestore rules are deployed
 
+

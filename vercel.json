@@ -32,6 +32,15 @@
       ]
     },
     {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -47,5 +56,6 @@
       "NODE_ENV": "production"
     }
   },
-  "installCommand": "npm install --include=dev"
+  "installCommand": "npm install --include=dev",
+  "buildCommand": "npm run build"
 }

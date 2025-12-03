@@ -127,3 +127,4 @@ The sign-up and sign-in flows are properly implemented:
 3. `VITE_DEMO_MODE=false` in Vercel
 4. All Firebase env vars are set in Vercel
 
+

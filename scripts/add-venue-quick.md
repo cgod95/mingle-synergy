@@ -61,3 +61,4 @@ Since automated scripts require authentication setup, the **fastest way** is to 
 
 The manual method is actually faster than setting up scripts! 🚀
 
+

@@ -53,6 +53,7 @@ export default defineConfig({
       'react/jsx-dev-runtime',
       'scheduler'
     ],
+    preserveSymlinks: false, // Ensure symlinks don't create duplicate instances
   },
   optimizeDeps: {
     include: [
@@ -75,13 +76,15 @@ export default defineConfig({
       include: [/node_modules/],
       transformMixedEsModules: true,
     },
-      rollupOptions: {
-        output: {
-          // Ensure consistent hashing for cache busting
-          entryFileNames: 'assets/[name]-[hash].js',
-          chunkFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]',
-          manualChunks: (id) => {
+    rollupOptions: {
+      // Ensure React is never treated as external
+      external: [],
+      output: {
+        // Ensure consistent hashing for cache busting
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        manualChunks: (id) => {
           // CRITICAL: Keep ALL React-related packages together - don't split them
           // This prevents multiple React instances which cause error #300
           if (

@@ -3,21 +3,23 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Additional safeguard: Ensure React DevTools is disabled (already set in index.html)
-// This is a backup in case DevTools tries to inject after page load
+// Additional safeguard: Ensure React DevTools is disabled and check for multiple React instances
 if (typeof window !== 'undefined' && import.meta.env.PROD) {
   try {
     // @ts-ignore - React DevTools global hook
     const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
     if (hook) {
-      // Ensure it's disabled without trying to modify frozen properties
-      if (typeof hook.isDisabled !== 'undefined') {
-        hook.isDisabled = true;
-      }
+      // Ensure it's disabled
+      hook.isDisabled = true;
+    }
+    
+    // Check for multiple React instances (React error #300 detection)
+    // @ts-ignore
+    if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__?.renderers?.size > 1) {
+      console.error('Multiple React instances detected! This will cause React error #300.');
     }
   } catch (e) {
-    // Silently fail if hook is frozen or not accessible
-    console.warn('Could not disable React DevTools:', e);
+    // Silently fail if hook is not accessible
   }
 }
 
