@@ -86,23 +86,40 @@ export default function PhotoUpload() {
 
     setUploading(true);
     setUploadProgress(0);
+    let progressInterval: NodeJS.Timeout | null = null;
 
     try {
       // Simulate upload progress (Firebase doesn't provide progress for uploadProfilePhoto)
-      const progressInterval = setInterval(() => {
+      // This gives visual feedback while the actual upload happens
+      progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
+            return 90; // Cap at 90% until actual upload completes
           }
           return prev + 10;
         });
       }, 200);
 
-      const { userService } = await import('@/services');
-      await userService.uploadProfilePhoto(currentUser.uid, file);
+      // Add timeout protection (max 30 seconds) to prevent infinite waiting
+      const uploadPromise = (async () => {
+        const { userService } = await import('@/services');
+        return await userService.uploadProfilePhoto(currentUser.uid, file);
+      })();
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Upload timeout. Please try again.'));
+        }, 30000); // 30 second timeout
+      });
+
+      // Wait for actual upload completion (with timeout protection)
+      await Promise.race([uploadPromise, timeoutPromise]);
       
-      clearInterval(progressInterval);
+      // Clear progress interval and set to 100%
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
       setUploadProgress(100);
       setUploaded(true);
       
@@ -121,11 +138,17 @@ export default function PhotoUpload() {
         description: 'Your profile photo has been uploaded successfully.',
       });
 
-      // Navigate to next step after a brief delay
+      // Navigate to next step only after successful upload (with brief delay for UX)
       setTimeout(() => {
         navigate(fromProfile ? '/profile' : '/preferences');
-      }, 1500);
+      }, 1000); // Reduced from 1500ms to 1000ms since upload is already complete
     } catch (error: any) {
+      // Clear progress interval on error
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      
       logError(error as Error, { 
         context: 'PhotoUpload.handleUpload', 
         userId: currentUser?.uid || 'unknown',
@@ -136,7 +159,9 @@ export default function PhotoUpload() {
       // Enhanced error handling with specific error messages
       let errorMessage = 'Failed to upload photo. Please try again.';
       
-      if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+      if (error?.message?.includes('timeout')) {
+        errorMessage = 'Upload took too long. Please check your connection and try again.';
+      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
         errorMessage = 'Network error. Please check your connection and try again.';
       } else if (error?.message?.includes('quota') || error?.message?.includes('storage')) {
         errorMessage = 'Storage quota exceeded. Please contact support.';
@@ -151,6 +176,7 @@ export default function PhotoUpload() {
       });
       setUploadProgress(0);
       setUploaded(false);
+      // Don't navigate on error - let user retry
     } finally {
       setUploading(false);
     }
@@ -254,7 +280,7 @@ export default function PhotoUpload() {
               >
                 <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+                    className="h-full bg-primary"
                     initial={{ width: 0 }}
                     animate={{ width: `${uploadProgress}%` }}
                     transition={{ duration: 0.3 }}
@@ -282,7 +308,7 @@ export default function PhotoUpload() {
                   <Button
                     onClick={handleClickUpload}
                     disabled={uploading}
-                    className="flex-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
                   >
                     <Camera className="w-4 h-4 mr-2" />
                     Take Selfie
@@ -304,7 +330,7 @@ export default function PhotoUpload() {
                   <Button
                     onClick={handleUpload}
                     disabled={!file || uploading}
-                    className="flex-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
                   >
                   {uploading ? (
                     <>

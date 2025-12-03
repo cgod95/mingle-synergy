@@ -43,7 +43,9 @@ class FirebaseUserService implements UserService {
   async updateUserProfile(userId: string, updates: PartialUserProfile): Promise<void> {
     try {
       const userRef = doc(firestore, 'users', userId);
-      await updateDoc(userRef, updates);
+      // Use setDoc with merge: true instead of updateDoc to handle cases where document doesn't exist yet
+      // This ensures the document is created if it doesn't exist, or updated if it does
+      await setDoc(userRef, updates, { merge: true });
     } catch (error) {
       logError(error as Error, { source: 'userService', action: 'updateUserProfile', userId });
       throw new Error('Failed to update profile. Please try again.');
