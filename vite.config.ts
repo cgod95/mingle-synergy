@@ -54,6 +54,8 @@ export default defineConfig({
       'scheduler'
     ],
     preserveSymlinks: false, // Ensure symlinks don't create duplicate instances
+    // Force resolution to prevent multiple React instances
+    conditions: ['import', 'module', 'browser', 'default'],
   },
   optimizeDeps: {
     include: [
@@ -81,9 +83,12 @@ export default defineConfig({
       external: [],
       output: {
         // Ensure consistent hashing for cache busting
+        // Use content hash to ensure new builds get new hashes even with cached deps
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
+        // Force content-based hashing to change when code changes
+        hashCharacters: 'base64url',
         manualChunks: (id) => {
           // CRITICAL: Keep ALL React-related packages together - don't split them
           // This prevents multiple React instances which cause error #300
