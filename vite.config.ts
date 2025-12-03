@@ -41,16 +41,20 @@ export default defineConfig({
       // Force single React instance - CRITICAL for fixing hooks errors
       'react': path.resolve(__dirname, './node_modules/react'),
       'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+      'react/jsx-runtime': path.resolve(__dirname, './node_modules/react/jsx-runtime'),
+      'react/jsx-dev-runtime': path.resolve(__dirname, './node_modules/react/jsx-dev-runtime'),
+      'scheduler': path.resolve(__dirname, './node_modules/scheduler'),
       // CRITICAL: Force framer-motion to use the same React instance
       'framer-motion': path.resolve(__dirname, './node_modules/framer-motion'),
     },
     dedupe: [
       'react', 
       'react-dom', 
-      'framer-motion', 
-      'react-router-dom',
       'react/jsx-runtime',
       'react/jsx-dev-runtime',
+      'framer-motion', 
+      'react-router-dom',
+      's-runtime',
       'scheduler'
     ],
     preserveSymlinks: false, // Ensure symlinks don't create duplicate instances
@@ -90,9 +94,12 @@ export default defineConfig({
         manualChunks: (id) => {
           // CRITICAL: Keep ALL React-related packages together - don't split them
           // This prevents multiple React instances which cause error #300
+          // Include jsx-runtime and scheduler to ensure single React instance
           if (
             id.includes('node_modules/react') || 
             id.includes('node_modules/react-dom') ||
+            id.includes('react/jsx-runtime') ||
+            id.includes('react/jsx-dev-runtime') ||
             id.includes('node_modules/react-router-dom') ||
             id.includes('node_modules/framer-motion') ||
             id.includes('node_modules/react-firebase-hooks') ||
