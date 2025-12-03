@@ -108,12 +108,21 @@ export async function requestLocationPermission(): Promise<boolean> {
 
     return true;
   } catch (error: any) {
+    // Suppress permissions policy violation errors (they're handled by the policy fix)
+    const errorMessage = error?.message || String(error || '');
+    if (errorMessage.includes('permissions policy') || errorMessage.includes('Permissions policy')) {
+      // This should be fixed by the Permissions-Policy meta tag, but handle gracefully
+      console.warn('Location access blocked by permissions policy. Please refresh the page.');
+      localStorage.setItem('locationPermissionGranted', 'false');
+      return false;
+    }
+    
     console.error('Location permission denied:', error);
     localStorage.setItem('locationPermissionGranted', 'false');
     
     // Check if it was denied vs error
     if (error.code === 1) {
-      // Permission denied
+      // Permission denied by user
       return false;
     }
     
