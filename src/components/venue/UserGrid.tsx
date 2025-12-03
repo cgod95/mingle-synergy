@@ -49,8 +49,8 @@ const UserGrid: React.FC<UserGridProps> = ({
         return (
           <div key={user.id} className="relative rounded-xl overflow-hidden shadow-sm">
             <OptimizedImage 
-              src={user.photos[0]} 
-              alt={user.name}
+              src={user.photos?.[0] || ''} 
+              alt={user.name || 'User'}
               className="w-full aspect-square"
               width={300}
               height={300}

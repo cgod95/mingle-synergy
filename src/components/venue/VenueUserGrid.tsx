@@ -127,8 +127,8 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
 
       return {
         id: user.id,
-        name: user.name,
-        age: user.age,
+        name: user.name || 'Unknown',
+        age: user.age || 25,
         photos: user.photos || [],
         bio: user.bio || '',
         interests: user.interests || [],
@@ -168,11 +168,13 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
       });
 
       // Send match notification
-      notificationService.notifyNewMatch({
-        matchId: `match_${Date.now()}`,
-        userName: user.name,
-        venueName
-      });
+      if (currentUser?.uid) {
+        notificationService.notifyNewMatch({
+          userId: currentUser.uid,
+          matchId: `match_${Date.now()}`,
+          otherUserId: user.id
+        });
+      }
     } else {
       toast({
         title: "Like sent! ❤️",

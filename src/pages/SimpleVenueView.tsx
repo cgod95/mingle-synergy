@@ -58,12 +58,12 @@ const SimpleVenueView: React.FC = () => {
     // Transform to VenueUser format
     const transformedUsers: VenueUser[] = usersAtVenue.map(user => ({
       id: user.id,
-      name: user.name,
-      age: user.age,
+      name: user.name || 'Unknown',
+      age: user.age || 25,
       photos: user.photos || [],
       bio: user.bio || '',
       interests: user.interests || [],
-      zone: user.zone || user.currentZone,
+      zone: user.zone || user.currentZone || '',
       lastActive: user.lastActive || Date.now()
     }));
 
