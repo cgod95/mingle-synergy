@@ -171,7 +171,7 @@ export default function Preferences() {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-background flex items-center justify-center">
           <LoadingSpinner size="lg" message="Loading preferences..." />
         </div>
       </Layout>
