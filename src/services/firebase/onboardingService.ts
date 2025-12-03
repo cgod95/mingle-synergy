@@ -121,26 +121,65 @@ class FirebaseOnboardingService {
         }
       }
       
-      const updatedSteps = {
-        ...existingData.steps,
-        [stepId]: stepUpdate,
-      };
+      // Ensure steps object exists and filter out undefined values
+      const existingSteps = existingData.steps || {};
+      const updatedSteps: Record<string, OnboardingStep> = {};
+      
+      // Copy existing steps, filtering out undefined values
+      for (const [key, step] of Object.entries(existingSteps)) {
+        if (step && typeof step === 'object') {
+          const cleanStep: Record<string, unknown> = {};
+          for (const [stepKey, stepValue] of Object.entries(step)) {
+            if (stepValue !== undefined) {
+              cleanStep[stepKey] = stepValue;
+            }
+          }
+          updatedSteps[key] = cleanStep as OnboardingStep;
+        }
+      }
+      
+      // Add/update the current step
+      updatedSteps[stepId] = stepUpdate;
 
       // Determine if all steps are complete
       const allStepsComplete = ONBOARDING_STEPS.every(step => 
         updatedSteps[step]?.completed
       );
 
-      const updatedProgress = {
+      // Build progress object, filtering out undefined values
+      const updatedProgress: Record<string, unknown> = {
         ...existingData,
         steps: updatedSteps,
         currentStep: allStepsComplete ? 'complete' : stepId,
         isComplete: allStepsComplete,
-        completedAt: allStepsComplete ? Date.now() : undefined,
         updatedAt: Date.now(),
       };
+      
+      // Only add completedAt if all steps are complete (don't include undefined)
+      if (allStepsComplete) {
+        updatedProgress.completedAt = Date.now();
+      }
+      
+      // Filter out any undefined values that might have come from existingData
+      const cleanProgress: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(updatedProgress)) {
+        if (value !== undefined) {
+          // Also check nested objects (like steps)
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            const cleanNested: Record<string, unknown> = {};
+            for (const [nestedKey, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+              if (nestedValue !== undefined) {
+                cleanNested[nestedKey] = nestedValue;
+              }
+            }
+            cleanProgress[key] = cleanNested;
+          } else {
+            cleanProgress[key] = value;
+          }
+        }
+      }
 
-      await setDoc(onboardingRef, updatedProgress, { merge: true });
+      await setDoc(onboardingRef, cleanProgress, { merge: true });
       
       logger.info('Onboarding step completed', { userId, stepId, updatedProgress });
     } catch (error) {
