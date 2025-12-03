@@ -25,7 +25,10 @@ service cloud.firestore {
       allow create: if isSelf(uid);
       
       // Update: validate bio and photos if they're being updated
+      // Allow updates during onboarding when document might not exist yet
       allow update: if isSelf(uid) && (
+        // If document doesn't exist yet (initial creation via setDoc with merge), allow update
+        !exists(/databases/$(database)/documents/users/$(uid)) ||
         // If bio/photos aren't being changed, allow update
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['bio', 'photos']) ||
         // If bio/photos are being changed, validate them
