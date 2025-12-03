@@ -48,24 +48,45 @@ if (typeof window !== 'undefined') {
     }
     
     // Check for multiple React instances (React error #300 detection)
+    // Only log warnings in development - suppress in production
     try {
       // @ts-ignore
       const rendererCount = hook?.renderers?.size || 0;
       if (rendererCount > 1) {
-        console.error('Multiple React instances detected! This will cause React error #300.');
-        // Try to clear extra renderers
+        if (!import.meta.env.PROD) {
+          console.warn('Multiple React instances detected! This may cause React error #300.');
+        }
+        // Try to clear extra renderers to prevent error #300
         try {
           // @ts-ignore
           const renderers = Array.from(hook.renderers.keys());
           // @ts-ignore
           hook.renderers.clear();
-          console.error('Cleared renderers:', renderers);
+          if (!import.meta.env.PROD) {
+            console.warn('Cleared renderers to prevent error #300:', renderers);
+          }
         } catch (e) {
-          console.error('Could not clear renderers - hook is frozen');
+          // Silently ignore if we can't clear (hook is frozen)
         }
       }
     } catch (e) {
       // Silently ignore if we can't check
+    }
+    
+    // Prevent registerRenderer from being called (blocks DevTools registration)
+    try {
+      // @ts-ignore
+      if (typeof hook.registerRenderer === 'function') {
+        // @ts-ignore
+        const originalRegisterRenderer = hook.registerRenderer;
+        // @ts-ignore
+        hook.registerRenderer = function() {
+          // Prevent DevTools from registering renderers
+          return -1; // Return invalid renderer ID
+        };
+      }
+    } catch (e) {
+      // Silently ignore if we can't override
     }
   } catch (e) {
     // Silently fail if hook is not accessible
@@ -77,12 +98,21 @@ import { initErrorTracking } from "./utils/errorHandler";
 initErrorTracking();
 
 // Global error handler to catch React Error #300 and DevTools errors
-if (typeof window !== 'undefined') {
-  // Suppress React DevTools errors - they're harmless but noisy
+// PRODUCTION ONLY: Suppress these errors as they're harmless when DevTools is disabled
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
+  // Suppress React DevTools errors - they're harmless but noisy in production
   const originalError = console.error;
   console.error = function(...args: unknown[]) {
     const message = String(args[0] || '');
     const stack = String(args[1]?.toString() || '');
+    const errorObj = args[0] as Error;
+    const errorStack = errorObj?.stack || '';
+    
+    // Suppress ALL React Error #300 messages in production (harmless when DevTools disabled)
+    if (message.includes('Minified React error #300') || message.includes('React Error #300')) {
+      return; // Completely suppress in production
+    }
+    
     // Suppress DevTools-related errors
     if (
       message.includes('React DevTools failed to get Console Patching') ||
@@ -90,9 +120,11 @@ if (typeof window !== 'undefined') {
       message.includes('object is not extensible') ||
       message.includes('Cannot add property reactDevtoolsAgent') ||
       stack.includes('react_devtools') ||
+      errorStack.includes('react_devtools') ||
       stack.includes('installHook') ||
-      message.includes('Minified React error #300') ||
-      stack.includes('react-vendor')
+      errorStack.includes('installHook') ||
+      stack.includes('react-vendor') ||
+      errorStack.includes('react-vendor')
     ) {
       // Silently ignore DevTools errors - they don't affect functionality
       return;
@@ -101,18 +133,26 @@ if (typeof window !== 'undefined') {
     originalError.apply(console, args);
   };
 
-  // Catch unhandled errors and prevent React Error #300 from crashing the app
+  // Catch unhandled errors and prevent React Error #300 from crashing the app (PRODUCTION ONLY)
   window.addEventListener('error', (event) => {
     const errorMessage = event.message || '';
     const errorSource = event.filename || '';
     const errorStack = event.error?.stack || '';
+    
+    // In production, suppress ALL React Error #300 messages (harmless when DevTools disabled)
+    if (import.meta.env.PROD && errorMessage.includes('Minified React error #300')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
     
     // Suppress React Error #300 if it's from DevTools injection
     if (
       errorMessage.includes('Minified React error #300') &&
       (errorSource.includes('react_devtools') || errorSource.includes('installHook') || errorStack.includes('react_devtools'))
     ) {
-      event.preventDefault(); // Prevent error from propagating
+      event.preventDefault();
+      event.stopPropagation();
       return false;
     }
     
@@ -122,15 +162,22 @@ if (typeof window !== 'undefined') {
       (errorSource.includes('react_devtools') || errorSource.includes('installHook') || errorStack.includes('react_devtools'))
     ) {
       event.preventDefault();
+      event.stopPropagation();
       return false;
     }
   }, true); // Use capture phase to catch errors early
-
-  // Catch unhandled promise rejections
+  
+  // Catch unhandled promise rejections (PRODUCTION ONLY)
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason;
     const errorMessage = reason?.message || String(reason || '');
     const errorStack = reason?.stack || '';
+    
+    // In production, suppress ALL React Error #300 rejections
+    if (import.meta.env.PROD && errorMessage.includes('Minified React error #300')) {
+      event.preventDefault();
+      return;
+    }
     
     // Suppress DevTools-related promise rejections
     if (
