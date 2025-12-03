@@ -43,15 +43,19 @@ const ProtectedRoute: React.FC<RouteWrapperProps> = ({ children }) => {
   }
 
   // Check onboarding completion
+  // Only redirect if not on an onboarding page AND onboarding is incomplete
   if (!isOnboardingComplete) {
     const nextStep = getNextOnboardingStep();
     if (nextStep) {
       const redirectPath = STEP_TO_PATH[nextStep] || '/create-profile';
       // Don't redirect if already on an onboarding page
-      if (!location.pathname.startsWith('/create-profile') && 
-          !location.pathname.startsWith('/photo-upload') && 
-          !location.pathname.startsWith('/preferences') &&
-          !location.pathname.startsWith('/upload')) {
+      const isOnOnboardingPage = 
+        location.pathname.startsWith('/create-profile') || 
+        location.pathname.startsWith('/photo-upload') || 
+        location.pathname.startsWith('/preferences') ||
+        location.pathname.startsWith('/upload');
+      
+      if (!isOnOnboardingPage) {
         return <Navigate to={redirectPath} replace />;
       }
     }

@@ -153,10 +153,9 @@ export default function Preferences() {
         description: 'Your preferences have been updated successfully.',
       });
       
-      // Navigate to check-in after a brief delay
-      setTimeout(() => {
-        navigate('/checkin', { replace: true });
-      }, 1000);
+      // Navigate to check-in immediately (no delay needed)
+      // Use replace to prevent back button from going to preferences
+      navigate('/checkin', { replace: true });
     } catch (error) {
       logError(error as Error, { context: 'Preferences.handleSubmit', userId: currentUser?.uid || 'unknown' });
       toast({

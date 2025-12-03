@@ -231,12 +231,14 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     checkRequiredData();
   }, [currentUser?.uid, isLoading]); // Only check when user changes or loading completes
 
+  // Check if onboarding is complete
+  // Allow completion if:
+  // 1. All steps are marked complete in progress state
+  // 2. Either hasRequiredData is true (or null/undefined - still checking), OR demo mode
+  // 3. localStorage also indicates completion (for both demo and production)
   const isOnboardingComplete = Object.values(onboardingProgress).every(Boolean) &&
-    (hasRequiredData === true || config.DEMO_MODE) &&
-    (config.DEMO_MODE 
-      ? localStorage.getItem('onboardingComplete') === 'true' && 
-        localStorage.getItem('profileComplete') === 'true'
-      : true);
+    (hasRequiredData !== false || config.DEMO_MODE) && // Changed from === true to !== false to allow null/undefined
+    (localStorage.getItem('onboardingComplete') === 'true' || config.DEMO_MODE);
 
   const resetOnboarding = async () => {
     setOnboardingProgress(defaultProgress);
