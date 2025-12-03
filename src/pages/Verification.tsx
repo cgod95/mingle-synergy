@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Camera, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { sendEmailVerification } from 'firebase/auth';
+import { sendEmailVerification, reload } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { toast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
@@ -30,25 +30,31 @@ export default function Verification() {
         return;
       }
 
-      // Check email verification status
-      if (currentUser.emailVerified !== undefined) {
-        setEmailVerified(currentUser.emailVerified);
-      } else {
-        // Reload user to get latest verification status
-        try {
-          await currentUser.reload();
-          setEmailVerified(currentUser.emailVerified || false);
-        } catch (error) {
-          logError(error as Error, { source: 'Verification', action: 'reloadUser' });
+      // Check email verification status from Firebase auth
+      const firebaseUser = auth.currentUser;
+      if (firebaseUser) {
+        if (firebaseUser.emailVerified) {
+          setEmailVerified(true);
+        } else {
+          // Reload user to get latest verification status
+          try {
+            await reload(firebaseUser);
+            setEmailVerified(firebaseUser.emailVerified || false);
+          } catch (error) {
+            logError(error as Error, { source: 'Verification', action: 'reloadUser' });
+            setEmailVerified(false);
+          }
         }
+      } else {
+        setEmailVerified(false);
       }
 
       // Check selfie verification status (stored in user profile)
       // This would come from Firestore user document
       try {
         const { default: userService } = await import('@/services/firebase/userService');
-        const userProfile = await userService.getUserById(currentUser.uid);
-        setSelfieVerified(userProfile?.flags?.isVerified || false);
+        const userProfile = await userService.getUserProfile(currentUser.uid);
+        setSelfieVerified(userProfile?.isVerified || false);
       } catch (error) {
         logError(error as Error, { source: 'Verification', action: 'checkSelfieVerification' });
       }
@@ -60,10 +66,11 @@ export default function Verification() {
 
     // Poll for email verification status every 5 seconds
     const interval = setInterval(async () => {
-      if (currentUser && !emailVerified) {
+      const firebaseUser = auth.currentUser;
+      if (firebaseUser && !emailVerified) {
         try {
-          await currentUser.reload();
-          if (currentUser.emailVerified) {
+          await reload(firebaseUser);
+          if (firebaseUser.emailVerified) {
             setEmailVerified(true);
             toast({
               title: 'Email verified! ✅',
@@ -80,11 +87,12 @@ export default function Verification() {
   }, [currentUser, emailVerified, navigate]);
 
   const handleSendEmailVerification = async () => {
-    if (!currentUser) return;
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser) return;
 
     setIsLoading(true);
     try {
-      await sendEmailVerification(currentUser);
+      await sendEmailVerification(firebaseUser);
       setEmailVerificationSent(true);
       toast({
         title: 'Verification email sent! 📧',

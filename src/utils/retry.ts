@@ -13,7 +13,7 @@ export interface RetryOptions {
   onRetry?: (attempt: number) => void;
 }
 
-const DEFAULT_OPTIONS: Required<RetryOptions> = {
+const DEFAULT_OPTIONS: Required<Omit<RetryOptions, 'operationName' | 'onRetry'>> & Partial<Pick<RetryOptions, 'operationName' | 'onRetry'>> = {
   maxRetries: 3,
   initialDelay: 1000, // 1 second
   maxDelay: 10000, // 10 seconds

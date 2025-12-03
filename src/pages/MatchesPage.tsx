@@ -15,7 +15,7 @@ import { Match, User } from '@/types';
 import Layout from '@/components/Layout';
 import { Heart, MessageCircle, Clock, MapPin } from 'lucide-react';
 
-interface DisplayMatchWithExpiry extends DisplayMatch {
+interface DisplayMatchWithExpiry extends Omit<DisplayMatch, 'matchedAt'> {
   isExpired: boolean;
   matchedAt: number;
 }

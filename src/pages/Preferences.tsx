@@ -144,8 +144,8 @@ export default function Preferences() {
       // Track onboarding completion
       analytics.track('onboarding_completed', {
         total_steps: 3,
-        steps_completed: ['profile', 'photo', 'preferences'],
-        skipped_steps: [],
+        steps_completed: 'profile,photo,preferences',
+        skipped_steps: '',
       });
       
       toast({

@@ -130,9 +130,12 @@ export default function CreateProfile() {
       };
 
       // Use retry utility for network resilience
+      if (!auth.currentUser) {
+        throw new Error('User not authenticated');
+      }
       await retryWithMessage(
         async () => {
-          const ref = doc(firestore, 'users', auth.currentUser.uid);
+          const ref = doc(firestore, 'users', auth.currentUser!.uid);
           // Use merge: true to update existing document (created during sign-up) without overwriting
           // This ensures we don't lose any existing data and handles the case where user doc already exists
           await setDoc(ref, profileData, { merge: true });

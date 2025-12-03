@@ -496,10 +496,6 @@ class NotificationService {
     };
   }
 
-  // Notify all listeners
-  private notifyListeners(): void {
-    this.listeners.forEach(listener => listener([...this.notifications]));
-  }
 
   // Clear all notifications (alias for clearAllNotifications)
   clearAll(): void {

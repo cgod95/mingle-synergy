@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAllVenues } from "../lib/api";
+import { getVenues } from "../lib/api";
+import { Venue } from "@/types";
 
 export default function Venues() {
-  const venues = getAllVenues();
+  const [venues, setVenues] = useState<Venue[]>([]);
+  
+  useEffect(() => {
+    getVenues().then((venues: Venue[]) => {
+      setVenues(venues);
+    }).catch(console.error);
+  }, []);
 
   return (
     <main style={{ padding: "24px", maxWidth: "860px", margin: "0 auto" }}>
@@ -12,7 +19,7 @@ export default function Venues() {
         <p>No venues found.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: "12px" }}>
-          {venues.map((venue) => (
+          {venues.map((venue: Venue) => (
             <li
               key={venue.id}
               style={{
@@ -26,7 +33,7 @@ export default function Venues() {
             >
               <div>
                 <div style={{ fontWeight: 600 }}>{venue.name}</div>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>{venue.location}</div>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>{venue.address || venue.city || ''}</div>
               </div>
               <Link
                 to={`/venues/${venue.id}`}

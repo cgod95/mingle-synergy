@@ -21,9 +21,9 @@ export default function PublicVenue() {
   return (
     <main style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
       <header style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        {venue.image ? (
+        {venue.heroImage ? (
           <img
-            src={venue.image}
+            src={venue.heroImage}
             alt={venue.name}
             style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 12 }}
           />
@@ -33,21 +33,9 @@ export default function PublicVenue() {
           {venue.address ? (
             <div style={{ color: "#666", fontSize: 14 }}>{venue.address}</div>
           ) : null}
-          {Array.isArray(venue.tags) && venue.tags.length > 0 ? (
-            <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {venue.tags.map((t: string) => (
-                <span
-                  key={t}
-                  style={{
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                    background: "#f2f2f2",
-                    fontSize: 12
-                  }}
-                >
-                  {t}
-                </span>
-              ))}
+          {venue.description ? (
+            <div style={{ marginTop: 8, color: "#666", fontSize: 14 }}>
+              {venue.description}
             </div>
           ) : null}
         </div>

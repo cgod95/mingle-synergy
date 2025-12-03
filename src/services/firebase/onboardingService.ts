@@ -134,7 +134,7 @@ class FirebaseOnboardingService {
               cleanStep[stepKey] = stepValue;
             }
           }
-          updatedSteps[key] = cleanStep as OnboardingStep;
+          updatedSteps[key] = cleanStep as unknown as OnboardingStep;
         }
       }
       
