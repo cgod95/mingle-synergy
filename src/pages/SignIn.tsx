@@ -71,7 +71,7 @@ export default function SignIn() {
                     autoComplete="email"
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
-                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
+                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-neutral-800"
                     required
                     disabled={busy}
               />
@@ -84,7 +84,7 @@ export default function SignIn() {
                 placeholder="Enter your password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
-                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
+                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-neutral-800"
                     required
                     disabled={busy}
               />
@@ -100,7 +100,7 @@ export default function SignIn() {
                 )}
             <Button 
                   type="submit"
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={busy || !email.trim() || !password.trim()}
             >
               {busy ? (

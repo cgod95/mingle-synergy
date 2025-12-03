@@ -200,11 +200,11 @@ export default function CreateProfile() {
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-indigo-200 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-200 text-indigo-600 flex items-center justify-center text-sm font-semibold">2</div>
-                <div className="w-12 h-1 bg-indigo-200 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-200 text-indigo-600 flex items-center justify-center text-sm font-semibold">3</div>
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                <div className="w-12 h-1 bg-primary/20 rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold">2</div>
+                <div className="w-12 h-1 bg-primary/20 rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
             <CardTitle className="text-heading-2">
@@ -278,7 +278,7 @@ export default function CreateProfile() {
                 Short bio <span className="text-red-500">*</span>
               </label>
               <textarea
-                className="w-full min-h-[100px] px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 focus:border-indigo-500 transition-all resize-none"
+                className="w-full min-h-[100px] px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:border-primary transition-all resize-none"
                 placeholder="Tell us about yourself (e.g., interests, what you're looking for, etc.)"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
@@ -322,7 +322,7 @@ export default function CreateProfile() {
               <Button
                 onClick={handleSubmit}
                 loading={saving}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
                 disabled={!name.trim() || !bio.trim() || bio.trim().length < 10 || saving}
               >
                 {saving ? (

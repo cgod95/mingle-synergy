@@ -35,7 +35,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(
           buttonVariants({ variant, size, className }), 
-          "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
           !disabled && !loading && "transition-transform hover:scale-[1.02] active:scale-[0.98]"
         )}
         ref={ref}

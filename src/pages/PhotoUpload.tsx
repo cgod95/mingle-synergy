@@ -163,16 +163,16 @@ export default function PhotoUpload() {
   return (
     <Layout showBottomNav={false}>
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex flex-col justify-center p-4">
-        <Card className="w-full max-w-md mx-auto border-2 border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 shadow-xl">
-          <CardHeader className="text-center space-y-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-indigo-100">
+        <Card className="w-full max-w-md mx-auto border-2 border-primary/20 bg-gradient-to-br from-white via-primary/5 to-primary/10 shadow-xl">
+          <CardHeader className="text-center space-y-2 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10 border-b border-primary/20">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-indigo-600 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
-                <div className="w-12 h-1 bg-indigo-200 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-200 text-indigo-600 flex items-center justify-center text-sm font-semibold">3</div>
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                <div className="w-12 h-1 bg-primary rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">2</div>
+                <div className="w-12 h-1 bg-primary/20 rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
             <CardTitle className="text-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
@@ -186,7 +186,7 @@ export default function PhotoUpload() {
             {/* Photo Preview/Upload Area */}
             <div className="flex justify-center">
               <div className="relative">
-                <label className="relative w-48 h-48 rounded-2xl border-2 border-dashed border-indigo-300 flex items-center justify-center cursor-pointer overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 hover:border-indigo-400 hover:bg-gradient-to-br hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 group">
+                <label className="relative w-48 h-48 rounded-2xl border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/50 hover:bg-gradient-to-br hover:from-primary/10 hover:to-primary/15 transition-all duration-200 group">
                   <AnimatePresence mode="wait">
                     {preview ? (
                       <motion.div
@@ -201,8 +201,8 @@ export default function PhotoUpload() {
                           className="w-full h-full object-cover"
                         />
                         {uploaded && (
-                          <div className="absolute inset-0 bg-indigo-500/20 flex items-center justify-center">
-                            <CheckCircle2 className="w-16 h-16 text-indigo-600" />
+                          <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                            <CheckCircle2 className="w-16 h-16 text-primary" />
                           </div>
                         )}
                         {file && !uploaded && (
@@ -224,7 +224,7 @@ export default function PhotoUpload() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center space-y-3 text-neutral-500 group-hover:text-indigo-600 transition-colors"
+                        className="flex flex-col items-center justify-center space-y-3 text-neutral-500 group-hover:text-primary transition-colors"
                       >
                         <Camera className="w-12 h-12" />
                         <span className="text-sm font-medium">Tap to take a selfie</span>
@@ -273,7 +273,7 @@ export default function PhotoUpload() {
                   variant="outline"
                   onClick={() => navigate('/create-profile')}
                   disabled={uploading || uploaded}
-                  className="flex-1 border-2 border-indigo-200 hover:bg-indigo-50"
+                  className="flex-1 border-2 border-primary/20 hover:bg-primary/5"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back
@@ -296,7 +296,7 @@ export default function PhotoUpload() {
                     variant="outline"
                     onClick={handleRemovePhoto}
                     disabled={uploading}
-                    className="flex-1 border-2 border-indigo-200 hover:bg-indigo-50"
+                    className="flex-1 border-2 border-primary/20 hover:bg-primary/5"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Retake
@@ -342,7 +342,7 @@ export default function PhotoUpload() {
             </div>
 
             {/* Help Text */}
-            <div className="pt-4 border-t border-indigo-100">
+            <div className="pt-4 border-t border-primary/20">
               <p className="text-xs text-center text-neutral-500">
                 <strong>Take a selfie:</strong> Use your camera to take a clear photo where your face is visible. 
                 This helps others recognize you at venues.

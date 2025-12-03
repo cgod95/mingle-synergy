@@ -2,22 +2,22 @@
 
 :root {
   /* === Colors === */
-  /* Primary Brand Colors - Purple/Indigo */
-  --color-primary: #6366F1; /* indigo-500 */
-  --color-primary-hover: #4F46E5; /* indigo-600 */
-  --color-primary-light: #818CF8; /* indigo-400 */
-  --color-primary-lighter: #C7D2FE; /* indigo-200 */
-  --color-primary-lightest: #EEF2FF; /* indigo-50 */
+  /* Primary Brand Colors - Purple (Brand Primary) */
+  --color-primary: #9333EA; /* purple-600 - Brand Primary */
+  --color-primary-hover: #7E22CE; /* purple-700 */
+  --color-primary-light: #C084FC; /* purple-400 */
+  --color-primary-lighter: #E9D5FF; /* purple-200 */
+  --color-primary-lightest: #F3E8FF; /* purple-50 */
 
-  /* Secondary Accent - Purple (use sparingly) */
-  --color-secondary: #9333EA; /* purple-600 */
-  --color-secondary-light: #C084FC; /* purple-400 */
-  --color-secondary-lightest: #F3E8FF; /* purple-50 */
+  /* Secondary Accent - Indigo (use sparingly) */
+  --color-secondary: #6366F1; /* indigo-500 */
+  --color-secondary-light: #818CF8; /* indigo-400 */
+  --color-secondary-lightest: #EEF2FF; /* indigo-50 */
 
   /* Status Colors */
-  --color-success: #6366F1; /* indigo-600 */
-  --color-success-light: #818CF8; /* indigo-400 */
-  --color-success-lightest: #C7D2FE; /* indigo-200 */
+  --color-success: #9333EA; /* purple-600 - Brand Primary */
+  --color-success-light: #C084FC; /* purple-400 */
+  --color-success-lightest: #F3E8FF; /* purple-50 */
   
   --color-warning: #F97316; /* orange-500 */
   --color-warning-light: #FDBA74; /* orange-300 */
@@ -53,7 +53,7 @@
   /* Border Colors */
   --color-border-default: #E5E5E5; /* neutral-200 */
   --color-border-hover: #D4D4D4; /* neutral-300 */
-  --color-border-focus: #4F46E5; /* primary */
+  --color-border-focus: #9333EA; /* purple-600 - Brand Primary */
 
   /* === Spacing === */
   --spacing-xs: 0.25rem; /* 4px */

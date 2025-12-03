@@ -182,11 +182,11 @@ export default function Preferences() {
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-indigo-600 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
-                <div className="w-12 h-1 bg-indigo-600 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">3</div>
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                <div className="w-12 h-1 bg-primary rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">2</div>
+                <div className="w-12 h-1 bg-primary rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
             <CardTitle className="text-heading-2">
@@ -260,7 +260,7 @@ export default function Preferences() {
                 onClick={handleSubmit}
                 loading={saving}
                 disabled={saving || minAge > maxAge}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
               >
                 {saving ? 'Saving...' : 'Finish Onboarding'}
               </Button>
