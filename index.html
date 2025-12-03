@@ -32,8 +32,8 @@
     <meta name="apple-mobile-web-app-title" content="Mingle" />
     <!-- CRITICAL: Disable React DevTools BEFORE React loads to prevent error #300 -->
     <script>
-      // Disable React DevTools hook immediately - before any React code loads
-      // This prevents installHook.js from causing multiple React instance conflicts
+      // Aggressively disable React DevTools hook immediately - before any React code loads
+      // This prevents installHook.js and browser extensions from causing multiple React instance conflicts
       (function() {
         if (typeof window === 'undefined') return;
         
@@ -42,31 +42,83 @@
           delete window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
         } catch (e) {}
         
-        // Create a completely disabled hook object
-        const disabledHook = {
+        // Create a base hook object with all required properties
+        const baseHook = {
           isDisabled: true,
           renderers: new Map(),
           supportsFiber: false,
-          inject: function() { return false; },
-          onCommitFiberRoot: function() {},
-          onCommitFiberUnmount: function() {},
-          checkDCE: function() {},
-          reactDevtoolsAgent: null,
           _listeners: [],
-          emit: function() {},
-          on: function() {},
-          off: function() {},
-          // Prevent any renderer registration
-          registerRenderer: function() { return -1; },
-          // Make all methods no-ops
-          onHook: function() {},
-          offHook: function() {}
         };
         
-        // Freeze the hook to prevent modifications
-        try {
-          Object.freeze(disabledHook);
-        } catch (e) {}
+        // Create a Proxy that intercepts ALL property access and prevents DevTools from working
+        // Use a more aggressive approach: return true for set operations but silently ignore values
+        const disabledHook = new Proxy(baseHook, {
+          get: function(target, prop) {
+            // Return no-op functions for all DevTools methods
+            if (typeof prop === 'string' && (
+              prop === 'inject' ||
+              prop === 'onCommitFiberRoot' ||
+              prop === 'onCommitFiberUnmount' ||
+              prop === 'checkDCE' ||
+              prop === 'registerRenderer' ||
+              prop === 'onHook' ||
+              prop === 'offHook' ||
+              prop === 'emit' ||
+              prop === 'on' ||
+              prop === 'off'
+            )) {
+              return function() { return false; };
+            }
+            // Prevent reactDevtoolsAgent from being accessed (return null)
+            if (prop === 'reactDevtoolsAgent') {
+              return null;
+            }
+            // Allow access to base properties
+            return target[prop];
+          },
+          set: function(target, prop, value) {
+            // Silently accept all property writes but don't actually store them
+            // This prevents "object is not extensible" errors while still blocking DevTools
+            // Return true to indicate success, but don't modify the target
+            return true;
+          },
+          defineProperty: function(target, prop, descriptor) {
+            // Silently accept defineProperty calls but don't actually define anything
+            // This prevents errors while blocking DevTools
+            return true;
+          },
+          deleteProperty: function(target, prop) {
+            // Prevent property deletion
+            return false;
+          },
+          has: function(target, prop) {
+            // Allow property existence checks to prevent errors
+            return prop in target || prop === 'reactDevtoolsAgent' || prop === 'inject' || 
+                   prop === 'onCommitFiberRoot' || prop === 'onCommitFiberUnmount' ||
+                   prop === 'registerRenderer' || prop === 'onHook' || prop === 'offHook' ||
+                   prop === 'emit' || prop === 'on' || prop === 'off';
+          },
+          ownKeys: function(target) {
+            // Return all keys that DevTools might check for
+            return Object.keys(target).concat([
+              'reactDevtoolsAgent', 'inject', 'onCommitFiberRoot', 'onCommitFiberUnmount',
+              'registerRenderer', 'onHook', 'offHook', 'emit', 'on', 'off', 'checkDCE'
+            ]);
+          },
+          getOwnPropertyDescriptor: function(target, prop) {
+            // Return descriptors for properties DevTools might check
+            if (prop in target) {
+              return Object.getOwnPropertyDescriptor(target, prop);
+            }
+            // Return a descriptor that prevents writes
+            return {
+              enumerable: true,
+              configurable: false,
+              writable: false,
+              value: prop === 'reactDevtoolsAgent' ? null : function() { return false; }
+            };
+          }
+        });
         
         // Set the hook using defineProperty to prevent overwriting
         try {
@@ -77,7 +129,7 @@
             enumerable: true
           });
         } catch (e) {
-          // Fallback: just set it normally
+          // Fallback: just set it normally and freeze it
           try {
             window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = disabledHook;
             Object.freeze(window.__REACT_DEVTOOLS_GLOBAL_HOOK__);
@@ -94,6 +146,42 @@
             });
           } catch (e) {}
         }
+        
+        // Periodically check and re-disable DevTools if it gets injected (browser extensions run async)
+        let checkCount = 0;
+        const maxChecks = 50; // Check for 5 seconds (50 * 100ms)
+        const checkInterval = setInterval(function() {
+          checkCount++;
+          try {
+            const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+            if (hook && hook !== disabledHook) {
+              // DevTools tried to inject - re-disable it
+              try {
+                Object.defineProperty(window, '__REACT_DEVTOOLS_GLOBAL_HOOK__', {
+                  value: disabledHook,
+                  writable: false,
+                  configurable: false,
+                  enumerable: true
+                });
+              } catch (e) {
+                // If we can't redefine, try to disable the injected hook
+                try {
+                  if (hook.renderers) {
+                    hook.renderers.clear();
+                  }
+                  hook.isDisabled = true;
+                  hook.inject = function() { return false; };
+                  hook.registerRenderer = function() { return -1; };
+                } catch (e2) {}
+              }
+            }
+          } catch (e) {
+            // Silently ignore errors
+          }
+          if (checkCount >= maxChecks) {
+            clearInterval(checkInterval);
+          }
+        }, 100);
       })();
     </script>
   </head>
