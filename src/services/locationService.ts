@@ -77,6 +77,28 @@ export class LocationService {
 
   // Request location permission with proper error handling - keep compatibility with existing implementation
   async requestLocationPermission(): Promise<boolean> {
+    // Check if geolocation API is available
+    if (!navigator.geolocation) {
+      console.warn('Geolocation API not supported in this browser');
+      localStorage.setItem('locationPermissionGranted', 'false');
+      return false;
+    }
+
+    // Check Permissions-Policy before attempting
+    if (typeof document !== 'undefined' && 'featurePolicy' in document) {
+      try {
+        // @ts-ignore - featurePolicy may not be in TypeScript types
+        const allowed = document.featurePolicy.allowsFeature('geolocation');
+        if (!allowed) {
+          console.error('Geolocation is blocked by Permissions-Policy. Please check server configuration.');
+          localStorage.setItem('locationPermissionGranted', 'false');
+          return false;
+        }
+      } catch (e) {
+        // Feature Policy API not available, continue
+      }
+    }
+
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -102,8 +124,33 @@ export class LocationService {
       }
       
       return true;
-    } catch (error) {
-      console.error('Location permission denied:', error);
+    } catch (error: any) {
+      const errorMessage = error?.message || String(error || '');
+      const errorCode = error?.code;
+      
+      // Handle permissions policy violations
+      if (
+        errorMessage.includes('permissions policy') || 
+        errorMessage.includes('Permissions policy') ||
+        errorMessage.includes('Permissions-Policy') ||
+        (errorMessage.includes('permission denied') && errorMessage.includes('policy'))
+      ) {
+        console.error('Geolocation blocked by Permissions-Policy. The server configuration needs to allow geolocation=(self).');
+        localStorage.setItem('locationPermissionGranted', 'false');
+        return false;
+      }
+      
+      // Handle specific error codes
+      if (errorCode === 1) {
+        console.warn('User denied geolocation permission');
+      } else if (errorCode === 2) {
+        console.warn('Geolocation position unavailable');
+      } else if (errorCode === 3) {
+        console.warn('Geolocation request timed out');
+      } else {
+        console.error('Location permission error:', error);
+      }
+      
       localStorage.setItem('locationPermissionGranted', 'false');
       return false;
     }
