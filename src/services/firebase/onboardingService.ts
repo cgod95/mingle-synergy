@@ -78,7 +78,12 @@ class FirebaseOnboardingService {
       }
       
       return null;
-    } catch (error) {
+    } catch (error: any) {
+      // If permission denied, document doesn't exist - return null to allow initialization
+      if (error?.code === 'permission-denied') {
+        logger.warn('Permission denied reading onboarding - document may not exist', { userId });
+        return null;
+      }
       logger.error('Error loading onboarding progress', error, { userId });
       return null;
     }
@@ -299,12 +304,18 @@ class FirebaseOnboardingService {
         startedAt: Date.now(),
       };
 
-      await this.saveOnboardingProgress(userId, initialProgress);
+      const onboardingRef = this.getOnboardingDoc(userId);
+      // Use setDoc WITHOUT merge for initial creation (treats as CREATE operation)
+      await setDoc(onboardingRef, initialProgress);
       
       logger.info('Initialized onboarding for user', { userId });
       return initialProgress;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error initializing onboarding', error, { userId });
+      // If permission denied, throw a more helpful error
+      if (error?.code === 'permission-denied') {
+        throw new Error('Permission denied. Please ensure you are signed in and try again.');
+      }
       throw new Error('Failed to initialize onboarding');
     }
   }

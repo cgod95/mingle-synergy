@@ -52,7 +52,10 @@ service cloud.firestore {
 
     // Onboarding progress - users can read/write their own onboarding progress
     match /onboarding/{userId} {
-      allow read, write: if isSelf(userId);
+      allow read: if isSelf(userId);
+      allow create: if isSelf(userId);
+      allow update: if isSelf(userId);
+      allow delete: if isSelf(userId);
     }
 
     // Venues - public read for authenticated users, write restricted (admin only for now)

@@ -130,17 +130,31 @@ export default function CreateProfile() {
       };
 
       // Use retry utility for network resilience
-      if (!auth.currentUser) {
-        throw new Error('User not authenticated');
+      // Verify auth state before operations
+      if (!auth.currentUser || !auth.currentUser.uid) {
+        throw new Error('User not authenticated. Please sign in again.');
       }
+      
       await retryWithMessage(
         async () => {
           const ref = doc(firestore, 'users', auth.currentUser!.uid);
           
-          // Check if document exists - if not, create it first with basic user data
-          const userDoc = await getDoc(ref);
-          if (!userDoc.exists()) {
-            // Document doesn't exist - create it with basic user data first
+          // Check if document exists - handle permission errors gracefully
+          let userDocExists = false;
+          try {
+            const userDoc = await getDoc(ref);
+            userDocExists = userDoc.exists();
+          } catch (error: any) {
+            // If getDoc fails with permission denied, assume document doesn't exist
+            if (error?.code === 'permission-denied') {
+              userDocExists = false;
+            } else {
+              throw error; // Re-throw other errors
+            }
+          }
+          
+          if (!userDocExists) {
+            // Document doesn't exist - create it WITHOUT merge (treats as CREATE operation)
             // This handles the case where sign-up didn't create the document
             await setDoc(ref, {
               email: auth.currentUser!.email || '',
