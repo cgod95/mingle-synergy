@@ -112,6 +112,9 @@ export function getPeopleAtVenue(venueId: string): Person[] {
   return DEMO_PEOPLE.filter(p => p.currentVenue === venueId);
 }
 
+// Alias for compatibility
+export const demoPeopleForVenue = getPeopleAtVenue;
+
 export function getActivePeople(): Person[] {
   const now = Date.now();
   const fiveMinutesAgo = now - 300000;

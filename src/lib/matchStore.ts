@@ -87,7 +87,8 @@ import { ensureChat, getLastMessage, appendMessage } from "./chatStore";
 
 /** Ensure we have a chat thread for this person and optionally seed a hello */
 export function ensureConversationForMatch(m: Match) {
-  const t = ensureChat(m.id, { name: m.person.name, avatar: m.person.avatar });
+  const avatar = m.person.avatar || (m.person as any).photo || ''; // Support both avatar and photo properties
+  const t = ensureChat(m.id, { name: m.person.name, avatar });
   const lm = getLastMessage(t);
   if (!lm) {
     appendMessage(m.id, { sender: "them", ts: Date.now(), text: `Hey ${m.person.name.split(" ")[0]} 👋` });
@@ -99,7 +100,8 @@ export function getConversationPreviews(): ConversationPreview[] {
   const ms = getMatches();
   const out: ConversationPreview[] = [];
   for (const m of ms) {
-    const t = ensureChat(m.id, { name: m.person.name, avatar: m.person.avatar });
+    const avatar = m.person.avatar || (m.person as any).photo || ''; // Support both avatar and photo properties
+    const t = ensureChat(m.id, { name: m.person.name, avatar });
     const lm = getLastMessage(t);
     out.push({
       id: m.id,
@@ -110,4 +112,20 @@ export function getConversationPreviews(): ConversationPreview[] {
     });
   }
   return out.sort((a,b) => b.lastTs - a.lastTs);
+}
+
+/** Ensure a match exists for a person, creating if needed */
+export function ensureMatchFor(userId: string, personId: string, personName: string, personAvatar: string, venueId: string): string {
+  const s = load();
+  if (!s.matches[personId]) {
+    const person: Person = { id: personId, name: personName, avatar: personAvatar };
+    s.matches[personId] = { id: personId, person, since: Date.now() };
+    save(s);
+  }
+  return personId;
+}
+
+/** Add a message to a match conversation */
+export function addMessage(matchId: string, msg: { sender: "you" | "other"; text: string; ts?: number }): void {
+  appendMessage(matchId, { sender: msg.sender === "you" ? "you" : "them", text: msg.text, ts: msg.ts || Date.now() });
 }
