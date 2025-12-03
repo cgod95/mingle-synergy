@@ -83,12 +83,10 @@ export default defineConfig({
       external: [],
       output: {
         // Ensure consistent hashing for cache busting
-        // Use content hash to ensure new builds get new hashes even with cached deps
+        // Content hash will change when code changes, ensuring fresh builds
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
-        // Force content-based hashing to change when code changes
-        hashCharacters: 'base64url',
         manualChunks: (id) => {
           // CRITICAL: Keep ALL React-related packages together - don't split them
           // This prevents multiple React instances which cause error #300
