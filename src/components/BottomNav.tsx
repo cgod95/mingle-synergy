@@ -10,17 +10,27 @@ import config from '@/config';
 // Hidden during onboarding (except demo mode) - only shows after profile + photo complete
 const BottomNav: React.FC = () => {
   const { currentUser } = useAuth();
-  const { onboardingProgress, isOnboardingComplete } = useOnboarding();
+  const { onboardingProgress, isOnboardingComplete, isLoading } = useOnboarding();
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Hide bottom nav during onboarding (except demo mode)
-  // Only show after profile AND photo are complete
-  const shouldShow = config.DEMO_MODE || (
-    isOnboardingComplete && 
-    onboardingProgress.profile && 
-    onboardingProgress.photo
+  // Show after profile, photo, and preferences are complete
+  // Use localStorage flag as primary check since it's set immediately when onboarding completes
+  // Don't hide if still loading onboarding state
+  if (isLoading && !config.DEMO_MODE) {
+    return null; // Don't show while loading onboarding state
+  }
+  
+  const localStorageComplete = localStorage.getItem('onboardingComplete') === 'true';
+  const allStepsComplete = onboardingProgress.profile && 
+                           onboardingProgress.photo && 
+                           onboardingProgress.preferences;
+  
+  const shouldShow = config.DEMO_MODE || localStorageComplete || (
+    allStepsComplete && 
+    isOnboardingComplete
   );
 
   // Don't render if onboarding not complete
