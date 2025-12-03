@@ -100,14 +100,30 @@ class FirebaseOnboardingService {
       const existingData = existingDoc.exists() ? existingDoc.data() : {};
       
       // Update the specific step
+      // Only include data if it's provided and not undefined
+      const stepUpdate: OnboardingStep = {
+        id: stepId,
+        completed: true,
+        completedAt: Date.now(),
+      };
+      
+      // Only add data field if stepData is provided and not undefined
+      if (stepData && typeof stepData === 'object' && Object.keys(stepData).length > 0) {
+        // Filter out undefined values from stepData
+        const cleanData: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(stepData)) {
+          if (value !== undefined) {
+            cleanData[key] = value;
+          }
+        }
+        if (Object.keys(cleanData).length > 0) {
+          stepUpdate.data = cleanData;
+        }
+      }
+      
       const updatedSteps = {
         ...existingData.steps,
-        [stepId]: {
-          id: stepId,
-          completed: true,
-          completedAt: Date.now(),
-          data: stepData,
-        }
+        [stepId]: stepUpdate,
       };
 
       // Determine if all steps are complete
