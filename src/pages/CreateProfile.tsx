@@ -32,8 +32,22 @@ export default function CreateProfile() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isReady, setIsReady] = useState(false);
   const navigate = useNavigate();
   const { setOnboardingStepComplete, onboardingProgress } = useOnboarding();
+
+  // Ensure Firebase is initialized before rendering
+  useEffect(() => {
+    if (!auth || !firestore) {
+      setError('Firebase is not initialized. Please refresh the page.');
+      return;
+    }
+    if (!auth.currentUser) {
+      navigate('/signin');
+      return;
+    }
+    setIsReady(true);
+  }, [navigate]);
 
   // Resume onboarding - load saved data if available
   useEffect(() => {
@@ -163,6 +177,20 @@ export default function CreateProfile() {
       setSaving(false);
     }
   };
+
+  // Show loading state while checking Firebase/auth
+  if (!isReady) {
+    return (
+      <Layout showBottomNav={false}>
+        <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-neutral-600">Loading...</p>
+            {error && <p className="text-red-600 mt-2">{error}</p>}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout showBottomNav={false}>
