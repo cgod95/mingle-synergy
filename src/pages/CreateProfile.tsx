@@ -133,7 +133,9 @@ export default function CreateProfile() {
       await retryWithMessage(
         async () => {
           const ref = doc(firestore, 'users', auth.currentUser.uid);
-          await setDoc(ref, profileData);
+          // Use merge: true to update existing document (created during sign-up) without overwriting
+          // This ensures we don't lose any existing data and handles the case where user doc already exists
+          await setDoc(ref, profileData, { merge: true });
         },
         { 
           operationName: 'saving profile',

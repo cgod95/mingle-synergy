@@ -34,10 +34,15 @@ service cloud.firestore {
           (!('bio' in request.resource.data) || 
            !(request.resource.data.bio is string) || 
            request.resource.data.bio.size() >= 10) &&
-          // Photos validation: if photos field exists and is a list, it must have at least 1 item
+          // Photos validation: 
+          // - Allow empty array during onboarding/initial profile creation
+          // - Require at least 1 photo only if user already has photos (updating existing profile)
           (!('photos' in request.resource.data) || 
            !(request.resource.data.photos is list) || 
-           request.resource.data.photos.size() > 0)
+           request.resource.data.photos.size() > 0 ||
+           // Allow empty photos if existing document has no photos or empty photos (initial creation)
+           !('photos' in resource.data) ||
+           resource.data.photos.size() == 0)
         )
       );
     }
