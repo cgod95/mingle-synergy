@@ -123,7 +123,7 @@ export default function ChatPage() {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [matchId, currentUser.uid, isExpired])
+  }, [matchId, currentUser?.uid, isExpired])
 
   const handleSend = async () => {
     if (!match || !currentUser || message.trim() === '' || messagesLeft <= 0 || expired || isExpired) return

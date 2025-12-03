@@ -32,6 +32,7 @@ export const useReconnectRequests = () => {
       const interval = setInterval(refreshRequests, 30000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [refreshRequests]);
 
   return { requests, loading, error, refreshRequests };

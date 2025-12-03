@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,7 +7,14 @@ interface ProtectedProps {
 }
 
 const Protected: React.FC<ProtectedProps> = ({ children }) => {
-  const { currentUser, loading } = useAuth();
+  const { currentUser } = useAuth();
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Simulate loading check
+    const timer = setTimeout(() => setLoading(false), 100);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Show loading state while checking authentication
   if (loading) {

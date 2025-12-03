@@ -4,8 +4,9 @@ import { Camera, RefreshCw, Upload, AlertTriangle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import services from '@/services';
-import { storage } from '@/firebase/config';
+import { storage, firestore } from '@/firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc } from 'firebase/firestore';
 
 interface SelfieVerificationProps {
   userId: string;
@@ -101,8 +102,13 @@ const SelfieVerification: React.FC<SelfieVerificationProps> = ({ userId, onVerif
       // Get the download URL
       const downloadURL = await getDownloadURL(selfieRef);
       
-      // Update user verification status using our service
-      const success = await services.verification.submitVerification(userId, downloadURL);
+      // Update user verification status using Firestore directly
+      const userRef = doc(firestore, 'users', userId);
+      await updateDoc(userRef, {
+        verificationSelfie: downloadURL,
+        pendingVerification: true,
+      });
+      const success = true;
       
       if (success) {
         toast({

@@ -22,7 +22,7 @@ export default function OnboardingPhoto() {
 
     // Check if user has completed previous step
     const currentStep = getCurrentStep();
-    if (currentStep !== 'photos') {
+    if (currentStep && currentStep !== 'photo') {
       // Redirect to appropriate step
       if (currentStep === 'profile') {
         navigate('/create-profile');

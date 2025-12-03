@@ -1,5 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { getMatches, clearMatchStore } from "../lib/matchStore";
+
+function getMatchCount(): number {
+  return getMatches().length;
+}
+
+function clearAllMatches(): void {
+  clearMatchStore();
+}
 
 export default function DebugTools() {
   const [count, setCount] = React.useState(getMatchCount());

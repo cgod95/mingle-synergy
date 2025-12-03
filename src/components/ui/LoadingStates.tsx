@@ -205,6 +205,7 @@ export const ProgressiveLoader: React.FC<{
   React.useEffect(() => {
     if (isLoading) {
       setShowSkeleton(true);
+      return undefined;
     } else {
       const timer = setTimeout(() => setShowSkeleton(false), delay);
       return () => clearTimeout(timer);

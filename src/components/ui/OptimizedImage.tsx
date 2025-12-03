@@ -72,6 +72,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         img.onerror = null;
       };
     }
+    return undefined;
   }, [src, placeholderName, alt]); // Removed onLoad from deps to prevent re-runs
   
   const handleError = () => {

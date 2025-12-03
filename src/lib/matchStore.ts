@@ -87,9 +87,8 @@ import { ensureChat, getLastMessage, appendMessage } from "./chatStore";
 
 /** Ensure we have a chat thread for this person and optionally seed a hello */
 export function ensureConversationForMatch(m: Match) {
-  const avatar = m.person.avatar || (m.person as any).photo || ''; // Support both avatar and photo properties
-  const t = ensureChat(m.id, { name: m.person.name, avatar });
-  const lm = getLastMessage(t);
+  ensureChat(m.id, { name: m.person.name });
+  const lm = getLastMessage(m.id);
   if (!lm) {
     appendMessage(m.id, { sender: "them", ts: Date.now(), text: `Hey ${m.person.name.split(" ")[0]} 👋` });
   }
@@ -100,9 +99,8 @@ export function getConversationPreviews(): ConversationPreview[] {
   const ms = getMatches();
   const out: ConversationPreview[] = [];
   for (const m of ms) {
-    const avatar = m.person.avatar || (m.person as any).photo || ''; // Support both avatar and photo properties
-    const t = ensureChat(m.id, { name: m.person.name, avatar });
-    const lm = getLastMessage(t);
+    ensureChat(m.id, { name: m.person.name });
+    const lm = getLastMessage(m.id);
     out.push({
       id: m.id,
       person: m.person,
@@ -127,5 +125,5 @@ export function ensureMatchFor(userId: string, personId: string, personName: str
 
 /** Add a message to a match conversation */
 export function addMessage(matchId: string, msg: { sender: "you" | "other"; text: string; ts?: number }): void {
-  appendMessage(matchId, { sender: msg.sender === "you" ? "you" : "them", text: msg.text, ts: msg.ts || Date.now() });
+  appendMessage(matchId, { sender: msg.sender === "you" ? "me" : "them", text: msg.text, ts: msg.ts || Date.now() });
 }

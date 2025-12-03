@@ -19,7 +19,6 @@ export const usePerformance = (componentName: string): void => {
             // Report long tasks (>50ms) to analytics
             if (entry.duration > 50) {
               trackError(
-                'long_task', 
                 `Long task detected in ${componentName}`, 
                 { duration: entry.duration }
               );
@@ -51,7 +50,6 @@ export const usePerformance = (componentName: string): void => {
       const duration = performance.now() - startTime;
       if (duration > 300) {
         trackError(
-          'slow_component', 
           `Slow component mount: ${componentName}`, 
           { duration }
         );

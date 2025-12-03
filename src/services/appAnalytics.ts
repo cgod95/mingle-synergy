@@ -174,7 +174,37 @@ class AnalyticsService {
   getProvider(): string {
     return this.provider;
   }
+
+  /**
+   * Track screen view (alias for page)
+   */
+  trackScreenView(screenName: string, properties?: Record<string, string | number | boolean>) {
+    this.page(screenName);
+    if (properties) {
+      this.track('screen_view', properties);
+    }
+  }
+
+  /**
+   * Track error
+   */
+  trackError(error: Error | string, properties?: Record<string, string | number | boolean>) {
+    const errorMessage = error instanceof Error ? error.message : error;
+    this.track('error', {
+      error: errorMessage,
+      ...properties,
+    });
+  }
 }
 
 export const analytics = new AnalyticsService();
 export default analytics;
+
+// Export convenience functions
+export const trackScreenView = (screenName: string, properties?: Record<string, string | number | boolean>) => {
+  analytics.trackScreenView(screenName, properties);
+};
+
+export const trackError = (error: Error | string, properties?: Record<string, string | number | boolean>) => {
+  analytics.trackError(error, properties);
+};

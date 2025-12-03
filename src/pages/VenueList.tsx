@@ -12,6 +12,7 @@ import { MapPin, Users, Clock } from 'lucide-react';
 import VenueCard from '@/components/VenueCard';
 import { logError } from '@/utils/errorHandler';
 import { isCheckedIn } from '@/lib/checkinStore';
+import { Venue } from '@/types';
 
 export default function VenueList() {
   const [venues, setVenues] = useState<Venue[]>([]);

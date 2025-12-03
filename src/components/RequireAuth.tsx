@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
@@ -7,7 +7,13 @@ interface RequireAuthProps {
 }
 
 export const RequireAuth = ({ children }: RequireAuthProps) => {
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser } = useAuth();
+  const [isLoading, setIsLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isLoading) {
     return <div>Loading...</div>;

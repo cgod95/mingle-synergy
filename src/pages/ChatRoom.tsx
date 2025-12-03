@@ -246,7 +246,7 @@ export default function ChatRoom() {
         });
       }
       
-      const next = [...msgs, { sender: "you", text: t, ts: Date.now() }];
+      const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts: Date.now() }];
       setMsgs(next);
       saveMessages(matchId, next);
       setText("");
@@ -270,7 +270,7 @@ export default function ChatRoom() {
   };
 
   const sendStarter = (starter: string) => {
-    const next = [...msgs, { sender: "you", text: starter, ts: Date.now() }];
+    const next: Msg[] = [...msgs, { sender: "you" as const, text: starter, ts: Date.now() }];
     setMsgs(next);
     saveMessages(matchId, next);
     setShowStarters(false);

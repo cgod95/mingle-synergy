@@ -4,7 +4,10 @@ type Listener = (t: Toast) => void;
 let id = 1;
 const listeners = new Set<Listener>();
 
-export function onToast(fn: Listener) { listeners.add(fn); return () => listeners.delete(fn); }
+export function onToast(fn: Listener): () => void { 
+  listeners.add(fn); 
+  return () => { listeners.delete(fn); };
+}
 
 export function toast(text: string) {
   const t = { id: id++, text };

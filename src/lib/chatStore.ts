@@ -80,7 +80,12 @@ export async function ensureDemoThreadsSeed() {
       // Generate realistic conversation
       const conversation = generateRealisticConversation(seed.id, seed.venueType);
       conversation.forEach(msg => {
-        appendMessage(seed.id, msg);
+        // Convert 'you'/'them' to 'me'/'them' for chatStore
+        appendMessage(seed.id, {
+          sender: msg.sender === 'you' ? 'me' : 'them',
+          text: msg.text,
+          ts: msg.ts
+        });
       });
     }
   });

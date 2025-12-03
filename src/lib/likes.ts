@@ -1,5 +1,5 @@
 import { emit } from "./bus";
-import { isCheckedIn } from "./checkin";
+import { isCheckedInAt } from "./checkin";
 import { ensureChat, appendMessage } from "./chatStore";
 
 const KEY = "mingle:likes";
@@ -43,7 +43,7 @@ export function isMutual(a: string, b: string): boolean {
 export function likePerson(targetId: string, venueId?: string, byUserId?: string): { ok: boolean; reason?: string; mutual?: boolean } {
   const db = load();
   const uid = byUserId || db.currentUserId;
-  if (!venueId || !isCheckedIn(venueId)) return { ok: false, reason: "not_checked_in" };
+  if (!venueId || !isCheckedInAt(venueId)) return { ok: false, reason: "not_checked_in" };
   addLike(db, uid, targetId);
   save(db);
   const nowMutual = isMutual(uid, targetId);

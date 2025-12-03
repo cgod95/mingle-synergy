@@ -35,6 +35,12 @@ type OnboardingContextType = {
   isOnboardingComplete: boolean;
   resetOnboarding: () => void;
   isLoading: boolean;
+  // Additional methods for compatibility
+  nextStep: () => void;
+  prevStep: () => void;
+  completeStep: (stepId: OnboardingStepId, stepData?: Record<string, unknown>) => Promise<void>;
+  getCurrentStep: () => keyof OnboardingProgress | null;
+  setStepComplete: (step: keyof OnboardingProgress) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType>({
@@ -44,6 +50,11 @@ const OnboardingContext = createContext<OnboardingContextType>({
   isOnboardingComplete: false,
   resetOnboarding: () => {},
   isLoading: true,
+  nextStep: () => {},
+  prevStep: () => {},
+  completeStep: async () => {},
+  getCurrentStep: () => null,
+  setStepComplete: () => {},
 });
 
 export const OnboardingProvider = ({ children }: { children: React.ReactNode }) => {
@@ -254,6 +265,45 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     }
   };
 
+  // Helper methods for compatibility
+  const nextStep = () => {
+    const next = getNextOnboardingStep();
+    if (next) {
+      setOnboardingStepComplete(next);
+    }
+  };
+
+  const prevStep = () => {
+    // Simple implementation - go back to previous incomplete step
+    const steps: (keyof OnboardingProgress)[] = ['email', 'profile', 'photo', 'preferences'];
+    const currentIndex = steps.findIndex(step => !onboardingProgress[step]);
+    if (currentIndex > 0) {
+      // Reset current step and previous step
+      const prevStep = steps[currentIndex - 1];
+      setOnboardingProgress(prev => ({ ...prev, [prevStep]: false }));
+    }
+  };
+
+  const completeStep = async (stepId: OnboardingStepId, stepData?: Record<string, unknown>) => {
+    if (!currentUser?.uid) return;
+    try {
+      await onboardingService.completeStep(currentUser.uid, stepId, stepData);
+      // Map stepId back to progress key
+      const stepKey = Object.entries(KEY_TO_STEP).find(([_, id]) => id === stepId)?.[0] as keyof OnboardingProgress | undefined;
+      if (stepKey) {
+        setOnboardingStepComplete(stepKey);
+      }
+    } catch (error) {
+      console.error('Error completing step:', error);
+    }
+  };
+
+  const getCurrentStep = () => {
+    return getNextOnboardingStep();
+  };
+
+  const setStepComplete = setOnboardingStepComplete;
+
   const value: OnboardingContextType = {
     onboardingProgress,
     setOnboardingStepComplete,
@@ -261,6 +311,11 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     isOnboardingComplete,
     resetOnboarding,
     isLoading,
+    nextStep,
+    prevStep,
+    completeStep,
+    getCurrentStep,
+    setStepComplete,
   };
 
   return (

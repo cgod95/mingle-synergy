@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { seedDemoMatchesIfEmpty, Person } from "../lib/matchStore";
-import { demoPeople } from "../lib/demoPeople";
+import { DEMO_PEOPLE } from "../lib/demoPeople";
 import { authService } from "@/services";
 import config from "@/config";
 
@@ -67,6 +67,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       });
       return () => unsubscribe();
     }
+    return undefined;
   }, []);
 
   const login = useCallback(async (u: NonNullable<User>) => {

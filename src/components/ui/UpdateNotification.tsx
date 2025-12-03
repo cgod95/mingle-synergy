@@ -27,6 +27,7 @@ const UpdateNotification = () => {
       
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [updateAvailable]);
   
   const handleUpdate = () => {

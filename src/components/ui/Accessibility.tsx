@@ -435,6 +435,7 @@ export const Announcement: React.FC<{
       }, 1000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [message]);
 
   return (

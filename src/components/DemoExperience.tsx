@@ -66,6 +66,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
       }, 3000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isPlaying, features.length]);
 
   const handleGetStarted = () => {

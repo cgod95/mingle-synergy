@@ -34,7 +34,9 @@ class Cache<T> {
     // If cache is full, remove oldest entry
     if (this.cache.size >= this.maxSize) {
       const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
       if (this.enableLogging) {
         console.log(`Cache: Removed oldest entry ${oldestKey} due to size limit`);
       }

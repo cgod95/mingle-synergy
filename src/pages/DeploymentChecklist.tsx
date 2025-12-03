@@ -1,5 +1,6 @@
 
 import React from 'react';
+// @ts-ignore - react-helmet types not available
 import { Helmet } from 'react-helmet';
 import DeploymentChecklist from '@/components/admin/DeploymentChecklist';
 

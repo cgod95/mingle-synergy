@@ -22,7 +22,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { analytics } from '@/services/analytics';
-import { subscriptionService } from '@/services/subscriptionService';
+import SubscriptionService from '@/services/subscriptionService';
+const subscriptionService = new SubscriptionService();
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 import { deploymentVerifier, type DeploymentReport } from '@/utils/deploymentVerifier';
@@ -80,7 +81,7 @@ const AdminDashboard: React.FC = () => {
     const matches = JSON.parse(localStorage.getItem('mockMatches') || '[]');
     const messages = JSON.parse(localStorage.getItem('mockMessages') || '[]');
     const users = JSON.parse(localStorage.getItem('mockUsers') || '[]');
-    const subscriptions = subscriptionService.getUserSubscription();
+    const subscriptions = subscriptionService.getUserSubscription('admin'); // Use admin as placeholder userId
 
     setSystemMetrics({
       activeUsers: Math.floor(Math.random() * 100) + 50,

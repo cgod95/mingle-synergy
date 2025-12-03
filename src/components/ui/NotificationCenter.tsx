@@ -79,7 +79,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
     if (!isOpen) return;
 
     // Subscribe to notification updates
-    const unsubscribe = notificationService.subscribe((notifs) => {
+    const unsubscribe = notificationService.subscribe((notifs: NotificationData[]) => {
       setNotifications(notifs);
     });
 

@@ -16,8 +16,8 @@ interface State {
   errorId?: string;
 }
 
-class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: string | number) => void }, State> {
-  constructor(props: Props & { navigate: (path: string | number) => void }) {
+class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: string) => void }, State> {
+  constructor(props: Props & { navigate: (path: string) => void }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -87,7 +87,7 @@ class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: strin
   };
 
   private handleGoBack = () => {
-    this.props.navigate(-1 as string | number);
+    window.history.back();
   };
 
   render() {

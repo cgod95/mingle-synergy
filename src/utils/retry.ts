@@ -9,9 +9,11 @@ export interface RetryOptions {
   maxDelay?: number;
   backoffMultiplier?: number;
   retryable?: (error: unknown) => boolean;
+  operationName?: string;
+  onRetry?: (attempt: number) => void;
 }
 
-const DEFAULT_OPTIONS: Required<RetryOptions> = {
+const DEFAULT_OPTIONS: Required<Omit<RetryOptions, 'operationName' | 'onRetry'>> & Partial<Pick<RetryOptions, 'operationName' | 'onRetry'>> = {
   maxRetries: 3,
   initialDelay: 1000, // 1 second
   maxDelay: 10000, // 10 seconds
@@ -105,6 +107,11 @@ export async function retry<T>(
         break;
       }
 
+      // Call onRetry callback if provided
+      if (options.onRetry) {
+        options.onRetry(attempt + 1);
+      }
+
       // Wait before retrying
       const delay = calculateDelay(attempt, opts);
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -119,7 +126,7 @@ export async function retry<T>(
  */
 export async function retryWithMessage<T>(
   fn: () => Promise<T>,
-  options: RetryOptions & { operationName?: string } = {}
+  options: RetryOptions = {}
 ): Promise<T> {
   const { operationName, ...retryOptions } = options;
 
