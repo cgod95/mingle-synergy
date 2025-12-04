@@ -242,34 +242,33 @@ export default function CreateProfile() {
     <Layout showBottomNav={false}>
       <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md border-2 border-neutral-700 bg-neutral-800 shadow-xl">
-          <CardHeader className="text-center space-y-2 border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10">
+          <CardHeader className="text-center space-y-2 border-b border-neutral-700 bg-gradient-to-r from-neutral-800/50 via-neutral-800/50 to-neutral-800/50">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-primary/20 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold">2</div>
-                <div className="w-12 h-1 bg-primary/20 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold">3</div>
+                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
+                <div className="w-12 h-1 bg-neutral-700 rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-neutral-700 text-neutral-400 flex items-center justify-center text-sm font-semibold">2</div>
               </div>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-primary via-primary/90 to-primary bg-clip-text text-transparent font-bold">
+            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent font-bold">
               Create Profile
             </CardTitle>
-            <p className="text-sm text-neutral-300">Step 1 of 3: Tell us about you</p>
+            <p className="text-sm text-neutral-300">Step 1 of 2: Tell us about you</p>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Your name</label>
+              <label className="block text-sm font-medium text-neutral-300">Your name</label>
               <Input 
                 placeholder="Enter your name" 
                 value={name} 
-                onChange={(e) => setName(e.target.value)} 
+                onChange={(e) => setName(e.target.value)}
+                className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
               />
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Your age</label>
+              <label className="block text-sm font-medium text-neutral-300">Your age</label>
               <Select value={age.toString()} onValueChange={(v) => setAge(Number(v))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -285,7 +284,7 @@ export default function CreateProfile() {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Gender</label>
+              <label className="block text-sm font-medium text-neutral-300">Gender</label>
               <Select value={gender} onValueChange={setGender}>
                 <SelectTrigger>
                   <SelectValue />
@@ -301,7 +300,7 @@ export default function CreateProfile() {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Interested in</label>
+              <label className="block text-sm font-medium text-neutral-300">Interested in</label>
               <Select 
                 value={interestedIn} 
                 onValueChange={setInterestedIn}
@@ -343,7 +342,7 @@ export default function CreateProfile() {
               <Button
                 variant="outline"
                 onClick={() => navigate('/signup')}
-                className="flex-1 border-2 border-primary/20 hover:bg-primary/10 text-neutral-300 hover:text-white"
+                className="flex-1 border-2 border-neutral-700 hover:bg-neutral-700 text-neutral-300 hover:text-white"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
@@ -351,7 +350,7 @@ export default function CreateProfile() {
               <Button
                 onClick={handleSubmit}
                 loading={saving}
-                className="flex-1 bg-gradient-to-r from-primary via-primary/90 to-primary hover:from-primary/90 hover:via-primary hover:to-primary/90 text-white font-semibold shadow-md"
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-md"
                 disabled={!name.trim() || saving}
               >
                 {saving ? (

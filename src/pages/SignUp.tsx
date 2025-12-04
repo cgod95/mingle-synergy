@@ -66,14 +66,21 @@ export default function SignUp() {
             <CardHeader className="text-center space-y-2 pb-6">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/demo-welcome')}
+                onClick={() => {
+                  try {
+                    navigate('/demo-welcome');
+                  } catch (error) {
+                    // Fallback navigation
+                    navigate(-1);
+                  }
+                }}
                 className="absolute top-4 left-4 text-neutral-300 hover:text-white"
                 size="sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary bg-clip-text text-transparent">Create account</CardTitle>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Create account</CardTitle>
               <p className="text-sm text-neutral-400">Join Mingle and start meeting people</p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -86,7 +93,7 @@ export default function SignUp() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-neutral-800"
+                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
           required
                     disabled={busy}
         />
@@ -100,7 +107,7 @@ export default function SignUp() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           minLength={6}
-                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-neutral-800"
+                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
           required
                     disabled={busy}
                   />
@@ -119,7 +126,7 @@ export default function SignUp() {
                 
                 <Button 
                   type="submit"
-                  className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary hover:from-primary/90 hover:via-primary hover:to-primary/90 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={busy || !email.trim() || !password.trim()}
                 >
                   {busy ? (

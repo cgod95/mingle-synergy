@@ -132,3 +132,4 @@ Successfully resolved **17 dependency vulnerabilities** (14 moderate, 3 high) id
 - Firebase release notes: https://firebase.google.com/support/release-notes/js
 - Vite migration guide: https://vitejs.dev/guide/migration.html
 
+

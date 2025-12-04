@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
-import { MessageCircle, Zap } from 'lucide-react';
+import { MessageCircle, Zap, MapPin } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function DemoWelcome() {
@@ -15,11 +15,21 @@ export default function DemoWelcome() {
   // Note: Demo data seeding removed - closed beta uses real Firebase data
 
   const handleGetStarted = () => {
-    // Navigate to signup if not authenticated, otherwise to check-in
-    if (currentUser) {
-      navigate('/checkin');
-    } else {
-      navigate('/signup');
+    try {
+      // Navigate to signup if not authenticated, otherwise to check-in
+      if (currentUser) {
+        navigate('/checkin');
+      } else {
+        navigate('/signup');
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Fallback: try direct navigation
+      if (currentUser) {
+        window.location.href = '/checkin';
+      } else {
+        window.location.href = '/signup';
+      }
     }
   };
 

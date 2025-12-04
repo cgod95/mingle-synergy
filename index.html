@@ -148,9 +148,9 @@
           
           // Observe window object for property changes
           observer.observe(document.documentElement, {
+            childList: true,  // Required: must have at least one true option
+            subtree: true,    // Watch all descendants
             attributes: false,
-            childList: false,
-            subtree: false,
             attributeOldValue: false,
             characterData: false
           });

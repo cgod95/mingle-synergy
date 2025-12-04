@@ -209,7 +209,7 @@ export default function CheckInPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+              className="text-indigo-400 hover:text-indigo-300 hover:bg-neutral-800"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -230,11 +230,11 @@ export default function CheckInPage() {
         {/* Check-in Options - Uniform Cards */}
         <div className="flex flex-col items-center gap-4 mb-6 relative">
           {/* Connecting visual element */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-px h-8 bg-gradient-to-b from-primary/50 via-primary/50 to-transparent pointer-events-none z-0" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-px h-8 bg-gradient-to-b from-indigo-500/50 via-indigo-500/50 to-transparent pointer-events-none z-0" />
           {/* QR Code Scanner Button - Primary */}
           <div className="w-full max-w-md">
             <Card 
-              className="border-2 border-primary bg-gradient-to-br from-primary/40 to-primary/30 cursor-pointer hover:border-primary/80 hover:from-primary/50 hover:to-primary/40 hover:shadow-xl transition-all relative group"
+              className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
               onClick={() => {
                 // For now, show message about using phone camera
                 // Scanner component will be enabled when html5-qrcode is installed
@@ -246,7 +246,7 @@ export default function CheckInPage() {
               aria-label="Scan QR code to check in"
             >
               <div className="px-6 py-6 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-primary/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <QrCode className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-white mb-2">
@@ -261,8 +261,8 @@ export default function CheckInPage() {
 
         {/* Show message if coming from QR code */}
         {source === "qr" && qrVenueId && (
-          <div className="mb-4 p-4 bg-primary/30 border border-primary/50 rounded-xl">
-            <p className="text-sm text-primary-foreground font-medium">
+          <div className="mb-4 p-4 bg-indigo-500/30 border border-indigo-500/50 rounded-xl">
+            <p className="text-sm text-white font-medium">
               📱 Scanned QR code for {venues.find(v => v.id === qrVenueId)?.name || "venue"} - Checking you in...
             </p>
           </div>
@@ -272,7 +272,7 @@ export default function CheckInPage() {
           {navigator.geolocation && (
             <div className="w-full max-w-md">
               <Card
-                className="border-2 border-primary bg-gradient-to-br from-primary/40 to-primary/30 cursor-pointer hover:border-primary/80 hover:from-primary/50 hover:to-primary/40 hover:shadow-xl transition-all relative group"
+                className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
                 onClick={async () => {
                   setIsCheckingIn(true);
                   try {
@@ -326,7 +326,7 @@ export default function CheckInPage() {
                 aria-label="Auto check-in using location"
               >
                 <div className="px-6 py-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-primary/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <MapPin className="w-8 h-8 text-white" />
                   </div>
                   <h2 className="text-xl font-bold text-white mb-2">
@@ -337,7 +337,7 @@ export default function CheckInPage() {
                   </p>
                 </div>
                 {isCheckingIn && (
-                  <div className="absolute inset-0 bg-primary/50 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-indigo-500/50 rounded-lg flex items-center justify-center backdrop-blur-sm">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
                   </div>
                 )}

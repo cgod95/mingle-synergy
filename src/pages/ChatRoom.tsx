@@ -183,9 +183,12 @@ export default function ChatRoom() {
   if (!matchId) {
     return (
       <div className="min-h-screen bg-neutral-900 p-4 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 text-center">
-          <p className="text-neutral-600">Chat not found.</p>
-          <Button onClick={() => navigate(-1)} className="mt-4" variant="outline">
+        <div className="max-w-md w-full bg-neutral-800 border-2 border-neutral-700 rounded-2xl shadow-lg p-6 text-center">
+          <p className="text-neutral-300">Chat not found.</p>
+          <Button 
+            onClick={() => navigate(-1)} 
+            className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+          >
             Go Back
           </Button>
         </div>
@@ -483,9 +486,9 @@ export default function ChatRoom() {
           <div className="mb-2 px-2">
             <div className="flex items-center justify-between text-xs">
               <span className={`font-medium ${
-                remainingMessages === 0 ? 'text-red-600' : 
-                remainingMessages === 1 ? 'text-orange-600' : 
-                'text-neutral-600'
+                remainingMessages === 0 ? 'text-red-400' : 
+                remainingMessages === 1 ? 'text-orange-400' : 
+                'text-neutral-400'
               }`}>
                 {remainingMessages === 0 
                   ? "Make plans to meet up" 
@@ -494,7 +497,7 @@ export default function ChatRoom() {
               {remainingMessages === 0 && (
                 <button
                   onClick={() => setShowMessageLimitModal(true)}
-                  className="text-indigo-600 hover:text-indigo-700 underline text-xs"
+                  className="text-indigo-400 hover:text-indigo-300 underline text-xs"
                 >
                   Learn more
                 </button>

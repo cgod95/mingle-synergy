@@ -68,7 +68,7 @@ export default function Profile() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="space-y-4">
           {/* Avatar and Name Section - Card */}
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-neutral-800">
+          <Card className="border-2 border-neutral-700 bg-neutral-800">
             <CardContent className="p-6">
               <div className="text-center">
                 <motion.div
@@ -77,7 +77,7 @@ export default function Profile() {
                   transition={{ delay: 0.1, type: "spring" }}
                   className="mb-4"
                 >
-                  <Avatar className="h-32 w-32 mx-auto ring-4 ring-primary/50 shadow-lg">
+                  <Avatar className="h-32 w-32 mx-auto ring-4 ring-indigo-500/50 shadow-lg">
                     {profileData?.photos && profileData.photos.length > 0 ? (
                       <img 
                         src={profileData.photos[0]} 
@@ -85,7 +85,7 @@ export default function Profile() {
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <AvatarFallback className="bg-primary text-white text-4xl font-bold">
+                      <AvatarFallback className="bg-indigo-600 text-white text-4xl font-bold">
                         {currentUser.name?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
                       </AvatarFallback>
                     )}
@@ -101,14 +101,14 @@ export default function Profile() {
 
           {/* Photos Section - Card */}
           {profileData?.photos && profileData.photos.length > 0 && (
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-neutral-800">
+            <Card className="border-2 border-neutral-700 bg-neutral-800">
               <CardHeader>
                 <CardTitle className="text-white">Photos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-3">
                   {profileData.photos.map((photo, index) => (
-                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-primary/20">
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-neutral-700">
                       <img 
                         src={photo} 
                         alt={`Profile photo ${index + 1}`}
@@ -122,7 +122,7 @@ export default function Profile() {
           )}
 
           {/* Bio Section - Card */}
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-neutral-800">
+          <Card className="border-2 border-neutral-700 bg-neutral-800">
             <CardHeader>
               <CardTitle className="text-white">Bio</CardTitle>
             </CardHeader>
@@ -130,21 +130,21 @@ export default function Profile() {
               {profileData?.bio ? (
                 <p className="text-sm text-neutral-300">"{profileData.bio}"</p>
               ) : (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full">
-                  <AlertCircle className="w-4 h-4 text-primary" />
-                  <p className="text-sm text-primary-foreground">Add a bio</p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/20 rounded-full">
+                  <AlertCircle className="w-4 h-4 text-indigo-400" />
+                  <p className="text-sm text-indigo-300">Add a bio</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Action Buttons - Card */}
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-neutral-800">
+          <Card className="border-2 border-neutral-700 bg-neutral-800">
             <CardContent className="p-6">
               <div className="space-y-3">
                 <Button
                   onClick={() => navigate('/profile/edit')}
-                  className="w-full h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 text-white text-base font-bold shadow-lg"
+                  className="w-full h-14 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-base font-bold shadow-lg"
                   variant="default"
                   aria-label="Edit profile"
                 >
@@ -154,7 +154,7 @@ export default function Profile() {
                 <Button
                   variant="ghost"
                   onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-                  className="w-full h-12 text-neutral-300 hover:bg-primary/10 hover:text-white"
+                  className="w-full h-12 text-neutral-300 hover:bg-neutral-700 hover:text-white"
                   aria-label="Edit photos"
                 >
                   <Camera className="w-5 h-5 mr-2" />
@@ -163,7 +163,7 @@ export default function Profile() {
                 <Button
                   variant="ghost"
                   onClick={() => navigate('/settings')}
-                  className="w-full h-12 text-neutral-300 hover:bg-primary/10 hover:text-white"
+                  className="w-full h-12 text-neutral-300 hover:bg-neutral-700 hover:text-white"
                   aria-label="Open settings"
                 >
                   <Settings className="w-5 h-5 mr-2" />

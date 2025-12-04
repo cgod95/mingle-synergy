@@ -223,6 +223,19 @@ class FirebaseVenueService implements VenueService {
         return cachedVenues.length > 0 ? cachedVenues : [];
       }
 
+      // Check authentication for better error messages
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) {
+        // User not authenticated - return cached venues if available
+        const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+        if (cachedVenues.length > 0) {
+          return cachedVenues;
+        }
+        // Return empty array - user needs to sign in
+        return [];
+      }
+
       const venuesCollectionRef = collection(firestore, 'venues');
       const querySnapshot = await getDocs(venuesCollectionRef);
       
@@ -234,8 +247,29 @@ class FirebaseVenueService implements VenueService {
       saveToStorage(CACHE_KEYS.VENUES, venues);
       
       return venues;
-    } catch (error) {
-      logError(error as Error, { source: 'venueService', action: 'getVenues' });
+    } catch (error: any) {
+      // Enhanced error logging with permission details
+      const errorCode = error?.code || '';
+      const errorMessage = error?.message || '';
+      
+      logError(error as Error, { 
+        source: 'venueService', 
+        action: 'getVenues',
+        errorCode,
+        errorMessage,
+        userId: getAuth().currentUser?.uid || 'unauthenticated'
+      });
+      
+      // Handle permission errors specifically
+      if (errorCode === 'permission-denied' || errorMessage.includes('permission')) {
+        // Permission denied - return cached venues if available
+        const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
+        if (cachedVenues.length > 0) {
+          return cachedVenues;
+        }
+        // Return empty array - user may need to sign in or check permissions
+        return [];
+      }
       
       // Fallback to cached data if available
       const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
