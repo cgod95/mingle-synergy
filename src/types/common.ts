@@ -99,7 +99,7 @@ export interface OnboardingStep {
   data?: OnboardingStepData;
 }
 
-export type OnboardingStepId = 'email' | 'profile' | 'photos' | 'preferences' | 'verification' | 'complete';
+export type OnboardingStepId = 'email' | 'profile' | 'photos' | 'verification' | 'complete';
 
 export interface OnboardingStepData {
   email?: string;

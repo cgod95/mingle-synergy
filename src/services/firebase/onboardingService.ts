@@ -6,7 +6,6 @@ import logger from '@/utils/Logger';
 export const ONBOARDING_STEPS = [
   'profile',
   'photos', 
-  'preferences',
   'complete'
 ] as const;
 

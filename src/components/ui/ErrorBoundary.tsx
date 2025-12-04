@@ -89,8 +89,6 @@ export class ErrorBoundary extends Component<Props, State> {
       const stepName = this.props.stepName;
       if (stepName === 'photo') {
         window.location.href = '/create-profile';
-      } else if (stepName === 'preferences') {
-        window.location.href = '/photo-upload';
       } else if (stepName === 'profile') {
         window.location.href = '/demo-welcome';
       } else {

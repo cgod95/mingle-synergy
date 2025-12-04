@@ -39,12 +39,11 @@ export const isOnboardingFullyComplete = (contextValue?: boolean): boolean => {
 
 export const getStepFromPath = (path: string): number => {
   if (path.includes("upload-photos")) return 1;
-  if (path.includes("preferences")) return 2;
   return 0;
 };
 
 export const getNextStepPath = (path: string): string => {
   const step = getStepFromPath(path);
-  const steps = ["/create-profile", "/upload-photos", "/preferences", "/venues"];
+  const steps = ["/create-profile", "/upload-photos", "/checkin"];
   return steps[Math.min(step + 1, steps.length - 1)];
 }; 

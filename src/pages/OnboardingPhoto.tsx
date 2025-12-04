@@ -27,7 +27,7 @@ export default function OnboardingPhoto() {
       if (currentStep === 'profile') {
         navigate('/create-profile');
       } else {
-        navigate('/preferences');
+        navigate('/checkin');
       }
     }
   }, [currentUser, navigate, getCurrentStep]);
@@ -50,7 +50,7 @@ export default function OnboardingPhoto() {
       });
       
       // Navigate to next step
-      navigate('/preferences');
+      navigate('/checkin');
     } catch (error) {
       logger.error('Photo upload failed', error);
       
@@ -72,7 +72,7 @@ export default function OnboardingPhoto() {
     try {
       // Complete step even if skipped
       await completeStep('photos');
-      navigate('/preferences');
+      navigate('/checkin');
     } catch (error) {
       logger.error('Failed to skip photo step', error);
     }

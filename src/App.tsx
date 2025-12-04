@@ -23,7 +23,6 @@ const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 const ProfileUpload = lazy(() => import("./pages/ProfileUpload"));
 const CreateProfile = lazy(() => import("./pages/CreateProfile"));
 const PhotoUpload = lazy(() => import("./pages/PhotoUpload"));
-const Preferences = lazy(() => import("./pages/Preferences"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Verification = lazy(() => import("./pages/Verification"));
