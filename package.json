@@ -59,7 +59,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
-    "firebase": "^10.8.0",
+    "firebase": "^12.6.0",
     "firebase-admin": "^13.4.0",
     "framer-motion": "12.23.24",
     "input-otp": "^1.2.4",
@@ -116,10 +116,17 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.21"
+    "vite": "^7.2.6"
   },
   "overrides": {
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "undici": "^6.21.2",
+    "glob": "^10.5.0",
+    "node-forge": "^1.3.2",
+    "js-yaml": "^4.1.1",
+    "body-parser": "^2.2.1",
+    "esbuild": "^0.25.0",
+    "@modelcontextprotocol/sdk": "^1.24.0"
   }
 }
