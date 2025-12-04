@@ -91,7 +91,17 @@ export default function CreateProfile() {
   }, [name, bio, gender, interestedIn, age]);
 
   const handleSubmit = async () => {
-    if (!auth.currentUser) return;
+    // Pre-flight checks
+    if (!auth.currentUser || !auth.currentUser.uid) {
+      setError('User not authenticated. Please sign in again.');
+      navigate('/signin');
+      return;
+    }
+    
+    if (!firestore) {
+      setError('Firebase is not initialized. Please refresh the page.');
+      return;
+    }
     
     // Validate bio length
     if (!bio.trim() || bio.trim().length < 10) {
@@ -193,7 +203,15 @@ export default function CreateProfile() {
       setOnboardingStepComplete('profile');
       localStorage.setItem('profileComplete', 'true');
       localStorage.setItem('onboarding_last_step', 'profile');
-      navigate('/photo-upload'); // Next step: photo upload
+      
+      // Navigate to next step with error handling
+      try {
+        navigate('/photo-upload'); // Next step: photo upload
+      } catch (navError) {
+        // If navigation fails, use window.location as fallback
+        logError(navError as Error, { source: 'CreateProfile', action: 'navigate', target: '/photo-upload' });
+        window.location.href = '/photo-upload';
+      }
     } catch (err: unknown) {
       // Enhanced error handling
       let errorMessage = 'Failed to save profile. Please try again.';

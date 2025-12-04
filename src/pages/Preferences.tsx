@@ -95,7 +95,16 @@ export default function Preferences() {
   }, [currentUser, toast]);
 
   const handleSubmit = async () => {
-    if (!currentUser?.uid) return;
+    // Pre-flight checks
+    if (!currentUser || !currentUser.uid) {
+      toast({
+        title: 'Authentication error',
+        description: 'Please sign in again.',
+        variant: 'destructive',
+      });
+      navigate('/signin');
+      return;
+    }
     
     // Validate age range
     if (minAge > maxAge) {
@@ -125,17 +134,41 @@ export default function Preferences() {
         interestedIn,
       };
 
+      // Always save to localStorage first (for demo mode fallback and offline support)
+      localStorage.setItem(`preferences_${currentUser.uid}`, JSON.stringify(updates));
+      
       if (config.DEMO_MODE) {
-        // Demo mode: save to localStorage
-        // Preferences updated in demo mode
-        localStorage.setItem(`preferences_${currentUser.uid}`, JSON.stringify(updates));
+        // Demo mode: localStorage is sufficient
       } else {
-        // Production: save to Firebase
-        await userService.updateUserProfile(currentUser.uid, updates);
+        // Production: save to Firebase with retry
+        try {
+          await userService.updateUserProfile(currentUser.uid, updates);
+        } catch (firebaseError) {
+          // If Firebase fails, log but continue (localStorage already saved)
+          logError(firebaseError as Error, { 
+            context: 'Preferences.handleSubmit', 
+            userId: currentUser.uid,
+            fallback: 'localStorage'
+          });
+          // Show warning but don't block completion
+          toast({
+            title: 'Saved locally',
+            description: 'Preferences saved to device. Some features may be limited until connection is restored.',
+            variant: 'default',
+          });
+        }
       }
       
-      // Mark preferences step as complete
-      await setOnboardingStepComplete('preferences');
+      // Mark preferences step as complete (even if Firebase failed, localStorage is saved)
+      try {
+        await setOnboardingStepComplete('preferences');
+      } catch (stepError) {
+        // If step completion fails, still mark in localStorage
+        logError(stepError as Error, { 
+          context: 'Preferences.setOnboardingStepComplete',
+          userId: currentUser.uid
+        });
+      }
       
       // Mark onboarding as complete in localStorage to prevent redirect loop
       localStorage.setItem('onboardingComplete', 'true');
@@ -155,12 +188,35 @@ export default function Preferences() {
       
       // Navigate to check-in immediately (no delay needed)
       // Use replace to prevent back button from going to preferences
-      navigate('/checkin', { replace: true });
+      try {
+        navigate('/checkin', { replace: true });
+      } catch (navError) {
+        // If navigation fails, use window.location as fallback
+        logError(navError as Error, { 
+          context: 'Preferences.navigate', 
+          target: '/checkin' 
+        });
+        window.location.href = '/checkin';
+      }
     } catch (error) {
       logError(error as Error, { context: 'Preferences.handleSubmit', userId: currentUser?.uid || 'unknown' });
+      
+      // Enhanced error handling
+      let errorMessage = 'Could not save preferences. Please try again.';
+      if (error instanceof Error) {
+        const errorCode = (error as any).code || '';
+        const errorMsg = error.message || '';
+        
+        if (errorCode === 'permission-denied' || errorMsg.includes('permission')) {
+          errorMessage = 'Permission denied. Please ensure you are signed in and try again.';
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          errorMessage = 'Network error. Preferences saved locally. Please check your connection.';
+        }
+      }
+      
       toast({
         title: 'Failed to save',
-        description: 'Could not save preferences. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

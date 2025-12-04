@@ -65,7 +65,8 @@ export default function PhotoUpload() {
   };
 
   const handleUpload = async () => {
-    if (!file || !currentUser) {
+    // Pre-flight checks
+    if (!file) {
       toast({
         title: 'No photo selected',
         description: 'Please select a photo to upload.',
@@ -74,11 +75,30 @@ export default function PhotoUpload() {
       return;
     }
 
-    // Re-check currentUser.uid before async operations (could become null during operation)
-    if (!currentUser?.uid) {
+    if (!currentUser || !currentUser.uid) {
       toast({
         title: 'Authentication error',
         description: 'Please sign in again.',
+        variant: 'destructive',
+      });
+      navigate('/signin');
+      return;
+    }
+
+    // Validate file before upload attempt
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please select an image smaller than 5MB.',
         variant: 'destructive',
       });
       return;
@@ -140,7 +160,16 @@ export default function PhotoUpload() {
 
       // Navigate to next step only after successful upload (with brief delay for UX)
       setTimeout(() => {
-        navigate(fromProfile ? '/profile' : '/preferences');
+        try {
+          navigate(fromProfile ? '/profile' : '/preferences');
+        } catch (navError) {
+          // If navigation fails, use window.location as fallback
+          logError(navError as Error, { 
+            context: 'PhotoUpload.navigate', 
+            target: fromProfile ? '/profile' : '/preferences' 
+          });
+          window.location.href = fromProfile ? '/profile' : '/preferences';
+        }
       }, 1000); // Reduced from 1500ms to 1000ms since upload is already complete
     } catch (error: any) {
       // Clear progress interval on error

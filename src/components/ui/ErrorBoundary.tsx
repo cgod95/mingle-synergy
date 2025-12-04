@@ -8,6 +8,9 @@ interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  stepName?: string; // For onboarding-specific error handling
+  onRetry?: () => void;
+  onGoBack?: () => void;
 }
 
 interface State {
@@ -57,6 +60,11 @@ export class ErrorBoundary extends Component<Props, State> {
   private handleRetry = () => {
     this.setState({ isRetrying: true });
     
+    // Call custom retry handler if provided
+    if (this.props.onRetry) {
+      this.props.onRetry();
+    }
+    
     // Reset error state
     setTimeout(() => {
       this.setState({
@@ -74,7 +82,21 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoBack = () => {
-    window.history.back();
+    if (this.props.onGoBack) {
+      this.props.onGoBack();
+    } else {
+      // Default: go back to previous onboarding step
+      const stepName = this.props.stepName;
+      if (stepName === 'photo') {
+        window.location.href = '/create-profile';
+      } else if (stepName === 'preferences') {
+        window.location.href = '/photo-upload';
+      } else if (stepName === 'profile') {
+        window.location.href = '/signin';
+      } else {
+        window.history.back();
+      }
+    }
   };
 
   public render() {
@@ -91,7 +113,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="w-8 h-8 text-red-400" />
               </div>
               <CardTitle className="text-xl text-white font-bold">
-                Oops! Something went wrong
+                {this.props.stepName ? `Error in ${this.props.stepName} step` : 'Oops! Something went wrong'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">

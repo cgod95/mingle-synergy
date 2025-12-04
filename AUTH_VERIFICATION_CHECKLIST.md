@@ -128,3 +128,6 @@ The sign-up and sign-in flows are properly implemented:
 4. All Firebase env vars are set in Vercel
 
 
+
+
+

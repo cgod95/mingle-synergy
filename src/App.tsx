@@ -78,10 +78,10 @@ function AppRoutes() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         {/* Onboarding routes - require auth but allow authenticated users */}
-        <Route path="/upload" element={<ProtectedRoute><ProfileUpload /></ProtectedRoute>} />
-        <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
-        <Route path="/photo-upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
-        <Route path="/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+        <Route path="/upload" element={<ProtectedRoute><ErrorBoundary stepName="upload"><ProfileUpload /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="/create-profile" element={<ProtectedRoute><ErrorBoundary stepName="profile"><CreateProfile /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="/photo-upload" element={<ProtectedRoute><ErrorBoundary stepName="photo"><PhotoUpload /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="/preferences" element={<ProtectedRoute><ErrorBoundary stepName="preferences"><Preferences /></ErrorBoundary></ProtectedRoute>} />
         {/* App shell */}
         <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
           <Route path="/checkin" element={<CheckInPage />} />

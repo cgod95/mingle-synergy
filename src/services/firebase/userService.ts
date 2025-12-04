@@ -41,14 +41,41 @@ class FirebaseUserService implements UserService {
   }
 
   async updateUserProfile(userId: string, updates: PartialUserProfile): Promise<void> {
+    if (!firestore) {
+      throw new Error('Firebase is not initialized. Please refresh the page.');
+    }
+    
+    if (!userId) {
+      throw new Error('User ID is required to update profile.');
+    }
+    
     try {
       const userRef = doc(firestore, 'users', userId);
       // Use setDoc with merge: true instead of updateDoc to handle cases where document doesn't exist yet
       // This ensures the document is created if it doesn't exist, or updated if it does
       await setDoc(userRef, updates, { merge: true });
-    } catch (error) {
-      logError(error as Error, { source: 'userService', action: 'updateUserProfile', userId });
-      throw new Error('Failed to update profile. Please try again.');
+    } catch (error: any) {
+      const errorCode = error?.code || '';
+      const errorMessage = error?.message || '';
+      
+      logError(error as Error, { 
+        source: 'userService', 
+        action: 'updateUserProfile', 
+        userId,
+        errorCode,
+        errorMessage
+      });
+      
+      // Provide specific error messages based on error type
+      if (errorCode === 'permission-denied') {
+        throw new Error('Permission denied. Please ensure you are signed in and try again.');
+      } else if (errorCode === 'unavailable' || errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        throw new Error('Network error. Please check your connection and try again.');
+      } else if (errorCode === 'deadline-exceeded' || errorMessage.includes('timeout')) {
+        throw new Error('Request timed out. Please try again.');
+      } else {
+        throw new Error('Failed to update profile. Please try again.');
+      }
     }
   }
 

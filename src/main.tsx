@@ -108,6 +108,27 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
     const errorObj = args[0] as Error;
     const errorStack = errorObj?.stack || '';
     
+    // NEVER suppress onboarding-related errors
+    const isOnboardingError = 
+      message.includes('onboarding') ||
+      message.includes('CreateProfile') ||
+      message.includes('PhotoUpload') ||
+      message.includes('Preferences') ||
+      message.includes('permission-denied') ||
+      message.includes('Permission denied') ||
+      stack.includes('CreateProfile') ||
+      stack.includes('PhotoUpload') ||
+      stack.includes('Preferences') ||
+      errorStack.includes('CreateProfile') ||
+      errorStack.includes('PhotoUpload') ||
+      errorStack.includes('Preferences');
+    
+    if (isOnboardingError) {
+      // Always log onboarding errors - they're critical
+      originalError.apply(console, args);
+      return;
+    }
+    
     // Suppress ALL React Error #300 messages in production (harmless when DevTools disabled)
     if (message.includes('Minified React error #300') || message.includes('React Error #300')) {
       return; // Completely suppress in production
@@ -138,6 +159,25 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
     const errorMessage = event.message || '';
     const errorSource = event.filename || '';
     const errorStack = event.error?.stack || '';
+    
+    // NEVER suppress onboarding-related errors
+    const isOnboardingError = 
+      errorMessage.includes('onboarding') ||
+      errorMessage.includes('CreateProfile') ||
+      errorMessage.includes('PhotoUpload') ||
+      errorMessage.includes('Preferences') ||
+      errorMessage.includes('permission-denied') ||
+      errorSource.includes('CreateProfile') ||
+      errorSource.includes('PhotoUpload') ||
+      errorSource.includes('Preferences') ||
+      errorStack.includes('CreateProfile') ||
+      errorStack.includes('PhotoUpload') ||
+      errorStack.includes('Preferences');
+    
+    if (isOnboardingError) {
+      // Always allow onboarding errors to propagate
+      return;
+    }
     
     // In production, suppress ALL React Error #300 messages (harmless when DevTools disabled)
     if (import.meta.env.PROD && errorMessage.includes('Minified React error #300')) {
@@ -172,6 +212,22 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
     const reason = event.reason;
     const errorMessage = reason?.message || String(reason || '');
     const errorStack = reason?.stack || '';
+    
+    // NEVER suppress onboarding-related errors
+    const isOnboardingError = 
+      errorMessage.includes('onboarding') ||
+      errorMessage.includes('CreateProfile') ||
+      errorMessage.includes('PhotoUpload') ||
+      errorMessage.includes('Preferences') ||
+      errorMessage.includes('permission-denied') ||
+      errorStack.includes('CreateProfile') ||
+      errorStack.includes('PhotoUpload') ||
+      errorStack.includes('Preferences');
+    
+    if (isOnboardingError) {
+      // Always allow onboarding errors to propagate
+      return;
+    }
     
     // In production, suppress ALL React Error #300 rejections
     if (import.meta.env.PROD && errorMessage.includes('Minified React error #300')) {
