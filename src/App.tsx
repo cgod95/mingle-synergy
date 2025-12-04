@@ -81,7 +81,6 @@ function AppRoutes() {
         <Route path="/upload" element={<ProtectedRoute><ErrorBoundary stepName="upload"><ProfileUpload /></ErrorBoundary></ProtectedRoute>} />
         <Route path="/create-profile" element={<ProtectedRoute><ErrorBoundary stepName="profile"><CreateProfile /></ErrorBoundary></ProtectedRoute>} />
         <Route path="/photo-upload" element={<ProtectedRoute><ErrorBoundary stepName="photo"><PhotoUpload /></ErrorBoundary></ProtectedRoute>} />
-        <Route path="/preferences" element={<ProtectedRoute><ErrorBoundary stepName="preferences"><Preferences /></ErrorBoundary></ProtectedRoute>} />
         {/* App shell */}
         <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
           <Route path="/checkin" element={<CheckInPage />} />
