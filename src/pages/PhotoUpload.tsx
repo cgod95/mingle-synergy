@@ -65,7 +65,8 @@ export default function PhotoUpload() {
   };
 
   const handleUpload = async () => {
-    if (!file || !currentUser) {
+    // Pre-flight checks
+    if (!file) {
       toast({
         title: 'No photo selected',
         description: 'Please select a photo to upload.',
@@ -74,11 +75,30 @@ export default function PhotoUpload() {
       return;
     }
 
-    // Re-check currentUser.uid before async operations (could become null during operation)
-    if (!currentUser?.uid) {
+    if (!currentUser || !currentUser.uid) {
       toast({
         title: 'Authentication error',
         description: 'Please sign in again.',
+        variant: 'destructive',
+      });
+      navigate('/signin');
+      return;
+    }
+
+    // Validate file before upload attempt
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please select an image smaller than 5MB.',
         variant: 'destructive',
       });
       return;
@@ -140,7 +160,16 @@ export default function PhotoUpload() {
 
       // Navigate to next step only after successful upload (with brief delay for UX)
       setTimeout(() => {
-        navigate(fromProfile ? '/profile' : '/preferences');
+        try {
+          navigate(fromProfile ? '/profile' : '/preferences');
+        } catch (navError) {
+          // If navigation fails, use window.location as fallback
+          logError(navError as Error, { 
+            context: 'PhotoUpload.navigate', 
+            target: fromProfile ? '/profile' : '/preferences' 
+          });
+          window.location.href = fromProfile ? '/profile' : '/preferences';
+        }
       }, 1000); // Reduced from 1500ms to 1000ms since upload is already complete
     } catch (error: any) {
       // Clear progress interval on error
@@ -188,8 +217,8 @@ export default function PhotoUpload() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-white flex flex-col justify-center p-4">
-        <Card className="w-full max-w-md mx-auto border-2 border-primary/20 bg-gradient-to-br from-white via-primary/5 to-primary/10 shadow-xl">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-background flex flex-col justify-center p-4">
+        <Card className="w-full max-w-md mx-auto border-2 border-primary/20 bg-gradient-to-br from-background via-primary/5 to-primary/10 shadow-xl">
           <CardHeader className="text-center space-y-2 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10 border-b border-primary/20">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
@@ -202,10 +231,10 @@ export default function PhotoUpload() {
               </div>
             </div>
             <CardTitle className="text-2xl bg-gradient-to-r from-primary via-primary/90 to-primary bg-clip-text text-transparent font-bold">
-              Take Your Selfie
+              Upload Your Photo
             </CardTitle>
             <p className="text-sm text-neutral-700">
-              Step 2 of 3: Take a selfie with your camera. This is required to use Mingle.
+              Step 2 of 3: Tip: Photos are used to help identify, not show off.
             </p>
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
@@ -294,27 +323,15 @@ export default function PhotoUpload() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <div className="flex space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/create-profile')}
-                  disabled={uploading || uploaded}
-                  className="flex-1 border-2 border-primary/20 hover:bg-primary/5"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-                {!preview && (
-                  <Button
-                    onClick={handleClickUpload}
-                    disabled={uploading}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Take Selfie
-                  </Button>
-                )}
-              </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/create-profile')}
+                disabled={uploading || uploaded}
+                className="w-full border-2 border-primary/20 hover:bg-primary/5"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
 
               {preview && !uploaded && (
                 <div className="flex space-x-3">
@@ -367,13 +384,6 @@ export default function PhotoUpload() {
               )}
             </div>
 
-            {/* Help Text */}
-            <div className="pt-4 border-t border-primary/20">
-              <p className="text-xs text-center text-neutral-500">
-                <strong>Take a selfie:</strong> Use your camera to take a clear photo where your face is visible. 
-                This helps others recognize you at venues.
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>

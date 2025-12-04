@@ -133,3 +133,6 @@ Since the script needs real Firebase credentials, **add the venue manually**:
 4. Verify Firestore rules are deployed
 
 
+
+
+

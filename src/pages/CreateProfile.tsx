@@ -91,11 +91,15 @@ export default function CreateProfile() {
   }, [name, bio, gender, interestedIn, age]);
 
   const handleSubmit = async () => {
-    if (!auth.currentUser) return;
+    // Pre-flight checks
+    if (!auth.currentUser || !auth.currentUser.uid) {
+      setError('User not authenticated. Please sign in again.');
+      navigate('/signin');
+      return;
+    }
     
-    // Validate bio length
-    if (!bio.trim() || bio.trim().length < 10) {
-      setError('Bio must be at least 10 characters long');
+    if (!firestore) {
+      setError('Firebase is not initialized. Please refresh the page.');
       return;
     }
     
@@ -193,7 +197,15 @@ export default function CreateProfile() {
       setOnboardingStepComplete('profile');
       localStorage.setItem('profileComplete', 'true');
       localStorage.setItem('onboarding_last_step', 'profile');
-      navigate('/photo-upload'); // Next step: photo upload
+      
+      // Navigate to next step with error handling
+      try {
+        navigate('/photo-upload'); // Next step: photo upload
+      } catch (navError) {
+        // If navigation fails, use window.location as fallback
+        logError(navError as Error, { source: 'CreateProfile', action: 'navigate', target: '/photo-upload' });
+        window.location.href = '/photo-upload';
+      }
     } catch (err: unknown) {
       // Enhanced error handling
       let errorMessage = 'Failed to save profile. Please try again.';
@@ -207,8 +219,6 @@ export default function CreateProfile() {
           logError(err, { source: 'CreateProfile', action: 'handleSubmit', errorCode });
         } else if (errorMsg.includes('network') || errorMsg.includes('fetch') || errorCode.includes('unavailable')) {
           errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (errorMsg.includes('bio') && errorMsg.includes('10')) {
-          errorMessage = 'Bio must be at least 10 characters long.';
         } else {
           errorMessage = errorMsg || 'Failed to save profile. Please try again.';
         }
@@ -328,7 +338,7 @@ export default function CreateProfile() {
                 required
               />
               <p className="text-xs text-neutral-500">
-                {bio.length}/200 characters {bio.length < 10 && '(minimum 10 characters required)'}
+                {bio.length}/200 characters
               </p>
             </div>
             <AnimatePresence>
@@ -365,7 +375,7 @@ export default function CreateProfile() {
                 onClick={handleSubmit}
                 loading={saving}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
-                disabled={!name.trim() || !bio.trim() || bio.trim().length < 10 || saving}
+                disabled={!name.trim() || saving}
               >
                 {saving ? (
                   <span className="flex items-center justify-center">
@@ -376,11 +386,6 @@ export default function CreateProfile() {
                 )}
               </Button>
             </div>
-            {bio.trim().length > 0 && bio.trim().length < 10 && (
-              <p className="text-xs text-red-500 text-center">
-                Bio must be at least 10 characters long
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>

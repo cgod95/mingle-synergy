@@ -203,6 +203,8 @@ class FirebaseVenueService implements VenueService {
       return [...mockVenues].sort((a, b) => a.id.localeCompare(b.id));
     }
 
+    // Production mode - get from Firestore only (no demo venues)
+    // For closed beta, will only show Scarlet Weasel venue
     try {
       // Check network status first
       if (!isOnline()) {
@@ -210,12 +212,15 @@ class FirebaseVenueService implements VenueService {
         if (cachedVenues.length > 0) {
           return cachedVenues;
         }
+        // In production, return empty array if offline (no demo fallback)
+        return [];
       }
 
       // Check if firestore is available before using collection
       if (!firestore) {
         const cachedVenues = getFromStorage<Venue[]>(CACHE_KEYS.VENUES, []);
-        return cachedVenues.length > 0 ? cachedVenues : mockVenues;
+        // In production, return cached venues or empty array (no demo fallback)
+        return cachedVenues.length > 0 ? cachedVenues : [];
       }
 
       const venuesCollectionRef = collection(firestore, 'venues');

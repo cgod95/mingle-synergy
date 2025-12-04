@@ -28,7 +28,16 @@ export const logError = (
   appError.context = context.source as string || 'unknown';
   appError.severity = severity;
   appError.timestamp = Date.now();
-  appError.metadata = context;
+  
+  // Add onboarding context if available
+  const onboardingContext: Record<string, string | number | boolean> = {};
+  if (context.stepName || context.context?.includes('onboarding') || context.context?.includes('CreateProfile') || context.context?.includes('PhotoUpload') || context.context?.includes('Preferences')) {
+    onboardingContext.isOnboarding = true;
+    onboardingContext.stepName = context.stepName as string || context.context as string || 'unknown';
+    onboardingContext.onboardingPath = window.location.pathname;
+  }
+  
+  appError.metadata = { ...context, ...onboardingContext };
   
   // Always log to console with formatted details
   console.error(
@@ -37,7 +46,8 @@ export const logError = (
       stack: error.stack, 
       code: appError.code,
       context: appError.context,
-      ...context
+      ...context,
+      ...onboardingContext
     }
   );
   

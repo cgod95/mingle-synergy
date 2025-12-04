@@ -133,8 +133,8 @@ export default function ProfileEdit() {
       clearInterval(progressInterval);
       setUploadProgress(100);
       
-      // Add photo to photos array
-      setPhotos([...photos, photoUrl]);
+      // Replace photo (only one photo allowed)
+      setPhotos([photoUrl]);
       setFile(null);
       setPreview(null);
       if (fileInputRef.current) {
@@ -245,27 +245,25 @@ export default function ProfileEdit() {
             <CardContent className="space-y-6 pt-6">
             {/* Photo Upload Section */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-white">Profile Photos</label>
+              <label className="block text-sm font-medium text-white">Profile Photo</label>
               
-              {/* Existing Photos */}
-              {photos.length > 0 && (
-                <div className="grid grid-cols-3 gap-3 mb-3">
-                  {photos.map((photo, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={photo}
-                        alt={`Profile ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border-2 border-neutral-600"
-                      />
-                      <button
-                        onClick={() => handleRemoveExistingPhoto(index)}
-                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Remove photo"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+              {/* Existing Photo */}
+              {photos.length > 0 && photos[0] && (
+                <div className="mb-3">
+                  <div className="relative group">
+                    <img
+                      src={photos[0]}
+                      alt="Profile"
+                      className="w-full h-64 object-cover rounded-lg border-2 border-neutral-600"
+                    />
+                    <button
+                      onClick={() => handleRemoveExistingPhoto(0)}
+                      className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Remove photo"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
               
@@ -291,7 +289,7 @@ export default function ProfileEdit() {
                       <div className="space-y-2">
                         <div className="w-full bg-neutral-600 rounded-full h-2">
                           <div
-                            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
                             style={{ width: `${uploadProgress}%` }}
                           />
                         </div>
@@ -301,7 +299,7 @@ export default function ProfileEdit() {
                     <Button
                       onClick={handleUploadPhoto}
                       disabled={uploading}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       {uploading ? (
                         <span className="flex items-center justify-center">

@@ -13,13 +13,13 @@
           delete window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
         } catch (e) {}
         
-        // Create immutable base hook object
-        const baseHook = Object.freeze({
+        // Create base hook object (NOT frozen - extensible target required for Proxy ownKeys)
+        const baseHook = {
           isDisabled: true,
           renderers: new Map(),
           supportsFiber: false,
           _listeners: [],
-        });
+        };
         
         // Create ultra-aggressive Proxy that completely blocks DevTools
         const disabledHook = new Proxy(baseHook, {
@@ -83,7 +83,14 @@
         });
         
         // Freeze the Proxy itself to make it completely immutable
-        const frozenHook = Object.freeze(disabledHook);
+        // Safe because target was extensible when Proxy was created
+        let frozenHook;
+        try {
+          frozenHook = Object.freeze(disabledHook);
+        } catch (e) {
+          // If freeze fails, use the Proxy as-is (still protected by Proxy traps)
+          frozenHook = disabledHook;
+        }
         
         // Set hook using defineProperty with maximum protection
         try {

@@ -165,8 +165,22 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
   }, []);
 
   const setOnboardingStepComplete = async (step: keyof OnboardingProgress) => {
+    // Prevent operations during loading
+    if (isLoading) {
+      console.warn('Cannot complete step while loading onboarding progress');
+      return;
+    }
+
     const updatedProgress = { ...onboardingProgress, [step]: true };
     setOnboardingProgress(updatedProgress);
+
+    // Always save to localStorage first (for offline support and demo mode)
+    try {
+      localStorage.setItem('onboardingProgress', JSON.stringify(updatedProgress));
+    } catch (localStorageError) {
+      console.error('Error saving to localStorage:', localStorageError);
+      // Continue even if localStorage fails
+    }
 
     // Save to Firebase if in production mode and not a demo user
     if (!config.DEMO_MODE && currentUser?.uid && !currentUser?.id?.startsWith('demo_')) {
@@ -179,16 +193,33 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
           // Check if all steps are complete and sync with user profile
           const allComplete = Object.values(updatedProgress).every(Boolean);
           if (allComplete) {
-            await onboardingService.syncWithUserProfile(currentUser.uid);
+            try {
+              await onboardingService.syncWithUserProfile(currentUser.uid);
+            } catch (syncError) {
+              // Log sync error but don't block completion (localStorage already saved)
+              console.error('Error syncing with user profile:', syncError);
+            }
             // Mark as complete in localStorage to prevent redirect loops
             localStorage.setItem('onboardingComplete', 'true');
             localStorage.setItem('profileComplete', 'true');
           }
         } catch (error) {
           console.error('Error saving step to Firebase:', error);
-          // Revert on error
-          setOnboardingProgress(onboardingProgress);
-          throw error; // Re-throw so caller can handle
+          // Don't revert state - localStorage is already saved
+          // Only revert if it's a critical error (not network/permission)
+          const errorCode = (error as any)?.code || '';
+          const errorMessage = (error as any)?.message || '';
+          
+          // Only revert for critical errors (not network/permission errors)
+          if (!errorCode.includes('unavailable') && 
+              !errorCode.includes('permission-denied') &&
+              !errorMessage.includes('network') &&
+              !errorMessage.includes('fetch')) {
+            // Revert on critical error
+            setOnboardingProgress(onboardingProgress);
+          }
+          // Re-throw so caller can handle (but localStorage is already saved)
+          throw error;
         }
       }
     } else {
