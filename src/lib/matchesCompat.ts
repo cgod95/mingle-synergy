@@ -1,6 +1,7 @@
 import { getPerson } from './demoPeople';
 import { listMatches } from './likesStore';
 import { ensureChat } from './chatStore';
+import config from '@/config';
 
 export type Match = {
   id: string;
@@ -63,8 +64,8 @@ function seedIfNeeded(userId: string) {
     };
   });
   
-  // If no matches from likesStore, seed some demo matches
-  if (matchesFromLikes.length === 0 && !DEMO[userId]?.length) {
+  // If no matches from likesStore, seed some demo matches (only in demo mode)
+  if (config.DEMO_MODE && matchesFromLikes.length === 0 && !DEMO[userId]?.length) {
     DEMO[userId] = [
       {
         id: "mx_1",

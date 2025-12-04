@@ -103,12 +103,6 @@ export default function CreateProfile() {
       return;
     }
     
-    // Validate bio length
-    if (!bio.trim() || bio.trim().length < 10) {
-      setError('Bio must be at least 10 characters long');
-      return;
-    }
-    
     // Convert interestedIn from "everyone" to array
     let interestedInArray: ('male' | 'female' | 'non-binary' | 'other')[] = [];
     if (interestedIn === 'everyone') {
@@ -225,8 +219,6 @@ export default function CreateProfile() {
           logError(err, { source: 'CreateProfile', action: 'handleSubmit', errorCode });
         } else if (errorMsg.includes('network') || errorMsg.includes('fetch') || errorCode.includes('unavailable')) {
           errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (errorMsg.includes('bio') && errorMsg.includes('10')) {
-          errorMessage = 'Bio must be at least 10 characters long.';
         } else {
           errorMessage = errorMsg || 'Failed to save profile. Please try again.';
         }
@@ -346,7 +338,7 @@ export default function CreateProfile() {
                 required
               />
               <p className="text-xs text-neutral-500">
-                {bio.length}/200 characters {bio.length < 10 && '(minimum 10 characters required)'}
+                {bio.length}/200 characters
               </p>
             </div>
             <AnimatePresence>
@@ -383,7 +375,7 @@ export default function CreateProfile() {
                 onClick={handleSubmit}
                 loading={saving}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
-                disabled={!name.trim() || !bio.trim() || bio.trim().length < 10 || saving}
+                disabled={!name.trim() || saving}
               >
                 {saving ? (
                   <span className="flex items-center justify-center">
@@ -394,11 +386,6 @@ export default function CreateProfile() {
                 )}
               </Button>
             </div>
-            {bio.trim().length > 0 && bio.trim().length < 10 && (
-              <p className="text-xs text-red-500 text-center">
-                Bio must be at least 10 characters long
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
