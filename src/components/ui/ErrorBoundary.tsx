@@ -92,7 +92,7 @@ export class ErrorBoundary extends Component<Props, State> {
       } else if (stepName === 'preferences') {
         window.location.href = '/photo-upload';
       } else if (stepName === 'profile') {
-        window.location.href = '/signin';
+        window.location.href = '/demo-welcome';
       } else {
         window.history.back();
       }

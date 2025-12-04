@@ -37,15 +37,18 @@ export default function DemoWelcome() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <p className="text-sm text-neutral-300 mb-4">
+                  Mingle is a meeting app that encourages introductions and gets people meeting face-to-face. Less time spent on screens, more time connecting in person. Unlike dating apps that keep you swiping endlessly, Mingle helps you discover who's at the places you already love—then make the move to say hello.
+                </p>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
                       <MapPin className="w-6 h-6 text-indigo-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white mb-1">Real places, real people</h3>
+                      <h3 className="font-semibold text-white mb-1">Actual venues, genuine connections</h3>
                       <p className="text-sm text-neutral-300">
-                        Connect at venues you already visit
+                        Connect at places you already visit
                       </p>
                     </div>
                   </div>
@@ -69,7 +72,7 @@ export default function DemoWelcome() {
                     <div>
                       <h3 className="font-semibold text-white mb-1">Serendipity over algorithms</h3>
                       <p className="text-sm text-neutral-300">
-                        Best connections happen in real places
+                        Best connections happen in physical places
                       </p>
                     </div>
                   </div>
@@ -92,7 +95,7 @@ export default function DemoWelcome() {
               <CardContent className="space-y-4">
                 <div className="mb-4 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700/50">
                   <p className="text-sm text-neutral-200 text-center font-medium">
-                    Real venues • Real users • Real connections
+                    Live venues • Authentic users • Physical connections
                   </p>
                 </div>
                 <div className="space-y-4">
@@ -115,7 +118,7 @@ export default function DemoWelcome() {
                     <div>
                       <h3 className="font-semibold text-white mb-1">Populated Venues</h3>
                       <p className="text-sm text-neutral-300">
-                        Real venues with active users
+                        Actual venues with active users
                       </p>
                     </div>
                   </div>
@@ -125,15 +128,15 @@ export default function DemoWelcome() {
                       <MessageCircle className="w-6 h-6 text-indigo-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white mb-1">Real Conversations</h3>
+                      <h3 className="font-semibold text-white mb-1">In-person Conversations</h3>
                       <p className="text-sm text-neutral-300">
-                        See how people connect in person
+                        See how people connect face-to-face
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-4 flex justify-center">
                   <Button
                     onClick={handleGetStarted}
                     className="w-full md:w-auto md:min-w-[200px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg"

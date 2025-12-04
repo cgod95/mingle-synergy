@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '@/components/Layout';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function SignIn() {
   const { signInUser } = useAuth();
@@ -48,17 +49,27 @@ export default function SignIn() {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-neutral-900 flex items-center justify-center px-4 py-12">
+    <Layout showBottomNav={false}>
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-neutral-900 flex flex-col items-center justify-center px-4 py-12">
+        <MingleHeader />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="w-full max-w-sm"
+          className="w-full max-w-sm mt-8"
         >
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
-            <CardHeader className="text-center space-y-2 pb-6">
-              <CardTitle className="text-2xl font-bold text-white">Welcome back</CardTitle>
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-primary/10 shadow-xl">
+            <CardHeader className="text-center space-y-2 pb-6 relative">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/demo-welcome')}
+                className="absolute top-0 left-0 text-neutral-300 hover:text-white"
+                size="sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary bg-clip-text text-transparent">Welcome back</CardTitle>
               <p className="text-sm text-neutral-400">Sign in to continue</p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -100,7 +111,7 @@ export default function SignIn() {
                 )}
             <Button 
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary hover:from-primary/90 hover:via-primary hover:to-primary/90 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={busy || !email.trim() || !password.trim()}
             >
               {busy ? (

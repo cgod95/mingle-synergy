@@ -25,7 +25,6 @@ const interestedInOptions = [
 
 export default function CreateProfile() {
   const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
   const [gender, setGender] = useState('other');
   const [interestedIn, setInterestedIn] = useState<string>('everyone');
   const [age, setAge] = useState(25);
@@ -67,7 +66,6 @@ export default function CreateProfile() {
       if (saved) {
         const draft = JSON.parse(saved);
         setName(draft.name || '');
-        setBio(draft.bio || '');
         setGender(draft.gender || 'other');
         setInterestedIn(draft.interestedIn || 'everyone');
         setAge(draft.age || 25);
@@ -79,16 +77,15 @@ export default function CreateProfile() {
 
   // Save draft to localStorage as user types (for resume capability)
   useEffect(() => {
-    if (name || bio) {
+    if (name) {
       localStorage.setItem('onboarding_profile_draft', JSON.stringify({
         name,
-        bio,
         gender,
         interestedIn,
         age,
       }));
     }
-  }, [name, bio, gender, interestedIn, age]);
+  }, [name, gender, interestedIn, age]);
 
   const handleSubmit = async () => {
     // Pre-flight checks
@@ -116,11 +113,10 @@ export default function CreateProfile() {
     setRetryCount(0);
     
     try {
-      const profileData = {
-        id: auth.currentUser.uid,
-        name,
-        bio: bio.trim(),
-        photos: [],
+        const profileData = {
+          id: auth.currentUser.uid,
+          name,
+          photos: [],
         isCheckedIn: false,
         isVisible: true,
         interests: [],
@@ -186,13 +182,11 @@ export default function CreateProfile() {
       localStorage.removeItem('onboarding_profile_draft');
       
       // Track onboarding step completion
-      analytics.track('onboarding_step_completed', {
-        step: 'profile',
-        step_number: 1,
-        has_bio: true,
-        bio_length: bio.trim().length,
-        retry_count: retryCount,
-      });
+        analytics.track('onboarding_step_completed', {
+          step: 'profile',
+          step_number: 1,
+          retry_count: retryCount,
+        });
       
       setOnboardingStepComplete('profile');
       localStorage.setItem('profileComplete', 'true');
@@ -234,10 +228,10 @@ export default function CreateProfile() {
   if (!isReady) {
     return (
       <Layout showBottomNav={false}>
-        <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-neutral-900 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-neutral-600">Loading...</p>
-            {error && <p className="text-red-600 mt-2">{error}</p>}
+            <p className="text-neutral-300">Loading...</p>
+            {error && <p className="text-red-400 mt-2">{error}</p>}
           </div>
         </div>
       </Layout>
@@ -246,8 +240,8 @@ export default function CreateProfile() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-2 border-primary/20 bg-gradient-to-br from-background via-primary/5 to-primary/10 shadow-xl">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-neutral-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-primary/10 shadow-xl">
           <CardHeader className="text-center space-y-2 border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
@@ -259,14 +253,14 @@ export default function CreateProfile() {
                 <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-semibold">3</div>
               </div>
             </div>
-            <CardTitle className="text-heading-2">
+            <CardTitle className="text-2xl bg-gradient-to-r from-primary via-primary/90 to-primary bg-clip-text text-transparent font-bold">
               Create Profile
             </CardTitle>
-            <p className="text-sm text-neutral-700">Step 1 of 3: Tell us about you</p>
+            <p className="text-sm text-neutral-300">Step 1 of 3: Tell us about you</p>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-900">Your name</label>
+              <label className="block text-sm font-medium text-white">Your name</label>
               <Input 
                 placeholder="Enter your name" 
                 value={name} 
@@ -275,7 +269,7 @@ export default function CreateProfile() {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-900">Your age</label>
+              <label className="block text-sm font-medium text-white">Your age</label>
               <Select value={age.toString()} onValueChange={(v) => setAge(Number(v))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -291,7 +285,7 @@ export default function CreateProfile() {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-900">Gender</label>
+              <label className="block text-sm font-medium text-white">Gender</label>
               <Select value={gender} onValueChange={setGender}>
                 <SelectTrigger>
                   <SelectValue />
@@ -307,7 +301,7 @@ export default function CreateProfile() {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-900">Interested in</label>
+              <label className="block text-sm font-medium text-white">Interested in</label>
               <Select 
                 value={interestedIn} 
                 onValueChange={setInterestedIn}
@@ -324,37 +318,20 @@ export default function CreateProfile() {
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-900">
-                Short bio <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                className="w-full min-h-[100px] px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:border-primary transition-all resize-none"
-                placeholder="Tell us about yourself (e.g., interests, what you're looking for, etc.)"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                maxLength={200}
-                required
-              />
-              <p className="text-xs text-neutral-500">
-                {bio.length}/200 characters
-              </p>
-            </div>
             <AnimatePresence>
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="p-3 bg-red-50 border border-red-200 rounded-lg"
+                  className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg"
                 >
-                  <p className="text-sm text-red-600 mb-2">{error}</p>
+                  <p className="text-sm text-red-400 mb-2">{error}</p>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleSubmit}
-                    className="w-full border-red-300 text-red-700 hover:bg-red-100"
+                    className="w-full border-red-700/50 text-red-400 hover:bg-red-900/20"
                   >
                     Retry
                   </Button>
@@ -366,7 +343,7 @@ export default function CreateProfile() {
               <Button
                 variant="outline"
                 onClick={() => navigate('/signup')}
-                className="flex-1 border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
+                className="flex-1 border-2 border-primary/20 hover:bg-primary/10 text-neutral-300 hover:text-white"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
@@ -374,7 +351,7 @@ export default function CreateProfile() {
               <Button
                 onClick={handleSubmit}
                 loading={saving}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-md"
+                className="flex-1 bg-gradient-to-r from-primary via-primary/90 to-primary hover:from-primary/90 hover:via-primary hover:to-primary/90 text-white font-semibold shadow-md"
                 disabled={!name.trim() || saving}
               >
                 {saving ? (
