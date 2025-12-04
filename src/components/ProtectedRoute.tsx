@@ -13,7 +13,6 @@ interface RouteWrapperProps {
 const STEP_TO_PATH: Record<string, string> = {
   profile: '/create-profile',
   photo: '/photo-upload',
-  preferences: '/preferences',
   email: '/signin', // Email is handled via auth
 };
 
@@ -52,7 +51,6 @@ const ProtectedRoute: React.FC<RouteWrapperProps> = ({ children }) => {
       const isOnOnboardingPage = 
         location.pathname.startsWith('/create-profile') || 
         location.pathname.startsWith('/photo-upload') || 
-        location.pathname.startsWith('/preferences') ||
         location.pathname.startsWith('/upload');
       
       if (!isOnOnboardingPage) {

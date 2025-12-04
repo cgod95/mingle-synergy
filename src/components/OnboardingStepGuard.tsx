@@ -12,7 +12,6 @@ interface OnboardingStepGuardProps {
 const stepToPath: Record<OnboardingStepId, string> = {
   profile: '/create-profile',
   photos: '/photo-upload',
-  preferences: '/preferences',
   complete: '/checkin',
 };
 

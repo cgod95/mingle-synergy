@@ -50,7 +50,7 @@ export default function SignIn() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-neutral-900 flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center px-4 py-12">
         <MingleHeader />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -58,7 +58,7 @@ export default function SignIn() {
           transition={{ duration: 0.2 }}
           className="w-full max-w-sm mt-8"
         >
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-primary/10 shadow-xl">
+          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
             <CardHeader className="text-center space-y-2 pb-6 relative">
               <Button
                 variant="ghost"

@@ -10,14 +10,12 @@ export type OnboardingProgress = {
   email: boolean;
   profile: boolean;
   photo: boolean;
-  preferences: boolean;
 };
 
 const defaultProgress: OnboardingProgress = {
   email: false,
   profile: false,
   photo: false,
-  preferences: false,
 };
 
 // Map Firebase step IDs to our simple boolean progress keys
@@ -25,7 +23,6 @@ const KEY_TO_STEP: Record<keyof OnboardingProgress, OnboardingStepId | null> = {
   email: null, // Email is handled separately (auth)
   profile: 'profile',
   photo: 'photos',
-  preferences: 'preferences',
 };
 
 type OnboardingContextType = {
@@ -74,7 +71,6 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
           email: true,
           profile: true,
           photo: true,
-          preferences: true,
         };
         setOnboardingProgress(demoProgress);
         try {
@@ -107,7 +103,6 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
           email: true, // Assume email is done if user is authenticated
           profile: firebaseProgress.steps?.profile?.completed || false,
           photo: firebaseProgress.steps?.photos?.completed || false,
-          preferences: firebaseProgress.steps?.preferences?.completed || false,
         };
 
         setOnboardingProgress(convertedProgress);
@@ -306,7 +301,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
 
   const prevStep = () => {
     // Simple implementation - go back to previous incomplete step
-    const steps: (keyof OnboardingProgress)[] = ['email', 'profile', 'photo', 'preferences'];
+    const steps: (keyof OnboardingProgress)[] = ['email', 'profile', 'photo'];
     const currentIndex = steps.findIndex(step => !onboardingProgress[step]);
     if (currentIndex > 0) {
       // Reset current step and previous step

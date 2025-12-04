@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
-import { Heart, MapPin, MessageCircle, Zap } from 'lucide-react';
+import { MessageCircle, Zap } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function DemoWelcome() {
@@ -38,45 +38,8 @@ export default function DemoWelcome() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-neutral-300 mb-4">
-                  Mingle is a meeting app that encourages introductions and gets people meeting face-to-face. Less time spent on screens, more time connecting in person. Unlike dating apps that keep you swiping endlessly, Mingle helps you discover who's at the places you already love—then make the move to say hello.
+                  Mingle is a meeting app that encourages introductions and gets people meeting face-to-face. Less time spent on screens, more time connecting in person.
                 </p>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-indigo-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-white mb-1">Actual venues, genuine connections</h3>
-                      <p className="text-sm text-neutral-300">
-                        Connect at places you already visit
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
-                      <Zap className="w-6 h-6 text-indigo-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-white mb-1">Location unlocks everything</h3>
-                      <p className="text-sm text-neutral-300">
-                        Check in. See who's here. Meet up.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
-                      <Heart className="w-6 h-6 text-indigo-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-white mb-1">Serendipity over algorithms</h3>
-                      <p className="text-sm text-neutral-300">
-                        Best connections happen in physical places
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>

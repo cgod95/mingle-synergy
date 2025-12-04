@@ -228,7 +228,7 @@ export default function CreateProfile() {
   if (!isReady) {
     return (
       <Layout showBottomNav={false}>
-        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-neutral-900 flex items-center justify-center">
+        <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
           <div className="text-center">
             <p className="text-neutral-300">Loading...</p>
             {error && <p className="text-red-400 mt-2">{error}</p>}
@@ -240,8 +240,8 @@ export default function CreateProfile() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-neutral-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-primary/10 shadow-xl">
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-2 border-neutral-700 bg-neutral-800 shadow-xl">
           <CardHeader className="text-center space-y-2 border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">

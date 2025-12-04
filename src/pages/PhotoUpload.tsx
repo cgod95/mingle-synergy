@@ -166,9 +166,9 @@ export default function PhotoUpload() {
           // If navigation fails, use window.location as fallback
           logError(navError as Error, { 
             context: 'PhotoUpload.navigate', 
-            target: fromProfile ? '/profile' : '/preferences' 
+            target: fromProfile ? '/profile' : '/checkin' 
           });
-          window.location.href = fromProfile ? '/profile' : '/preferences';
+          window.location.href = fromProfile ? '/profile' : '/checkin';
         }
       }, 1000); // Reduced from 1500ms to 1000ms since upload is already complete
     } catch (error: any) {
@@ -217,9 +217,9 @@ export default function PhotoUpload() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-neutral-900 flex flex-col justify-center p-4">
-        <Card className="w-full max-w-md mx-auto border-2 border-primary/20 bg-gradient-to-br from-neutral-800 via-primary/5 to-primary/10 shadow-xl">
-          <CardHeader className="text-center space-y-2 bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10 border-b border-primary/20">
+      <div className="min-h-screen bg-neutral-900 flex flex-col justify-center p-4">
+        <Card className="w-full max-w-md mx-auto border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+          <CardHeader className="text-center space-y-2 border-b border-neutral-700">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">

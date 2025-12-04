@@ -16,7 +16,7 @@ const BottomNav: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Hide bottom nav during onboarding (except demo mode)
-  // Show after profile, photo, and preferences are complete
+  // Show after profile and photo are complete
   // Use localStorage flag as primary check since it's set immediately when onboarding completes
   // Don't hide if still loading onboarding state
   if (isLoading && !config.DEMO_MODE) {
@@ -25,8 +25,7 @@ const BottomNav: React.FC = () => {
   
   const localStorageComplete = localStorage.getItem('onboardingComplete') === 'true';
   const allStepsComplete = onboardingProgress.profile && 
-                           onboardingProgress.photo && 
-                           onboardingProgress.preferences;
+                           onboardingProgress.photo;
   
   const shouldShow = config.DEMO_MODE || localStorageComplete || (
     allStepsComplete && 
