@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npx --package=typescript tsc -b --noEmit || vite build",
+    "build:production": "vite build",
     "build:verify": "npm run build && node scripts/verify-react-instances.js",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
