@@ -351,3 +351,9 @@ For each page, ensure:
 - White/neutral text colors for readability on dark backgrounds
 - Consistent spacing and typography throughout
 
+
+
+
+
+
+
