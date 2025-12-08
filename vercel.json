@@ -56,6 +56,6 @@
       "NODE_ENV": "production"
     }
   },
-  "installCommand": "rm -rf node_modules node_modules/.cache .next .vercel && npm ci && npm install @rollup/rollup-linux-x64-gnu@4.52.5 --save-optional --no-save || true",
+  "installCommand": "rm -rf node_modules node_modules/.cache .next .vercel && NODE_ENV= npm ci && npm install @rollup/rollup-linux-x64-gnu@4.52.5 --save-optional --no-save || true",
   "buildCommand": "FORCE_REBUILD=$(date +%s) npm run build"
 }
