@@ -3,6 +3,8 @@
 // import { firestore } from '@/firebase/config';
 import { analytics } from './analytics';
 import { advancedFeatures } from './advancedFeatures';
+import logger from '@/utils/Logger';
+import { logError } from '@/utils/errorHandler';
 
 // Enhanced notification service for Mingle's unique features
 export interface NotificationData {
@@ -74,14 +76,17 @@ class NotificationService {
     try {
       localStorage.setItem('mingle_notification_permission', this.permission);
     } catch (error) {
-      console.error('Failed to save notification permission:', error);
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        source: 'NotificationService',
+        action: 'savePermission'
+      });
     }
   }
 
   // Initialize push notifications
   private async initializePushNotifications(): Promise<void> {
     if (!this.isSupported) {
-      console.warn('Push notifications not supported');
+      logger.warn('Push notifications not supported');
       return;
     }
 
@@ -109,7 +114,10 @@ class NotificationService {
       
       return permission;
     } catch (error) {
-      console.error('Failed to request notification permission:', error);
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        source: 'NotificationService',
+        action: 'requestPermission'
+      });
       return 'denied';
     }
   }
@@ -201,7 +209,10 @@ class NotificationService {
 
       return id;
     } catch (error) {
-      console.error('Failed to send local notification:', error);
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        source: 'NotificationService',
+        action: 'sendLocalNotification'
+      });
       return '';
     }
   }
@@ -475,7 +486,10 @@ class NotificationService {
       
       return permission;
     } catch (error) {
-      console.error('Failed to request notification permission:', error);
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        source: 'NotificationService',
+        action: 'requestPermission'
+      });
       return 'denied';
     }
   }

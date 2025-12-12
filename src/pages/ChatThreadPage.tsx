@@ -11,6 +11,7 @@ import { mockMatches } from "@/data/mock";
 import { mockUsers } from "@/data/mock";
 import { mockMessages } from "@/data/mock";
 import Layout from "@/components/Layout";
+import { logError } from "@/utils/errorHandler";
 
 export default function ChatThreadPage() {
   const { matchId } = useParams();
@@ -29,7 +30,11 @@ export default function ChatThreadPage() {
         // Find match in mock data
         const matchData = mockMatches.find(m => m.id === matchId);
         if (!matchData) {
-          console.error("Match not found");
+          logError(new Error("Match not found"), {
+            source: 'ChatThreadPage',
+            action: 'loadChatData',
+            matchId: matchId || 'unknown'
+          });
           setLoading(false);
           return;
         }
@@ -50,7 +55,11 @@ export default function ChatThreadPage() {
         
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching chat data:", error);
+        logError(error instanceof Error ? error : new Error(String(error)), {
+          source: 'ChatThreadPage',
+          action: 'loadChatData',
+          matchId: matchId || 'unknown'
+        });
         setLoading(false);
       }
     };
