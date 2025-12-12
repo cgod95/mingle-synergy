@@ -133,7 +133,10 @@ class NotificationService {
         });
       }
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        source: 'NotificationService',
+        action: 'subscribeToPushNotifications'
+      });
     }
   }
 
