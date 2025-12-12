@@ -110,17 +110,29 @@ export default function VenueDetails() {
           q,
           (snapshot) => {
             // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:104',message:'onSnapshot success',data:{docCount:snapshot.docs.length,venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:112',message:'onSnapshot success',data:{docCount:snapshot.docs.length,venueId:id,currentUserId:currentUser?.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
             // #endregion
             
-            const users = snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            } as any));
+            const users = snapshot.docs.map(doc => {
+              const data = doc.data();
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:116',message:'user doc data',data:{userId:doc.id,currentVenue:data.currentVenue,isVisible:data.isVisible,venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+              // #endregion
+              return {
+                id: doc.id,
+                ...data
+              } as any;
+            });
             
             // Transform UserProfile[] to Person[] format
             const transformedPeople: any[] = users
-              .filter(user => user.id !== currentUser?.uid) // Exclude current user
+              .filter(user => {
+                const exclude = user.id === currentUser?.uid;
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:123',message:'filtering user',data:{userId:user.id,exclude,currentUserId:currentUser?.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+                // #endregion
+                return !exclude;
+              }) // Exclude current user
               .map(user => ({
                 id: user.id,
                 name: user.name || user.displayName || 'Unknown',
@@ -132,6 +144,11 @@ export default function VenueDetails() {
                 lastActive: user.lastActive || Date.now(),
                 checkedInAt: user.checkInTime
               }));
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:135',message:'setting people',data:{peopleCount:transformedPeople.length,venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+            // #endregion
+            
             setPeople(transformedPeople);
             setLoadingPeople(false);
           },

@@ -327,8 +327,15 @@ class FirebaseVenueService implements VenueService {
 
   async checkInToVenue(userId: string, venueId: string): Promise<void> {
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'venueService.ts:328',message:'checkInToVenue called',data:{userId,venueId,demoMode:config.DEMO_MODE,hasFirestore:!!firestore},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+      
       // In demo mode, just return without Firebase operations
       if (!firestore || config.DEMO_MODE) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'venueService.ts:332',message:'checkInToVenue skipped',data:{reason:!firestore?'no firestore':'demo mode'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
         return;
       }
       
@@ -342,6 +349,7 @@ class FirebaseVenueService implements VenueService {
       batch.update(userDocRef, {
         isCheckedIn: true,
         currentVenue: venueId,
+        isVisible: true, // CRITICAL: Set isVisible to true so users appear in queries
         checkInTime: serverTimestamp()
       });
       
@@ -353,8 +361,17 @@ class FirebaseVenueService implements VenueService {
       });
       
       await batch.commit();
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'venueService.ts:356',message:'checkInToVenue success',data:{userId,venueId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+      
       logUserAction('venue_checkin', { userId, venueId });
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'venueService.ts:359',message:'checkInToVenue error',data:{error:String(error),userId,venueId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+      
       logError(error as Error, { source: 'venueService', action: 'checkInToVenue', userId, venueId });
       throw new Error('Failed to check in to venue');
     }
