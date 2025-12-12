@@ -33,6 +33,8 @@ function Toast({ text }: { text: string }) {
 
 export default function VenueDetails() {
   const { id } = useParams<{ id: string }>();
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [venue, setVenue] = useState<any>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
   const [venueError, setVenueError] = useState<Error | null>(null);
@@ -71,6 +73,10 @@ export default function VenueDetails() {
   const staticPeople = useMemo(() => id ? getPeople(id) : [], [id]);
   
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:73',message:'useEffect loadPeople started',data:{venueId:id,demoMode:config.DEMO_MODE,hasFirestore:!!firestore,hasCurrentUser:!!currentUser},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
+    
     if (!id) {
       setPeople([]);
       setLoadingPeople(false);
@@ -82,61 +88,76 @@ export default function VenueDetails() {
       setPeople(demoPeople.length > 0 ? demoPeople : staticPeople);
       setLoadingPeople(false);
     } else {
-      // Production: set up real-time listener for users at venue
-      if (!firestore) {
+      // Production: setLoadingPeople(true);
+      
+      try {
+        // Set up real-time listener for users at this venue
+        const usersRef = collection(firestore, 'users');
+        const q = query(
+          usersRef, 
+          where('currentVenue', '==', id),
+          where('isVisible', '==', true)
+        );
+        
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:104',message:'onSnapshot success',data:{docCount:snapshot.docs.length,venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
+            
+            const users = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            } as any));
+            
+            // Transform UserProfile[] to Person[] format
+            const transformedPeople: any[] = users
+              .filter(user => user.id !== currentUser?.uid) // Exclude current user
+              .map(user => ({
+                id: user.id,
+                name: user.name || user.displayName || 'Unknown',
+                photo: user.photos?.[0] || '',
+                bio: user.bio || '',
+                age: user.age,
+                currentVenue: user.currentVenue || id,
+                zone: user.currentZone,
+                lastActive: user.lastActive || Date.now(),
+                checkedInAt: user.checkInTime
+              }));
+            setPeople(transformedPeople);
+            setLoadingPeople(false);
+          },
+          (error) => {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:127',message:'on:'onSnapshot error',data:{error:String(error),venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
+            
+            logError(error instanceof Error ? error : new Error(String(error)), {
+              source: 'VenueDetails',
+              action: 'loadUsersRealtime',
+              venueId: id
+            });
+            setPeople([]);
+            setLoadingPeople(false);
+          }
+        );
+        
+        // Cleanup listener on unmount or venue change
+        return () => unsubscribe();
+      } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:140',message:'Firestore setup error',data:{error:String(error),venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+        // #endregion
+        
+        logError(error instanceof Error ? error : new Error(String(error)), {
+          source: 'VenueDetails',
+          action: 'setupFirestoreListener',
+          venueId: id
+        });
         setPeople([]);
         setLoadingPeople(false);
-        return;
       }
-
-      setLoadingPeople(true);
-      
-      // Set up real-time listener for users at this venue
-      const usersRef = collection(firestore, 'users');
-      const q = query(
-        usersRef, 
-        where('currentVenue', '==', id),
-        where('isVisible', '==', true)
-      );
-      
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const users = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          } as any));
-          
-          // Transform UserProfile[] to Person[] format
-          const transformedPeople: any[] = users
-            .filter(user => user.id !== currentUser?.uid) // Exclude current user
-            .map(user => ({
-              id: user.id,
-              name: user.name || user.displayName || 'Unknown',
-              photo: user.photos?.[0] || '',
-              bio: user.bio || '',
-              age: user.age,
-              currentVenue: user.currentVenue || id,
-              zone: user.currentZone,
-              lastActive: user.lastActive || Date.now(),
-              checkedInAt: user.checkInTime
-            }));
-          setPeople(transformedPeople);
-          setLoadingPeople(false);
-        },
-        (error) => {
-          logError(error instanceof Error ? error : new Error(String(error)), {
-            source: 'VenueDetails',
-            action: 'loadUsersRealtime',
-            venueId: id
-          });
-          setPeople([]);
-          setLoadingPeople(false);
-        }
-      );
-      
-      // Cleanup listener on unmount or venue change
-      return () => unsubscribe();
     }
   }, [id, currentUser?.uid, config.DEMO_MODE, demoPeople, staticPeople]);
   
@@ -145,8 +166,6 @@ export default function VenueDetails() {
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
   const [mutualConnections, setMutualConnections] = useState<number>(0);
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     setCheckedIn(getCheckedVenueId());
