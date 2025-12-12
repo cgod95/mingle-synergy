@@ -137,7 +137,7 @@ export default function VenueDetails() {
           },
           (error) => {
             // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:127',message:'on:'onSnapshot error',data:{error:String(error),venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:131',message:'onSnapshot error',data:{error:String(error),venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
             // #endregion
             
             logError(error instanceof Error ? error : new Error(String(error)), {
