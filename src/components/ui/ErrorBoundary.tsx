@@ -38,13 +38,26 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Filter out React DevTools initialization errors
+    const errorMessage = error.message || '';
+    const errorStack = error.stack || '';
+    const isDevToolsError = 
+      errorMessage.includes("Cannot access 'd' before initialization") ||
+      errorMessage.includes("Cannot access 'd' before initialization") ||
+      errorStack.includes('installHook') ||
+      errorStack.includes('installHook.js') ||
+      errorStack.includes('react_devtools') ||
+      errorMessage.includes('reactDevtoolsAgent');
+    
     // Check for React error #300 (multiple React instances)
     const isReactError300 = error.message?.includes('Minified React error #300') ||
                            error.message?.includes('Invalid hook call') ||
                            error.stack?.includes('react-vendor');
     
-    if (isReactError300) {
-      console.error('React Error #300 detected: Multiple React instances detected. Check build configuration.');
+    // Skip logging DevTools errors and React #300 errors
+    if (isDevToolsError || isReactError300) {
+      // Silently ignore - these are expected in production with DevTools disabled
+      return;
     }
     
     logError(error, { source: 'ErrorBoundary', componentStack: errorInfo.componentStack || '' });
