@@ -81,7 +81,8 @@
     "vaul": "^0.9.3",
     "vite-plugin-pwa": "^0.21.2",
     "vitest": "^3.0.9",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@vitejs/plugin-react": "^4.6.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.27.1",
@@ -95,7 +96,6 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@types/react-router-dom": "^5.3.3",
-    "@vitejs/plugin-react": "^4.6.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
