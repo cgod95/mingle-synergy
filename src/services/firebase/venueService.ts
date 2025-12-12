@@ -407,6 +407,7 @@ class FirebaseVenueService implements VenueService {
         isCheckedIn: false,
         currentVenue: null,
         currentZone: null,
+        isVisible: false, // Hide user when checking out
         checkOutTime: serverTimestamp()
       });
       
