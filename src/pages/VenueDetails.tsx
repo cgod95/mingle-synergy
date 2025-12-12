@@ -181,7 +181,16 @@ export default function VenueDetails() {
           <p className="text-neutral-300 mb-4">
             {venueError?.message || 'The venue you\'re looking for doesn\'t exist or has been removed.'}
           </p>
-          <Button onClick={() => navigate('/checkin')} variant="default">
+          <Button onClick={() => {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:184',message:'Go back button clicked',data:{hasHistory:window.history.length>1},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+            // #endregion
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate('/checkin');
+            }
+          }} variant="default">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Venues
           </Button>
@@ -278,15 +287,24 @@ export default function VenueDetails() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Back Button */}
         <div className="mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/checkin')}
-            className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Venues
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:287',message:'Go back button clicked',data:{hasHistory:window.history.length>1},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+                // #endregion
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/checkin');
+                }
+              }}
+              className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Venues
+            </Button>
         </div>
         <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6">
           <img

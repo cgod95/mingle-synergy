@@ -193,6 +193,9 @@ export default function CheckInPage() {
   }, [qrVenueId, source, currentUser?.uid]); // Use uid instead of whole currentUser object
 
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckInPage.tsx:195',message:'useEffect loadVenues triggered',data:{qrVenueId,source,userId:currentUser?.uid,loadingRef:loadingRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     loadVenues();
   }, [loadVenues]); // Only depend on memoized function
 
