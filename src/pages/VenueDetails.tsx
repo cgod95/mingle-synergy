@@ -3,9 +3,8 @@ import { useParams } from "react-router-dom";
 import { getVenue, getPeople } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { getAllMatches } from "@/lib/matchesCompat";
-import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
+import { Heart, MapPin, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
@@ -186,14 +185,11 @@ export default function VenueDetails() {
   }, [id, currentUser?.uid, config.DEMO_MODE, demoPeople, staticPeople]);
   
   const [toast, setToast] = useState<string | null>(null);
-  const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
   const [mutualConnections, setMutualConnections] = useState<number>(0);
 
   useEffect(() => {
-    setCheckedIn(getCheckedVenueId());
-    
     // Load mutual connections count
     if (currentUser?.uid && venue?.id) {
       getAllMatches(currentUser.uid).then(matches => {
@@ -242,67 +238,6 @@ export default function VenueDetails() {
     );
   }
 
-  const handleCheckIn = async () => {
-    // Check location permission first
-    const { canCheckInToVenues, getLocationExplanationMessage, requestLocationPermission } = await import("@/utils/locationPermission");
-    const { isWithinCheckInDistance, getCheckInErrorMessage } = await import("@/utils/distanceCheck");
-    
-    if (!canCheckInToVenues()) {
-      // Try to request permission if not granted
-      const permissionGranted = await requestLocationPermission();
-      if (!permissionGranted) {
-        setToast("Location access required to check in. " + getLocationExplanationMessage());
-        setTimeout(() => setToast(null), 3000);
-        return;
-      }
-    }
-    
-    // Check if user is within 500m of venue
-    if (venue.latitude && venue.longitude) {
-      const distanceCheck = await isWithinCheckInDistance(venue.latitude, venue.longitude);
-      
-      if (!distanceCheck.withinDistance) {
-        const errorMsg = distanceCheck.distanceMeters 
-          ? getCheckInErrorMessage(distanceCheck.distanceMeters)
-          : "Unable to verify location. Please ensure location access is enabled.";
-        setToast(errorMsg);
-        setTimeout(() => setToast(null), 3000);
-        return;
-      }
-    }
-    
-    // DEMO MODE: Photo requirement disabled for easier testing
-    
-    // Check in to Firebase (if not in demo mode)
-    if (!config.DEMO_MODE && currentUser?.uid) {
-      try {
-        const venueService = await import('@/services/firebase/venueService');
-        await venueService.default.checkInToVenue(currentUser.uid, venue.id);
-      } catch (error) {
-        logError(error instanceof Error ? error : new Error(String(error)), {
-          source: 'VenueDetails',
-          action: 'handleCheckIn',
-          venueId: venue.id
-        });
-        // Don't fail the check-in if Firebase fails, but log it
-      }
-    }
-    
-    checkInAt(venue.id);
-    setCheckedIn(venue.id);
-    
-    // Track user checked in event per spec section 9
-    try {
-      const { trackUserCheckedIn } = await import("@/services/specAnalytics");
-      trackUserCheckedIn(venue.id, venue.name);
-    } catch (error) {
-      // Failed to track check-in event - non-critical
-    }
-    
-    setToast(`Checked in to ${venue.name}`);
-    setTimeout(() => setToast(null), 1600);
-    // Note: Real-time listener will automatically update the people list
-  };
 
   const handleLike = async (personId: string) => {
     if (isLiking === personId) return;
@@ -380,23 +315,6 @@ export default function VenueDetails() {
                 </p>
               )}
             </div>
-            <Button
-              onClick={handleCheckIn}
-              className={`rounded-full px-6 py-2.5 font-medium shadow-lg transition-all ${
-                checkedIn === venue.id
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
-              }`}
-            >
-              {checkedIn === venue.id ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Checked In
-                </>
-              ) : (
-                "Check In"
-              )}
-            </Button>
           </div>
         </div>
 
