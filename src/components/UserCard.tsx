@@ -15,9 +15,10 @@ import { cn } from '@/lib/utils';
 
 type UserCardProps = {
   user: UserProfile;
+  venueId?: string; // Optional venueId for context-aware likes
 };
 
-const UserCard: React.FC<UserCardProps> = ({ user }) => {
+const UserCard: React.FC<UserCardProps> = ({ user, venueId }) => {
   const { currentUser } = useUser();
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isLiking, setIsLiking] = useState<boolean>(false);
@@ -27,9 +28,10 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
     
     setIsLiking(true);
     try {
-      // Get venueId from context or use a default - you may need to pass this as a prop
-      const venueId = ''; // TODO: Get from context or props
-      await likeUserWithMutualDetection(currentUser.uid || currentUser.id, user.id || user.uid || '', venueId);
+      // Use venueId from props if provided, otherwise use empty string (global like)
+      // TODO: Consider adding venue context hook or passing venueId from parent components
+      const effectiveVenueId = venueId || '';
+      await likeUserWithMutualDetection(currentUser.uid || currentUser.id, user.id || user.uid || '', effectiveVenueId);
       setIsLiked(true);
     } catch (error) {
       logError(error as Error, { source: 'UserCard', action: 'likeUser', targetUserId: user.id });

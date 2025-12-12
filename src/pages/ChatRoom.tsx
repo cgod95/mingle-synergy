@@ -112,7 +112,8 @@ export default function ChatRoom() {
   // Typing indicator logic
   // Note: In production, this would receive typing events from Firebase/WebSocket
   // For now, we simulate typing when user types (demo mode)
-  // TODO: Integrate with real-time service to show when OTHER user is typing
+  // TODO: Integrate with real-time service (realtimeService.on('typing', ...)) to show when OTHER user is typing
+  // Implementation: Subscribe to typing events from realtimeService when matchId changes
   useEffect(() => {
     // Simulate other user typing occasionally (demo)
     // In production, this would be: onTypingEvent from Firebase/WebSocket
