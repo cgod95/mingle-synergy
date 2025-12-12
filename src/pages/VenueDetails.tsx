@@ -15,6 +15,8 @@ import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { canSeePeopleAtVenues } from "@/utils/locationPermission";
 import { logError } from "@/utils/errorHandler";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { firestore } from "@/firebase/config";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -60,10 +62,83 @@ export default function VenueDetails() {
     }
   }, [id]);
   
-  // In demo mode, use dynamic presence hook; otherwise use static getPeople
+  // Load people at venue - from Firebase in production, demo data in demo mode
+  const [people, setPeople] = useState<any[]>([]);
+  const [loadingPeople, setLoadingPeople] = useState(true);
+  
+  // Demo mode: use demo presence hook
   const demoPeople = useDemoPresence(config.DEMO_MODE ? id : undefined);
   const staticPeople = useMemo(() => id ? getPeople(id) : [], [id]);
-  const people = config.DEMO_MODE && demoPeople.length > 0 ? demoPeople : staticPeople;
+  
+  useEffect(() => {
+    if (!id) {
+      setPeople([]);
+      setLoadingPeople(false);
+      return;
+    }
+
+    if (config.DEMO_MODE) {
+      // Demo mode: use demo data
+      setPeople(demoPeople.length > 0 ? demoPeople : staticPeople);
+      setLoadingPeople(false);
+    } else {
+      // Production: set up real-time listener for users at venue
+      if (!firestore) {
+        setPeople([]);
+        setLoadingPeople(false);
+        return;
+      }
+
+      setLoadingPeople(true);
+      
+      // Set up real-time listener for users at this venue
+      const usersRef = collection(firestore, 'users');
+      const q = query(
+        usersRef, 
+        where('currentVenue', '==', id),
+        where('isVisible', '==', true)
+      );
+      
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const users = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          } as any));
+          
+          // Transform UserProfile[] to Person[] format
+          const transformedPeople: any[] = users
+            .filter(user => user.id !== currentUser?.uid) // Exclude current user
+            .map(user => ({
+              id: user.id,
+              name: user.name || user.displayName || 'Unknown',
+              photo: user.photos?.[0] || '',
+              bio: user.bio || '',
+              age: user.age,
+              currentVenue: user.currentVenue || id,
+              zone: user.currentZone,
+              lastActive: user.lastActive || Date.now(),
+              checkedInAt: user.checkInTime
+            }));
+          setPeople(transformedPeople);
+          setLoadingPeople(false);
+        },
+        (error) => {
+          logError(error instanceof Error ? error : new Error(String(error)), {
+            source: 'VenueDetails',
+            action: 'loadUsersRealtime',
+            venueId: id
+          });
+          setPeople([]);
+          setLoadingPeople(false);
+        }
+      );
+      
+      // Cleanup listener on unmount or venue change
+      return () => unsubscribe();
+    }
+  }, [id, currentUser?.uid, config.DEMO_MODE, demoPeople, staticPeople]);
   
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
@@ -146,6 +221,21 @@ export default function VenueDetails() {
     
     // DEMO MODE: Photo requirement disabled for easier testing
     
+    // Check in to Firebase (if not in demo mode)
+    if (!config.DEMO_MODE && currentUser?.uid) {
+      try {
+        const venueService = await import('@/services/firebase/venueService');
+        await venueService.default.checkInToVenue(currentUser.uid, venue.id);
+      } catch (error) {
+        logError(error instanceof Error ? error : new Error(String(error)), {
+          source: 'VenueDetails',
+          action: 'handleCheckIn',
+          venueId: venue.id
+        });
+        // Don't fail the check-in if Firebase fails, but log it
+      }
+    }
+    
     checkInAt(venue.id);
     setCheckedIn(venue.id);
     
@@ -159,6 +249,7 @@ export default function VenueDetails() {
     
     setToast(`Checked in to ${venue.name}`);
     setTimeout(() => setToast(null), 1600);
+    // Note: Real-time listener will automatically update the people list
   };
 
   const handleLike = async (personId: string) => {
