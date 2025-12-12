@@ -241,8 +241,10 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
       errorMessage.includes('React DevTools') ||
       errorMessage.includes('object is not extensible') ||
       errorMessage.includes('Cannot add property reactDevtoolsAgent') ||
+      errorMessage.includes("Cannot access 'd' before initialization") ||
       errorStack.includes('react_devtools') ||
       errorStack.includes('installHook') ||
+      errorStack.includes('installHook.js') ||
       (errorMessage.includes('Minified React error #300') && (errorStack.includes('react_devtools') || errorStack.includes('installHook')))
     ) {
       event.preventDefault();

@@ -224,7 +224,7 @@
     <!-- Content Security Policy for XSS protection and to prevent extension injection -->
     <!-- Note: script-src 'self' prevents browser extension scripts, which may break some extensions -->
     <!-- but prevents React DevTools conflicts. object-src 'none' prevents plugin injection. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.sentry.io https://vercel.live https://*.vercel.live wss://*.firebaseio.com; frame-src 'self'; object-src 'none';" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:7242 http://localhost:7242 https://*.firebaseio.com https://*.googleapis.com https://*.sentry.io https://vercel.live https://*.vercel.live wss://*.firebaseio.com; frame-src 'self'; object-src 'none';" />
     <!-- Mobile Web App Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <!-- Apple Mobile Web App Meta Tags (for iOS compatibility) -->
