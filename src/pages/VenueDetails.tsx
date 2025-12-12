@@ -88,7 +88,14 @@ export default function VenueDetails() {
       setPeople(demoPeople.length > 0 ? demoPeople : staticPeople);
       setLoadingPeople(false);
     } else {
-      // Production: setLoadingPeople(true);
+      // Production: set up real-time listener for users at venue
+      if (!firestore) {
+        setPeople([]);
+        setLoadingPeople(false);
+        return;
+      }
+
+      setLoadingPeople(true);
       
       try {
         // Set up real-time listener for users at this venue
