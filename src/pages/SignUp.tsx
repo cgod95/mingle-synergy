@@ -54,8 +54,25 @@ export default function SignUp() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center px-4 py-12 relative">
         <MingleHeader />
+        {/* Back Button - Top left of screen */}
+        <Button
+          variant="ghost"
+          onClick={() => {
+            try {
+              navigate('/demo-welcome');
+            } catch (error) {
+              // Fallback navigation
+              navigate(-1);
+            }
+          }}
+          className="absolute top-4 left-4 text-neutral-300 hover:text-white border border-neutral-600 hover:border-neutral-500 rounded-md px-3 py-2 z-10"
+          style={{ height: '100px' }}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -64,22 +81,6 @@ export default function SignUp() {
         >
           <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
             <CardHeader className="text-center space-y-2 pb-6">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  try {
-                    navigate('/demo-welcome');
-                  } catch (error) {
-                    // Fallback navigation
-                    navigate(-1);
-                  }
-                }}
-                className="absolute top-4 left-4 text-neutral-300 hover:text-white border border-neutral-600 hover:border-neutral-500 rounded-md px-3 py-2"
-                size="sm"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Create account</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
