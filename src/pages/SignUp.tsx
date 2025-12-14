@@ -81,7 +81,7 @@ export default function SignUp() {
                 Back
               </Button>
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Create account</CardTitle>
-              <p className="text-sm text-neutral-400">Join Mingle and start meeting people</p>
+              <p className="text-sm text-white">Join Mingle and start meeting people</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
@@ -145,7 +145,7 @@ export default function SignUp() {
                   <div className="w-full border-t border-neutral-700"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-4 bg-neutral-800 text-neutral-500">Already have an account?</span>
+                  <span className="px-4 bg-neutral-800 text-white">Already have an account?</span>
                 </div>
               </div>
               

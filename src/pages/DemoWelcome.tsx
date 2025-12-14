@@ -47,7 +47,7 @@ export default function DemoWelcome() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-neutral-300 mb-4">
+                <p className="text-base text-neutral-300 leading-relaxed">
                   Mingle is a meeting app that encourages introductions and gets people meeting face-to-face. Less time spent on screens, more time connecting in person.
                 </p>
               </CardContent>
