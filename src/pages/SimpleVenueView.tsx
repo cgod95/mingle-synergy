@@ -167,9 +167,6 @@ const SimpleVenueView: React.FC = () => {
             <Users className="w-12 h-12 text-neutral-400 mb-4" />
             <h3 className="text-lg font-medium text-neutral-900 mb-2">No one here yet</h3>
             <p className="text-neutral-600 mb-6">Be the first to check in and meet people!</p>
-            <Button onClick={() => navigate(`/venue/${venueId}`)}>
-              Check In Here
-            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-3">

@@ -571,17 +571,6 @@ export default function CheckInPage() {
                         ))}
                       </div>
                     )}
-                    <Button
-                      size="lg"
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-xl min-h-[48px] mt-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCheckIn(v.id);
-                      }}
-                    >
-                      <MapPin className="w-5 h-5 mr-2" />
-                      Check In Here
-                    </Button>
                   </div>
                 </Card>
               </div>
