@@ -335,25 +335,15 @@ class FirebaseVenueService implements VenueService {
       // First check out from any existing venue
       await this.checkOutFromVenue(userId);
       
-      const batch = writeBatch(firestore);
-      
-      // Update user's check-in status
+      // Update user's check-in status (no venue document update needed - 
+      // users at venue are queried from users collection by currentVenue)
       const userDocRef = doc(firestore, 'users', userId);
-      batch.update(userDocRef, {
+      await updateDoc(userDocRef, {
         isCheckedIn: true,
         currentVenue: venueId,
         isVisible: true, // CRITICAL: Set isVisible to true so users appear in queries
         checkInTime: serverTimestamp()
       });
-      
-      // Increment venue's check-in count and add user to checkedInUsers array
-      const venueDocRef = doc(firestore, 'venues', venueId);
-      batch.update(venueDocRef, {
-        checkInCount: increment(1),
-        checkedInUsers: arrayUnion(userId)
-      });
-      
-      await batch.commit();
       
       logUserAction('venue_checkin', { userId, venueId });
     } catch (error) {
@@ -374,7 +364,8 @@ class FirebaseVenueService implements VenueService {
       const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
-        throw new Error('User not found');
+        // User document doesn't exist - nothing to check out from
+        return;
       }
       
       const userData = userDoc.data();
@@ -385,10 +376,9 @@ class FirebaseVenueService implements VenueService {
         return;
       }
       
-      const batch = writeBatch(firestore);
-      
-      // Update user's check-out status
-      batch.update(userDocRef, {
+      // Update user's check-out status (no venue document update needed -
+      // users at venue are queried from users collection by currentVenue)
+      await updateDoc(userDocRef, {
         isCheckedIn: false,
         currentVenue: null,
         currentZone: null,
@@ -396,14 +386,6 @@ class FirebaseVenueService implements VenueService {
         checkOutTime: serverTimestamp()
       });
       
-      // Decrement venue's check-in count and remove user from checkedInUsers array
-      const venueDocRef = doc(firestore, 'venues', currentVenue);
-      batch.update(venueDocRef, {
-        checkInCount: increment(-1),
-        checkedInUsers: arrayRemove(userId)
-      });
-      
-      await batch.commit();
       logUserAction('venue_checkout', { userId, venueId: currentVenue });
     } catch (error) {
       // Get currentVenue for error logging
@@ -416,7 +398,7 @@ class FirebaseVenueService implements VenueService {
         // Ignore error getting venue for logging
       }
       logError(error as Error, { source: 'venueService', action: 'checkOutFromVenue', userId, venueId: currentVenueForError || 'unknown' });
-      throw new Error('Failed to check out from venue');
+      // Don't throw on checkout errors - this is called before check-in and shouldn't block it
     }
   }
 
