@@ -379,9 +379,7 @@ export default function VenueDetails() {
                 </Button>
                 <Button
                   onClick={() => navigate('/settings')}
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Go to Settings
                 </Button>
