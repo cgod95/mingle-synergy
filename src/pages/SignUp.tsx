@@ -152,6 +152,7 @@ export default function SignUp() {
                 asChild
                 variant="outline"
                 className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
+                style={{ height: '100px' }}
               >
                 <Link to="/signin">Sign in</Link>
               </Button>
