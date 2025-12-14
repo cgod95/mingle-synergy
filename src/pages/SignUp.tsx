@@ -74,7 +74,7 @@ export default function SignUp() {
                     navigate(-1);
                   }
                 }}
-                className="absolute top-4 left-4 text-neutral-300 hover:text-white"
+                className="absolute top-4 left-4 text-neutral-300 hover:text-white border border-neutral-600 hover:border-neutral-500 rounded-md px-3 py-2"
                 size="sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
