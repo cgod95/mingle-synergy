@@ -67,8 +67,7 @@ export default function SignUp() {
               navigate(-1);
             }
           }}
-          className="absolute top-4 left-4 text-neutral-300 hover:text-white border border-neutral-600 hover:border-neutral-500 rounded-md px-3 py-2 z-10"
-          style={{ height: '100px' }}
+          className="absolute top-4 left-4 text-neutral-300 hover:text-white border border-neutral-600 hover:border-neutral-500 rounded-lg px-4 py-2 z-10"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
@@ -151,8 +150,7 @@ export default function SignUp() {
               <Button
                 asChild
                 variant="outline"
-                className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                style={{ height: '100px' }}
+                className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white py-3"
               >
                 <Link to="/signin">Sign in</Link>
               </Button>
