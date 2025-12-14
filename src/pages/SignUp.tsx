@@ -111,7 +111,6 @@ export default function SignUp() {
           required
                     disabled={busy}
                   />
-                  <p className="text-xs text-neutral-500">Must be at least 6 characters</p>
                 </div>
                 
                 {error && (
