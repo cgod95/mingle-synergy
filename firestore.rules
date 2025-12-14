@@ -18,10 +18,17 @@ service cloud.firestore {
       );
     }
 
-    // User profiles - users can read/write their own document
+    // User profiles - authenticated users can read any profile (needed to see others at venues)
+    // Only the owner can write their own document
     // Enforce bio (min 10 chars) and photos (at least 1) for profile updates
     match /users/{uid} {
-      allow read: if isSelf(uid);
+      // CRITICAL: Allow any authenticated user to read profiles
+      // This is needed for:
+      // - Seeing other users at venues
+      // - Loading partner info in chat/matches
+      // - Displaying user cards
+      allow read: if isSignedIn();
+      
       allow create: if isSelf(uid);
       
       // Update: validate bio and photos if they're being updated
@@ -134,15 +141,19 @@ service cloud.firestore {
       allow read: if false; // Private to admins - enable when admin system is implemented
     }
 
-    // Likes/Interests - users can read their own likes, create likes where they are the sender
-    match /likes/{likeId} {
-      allow read: if isSignedIn() && (
-        resource.data.fromUserId == request.auth.uid ||
-        resource.data.toUserId == request.auth.uid
-      );
-      allow create: if isSignedIn() &&
-        request.resource.data.fromUserId == request.auth.uid;
-      allow update, delete: if false; // Likes are immutable
+    // Likes collection - document ID is the user's ID, contains array of liked user IDs
+    // Structure: /likes/{userId} -> { likes: [targetUserId1, targetUserId2, ...] }
+    match /likes/{userId} {
+      // User can read their own likes document
+      // Also allow reading other users' likes to check for mutual likes
+      allow read: if isSignedIn();
+      
+      // User can only create/update their own likes document
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      
+      // Don't allow deletion (likes persist)
+      allow delete: if false;
     }
 
     // Interests collection (if used separately from likes)
