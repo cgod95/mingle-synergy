@@ -14,6 +14,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BlockReportDialog } from "@/components/BlockReportDialog";
 
+// Firebase imports for real-time messaging
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { firestore } from "@/firebase/config";
+import { sendMessage as sendFirebaseMessage } from "@/services/firebase/matchService";
+import { FirestoreMatch } from "@/types/match";
+import config from "@/config";
+
+// Demo mode fallbacks
 import { getActiveMatches } from "@/lib/matchesCompat";
 import { getMessageCount, canSendMessage, getRemainingMessages, incrementMessageCount } from "@/utils/messageLimitTracking";
 import { getCheckedVenueId } from "@/lib/checkinStore";
@@ -22,6 +30,8 @@ import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { retryWithMessage, isNetworkError } from "@/utils/retry";
 import { logError } from "@/utils/errorHandler";
+import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
+import { FEATURE_FLAGS } from "@/lib/flags";
 
 // Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
 const CONVERSATION_STARTERS = [
@@ -34,9 +44,11 @@ const CONVERSATION_STARTERS = [
   "What do you think of the music?",
 ];
 
-/** Local storage helpers */
-const messagesKey = (id: string) => `mingle:messages:${id}`;
+/** Message type for UI */
 type Msg = { sender: "you" | "them"; text: string; ts: number };
+
+/** Local storage helpers - ONLY used in demo mode */
+const messagesKey = (id: string) => `mingle:messages:${id}`;
 
 function loadMessages(id: string): Msg[] {
   try {
@@ -80,43 +92,107 @@ export default function ChatRoom() {
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showMessageLimitModal, setShowMessageLimitModal] = useState(false);
-  const [remainingMessages, setRemainingMessages] = useState(3);
+  const [remainingMessages, setRemainingMessages] = useState(
+    typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+      ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+      : 5
+  );
   const [canSendMsg, setCanSendMsg] = useState(true);
   const [sendError, setSendError] = useState<Error | null>(null);
   const [sending, setSending] = useState(false);
+  const [partnerId, setPartnerId] = useState<string>("");
+  const [matchData, setMatchData] = useState<FirestoreMatch | null>(null);
   const { toast } = useToast();
 
-  // Load match name, avatar, expiry, and venue from matchesCompat
+  // Load match data and partner info from Firebase (or demo mode fallback)
   useEffect(() => {
-    const loadMatchInfo = async () => {
-      if (!matchId || !currentUser?.uid) return;
-      try {
-        const matches = await getActiveMatches(currentUser.uid);
-        const match = matches.find(m => m.id === matchId);
-        if (match) {
-          setMatchName(match.displayName || "Chat");
-          setMatchAvatar(match.avatarUrl || "");
-          setMatchExpiresAt(match.expiresAt || 0);
-          // Show conversation starters if this is a new conversation
-          if (msgs.length <= 1) {
-            setShowStarters(true);
+    if (!matchId || !currentUser?.uid) return;
+
+    if (config.DEMO_MODE) {
+      // Demo mode: use localStorage-based matchesCompat
+      const loadMatchInfo = async () => {
+        try {
+          const matches = await getActiveMatches(currentUser.uid);
+          const match = matches.find(m => m.id === matchId);
+          if (match) {
+            setMatchName(match.displayName || "Chat");
+            setMatchAvatar(match.avatarUrl || "");
+            setMatchExpiresAt(match.expiresAt || 0);
+            setPartnerId(match.partnerId || "");
+            if (msgs.length <= 1) {
+              setShowStarters(true);
+            }
           }
+        } catch (error) {
+          logError(error as Error, { context: 'ChatRoom.loadMatchInfo', matchId });
+        }
+      };
+      loadMatchInfo();
+      return;
+    }
+
+    // Production: Load match from Firebase and subscribe to updates
+    if (!firestore) return;
+
+    const matchRef = doc(firestore, 'matches', matchId);
+    
+    const unsubscribe = onSnapshot(matchRef, async (snapshot) => {
+      if (!snapshot.exists()) {
+        logError(new Error('Match not found'), { context: 'ChatRoom.onSnapshot', matchId });
+        return;
+      }
+
+      const match = { id: snapshot.id, ...snapshot.data() } as FirestoreMatch;
+      setMatchData(match);
+      
+      // Determine partner ID
+      const otherUserId = match.userId1 === currentUser.uid ? match.userId2 : match.userId1;
+      setPartnerId(otherUserId);
+      
+      // Set expiry time
+      const expiresAt = match.timestamp + MATCH_EXPIRY_MS;
+      setMatchExpiresAt(expiresAt);
+      setVenueName(match.venueName || "");
+
+      // Load partner profile
+      try {
+        const { getUserProfile } = await import('@/services/firebase/userService');
+        const partnerProfile = await getUserProfile(otherUserId);
+        if (partnerProfile) {
+          setMatchName(partnerProfile.name || partnerProfile.displayName || "Chat");
+          setMatchAvatar(partnerProfile.photos?.[0] || "");
         }
       } catch (error) {
-        logError(error as Error, { context: 'ChatRoom.loadMatchInfo', matchId });
+        logError(error as Error, { context: 'ChatRoom.loadPartner', matchId, otherUserId });
       }
-    };
-    loadMatchInfo();
-  }, [matchId, currentUser, msgs.length]);
 
-  // Typing indicator logic
-  // Note: In production, this would receive typing events from Firebase/WebSocket
-  // For now, we simulate typing when user types (demo mode)
-  // TODO: Integrate with real-time service (realtimeService.on('typing', ...)) to show when OTHER user is typing
-  // Implementation: Subscribe to typing events from realtimeService when matchId changes
+      // Convert match messages to UI format
+      if (match.messages && Array.isArray(match.messages)) {
+        const uiMessages: Msg[] = match.messages.map(msg => ({
+          sender: msg.senderId === currentUser.uid ? "you" : "them",
+          text: msg.text,
+          ts: msg.timestamp
+        }));
+        setMsgs(uiMessages);
+        
+        // Show starters only if no messages yet
+        if (uiMessages.length === 0) {
+          setShowStarters(true);
+        } else {
+          setShowStarters(false);
+        }
+      }
+    }, (error) => {
+      logError(error, { context: 'ChatRoom.onSnapshot.error', matchId });
+    });
+
+    return () => unsubscribe();
+  }, [matchId, currentUser?.uid]);
+
+  // Typing indicator - only in demo mode
   useEffect(() => {
-    // Simulate other user typing occasionally (demo)
-    // In production, this would be: onTypingEvent from Firebase/WebSocket
+    if (!config.DEMO_MODE) return;
+    // Simulate other user typing occasionally (demo only)
     if (text.length > 0 && Math.random() > 0.7) {
       setIsTyping(true);
       const timeout = setTimeout(() => {
@@ -145,32 +221,55 @@ export default function ChatRoom() {
 
   // Get other user ID from match (for block/report)
   const otherUserId = useMemo(() => {
-    // In a real implementation, fetch match data to get otherUserId
-    // For now, use matchId as placeholder
-    return matchId || "";
-  }, [matchId]);
+    return partnerId || matchId || "";
+  }, [partnerId, matchId]);
 
+  // Demo mode: Load messages from localStorage
   useEffect(() => {
-    if (!matchId) return;
+    if (!matchId || !config.DEMO_MODE) return;
     const seeded = ensureThread(matchId);
     setMsgs(seeded);
+  }, [matchId]);
+
+  // Update message limits
+  useEffect(() => {
+    if (!matchId || !currentUser?.uid) return;
     
-    // Update message limit tracking
-    if (currentUser?.uid) {
-      const updateLimits = async () => {
+    const updateLimits = async () => {
+      if (config.DEMO_MODE) {
+        // Demo mode uses localStorage-based tracking
         const remaining = await getRemainingMessages(matchId, currentUser.uid);
         const canSend = await canSendMessage(matchId, currentUser.uid);
         setRemainingMessages(remaining);
         setCanSendMsg(canSend);
         
-        // Show modal if limit reached (but not for premium users)
         if (!canSend && remaining === 0) {
           setShowMessageLimitModal(true);
         }
-      };
-      updateLimits();
-    }
-  }, [matchId, currentUser?.uid]);
+      } else {
+        // Production: check message count from Firebase
+        try {
+          const { getMessageCount } = await import('@/services/messageService');
+          const count = await getMessageCount(matchId, currentUser.uid);
+          const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+            ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+            : 5;
+          const remaining = Math.max(0, messageLimit - count);
+          setRemainingMessages(remaining);
+          setCanSendMsg(remaining > 0);
+          
+          if (remaining === 0) {
+            setShowMessageLimitModal(true);
+          }
+        } catch (error) {
+          logError(error as Error, { context: 'ChatRoom.updateLimits', matchId });
+          // Default to allowing send on error
+          setCanSendMsg(true);
+        }
+      }
+    };
+    updateLimits();
+  }, [matchId, currentUser?.uid, msgs.length]); // Re-check after each message
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -209,62 +308,69 @@ export default function ChatRoom() {
   const onSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const t = text.trim();
-    if (!t || !currentUser?.uid || sending) return;
+    if (!t || !currentUser?.uid || sending || !matchId) return;
     
     setSendError(null);
     setSending(true);
     
     try {
-      // Check message limit (premium users bypass)
-      const canSend = await retryWithMessage(
-        () => canSendMessage(matchId, currentUser.uid),
-        { operationName: 'checking message limit', maxRetries: 2 }
-      );
-      
-      if (!canSend) {
+      // Check message limit
+      if (!canSendMsg) {
         toast({
           title: "Message limit reached",
-          description: "You've sent all 5 messages. Wait for a reply or reconnect at a venue.",
+          description: "You've sent all your messages. Wait for a reply or reconnect at a venue.",
           variant: "destructive",
         });
         setShowMessageLimitModal(true);
+        setSending(false);
         return;
       }
       
-      // Increment message count (only for non-premium users)
-      const isPremium = await (async () => {
-        try {
-          const { subscriptionService } = await import("@/services");
-          if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
-            const subscription = subscriptionService.getUserSubscription(currentUser.uid);
-            return subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
-          }
-        } catch {}
-        return false;
-      })();
-      
-      if (!isPremium) {
+      if (config.DEMO_MODE) {
+        // Demo mode: Save to localStorage
         incrementMessageCount(matchId, currentUser.uid);
+        
+        const remaining = await getRemainingMessages(matchId, currentUser.uid);
+        setRemainingMessages(remaining);
+        setCanSendMsg(await canSendMessage(matchId, currentUser.uid));
+        
+        if (remaining === 1) {
+          toast({
+            title: "1 message remaining",
+            description: "Make it count! Focus on meeting up in person.",
+          });
+        }
+        
+        const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts: Date.now() }];
+        setMsgs(next);
+        saveMessages(matchId, next);
+        setText("");
+        setShowStarters(false);
+        inputRef.current?.focus();
+      } else {
+        // Production: Send message to Firebase
+        await sendFirebaseMessage(matchId, currentUser.uid, t);
+        
+        // Message will appear via onSnapshot - no need to manually update msgs
+        setText("");
+        setShowStarters(false);
+        inputRef.current?.focus();
+        
+        // Update remaining messages count
+        const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
+          ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+          : 5;
+        const newRemaining = Math.max(0, remainingMessages - 1);
+        setRemainingMessages(newRemaining);
+        setCanSendMsg(newRemaining > 0);
+        
+        if (newRemaining === 1) {
+          toast({
+            title: "1 message remaining",
+            description: "Make it count! Focus on meeting up in person.",
+          });
+        }
       }
-      
-      const remaining = await getRemainingMessages(matchId, currentUser.uid);
-      setRemainingMessages(remaining);
-      setCanSendMsg(await canSendMessage(matchId, currentUser.uid));
-      
-      // Show toast if 1 message remaining (but not for premium)
-      if (remaining === 1 && !isPremium) {
-        toast({
-          title: "1 message remaining",
-          description: "Make it count! Focus on meeting up in person.",
-        });
-      }
-      
-      const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts: Date.now() }];
-      setMsgs(next);
-      saveMessages(matchId, next);
-      setText("");
-      setShowStarters(false); // Hide starters after first message
-      inputRef.current?.focus();
     } catch (error) {
       logError(error as Error, { context: 'ChatRoom.onSend', matchId, userId: currentUser?.uid || 'unknown' });
       const errorObj = error instanceof Error ? error : new Error('Failed to send message');
