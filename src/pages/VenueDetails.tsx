@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { getVenue, getPeople } from "../lib/api";
-import { likePerson, isMatched, isLiked } from "../lib/likesStore";
+// Firebase-based liking (for real multi-user connections)
+import { likeUserWithMutualDetection, isLiked as isLikedFirebase, isMatched as isMatchedFirebase, getMatchBetweenUsers } from "@/services/firebase/matchService";
+// Demo mode fallbacks (localStorage-based, single user only)
+import { likePerson as likeDemoLocal, isMatched as isMatchedLocal, isLiked as isLikedLocal } from "../lib/likesStore";
 import { getAllMatches } from "@/lib/matchesCompat";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MapPin, ArrowLeft, Sparkles } from "lucide-react";
@@ -188,6 +191,47 @@ export default function VenueDetails() {
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
   const [mutualConnections, setMutualConnections] = useState<number>(0);
+  
+  // Track like/match status per person (Firebase is async, so we cache results)
+  const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
+  const [matchedUsers, setMatchedUsers] = useState<Set<string>>(new Set());
+
+  // Load like/match status for all people at venue
+  useEffect(() => {
+    const loadLikeMatchStatus = async () => {
+      if (!currentUser?.uid || people.length === 0) return;
+      
+      const newLiked = new Set<string>();
+      const newMatched = new Set<string>();
+      
+      // In demo mode, use localStorage; in production, use Firebase
+      if (config.DEMO_MODE) {
+        people.forEach(person => {
+          if (isLikedLocal(person.id)) newLiked.add(person.id);
+          if (isMatchedLocal(person.id)) newMatched.add(person.id);
+        });
+      } else {
+        // Load from Firebase in parallel
+        await Promise.all(people.map(async (person) => {
+          try {
+            const [liked, matched] = await Promise.all([
+              isLikedFirebase(currentUser.uid, person.id),
+              isMatchedFirebase(currentUser.uid, person.id)
+            ]);
+            if (liked) newLiked.add(person.id);
+            if (matched) newMatched.add(person.id);
+          } catch (error) {
+            // Ignore individual errors
+          }
+        }));
+      }
+      
+      setLikedUsers(newLiked);
+      setMatchedUsers(newMatched);
+    };
+    
+    loadLikeMatchStatus();
+  }, [people, currentUser?.uid]);
 
   useEffect(() => {
     // Load mutual connections count
@@ -240,24 +284,54 @@ export default function VenueDetails() {
 
 
   const handleLike = async (personId: string) => {
-    if (isLiking === personId) return;
+    if (isLiking === personId || !currentUser?.uid || !id) return;
     setIsLiking(personId);
     
-    // Simulate API delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const matched = await likePerson(personId);
-    setIsLiking(null);
-    
-    // Show notification on card
-    if (matched) {
-      setLikeNotification({ personId, message: "It's a match! 🎉" });
-    } else {
-      setLikeNotification({ personId, message: "Like sent! ❤️" });
+    try {
+      let matched = false;
+      
+      if (config.DEMO_MODE) {
+        // Demo mode: use localStorage (single user only)
+        matched = await likeDemoLocal(personId);
+      } else {
+        // Production: use Firebase (real multi-user connections)
+        await likeUserWithMutualDetection(currentUser.uid, personId, id);
+        
+        // Check if it resulted in a match
+        const matchId = await getMatchBetweenUsers(currentUser.uid, personId);
+        matched = !!matchId;
+      }
+      
+      // Update local state
+      setLikedUsers(prev => new Set([...prev, personId]));
+      if (matched) {
+        setMatchedUsers(prev => new Set([...prev, personId]));
+      }
+      
+      setIsLiking(null);
+      
+      // Show notification on card
+      if (matched) {
+        setLikeNotification({ personId, message: "It's a match! 🎉" });
+        setToast("You matched! Check your messages to chat.");
+        setTimeout(() => setToast(null), 3000);
+      } else {
+        setLikeNotification({ personId, message: "Like sent! ❤️" });
+      }
+      
+      // Clear notification after 2 seconds
+      setTimeout(() => setLikeNotification(null), 2000);
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        source: 'VenueDetails',
+        action: 'handleLike',
+        personId,
+        venueId: id
+      });
+      setIsLiking(null);
+      setToast("Failed to send like. Please try again.");
+      setTimeout(() => setToast(null), 3000);
     }
-    
-    // Clear notification after 2 seconds
-    setTimeout(() => setLikeNotification(null), 2000);
   };
 
   return (
@@ -455,7 +529,7 @@ export default function VenueDetails() {
                            Date.now() - (p as any).lastActive < 1800000 ? `Active recently` :
                            'Earlier'}
                         </span>
-                        {isMatched(p.id) && (
+                        {matchedUsers.has(p.id) && (
                           <Badge className="ml-2 bg-indigo-600 text-white text-xs px-2 py-0.5">
                             Matched
                           </Badge>
@@ -465,11 +539,11 @@ export default function VenueDetails() {
 
                     <div className="flex items-center justify-between">
                       <div>
-                        {isMatched(p.id) ? (
+                        {matchedUsers.has(p.id) ? (
                           <Badge className="bg-indigo-900 text-indigo-300 border-indigo-700 text-xs font-medium">
                             Matched
                           </Badge>
-                        ) : isLiked(p.id) ? (
+                        ) : likedUsers.has(p.id) ? (
                           <Badge className="bg-blue-900 text-blue-300 border-blue-700 text-xs font-medium">
                             Liked
                           </Badge>
@@ -481,20 +555,20 @@ export default function VenueDetails() {
                         onClick={() => handleLike(p.id)}
                         size="sm"
                         className={`rounded-full text-xs h-8 px-4 transition-all shadow-sm ${
-                          isLiked(p.id) || isMatched(p.id)
+                          likedUsers.has(p.id) || matchedUsers.has(p.id)
                             ? "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
                             : "bg-indigo-600 hover:bg-indigo-700 text-white"
                         }`}
-                        disabled={isLiked(p.id) || isMatched(p.id) || isLiking === p.id}
+                        disabled={likedUsers.has(p.id) || matchedUsers.has(p.id) || isLiking === p.id}
                       >
                         <motion.div
                           animate={isLiking === p.id ? { rotate: 360 } : {}}
                           transition={{ duration: 0.5, repeat: isLiking === p.id ? Infinity : 0 }}
                           className="inline-flex items-center"
                         >
-                          <Heart className={`w-3.5 h-3.5 mr-1.5 ${isLiked(p.id) || isMatched(p.id) ? "fill-current" : ""}`} />
+                          <Heart className={`w-3.5 h-3.5 mr-1.5 ${likedUsers.has(p.id) || matchedUsers.has(p.id) ? "fill-current" : ""}`} />
                         </motion.div>
-                        {isLiking === p.id ? "Liking..." : isMatched(p.id) ? "Matched" : isLiked(p.id) ? "Liked" : "Like"}
+                        {isLiking === p.id ? "Liking..." : matchedUsers.has(p.id) ? "Matched" : likedUsers.has(p.id) ? "Liked" : "Like"}
                       </Button>
                     </div>
                   </div>
