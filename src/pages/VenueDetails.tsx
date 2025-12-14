@@ -75,10 +75,6 @@ export default function VenueDetails() {
   const staticPeople = useMemo(() => id ? getPeople(id) : [], [id]);
   
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:73',message:'useEffect loadPeople started',data:{venueId:id,demoMode:config.DEMO_MODE,hasFirestore:!!firestore,hasCurrentUser:!!currentUser},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
-    
     if (!id) {
       setPeople([]);
       setLoadingPeople(false);
@@ -111,15 +107,8 @@ export default function VenueDetails() {
         const unsubscribe = onSnapshot(
           q,
           (snapshot) => {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:112',message:'onSnapshot success',data:{docCount:snapshot.docs.length,venueId:id,currentUserId:currentUser?.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-            // #endregion
-            
             const users = snapshot.docs.map(doc => {
               const data = doc.data();
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:116',message:'user doc data',data:{userId:doc.id,currentVenue:data.currentVenue,isVisible:data.isVisible,venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-              // #endregion
               return {
                 id: doc.id,
                 ...data
@@ -128,13 +117,7 @@ export default function VenueDetails() {
             
             // Transform UserProfile[] to Person[] format
             const transformedPeople: any[] = users
-              .filter(user => {
-                const exclude = user.id === currentUser?.uid;
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:123',message:'filtering user',data:{userId:user.id,exclude,currentUserId:currentUser?.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-                // #endregion
-                return !exclude;
-              }) // Exclude current user
+              .filter(user => user.id !== currentUser?.uid) // Exclude current user
               .map(user => ({
                 id: user.id,
                 name: user.name || user.displayName || 'Unknown',
@@ -147,18 +130,10 @@ export default function VenueDetails() {
                 checkedInAt: user.checkInTime
               }));
             
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:135',message:'setting people',data:{peopleCount:transformedPeople.length,venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-            // #endregion
-            
             setPeople(transformedPeople);
             setLoadingPeople(false);
           },
           (error) => {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:131',message:'onSnapshot error',data:{error:String(error),venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-            // #endregion
-            
             logError(error instanceof Error ? error : new Error(String(error)), {
               source: 'VenueDetails',
               action: 'loadUsersRealtime',
@@ -172,10 +147,6 @@ export default function VenueDetails() {
         // Cleanup listener on unmount or venue change
         return () => unsubscribe();
       } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:140',message:'Firestore setup error',data:{error:String(error),venueId:id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
-        
         logError(error instanceof Error ? error : new Error(String(error)), {
           source: 'VenueDetails',
           action: 'setupFirestoreListener',
@@ -265,9 +236,6 @@ export default function VenueDetails() {
             {venueError?.message || 'The venue you\'re looking for doesn\'t exist or has been removed.'}
           </p>
           <Button onClick={() => {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:184',message:'Go back button clicked',data:{hasHistory:window.history.length>1},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
             if (window.history.length > 1) {
               navigate(-1);
             } else {
@@ -284,7 +252,8 @@ export default function VenueDetails() {
 
 
   const handleLike = async (personId: string) => {
-    if (isLiking === personId || !currentUser?.uid || !id) return;
+    // Prevent spam: already liking, already liked, already matched, or no auth
+    if (isLiking === personId || likedUsers.has(personId) || matchedUsers.has(personId) || !currentUser?.uid || !id) return;
     setIsLiking(personId);
     
     try {
@@ -343,9 +312,6 @@ export default function VenueDetails() {
               variant="ghost"
               size="sm"
               onClick={() => {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'VenueDetails.tsx:287',message:'Go back button clicked',data:{hasHistory:window.history.length>1},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-                // #endregion
                 if (window.history.length > 1) {
                   navigate(-1);
                 } else {

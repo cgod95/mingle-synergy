@@ -63,37 +63,59 @@ export default function CheckInPage() {
   }, []);
 
   const onCheckIn = async (id: string) => {
-    // DEMO MODE: Photo requirement disabled
-    // Photo check removed for easier demo/testing
+    // Prevent double-clicks
+    if (isCheckingIn) return;
+    setIsCheckingIn(true);
     
-    localStorage.setItem(ACTIVE_KEY, id);
-    setChecked(true);
-    
-    // CRITICAL: Update Firebase check-in status so other users can see this user
-    if (!config.DEMO_MODE && currentUser?.uid) {
-      try {
-        const venueService = await import("@/services/firebase/venueService");
-        await venueService.default.checkInToVenue(currentUser.uid, id);
-      } catch (error) {
-        // Log but don't block navigation - user can still view venue
-        logError(error instanceof Error ? error : new Error(String(error)), {
-          source: 'CheckInPage',
-          action: 'checkInToVenue',
-          venueId: id
-        });
-      }
-    }
-    
-    // Track user checked in event per spec section 9
     try {
-      const { trackUserCheckedIn } = await import("@/services/specAnalytics");
+      // CRITICAL: Update Firebase check-in status so other users can see this user
+      if (!config.DEMO_MODE && currentUser?.uid) {
+        const venueService = await import("@/services/firebase/venueService");
+        await retryWithMessage(
+          () => venueService.default.checkInToVenue(currentUser.uid, id),
+          { operationName: 'checking in', maxRetries: 3 }
+        );
+      }
+      
+      // Only set localStorage and navigate after Firebase succeeds
+      localStorage.setItem(ACTIVE_KEY, id);
+      setChecked(true);
+      
       const venue = venues.find(v => v.id === id);
-      trackUserCheckedIn(id, venue?.name || id);
+      
+      // Track user checked in event per spec section 9
+      try {
+        const { trackUserCheckedIn } = await import("@/services/specAnalytics");
+        trackUserCheckedIn(id, venue?.name || id);
+      } catch (error) {
+        // Failed to track check-in event - non-critical
+      }
+      
+      toast({
+        title: "Checked in!",
+        description: `You're now visible at ${venue?.name || 'the venue'}`,
+      });
+      
+      navigate(`/venues/${id}`);
     } catch (error) {
-      // Failed to track check-in event - non-critical
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        source: 'CheckInPage',
+        action: 'checkInToVenue',
+        venueId: id,
+        userId: currentUser?.uid
+      });
+      
+      toast({
+        title: "Check-in Failed",
+        description: isNetworkError(error) 
+          ? "Network error. Please check your connection and try again."
+          : "Could not check in. Please try again.",
+        variant: "destructive",
+      });
+      // Don't navigate - stay on page so user can retry
+    } finally {
+      setIsCheckingIn(false);
     }
-    
-    navigate(`/venues/${id}`);
   };
 
   // Memoize loadVenues to prevent recreation and use stable dependencies
@@ -208,9 +230,6 @@ export default function CheckInPage() {
   }, [qrVenueId, source, currentUser?.uid]); // Use uid instead of whole currentUser object
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckInPage.tsx:195',message:'useEffect loadVenues triggered',data:{qrVenueId,source,userId:currentUser?.uid,loadingRef:loadingRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     loadVenues();
   }, [loadVenues]); // Only depend on memoized function
 
@@ -478,25 +497,28 @@ export default function CheckInPage() {
               <div key={v.id}>
                 <Card
                   className={`cursor-pointer transition-all h-full overflow-hidden relative border-2 ${
-                    preselect === v.id 
-                      ? "border-indigo-600 shadow-lg bg-indigo-900/30 ring-2 ring-indigo-500" 
-                      : "border-neutral-700 hover:border-indigo-500 hover:shadow-lg bg-neutral-800"
+                    isCheckingIn
+                      ? "pointer-events-none opacity-70"
+                      : preselect === v.id 
+                        ? "border-indigo-600 shadow-lg bg-indigo-900/30 ring-2 ring-indigo-500" 
+                        : "border-neutral-700 hover:border-indigo-500 hover:shadow-lg bg-neutral-800"
                   } focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900`}
-                  onClick={() => onCheckIn(v.id)}
+                  onClick={() => !isCheckingIn && onCheckIn(v.id)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (!isCheckingIn && (e.key === 'Enter' || e.key === ' ')) {
                       e.preventDefault();
                       onCheckIn(v.id);
                     }
                   }}
-                  tabIndex={0}
+                  tabIndex={isCheckingIn ? -1 : 0}
                   role="button"
                   aria-label={`Check in to ${v.name}`}
+                  aria-disabled={isCheckingIn}
                 >
                   {/* Prominent "Tap to Check In" indicator */}
                   <div className="absolute top-2 right-2 z-20">
-                    <Badge className="bg-indigo-600 text-white font-bold shadow-xl px-3 py-1.5 text-xs border-2 border-indigo-400 animate-pulse">
-                      Tap to Check In
+                    <Badge className={`${isCheckingIn ? 'bg-neutral-600' : 'bg-indigo-600'} text-white font-bold shadow-xl px-3 py-1.5 text-xs border-2 ${isCheckingIn ? 'border-neutral-500' : 'border-indigo-400 animate-pulse'}`}>
+                      {isCheckingIn ? 'Checking in...' : 'Tap to Check In'}
                     </Badge>
                   </div>
                   {/* Venue Image */}

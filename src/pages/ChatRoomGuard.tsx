@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getActiveMatches } from "@/lib/matchesCompat";
+import { getActiveMatches, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { toast, Toaster } from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import config from "@/config";
@@ -63,6 +63,15 @@ export default function ChatRoomGuard() {
               setOk(false);
             }
           } else {
+            // Check if match is expired
+            const isExpired = Date.now() - match.timestamp > MATCH_EXPIRY_MS;
+            if (isExpired) {
+              toast("This match has expired. Check into the same venue to reconnect!");
+              navigate("/matches", { replace: true });
+              setOk(false);
+              return;
+            }
+            
             // Verify current user is a participant
             const isParticipant = match.userId1 === currentUser?.uid || match.userId2 === currentUser?.uid;
             if (!isParticipant) {

@@ -287,9 +287,6 @@ export default function ChatRoom() {
           <p className="text-neutral-300">Chat not found.</p>
           <Button 
             onClick={() => {
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ChatRoom.tsx:190',message:'Go back button clicked',data:{hasHistory:window.history.length>1},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-              // #endregion
               if (window.history.length > 1) {
                 navigate(-1);
               } else {
@@ -412,9 +409,6 @@ export default function ChatRoom() {
           variant="ghost"
           size="icon"
           onClick={() => {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ChatRoom.tsx:308',message:'Go back button clicked',data:{hasHistory:window.history.length>1},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
             if (window.history.length > 1) {
               navigate(-1);
             } else {

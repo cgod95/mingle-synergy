@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
 import SubscriptionService from '@/services/subscriptionService';
+import { logError } from '@/utils/errorHandler';
 
 const subscriptionService = new SubscriptionService();
 
@@ -86,7 +87,7 @@ const Billing: React.FC = () => {
       ]);
 
     } catch (error) {
-      console.error('Failed to load billing data:', error);
+      logError(error as Error, { source: 'Billing', action: 'loadBillingData' });
       toast({
         title: "Error",
         description: "Failed to load billing information",
@@ -184,9 +185,6 @@ const Billing: React.FC = () => {
             <Button
               variant="ghost"
               onClick={() => {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Billing.tsx:186',message:'Go back button clicked',data:{hasHistory:window.history.length>1},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-                // #endregion
                 if (window.history.length > 1) {
                   navigate(-1);
                 } else {
