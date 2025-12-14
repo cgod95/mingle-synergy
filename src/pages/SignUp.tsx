@@ -81,7 +81,6 @@ export default function SignUp() {
                 Back
               </Button>
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Create account</CardTitle>
-              <p className="text-sm text-white">Join Mingle and start meeting people</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
