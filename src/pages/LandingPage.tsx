@@ -206,54 +206,25 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
+            {/* Primary CTA Button - Centered inside card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="flex justify-center"
+            >
+              <Button
+                onClick={handleJoinClosedBeta}
+                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all backdrop-blur-sm"
+                size="lg"
+              >
+                Join Closed Beta
+              </Button>
+            </motion.div>
+
             </div>
           </div>
         </div>
-        
-        {/* Primary CTA Button - Moved outside hero card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mb-8"
-        >
-          <Button
-            onClick={handleJoinClosedBeta}
-            className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all mb-8 backdrop-blur-sm"
-            size="lg"
-          >
-            Join Closed Beta
-          </Button>
-        </motion.div>
-
-        {/* Secondary Actions - Sign in/Sign up options */}
-        {config.DEMO_MODE && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
-          >
-            <Button 
-              asChild 
-              className="flex-1 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 font-semibold text-base"
-              style={{ height: '100px' }}
-            >
-              <Link to="/signup">
-                Get Started
-              </Link>
-            </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              className="flex-1 border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
-            >
-              <Link to="/signin">
-                Sign In
-              </Link>
-            </Button>
-          </motion.div>
-        )}
       </div>
 
     </Layout>
