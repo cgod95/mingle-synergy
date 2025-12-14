@@ -220,7 +220,7 @@ export default function CheckInPage() {
           </div>
         )}
         <div className="mb-6">
-          <div className="mb-6">
+          <div className="mb-6 p-6 border-2 border-neutral-700 bg-neutral-800 rounded-lg shadow-xl">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">Venues</h1>
             <p className="text-neutral-300 mb-3">Check in with the QR code at the venue, auto check-in, or choose from the venues below.</p>
             <div className="flex items-center gap-2 text-sm text-neutral-400">
