@@ -69,6 +69,21 @@ export default function CheckInPage() {
     localStorage.setItem(ACTIVE_KEY, id);
     setChecked(true);
     
+    // CRITICAL: Update Firebase check-in status so other users can see this user
+    if (!config.DEMO_MODE && currentUser?.uid) {
+      try {
+        const venueService = await import("@/services/firebase/venueService");
+        await venueService.default.checkInToVenue(currentUser.uid, id);
+      } catch (error) {
+        // Log but don't block navigation - user can still view venue
+        logError(error instanceof Error ? error : new Error(String(error)), {
+          source: 'CheckInPage',
+          action: 'checkInToVenue',
+          venueId: id
+        });
+      }
+    }
+    
     // Track user checked in event per spec section 9
     try {
       const { trackUserCheckedIn } = await import("@/services/specAnalytics");
