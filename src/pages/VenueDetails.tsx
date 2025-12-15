@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
-import { canSeePeopleAtVenues } from "@/utils/locationPermission";
+import { useLocationPermission } from "@/hooks/useLocationPermission";
 import { logError } from "@/utils/errorHandler";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { firestore } from "@/firebase/config";
@@ -37,6 +37,7 @@ export default function VenueDetails() {
   const { id } = useParams<{ id: string }>();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const { hasPermission, requestLocationPermission, isRequesting: isRequestingLocation } = useLocationPermission();
   const [venue, setVenue] = useState<any>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
   const [venueError, setVenueError] = useState<Error | null>(null);
@@ -385,7 +386,7 @@ export default function VenueDetails() {
                 </div>
               )}
             </div>
-          {!canSeePeopleAtVenues() ? (
+          {!hasPermission ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -401,21 +402,20 @@ export default function VenueDetails() {
               <div className="flex flex-col gap-2">
                 <Button
                   onClick={async () => {
-                    const { requestLocationPermission } = await import("@/utils/locationPermission");
                     const granted = await requestLocationPermission();
                     if (granted) {
                       setToast("Location enabled! You can now see people at venues.");
                       setTimeout(() => setToast(null), 2000);
-                      // Refresh the page to show people
-                      window.location.reload();
+                      // State will update automatically via hook, triggering re-render
                     } else {
                       setToast("Location permission denied. Please enable it in browser settings.");
                       setTimeout(() => setToast(null), 3000);
                     }
                   }}
+                  disabled={isRequestingLocation}
                   className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Enable Location Now
+                  {isRequestingLocation ? "Requesting..." : "Enable Location Now"}
                 </Button>
                 <Button
                   onClick={() => navigate('/settings')}

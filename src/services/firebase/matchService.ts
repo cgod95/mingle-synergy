@@ -460,10 +460,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         messages: [],
       };
 
-      const docRef = await addDoc(matchRef, {
-        ...newMatch,
-        timestamp: serverTimestamp(),
-      });
+      const docRef = await addDoc(matchRef, newMatch);
 
       return docRef.id;
     } catch (error) {

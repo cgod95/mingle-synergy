@@ -19,8 +19,14 @@ export default function SignUp() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignUp = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    // Prevent double submission
+    if (busy) return;
+    
     setBusy(true);
     setError(null);
     
@@ -124,8 +130,22 @@ export default function SignUp() {
                 
                 <Button 
                   type="submit"
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={(e) => {
+                    // Mobile fallback: handle click explicitly for touch devices
+                    if (!email.trim() || !password.trim() || busy) {
+                      e.preventDefault();
+                      return;
+                    }
+                    handleSignUp(e as any);
+                  }}
+                  onTouchStart={(e) => {
+                    // Ensure touch events work on mobile
+                    e.currentTarget.focus();
+                  }}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
                   disabled={busy || !email.trim() || !password.trim()}
+                  aria-label="Create account"
                 >
                   {busy ? (
                     <>

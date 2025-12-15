@@ -853,3 +853,4 @@ If you find inconsistencies or need to add new patterns:
 
 **Remember:** Consistency is key. When in doubt, refer to this document or existing pages like `LandingPage.tsx`, `SignUp.tsx`, or `VenueDetails.tsx` for reference implementations.
 
+
