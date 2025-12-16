@@ -29,18 +29,18 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
   const [loading, setLoading] = useState(false);
 
   // Load check-in status from localStorage
+  // BETA: No expiry - users stay checked in until manual checkout
   useEffect(() => {
     if (!currentUser?.uid) return;
 
     const userCheckIns = JSON.parse(localStorage.getItem(`checkIns_${currentUser.uid}`) || '[]');
+    // Beta mode: Don't check expiry, check-ins persist until manual checkout
     const currentVenueCheckIn = userCheckIns.find((ci: CheckInStatus) => 
-      ci.venueName === venueName && ci.expiresAt && Date.now() < ci.expiresAt
+      ci.venueName === venueName && ci.isCheckedIn
     );
     
     setCheckInStatus(currentVenueCheckIn || null);
-    setActiveCheckIns(userCheckIns.filter((ci: CheckInStatus) => 
-      ci.expiresAt && Date.now() < ci.expiresAt
-    ));
+    setActiveCheckIns(userCheckIns.filter((ci: CheckInStatus) => ci.isCheckedIn));
   }, [currentUser?.uid, venueName]);
 
   const handleCheckIn = async () => {
@@ -68,14 +68,13 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
         return;
       }
 
-      // Create new check-in (12 hours duration)
+      // Create new check-in (BETA: no expiry - manual checkout only)
       const now = Date.now();
-      const expiresAt = now + (12 * 60 * 60 * 1000); // 12 hours
       
       const newCheckIn: CheckInStatus = {
         isCheckedIn: true,
         checkInTime: now,
-        expiresAt,
+        expiresAt: null, // Beta: no automatic expiry
         venueName,
       };
 
@@ -213,7 +212,7 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
               </Badge>
             </div>
             <div className="text-xs text-gray-500">
-              Stay checked in for 12 hours. You can be at up to 3 venues at once.
+              You'll stay checked in until you manually check out.
             </div>
             {activeCheckIns.length >= 3 && (
               <div className="flex items-center text-sm text-amber-600 bg-amber-50 p-2 rounded">

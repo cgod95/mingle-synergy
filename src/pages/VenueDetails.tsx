@@ -3,7 +3,7 @@ import { getVenue, getPeople } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
 import { getAllMatches } from "@/lib/matchesCompat";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,8 @@ import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
-import { canSeePeopleAtVenues } from "@/utils/locationPermission";
 import { logError } from "@/utils/errorHandler";
+import venueService from "@/services/firebase/venueService";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -60,13 +60,48 @@ export default function VenueDetails() {
     }
   }, [id]);
   
-  // In demo mode, use dynamic presence hook; otherwise use static getPeople
+  // Fetch users from Firebase in production, use demo presence in demo mode
   const demoPeople = useDemoPresence(config.DEMO_MODE ? id : undefined);
   const staticPeople = useMemo(() => id ? getPeople(id) : [], [id]);
-  const people = config.DEMO_MODE && demoPeople.length > 0 ? demoPeople : staticPeople;
+  const [firebaseUsers, setFirebaseUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  
+  // Load real users from Firebase in production mode
+  useEffect(() => {
+    if (config.DEMO_MODE || !id) return;
+    
+    setLoadingUsers(true);
+    venueService.getUsersAtVenue(id)
+      .then(users => {
+        // Filter out current user and transform to expected format
+        const filteredUsers = users
+          .filter(u => u.id !== currentUser?.uid)
+          .map(u => ({
+            id: u.id,
+            name: u.name || 'Anonymous',
+            photo: u.photos?.[0] || u.photoURL || '',
+            bio: u.bio || '',
+            age: u.age,
+            lastActive: u.lastActive || Date.now(),
+          }));
+        setFirebaseUsers(filteredUsers);
+      })
+      .catch(err => {
+        logError(err instanceof Error ? err : new Error('Failed to load users'), {
+          context: 'VenueDetails.loadUsers',
+          venueId: id
+        });
+      })
+      .finally(() => setLoadingUsers(false));
+  }, [id, currentUser?.uid]);
+  
+  // Use Firebase users in production, demo people in demo mode
+  const people = config.DEMO_MODE 
+    ? (demoPeople.length > 0 ? demoPeople : staticPeople)
+    : firebaseUsers;
   
   const [toast, setToast] = useState<string | null>(null);
-  const [checkedIn, setCheckedIn] = useState<string | null>(null);
+  const [checkedIn, setCheckedIn] = useState<string | null>(() => getCheckedVenueId());
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
   const [mutualConnections, setMutualConnections] = useState<number>(0);
@@ -74,8 +109,6 @@ export default function VenueDetails() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setCheckedIn(getCheckedVenueId());
-    
     // Load mutual connections count
     if (currentUser?.uid && venue?.id) {
       getAllMatches(currentUser.uid).then(matches => {
@@ -146,8 +179,22 @@ export default function VenueDetails() {
     
     // DEMO MODE: Photo requirement disabled for easier testing
     
+    // Update local state
     checkInAt(venue.id);
     setCheckedIn(venue.id);
+    
+    // Sync to Firebase (in production mode)
+    if (!config.DEMO_MODE && currentUser?.uid) {
+      try {
+        await venueService.checkInToVenue(currentUser.uid, venue.id);
+      } catch (error) {
+        logError(error instanceof Error ? error : new Error('Failed to sync check-in'), {
+          context: 'VenueDetails.handleCheckIn',
+          venueId: venue.id
+        });
+        // Continue anyway - local state is updated
+      }
+    }
     
     // Track user checked in event per spec section 9
     try {
@@ -228,23 +275,19 @@ export default function VenueDetails() {
                 </p>
               )}
             </div>
-            <Button
-              onClick={handleCheckIn}
-              className={`rounded-full px-6 py-2.5 font-medium shadow-lg transition-all ${
-                checkedIn === venue.id
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
-              }`}
-            >
-              {checkedIn === venue.id ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Checked In
-                </>
-              ) : (
-                "Check In"
-              )}
-            </Button>
+            {checkedIn === venue.id ? (
+              <div className="flex items-center gap-2 bg-green-600/80 text-white px-4 py-2 rounded-full">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-sm font-medium">You're Here</span>
+              </div>
+            ) : (
+              <Button
+                onClick={handleCheckIn}
+                className="rounded-full px-6 py-2.5 font-medium shadow-lg transition-all bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                Check In
+              </Button>
+            )}
           </div>
         </div>
 
@@ -275,49 +318,11 @@ export default function VenueDetails() {
                 </div>
               )}
             </div>
-          {!canSeePeopleAtVenues() ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12 bg-neutral-800 rounded-2xl border border-neutral-700"
-            >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-900 flex items-center justify-center">
-                <MapPin className="w-8 h-8 text-indigo-400" />
-              </div>
-              <p className="text-neutral-200 font-medium mb-2">Location access required</p>
-              <p className="text-sm text-neutral-300 mb-4">
-                Enable location access to see people at this venue. You can still browse venues without location.
-              </p>
-              <div className="flex flex-col gap-2">
-                <Button
-                  onClick={async () => {
-                    const { requestLocationPermission } = await import("@/utils/locationPermission");
-                    const granted = await requestLocationPermission();
-                    if (granted) {
-                      setToast("Location enabled! You can now see people at venues.");
-                      setTimeout(() => setToast(null), 2000);
-                      // Refresh the page to show people
-                      window.location.reload();
-                    } else {
-                      setToast("Location permission denied. Please enable it in browser settings.");
-                      setTimeout(() => setToast(null), 3000);
-                    }
-                  }}
-                  size="sm"
-                  className="w-full"
-                >
-                  Enable Location Now
-                </Button>
-                <Button
-                  onClick={() => navigate('/settings')}
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
-                  Go to Settings
-                </Button>
-              </div>
-            </motion.div>
+          {loadingUsers ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <span className="ml-3 text-neutral-300">Loading people...</span>
+            </div>
           ) : people.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}

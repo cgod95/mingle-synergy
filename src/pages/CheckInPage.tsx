@@ -16,6 +16,7 @@ import { VenueCardSkeleton } from "@/components/ui/LoadingStates";
 import { calculateDistance } from "@/utils/locationUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, History } from "lucide-react";
+import venueService from "@/services/firebase/venueService";
 
 const ACTIVE_KEY = "mingle_active_venue";
 
@@ -68,6 +69,19 @@ export default function CheckInPage() {
     
     localStorage.setItem(ACTIVE_KEY, id);
     setChecked(true);
+    
+    // Sync check-in to Firebase (in production mode)
+    if (!config.DEMO_MODE && currentUser?.uid) {
+      try {
+        await venueService.checkInToVenue(currentUser.uid, id);
+      } catch (error) {
+        logError(error instanceof Error ? error : new Error('Failed to sync check-in'), {
+          context: 'CheckInPage.onCheckIn',
+          venueId: id
+        });
+        // Continue anyway - local state is updated
+      }
+    }
     
     // Track user checked in event per spec section 9
     try {

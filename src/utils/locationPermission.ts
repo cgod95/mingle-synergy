@@ -132,7 +132,7 @@ export async function requestLocationPermission(): Promise<boolean> {
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 0
+          maximumAge: 300000 // Cache location for 5 minutes to avoid repeated prompts
         }
       );
     });
