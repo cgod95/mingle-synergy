@@ -56,6 +56,6 @@
       "NODE_ENV": "production"
     }
   },
-  "installCommand": "rm -rf node_modules node_modules/.cache .next .vercel && npm ci --include=dev",
+  "installCommand": "rm -rf node_modules node_modules/.cache .next .vercel && npm ci --include=dev && node scripts/ensure-rollup-binary.cjs",
   "buildCommand": "FORCE_REBUILD=$(date +%s) npm run build"
 }
