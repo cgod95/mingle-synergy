@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { getVenue, getPeople } from "../lib/api";
-import { likePerson, isMatched, isLiked } from "../lib/likesStore";
+import { likePerson as localLikePerson, isMatched as localIsMatched, isLiked as localIsLiked } from "../lib/likesStore";
 import { getAllMatches } from "@/lib/matchesCompat";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -15,6 +15,8 @@ import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { logError } from "@/utils/errorHandler";
 import venueService from "@/services/firebase/venueService";
+import { interestService, matchService } from "@/services";
+import { useToast } from "@/hooks/use-toast";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -105,20 +107,48 @@ export default function VenueDetails() {
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
   const [mutualConnections, setMutualConnections] = useState<number>(0);
+  const [likedUserIds, setLikedUserIds] = useState<Set<string>>(new Set());
+  const [matchedUserIds, setMatchedUserIds] = useState<Set<string>>(new Set());
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const { toast: showToast } = useToast();
 
+  // Load user's likes and matches from Firebase
   useEffect(() => {
-    // Load mutual connections count
-    if (currentUser?.uid && venue?.id) {
-      getAllMatches(currentUser.uid).then(matches => {
-        const matchesAtVenue = matches.filter(m => m.venueId === venue.id);
-        setMutualConnections(matchesAtVenue.length);
-      }).catch(() => {
-        // Non-critical
+    if (!currentUser?.uid || !venue?.id) return;
+    
+    // Load matches from Firebase
+    matchService.getMatches(currentUser.uid).then(matches => {
+      const matchedIds = new Set<string>();
+      matches.forEach(m => {
+        const partnerId = m.userId1 === currentUser.uid ? m.userId2 : m.userId1;
+        matchedIds.add(partnerId);
       });
-    }
+      setMatchedUserIds(matchedIds);
+      
+      // Also count matches at this venue
+      const matchesAtVenue = matches.filter(m => m.venueId === venue.id);
+      setMutualConnections(matchesAtVenue.length);
+    }).catch(err => {
+      logError(err instanceof Error ? err : new Error('Failed to load matches'), {
+        context: 'VenueDetails.loadMatches'
+      });
+      // Fallback to local
+      getAllMatches(currentUser.uid).then(localMatches => {
+        const matchedIds = new Set(localMatches.map(m => m.partnerId));
+        setMatchedUserIds(matchedIds);
+      });
+    });
   }, [venue?.id, currentUser?.uid]);
+  
+  // Helper functions to check like/match status
+  const isLiked = useCallback((userId: string) => {
+    return likedUserIds.has(userId) || localIsLiked(userId);
+  }, [likedUserIds]);
+  
+  const isMatched = useCallback((userId: string) => {
+    return matchedUserIds.has(userId) || localIsMatched(userId);
+  }, [matchedUserIds]);
 
   if (loadingVenue) {
     return (
@@ -209,24 +239,57 @@ export default function VenueDetails() {
   };
 
   const handleLike = async (personId: string) => {
-    if (isLiking === personId) return;
+    if (isLiking === personId || !currentUser?.uid || !venue?.id) return;
     setIsLiking(personId);
     
-    // Simulate API delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const matched = likePerson(personId);
-    setIsLiking(null);
-    
-    // Show notification on card
-    if (matched) {
-      setLikeNotification({ personId, message: "It's a match! 🎉" });
-    } else {
-      setLikeNotification({ personId, message: "Like sent! ❤️" });
+    try {
+      // Try Firebase first (production mode)
+      if (!config.DEMO_MODE) {
+        await interestService.expressInterest(currentUser.uid, personId, venue.id);
+        
+        // Update local liked state
+        setLikedUserIds(prev => new Set([...prev, personId]));
+        
+        // Check if this created a match
+        const matches = await matchService.getMatches(currentUser.uid);
+        const isNewMatch = matches.some(m => 
+          (m.userId1 === personId || m.userId2 === personId)
+        );
+        
+        if (isNewMatch) {
+          setMatchedUserIds(prev => new Set([...prev, personId]));
+          setLikeNotification({ personId, message: "It's a match! 🎉" });
+          showToast({
+            title: "It's a match! 🎉",
+            description: "You can now chat with this person",
+          });
+        } else {
+          setLikeNotification({ personId, message: "Like sent! ❤️" });
+        }
+      } else {
+        // Demo mode fallback - use local storage
+        const matched = await localLikePerson(personId);
+        if (matched) {
+          setLikeNotification({ personId, message: "It's a match! 🎉" });
+        } else {
+          setLikeNotification({ personId, message: "Like sent! ❤️" });
+        }
+      }
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error('Failed to like user'), {
+        context: 'VenueDetails.handleLike',
+        personId
+      });
+      showToast({
+        title: "Couldn't send like",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLiking(null);
+      // Clear notification after 2 seconds
+      setTimeout(() => setLikeNotification(null), 2000);
     }
-    
-    // Clear notification after 2 seconds
-    setTimeout(() => setLikeNotification(null), 2000);
   };
 
   return (

@@ -78,7 +78,8 @@ const DEMO_NAMES = [
 
 export const DEMO_PEOPLE: Person[] = DEMO_NAMES.map((name, index) => {
   const now = Date.now();
-  const venues = ['1', '2', '3', '4', '5', '6'];
+  // Use consistent venue IDs that match demoVenues and Firebase venues
+  const venues = ['club-aurora', 'neon-garden', 'luna-lounge', 'venue1', 'venue2', 'venue3'];
   const zones = ['front', 'back', 'outdoor', 'main-floor', 'vip', 'rooftop', 'indoor'];
   
   // Varied activity states

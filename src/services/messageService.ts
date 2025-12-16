@@ -405,6 +405,37 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
 };
 
 /**
+ * Get all messages for a match (one-time fetch)
+ */
+export const getMatchMessages = async (matchId: string): Promise<Message[]> => {
+  // Check if firestore is available
+  if (!firestore) {
+    return [];
+  }
+  
+  try {
+    const messagesRef = collection(firestore, "messages");
+    const q = query(
+      messagesRef,
+      where("matchId", "==", matchId),
+      orderBy("createdAt", "asc")
+    );
+    
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      senderId: doc.data().senderId,
+      text: doc.data().text,
+      createdAt: doc.data().createdAt?.toDate?.() ?? new Date(),
+      readBy: doc.data().readBy || [],
+    }));
+  } catch (error) {
+    logError(error as Error, { source: 'messageService', action: 'getMatchMessages', matchId });
+    return [];
+  }
+};
+
+/**
  * Subscribe to real-time message updates for a match
  * Returns an unsubscribe function
  */

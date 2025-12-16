@@ -3,9 +3,9 @@ import type { AppConfig, FeatureFlags } from '@/types/common';
 
 // Validate production environment variables
 const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
-// Enable demo mode if explicitly set OR in development mode
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || 
-  import.meta.env.MODE === 'development';
+// BETA FIX: Only enable demo mode if EXPLICITLY set to 'true'
+// Previously: was also true in development mode, which broke Firebase testing
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
 
 if (isProduction && !isDemoMode) {
   // In production (non-demo), validate required Firebase variables
@@ -41,7 +41,7 @@ const config: AppConfig = {
     performanceMonitoring: import.meta.env.VITE_ENABLE_PERFORMANCE_MONITORING === 'true',
   },
   DEMO_MODE: isDemoMode,
-  USE_MOCK: import.meta.env.VITE_USE_MOCK === 'true' || import.meta.env.MODE === 'development',
+  USE_MOCK: import.meta.env.VITE_USE_MOCK === 'true', // Only mock when explicitly set
   FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY || '',
   FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
   FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',

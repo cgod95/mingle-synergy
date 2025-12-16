@@ -38,8 +38,8 @@ function seedIfNeeded(userId: string) {
   // Use a stable ID based on partnerId to avoid creating new matches on every call
   const matchesFromLikes: Match[] = matchedIds.map((partnerId, index) => {
     const person = getPerson(partnerId);
-    const venues = ['1', '2', '3', '4', '5', '6'];
-    const venueNames = ['Neon Garden', 'Club Aurora', 'The Roastery', 'Sunset Lounge', 'The Warehouse', 'Garden Bistro'];
+    const venues = ['club-aurora', 'neon-garden', 'luna-lounge', 'venue1', 'venue2', 'venue3'];
+    const venueNames = ['Club Aurora', 'Neon Garden', 'Luna Lounge', 'The Roastery', 'Sunset Lounge', 'The Warehouse'];
     const venueIndex = index % venues.length;
     
     // Ensure chat exists for this match

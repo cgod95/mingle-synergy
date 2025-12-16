@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles } from "lucide-react";
-import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
+import { getAllMatches as getLocalMatches, getRemainingSeconds, isExpired, type Match, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
 import { timeAgo } from "@/lib/timeago";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +21,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { logError } from "@/utils/errorHandler";
+import { matchService, userService } from "@/services";
+import { FirestoreMatch } from "@/types/match";
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -47,11 +49,47 @@ export default function Matches() {
         return;
       }
       
-      // Demo data seeding removed for closed beta - using real Firebase data
       setIsLoading(true);
       try {
-        // Get all matches (including expired) for display
-        const allMatches = await getAllMatches(currentUser.uid);
+        let allMatches: Match[] = [];
+        
+        if (!config.DEMO_MODE) {
+          // Production: Get matches from Firebase
+          const firebaseMatches = await matchService.getMatches(currentUser.uid);
+          
+          // Transform Firebase matches to local Match format
+          allMatches = await Promise.all(firebaseMatches.map(async (fm: FirestoreMatch) => {
+            const partnerId = fm.userId1 === currentUser.uid ? fm.userId2 : fm.userId1;
+            
+            // Try to get partner's profile
+            let displayName = partnerId;
+            let avatarUrl = '';
+            try {
+              const partnerProfile = await userService.getUserProfile(partnerId);
+              if (partnerProfile) {
+                displayName = partnerProfile.name || partnerId;
+                avatarUrl = partnerProfile.photos?.[0] || partnerProfile.photoURL || '';
+              }
+            } catch {
+              // Use defaults if profile fetch fails
+            }
+            
+            return {
+              id: fm.id || `match_${partnerId}`,
+              userId: currentUser.uid,
+              partnerId,
+              createdAt: fm.timestamp,
+              expiresAt: fm.timestamp + MATCH_EXPIRY_MS,
+              displayName,
+              avatarUrl,
+              venueName: fm.venueName,
+              venueId: fm.venueId,
+            } as Match;
+          }));
+        } else {
+          // Demo mode: Use local storage
+          allMatches = await getLocalMatches(currentUser.uid);
+        }
         
         // Enrich with last message preview and new match indicator
         const now = Date.now();
@@ -80,19 +118,23 @@ export default function Matches() {
         setMatches(enrichedMatches);
       } catch (error) {
         logError(error as Error, { context: 'Matches.fetchMatches', userId: currentUser?.uid || 'unknown' });
+        
+        // Fallback to local matches on error
+        try {
+          const localMatches = await getLocalMatches(currentUser.uid);
+          setMatches(localMatches.map(m => ({ ...m, isNew: false })));
+        } catch {
+          // Complete failure - show empty state
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchMatches();
-    // Refresh every 30 seconds
-    // CRITICAL: Disabled in demo mode to prevent periodic re-renders
-    // In demo mode, matches are loaded from localStorage and don't need polling
-    const interval = config.DEMO_MODE ? null : setInterval(fetchMatches, 30000);
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    // Refresh every 30 seconds (always, since we're using Firebase)
+    const interval = setInterval(fetchMatches, 30000);
+    return () => clearInterval(interval);
   }, [currentUser?.uid]); // CRITICAL: Only depend on user ID, not whole object
 
 

@@ -56,7 +56,7 @@ export async function ensureDemoThreadsSeed() {
   // Create 10-15 matches with varied activity
   const now = Date.now();
   const matchSeeds = DEMO_PEOPLE.slice(0, 15).map((person, index) => {
-    const venues = ['1', '2', '3', '4', '5', '6'];
+    const venues = ['club-aurora', 'neon-garden', 'luna-lounge', 'venue1', 'venue2', 'venue3'];
     const venueType = index % 4 === 0 ? 'club' : index % 4 === 1 ? 'bar' : index % 4 === 2 ? 'cafe' : 'restaurant';
     
     // Varied expiry times (some expiring soon, some with 2+ hours)

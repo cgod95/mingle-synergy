@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { retryWithMessage, isNetworkError } from "@/utils/retry";
 import { logError } from "@/utils/errorHandler";
+import config from "@/config";
+import { sendMessageWithLimit, getMatchMessages, subscribeToMessages } from "@/services/messageService";
 
 // Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
 const CONVERSATION_STARTERS = [
@@ -150,25 +152,61 @@ export default function ChatRoom() {
   }, [matchId]);
 
   useEffect(() => {
-    if (!matchId) return;
-    const seeded = ensureThread(matchId);
-    setMsgs(seeded);
+    if (!matchId || !currentUser?.uid) return;
+    
+    // In production mode, load and subscribe to Firebase messages
+    if (!config.DEMO_MODE) {
+      // Initial load
+      getMatchMessages(matchId).then(firebaseMessages => {
+        const formattedMsgs: Msg[] = firebaseMessages.map(m => ({
+          sender: m.senderId === currentUser.uid ? 'you' : 'them',
+          text: m.text,
+          ts: m.createdAt.getTime()
+        }));
+        setMsgs(formattedMsgs);
+        
+        // Also save to localStorage for offline access
+        saveMessages(matchId, formattedMsgs);
+      }).catch(err => {
+        logError(err instanceof Error ? err : new Error('Failed to load messages'), {
+          context: 'ChatRoom.loadMessages',
+          matchId
+        });
+        // Fallback to localStorage
+        setMsgs(ensureThread(matchId));
+      });
+      
+      // Subscribe to real-time updates
+      const unsubscribe = subscribeToMessages(matchId, (firebaseMessages) => {
+        const formattedMsgs: Msg[] = firebaseMessages.map(m => ({
+          sender: m.senderId === currentUser.uid ? 'you' : 'them',
+          text: m.text,
+          ts: m.createdAt.getTime()
+        }));
+        setMsgs(formattedMsgs);
+        saveMessages(matchId, formattedMsgs);
+      });
+      
+      return () => unsubscribe();
+    } else {
+      // Demo mode: use localStorage
+      const seeded = ensureThread(matchId);
+      setMsgs(seeded);
+    }
     
     // Update message limit tracking
-    if (currentUser?.uid) {
-      const updateLimits = async () => {
-        const remaining = await getRemainingMessages(matchId, currentUser.uid);
-        const canSend = await canSendMessage(matchId, currentUser.uid);
-        setRemainingMessages(remaining);
-        setCanSendMsg(canSend);
-        
-        // Show modal if limit reached (but not for premium users)
-        if (!canSend && remaining === 0) {
-          setShowMessageLimitModal(true);
-        }
-      };
-      updateLimits();
-    }
+    const updateLimits = async () => {
+      const remaining = await getRemainingMessages(matchId, currentUser.uid);
+      const canSend = await canSendMessage(matchId, currentUser.uid);
+      setRemainingMessages(remaining);
+      setCanSendMsg(canSend);
+      
+      // Show modal if limit reached (but not for premium users)
+      if (!canSend && remaining === 0) {
+        setShowMessageLimitModal(true);
+      }
+    };
+    updateLimits();
   }, [matchId, currentUser?.uid]);
 
   useEffect(() => {
@@ -221,20 +259,37 @@ export default function ChatRoom() {
         return;
       }
       
-      // Increment message count (only for non-premium users)
-      const isPremium = await (async () => {
-        try {
-          const { subscriptionService } = await import("@/services");
-          if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
-            const subscription = subscriptionService.getUserSubscription(currentUser.uid);
-            return subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
-          }
-        } catch {}
-        return false;
-      })();
-      
-      if (!isPremium) {
-        incrementMessageCount(matchId, currentUser.uid);
+      // In production, send via Firebase
+      if (!config.DEMO_MODE) {
+        await sendMessageWithLimit({
+          matchId,
+          senderId: currentUser.uid,
+          message: t
+        });
+        // Messages will update via subscription, but add optimistically
+        const optimisticMsg: Msg = { sender: "you" as const, text: t, ts: Date.now() };
+        setMsgs(prev => [...prev, optimisticMsg]);
+      } else {
+        // Demo mode: save locally
+        const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts: Date.now() }];
+        setMsgs(next);
+        saveMessages(matchId, next);
+        
+        // Increment message count (only for non-premium users in demo)
+        const isPremium = await (async () => {
+          try {
+            const { subscriptionService } = await import("@/services");
+            if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+              const subscription = subscriptionService.getUserSubscription(currentUser.uid);
+              return subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+            }
+          } catch {}
+          return false;
+        })();
+        
+        if (!isPremium) {
+          incrementMessageCount(matchId, currentUser.uid);
+        }
       }
       
       const remaining = await getRemainingMessages(matchId, currentUser.uid);
@@ -242,16 +297,13 @@ export default function ChatRoom() {
       setCanSendMsg(await canSendMessage(matchId, currentUser.uid));
       
       // Show toast if 1 message remaining (but not for premium)
-      if (remaining === 1 && !isPremium) {
+      if (remaining === 1) {
         toast({
           title: "1 message remaining",
           description: "Make it count! Focus on meeting up in person.",
         });
       }
       
-      const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts: Date.now() }];
-      setMsgs(next);
-      saveMessages(matchId, next);
       setText("");
       setShowStarters(false); // Hide starters after first message
       inputRef.current?.focus();
