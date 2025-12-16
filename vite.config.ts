@@ -79,7 +79,6 @@ export default defineConfig({
       'react/jsx-runtime',
       'react-router-dom', 
       'framer-motion',
-      'react-firebase-hooks',
       '@tanstack/react-query'
     ],
     force: true, // Force re-optimization

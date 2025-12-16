@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { Interest, Match, User } from '../types';
 import { getInterests, getMatches } from '../utils/localStorageUtils';
-import services from '../services';
+// NOTE: Removed unused 'services' import that was causing circular dependency
 
 // Explicitly define what a UserType looks like for TypeScript
 type UserType = {
