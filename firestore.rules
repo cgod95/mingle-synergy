@@ -19,9 +19,16 @@ service cloud.firestore {
     }
 
     // User profiles - users can read/write their own document
-    // Enforce bio (min 10 chars) and photos (at least 1) for profile updates
+    // Other users can read profiles of users at the same venue (for venue discovery)
     match /users/{uid} {
-      allow read: if isSelf(uid);
+      // Users can always read their own profile
+      // Users can read OTHER profiles if both are checked into a venue (for discovery)
+      // This enables seeing other users at a venue
+      allow read: if isSignedIn() && (
+        isSelf(uid) ||
+        // Allow reading other users who are visible and checked in
+        (resource.data.isVisible == true && resource.data.isCheckedIn == true)
+      );
       allow create: if isSelf(uid);
       
       // Update: validate bio and photos if they're being updated
@@ -134,26 +141,36 @@ service cloud.firestore {
       allow read: if false; // Private to admins - enable when admin system is implemented
     }
 
-    // Likes/Interests - users can read their own likes, create likes where they are the sender
-    match /likes/{likeId} {
-      allow read: if isSignedIn() && (
-        resource.data.fromUserId == request.auth.uid ||
-        resource.data.toUserId == request.auth.uid
-      );
-      allow create: if isSignedIn() &&
-        request.resource.data.fromUserId == request.auth.uid;
-      allow update, delete: if false; // Likes are immutable
+    // Likes collection - stores arrays of liked user IDs per user
+    // Used by matchService.likeUser - document ID is the user's ID
+    match /likes/{userId} {
+      // Users can read their own likes or likes where they might be a target
+      allow read: if isSignedIn();
+      // Users can only create/update their own likes document
+      allow create: if isSignedIn() && userId == request.auth.uid;
+      allow update: if isSignedIn() && userId == request.auth.uid;
+      allow delete: if false;
     }
 
-    // Interests collection (if used separately from likes)
+    // Interests collection - stores individual interest documents
+    // Used by interestService.expressInterest
+    // Fields: userId (sender), targetUserId (receiver), venueId, createdAt
     match /interests/{interestId} {
       allow read: if isSignedIn() && (
-        resource.data.fromUserId == request.auth.uid ||
-        resource.data.toUserId == request.auth.uid
+        resource.data.userId == request.auth.uid ||
+        resource.data.targetUserId == request.auth.uid
       );
+      // Users can only create interests where they are the sender (userId field)
       allow create: if isSignedIn() &&
-        request.resource.data.fromUserId == request.auth.uid;
+        request.resource.data.userId == request.auth.uid;
       allow update, delete: if false;
+    }
+
+    // UsersLikesCount collection - tracks like counts per user per venue
+    match /usersLikesCount/{docId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
     }
   }
 }

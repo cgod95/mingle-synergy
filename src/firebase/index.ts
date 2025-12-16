@@ -15,8 +15,6 @@ const db = firestore;
 const isFirebaseAvailable = () => !!app;
 const getFirestoreCollection = (name: string) => collection(db, name);
 
-console.log('Using real Firebase implementation');
-
 // Export everything
 export {
   app, auth, db, storage, firestore,

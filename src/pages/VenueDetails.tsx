@@ -15,7 +15,7 @@ import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { logError } from "@/utils/errorHandler";
 import venueService from "@/services/firebase/venueService";
-import { interestService, matchService } from "@/services";
+import { matchService } from "@/services";
 import { useToast } from "@/hooks/use-toast";
 
 function Toast({ text }: { text: string }) {
@@ -245,7 +245,9 @@ export default function VenueDetails() {
     try {
       // Try Firebase first (production mode)
       if (!config.DEMO_MODE) {
-        await interestService.expressInterest(currentUser.uid, personId, venue.id);
+        // Use matchService.likeUser for consistent like handling
+        // This stores likes in the 'likes' collection and automatically creates matches
+        await matchService.likeUser(currentUser.uid, personId, venue.id);
         
         // Update local liked state
         setLikedUserIds(prev => new Set([...prev, personId]));

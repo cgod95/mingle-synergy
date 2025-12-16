@@ -65,7 +65,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       (match: FirestoreMatch) =>
         match.timestamp &&
         typeof match.timestamp === "number" &&
-        now - match.timestamp < 3 * 60 * 60 * 1000 // 3 hours
+        now - match.timestamp < MATCH_EXPIRY_TIME // Use consistent 24-hour expiry
     );
 
     return activeMatches.sort((a, b) => b.timestamp - a.timestamp);
