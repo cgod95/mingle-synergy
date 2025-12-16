@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx tsc --noEmit || npx vite build",
+    "build": "npx vite build",
     "build:verify": "npm run build && node scripts/verify-react-instances.js",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
