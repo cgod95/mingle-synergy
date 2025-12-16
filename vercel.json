@@ -56,6 +56,6 @@
       "NODE_ENV": "production"
     }
   },
-  "installCommand": "npm install --include=dev",
+  "installCommand": "npm install --include=dev --include=optional",
   "buildCommand": "FORCE_REBUILD=$(date +%s) npm run build"
 }

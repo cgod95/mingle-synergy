@@ -21,7 +21,8 @@
     "emulators": "firebase emulators:start --only auth,firestore",
     "dev:full": "pnpm ports:free && concurrently -k -n EMU,WEB \"pnpm emulators\" \"pnpm dev\"",
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
-    "format": "prettier --write 'src/**/*.{ts,tsx,json,css,md}'"
+    "format": "prettier --write 'src/**/*.{ts,tsx,json,css,md}'",
+    "postinstall": "node scripts/ensure-rollup-binary.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
