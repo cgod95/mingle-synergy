@@ -24,6 +24,7 @@ export default function PhotoUpload() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploaded, setUploaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -52,6 +53,7 @@ export default function PhotoUpload() {
       const previewUrl = URL.createObjectURL(selected);
       setPreview(previewUrl);
       setUploaded(false);
+      setHasError(false);
     }
   };
 
@@ -59,6 +61,7 @@ export default function PhotoUpload() {
     setFile(null);
     setPreview(null);
     setUploaded(false);
+    setHasError(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -106,6 +109,7 @@ export default function PhotoUpload() {
 
     setUploading(true);
     setUploadProgress(0);
+    setHasError(false);
     let progressInterval: NodeJS.Timeout | null = null;
 
     try {
@@ -141,10 +145,14 @@ export default function PhotoUpload() {
         progressInterval = null;
       }
       setUploadProgress(100);
-      setUploaded(true);
       
-      // Mark photo step as complete
-      setOnboardingStepComplete('photo');
+      // Try to mark step complete (non-critical - don't fail if this errors)
+      try {
+        setOnboardingStepComplete('photo');
+      } catch (stepError) {
+        // Step tracking failed but upload succeeded - continue
+        logError(stepError as Error, { context: 'PhotoUpload.stepComplete' });
+      }
       
       // Track onboarding step completion
       analytics.track('onboarding_step_completed', {
@@ -153,6 +161,8 @@ export default function PhotoUpload() {
         has_photo: true,
       });
       
+      // NOW show success and set uploaded state (after everything completes)
+      setUploaded(true);
       toast({
         title: 'Photo uploaded!',
         description: 'Your profile photo has been uploaded successfully.',
@@ -170,7 +180,7 @@ export default function PhotoUpload() {
           });
           window.location.href = fromProfile ? '/profile' : '/checkin';
         }
-      }, 1000); // Reduced from 1500ms to 1000ms since upload is already complete
+      }, 1000);
     } catch (error: any) {
       // Clear progress interval on error
       if (progressInterval) {
@@ -198,6 +208,7 @@ export default function PhotoUpload() {
         errorMessage = 'Permission denied. Please check your account settings.';
       }
       
+      setHasError(true);
       toast({
         title: 'Upload failed',
         description: errorMessage,
@@ -253,12 +264,12 @@ export default function PhotoUpload() {
                           alt="Preview" 
                           className="w-full h-full object-cover"
                         />
-                        {uploaded && (
+                        {uploaded && !hasError && (
                           <div className="absolute inset-0 bg-indigo-500/20 flex items-center justify-center">
                             <CheckCircle2 className="w-16 h-16 text-indigo-400" />
                           </div>
                         )}
-                        {file && !uploaded && (
+                        {file && !uploaded && !hasError && (
                           <button
                             onClick={(e) => {
                               e.preventDefault();
@@ -366,7 +377,7 @@ export default function PhotoUpload() {
                 </div>
               )}
 
-              {uploaded && (
+              {uploaded && !hasError && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}

@@ -14,7 +14,6 @@ import { mockUsers } from '@/data/mock/users';
 import { Match, User } from '@/types';
 import Layout from '@/components/Layout';
 import { Heart, MessageCircle, Clock, MapPin } from 'lucide-react';
-import { logError } from '@/utils/errorHandler';
 
 interface DisplayMatchWithExpiry extends Omit<DisplayMatch, 'matchedAt'> {
   isExpired: boolean;
@@ -45,10 +44,7 @@ const MatchesPage = () => {
 
         setMatchedUsers(users);
       } catch (err) {
-        logError(err instanceof Error ? err : new Error(String(err)), {
-          source: 'MatchesPage',
-          action: 'loadMatches'
-        });
+        console.error('Error loading matches:', err);
         setError('Failed to load matches');
       } finally {
         setLoading(false);

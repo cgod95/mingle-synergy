@@ -63,59 +63,22 @@ export default function CheckInPage() {
   }, []);
 
   const onCheckIn = async (id: string) => {
-    // Prevent double-clicks
-    if (isCheckingIn) return;
-    setIsCheckingIn(true);
+    // DEMO MODE: Photo requirement disabled
+    // Photo check removed for easier demo/testing
     
+    localStorage.setItem(ACTIVE_KEY, id);
+    setChecked(true);
+    
+    // Track user checked in event per spec section 9
     try {
-      // CRITICAL: Update Firebase check-in status so other users can see this user
-      if (!config.DEMO_MODE && currentUser?.uid) {
-        const venueService = await import("@/services/firebase/venueService");
-        await retryWithMessage(
-          () => venueService.default.checkInToVenue(currentUser.uid, id),
-          { operationName: 'checking in', maxRetries: 3 }
-        );
-      }
-      
-      // Only set localStorage and navigate after Firebase succeeds
-      localStorage.setItem(ACTIVE_KEY, id);
-      setChecked(true);
-      
+      const { trackUserCheckedIn } = await import("@/services/specAnalytics");
       const venue = venues.find(v => v.id === id);
-      
-      // Track user checked in event per spec section 9
-      try {
-        const { trackUserCheckedIn } = await import("@/services/specAnalytics");
-        trackUserCheckedIn(id, venue?.name || id);
-      } catch (error) {
-        // Failed to track check-in event - non-critical
-      }
-      
-      toast({
-        title: "Checked in!",
-        description: `You're now visible at ${venue?.name || 'the venue'}`,
-      });
-      
-      navigate(`/venues/${id}`);
+      trackUserCheckedIn(id, venue?.name || id);
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'CheckInPage',
-        action: 'checkInToVenue',
-        venueId: id,
-        userId: currentUser?.uid
-      });
-      
-      toast({
-        title: "Check-in Failed",
-        description: isNetworkError(error) 
-          ? "Network error. Please check your connection and try again."
-          : "Could not check in. Please try again.",
-        variant: "destructive",
-      });
-      // Don't navigate - stay on page so user can retry
-    } finally {
-      setIsCheckingIn(false);
+      // Failed to track check-in event - non-critical
     }
+    
+    navigate(`/venues/${id}`);
   };
 
   // Memoize loadVenues to prevent recreation and use stable dependencies
@@ -246,7 +209,7 @@ export default function CheckInPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-indigo-400 hover:text-indigo-300 hover:bg-neutral-800 border border-neutral-600 hover:border-neutral-500 rounded-md px-3 py-2"
+              className="text-indigo-400 hover:text-indigo-300 hover:bg-neutral-800"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -254,9 +217,13 @@ export default function CheckInPage() {
           </div>
         )}
         <div className="mb-6">
-          <div className="mb-6 p-6 border-2 border-neutral-700 bg-neutral-800 rounded-lg shadow-xl">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">Venues</h1>
             <p className="text-neutral-300 mb-3">Check in with the QR code at the venue, auto check-in, or choose from the venues below.</p>
+            <div className="flex items-center gap-2 text-sm text-neutral-400">
+              <MapPin className="w-4 h-4 text-indigo-400" />
+              <span>Showing venues closest to you</span>
+            </div>
           </div>
         </div>
 
@@ -301,8 +268,14 @@ export default function CheckInPage() {
           </div>
         )}
 
-          {/* Auto-detect Button - Secondary */}
-          {navigator.geolocation && (
+          {/* 
+            FEATURE: Auto-detect "I'm Here" button - DISABLED for beta
+            This feature auto-detects the nearest venue using geolocation and checks the user in.
+            Temporarily removed as it's not fully functional yet.
+            To re-enable: uncomment the Card component below.
+            See: FEATURES_DISABLED.md for details
+          */}
+          {/* {navigator.geolocation && (
             <div className="w-full max-w-md">
               <Card
                 className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
@@ -376,7 +349,7 @@ export default function CheckInPage() {
                 )}
               </Card>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Recently Visited Section */}
@@ -497,28 +470,25 @@ export default function CheckInPage() {
               <div key={v.id}>
                 <Card
                   className={`cursor-pointer transition-all h-full overflow-hidden relative border-2 ${
-                    isCheckingIn
-                      ? "pointer-events-none opacity-70"
-                      : preselect === v.id 
-                        ? "border-indigo-600 shadow-lg bg-indigo-900/30 ring-2 ring-indigo-500" 
-                        : "border-neutral-700 hover:border-indigo-500 hover:shadow-lg bg-neutral-800"
+                    preselect === v.id 
+                      ? "border-indigo-600 shadow-lg bg-indigo-900/30 ring-2 ring-indigo-500" 
+                      : "border-neutral-700 hover:border-indigo-500 hover:shadow-lg bg-neutral-800"
                   } focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900`}
-                  onClick={() => !isCheckingIn && onCheckIn(v.id)}
+                  onClick={() => onCheckIn(v.id)}
                   onKeyDown={(e) => {
-                    if (!isCheckingIn && (e.key === 'Enter' || e.key === ' ')) {
+                    if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       onCheckIn(v.id);
                     }
                   }}
-                  tabIndex={isCheckingIn ? -1 : 0}
+                  tabIndex={0}
                   role="button"
                   aria-label={`Check in to ${v.name}`}
-                  aria-disabled={isCheckingIn}
                 >
                   {/* Prominent "Tap to Check In" indicator */}
                   <div className="absolute top-2 right-2 z-20">
-                    <Badge className={`${isCheckingIn ? 'bg-neutral-600' : 'bg-indigo-600'} text-white font-bold shadow-xl px-3 py-1.5 text-xs border-2 ${isCheckingIn ? 'border-neutral-500' : 'border-indigo-400 animate-pulse'}`}>
-                      {isCheckingIn ? 'Checking in...' : 'Tap to Check In'}
+                    <Badge className="bg-indigo-600 text-white font-bold shadow-xl px-3 py-1.5 text-xs border-2 border-indigo-400 animate-pulse">
+                      Tap to Check In
                     </Badge>
                   </div>
                   {/* Venue Image */}
@@ -608,6 +578,17 @@ export default function CheckInPage() {
                         ))}
                       </div>
                     )}
+                    <Button
+                      size="lg"
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-xl min-h-[48px] mt-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onCheckIn(v.id);
+                      }}
+                    >
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Check In Here
+                    </Button>
                   </div>
                 </Card>
               </div>

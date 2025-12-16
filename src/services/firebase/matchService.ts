@@ -460,7 +460,10 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         messages: [],
       };
 
-      const docRef = await addDoc(matchRef, newMatch);
+      const docRef = await addDoc(matchRef, {
+        ...newMatch,
+        timestamp: serverTimestamp(),
+      });
 
       return docRef.id;
     } catch (error) {
@@ -846,95 +849,3 @@ export async function confirmWeMet(matchId: string, userId: string): Promise<voi
     throw error;
   }
 }
-
-/**
- * Check if current user has liked a target user (Firebase-based)
- */
-export const isLiked = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
-  if (!firestore || !currentUserId) {
-    return false;
-  }
-  
-  try {
-    const likesRef = doc(firestore, 'likes', currentUserId);
-    const likesSnap = await getDoc(likesRef);
-    
-    if (!likesSnap.exists()) {
-      return false;
-    }
-    
-    const likes = likesSnap.data()?.likes || [];
-    return likes.includes(targetUserId);
-  } catch (error) {
-    logError(error as Error, { source: 'matchService', action: 'isLiked', currentUserId, targetUserId });
-    return false;
-  }
-};
-
-/**
- * Check if current user and target user are matched (Firebase-based)
- */
-export const isMatched = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
-  if (!firestore || !currentUserId) {
-    return false;
-  }
-  
-  try {
-    const matchesRef = collection(firestore, 'matches');
-    
-    // Query for matches where both users are involved
-    const q1 = query(matchesRef, where('userId1', '==', currentUserId), where('userId2', '==', targetUserId));
-    const q2 = query(matchesRef, where('userId1', '==', targetUserId), where('userId2', '==', currentUserId));
-    
-    const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    
-    // Check if any active (non-expired) match exists
-    const now = Date.now();
-    const allMatches = [...snapshot1.docs, ...snapshot2.docs];
-    
-    return allMatches.some(doc => {
-      const data = doc.data();
-      const matchTime = data.timestamp;
-      // Match is active if within 24 hours (MATCH_EXPIRY_TIME)
-      return matchTime && (now - matchTime) < MATCH_EXPIRY_TIME;
-    });
-  } catch (error) {
-    logError(error as Error, { source: 'matchService', action: 'isMatched', currentUserId, targetUserId });
-    return false;
-  }
-};
-
-/**
- * Get the match ID between two users if one exists
- */
-export const getMatchBetweenUsers = async (userId1: string, userId2: string): Promise<string | null> => {
-  if (!firestore) {
-    return null;
-  }
-  
-  try {
-    const matchesRef = collection(firestore, 'matches');
-    
-    const q1 = query(matchesRef, where('userId1', '==', userId1), where('userId2', '==', userId2));
-    const q2 = query(matchesRef, where('userId1', '==', userId2), where('userId2', '==', userId1));
-    
-    const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    
-    const allMatches = [...snapshot1.docs, ...snapshot2.docs];
-    
-    if (allMatches.length > 0) {
-      // Return the most recent match
-      const now = Date.now();
-      const activeMatch = allMatches.find(doc => {
-        const data = doc.data();
-        return data.timestamp && (now - data.timestamp) < MATCH_EXPIRY_TIME;
-      });
-      return activeMatch?.id || null;
-    }
-    
-    return null;
-  } catch (error) {
-    logError(error as Error, { source: 'matchService', action: 'getMatchBetweenUsers', userId1, userId2 });
-    return null;
-  }
-};

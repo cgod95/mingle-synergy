@@ -337,13 +337,7 @@ export default function Verification() {
           <div className="flex gap-4">
             <Button 
               variant="outline" 
-              onClick={() => {
-                if (window.history.length > 1) {
-                  navigate(-1);
-                } else {
-                  navigate('/signin');
-                }
-              }} 
+              onClick={() => navigate(-1)} 
               className="flex-1 border-indigo-200 hover:bg-indigo-50"
             >
               Back

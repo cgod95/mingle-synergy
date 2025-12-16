@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, TrendingUp, TrendingDown, Users, MessageCircle, Heart, MapPin, Calendar, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PrivateLayout from '@/components/PrivateLayout';
-import { logError } from '@/utils/errorHandler';
 
 interface UsageStats {
   totalMatches: number;
@@ -88,7 +87,7 @@ const UsageStats: React.FC = () => {
       setVenueStats(mockVenueStats);
 
     } catch (error) {
-      logError(error as Error, { source: 'UsageStats', action: 'loadStats' });
+      console.error('Failed to load usage stats:', error);
     } finally {
       setIsLoading(false);
     }

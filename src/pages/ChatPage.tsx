@@ -11,7 +11,6 @@ import { mockMessages } from '@/data/mock'
 import { Match, User, Message } from '@/types'
 import Layout from '@/components/Layout'
 import BottomNav from '@/components/BottomNav'
-import { logError } from '@/utils/errorHandler'
 
 // Helper function to check if match has expired (3 hours)
 function isMatchExpired(timestamp: number): boolean {
@@ -89,10 +88,7 @@ export default function ChatPage() {
           setMessagesLeft(3 - sentByUser)
         }
       } catch (error) {
-        logError(error instanceof Error ? error : new Error(String(error)), {
-          source: 'ChatPage',
-          action: 'fetchMatch'
-        });
+        console.error('Error fetching match:', error)
         setExpired(true)
         setIsExpired(true)
       }

@@ -19,14 +19,8 @@ export default function SignUp() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSignUp = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
-    // Prevent double submission
-    if (busy) return;
-    
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
     setBusy(true);
     setError(null);
     
@@ -60,24 +54,8 @@ export default function SignUp() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center px-4 py-12 relative">
+      <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center px-4 py-12">
         <MingleHeader />
-        {/* Back Button - Top left of screen */}
-        <Button
-          variant="ghost"
-          onClick={() => {
-            try {
-              navigate('/demo-welcome');
-            } catch (error) {
-              // Fallback navigation
-              navigate(-1);
-            }
-          }}
-          className="absolute top-4 left-4 text-neutral-300 hover:text-white border border-neutral-600 hover:border-neutral-500 rounded-lg px-4 py-2 z-10"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -86,7 +64,24 @@ export default function SignUp() {
         >
           <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
             <CardHeader className="text-center space-y-2 pb-6">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  try {
+                    navigate('/demo-welcome');
+                  } catch (error) {
+                    // Fallback navigation
+                    navigate(-1);
+                  }
+                }}
+                className="absolute top-4 left-4 text-neutral-300 hover:text-white"
+                size="sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Create account</CardTitle>
+              <p className="text-sm text-neutral-400">Join Mingle and start meeting people</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
@@ -116,6 +111,7 @@ export default function SignUp() {
           required
                     disabled={busy}
                   />
+                  <p className="text-xs text-neutral-500">Must be at least 6 characters</p>
                 </div>
                 
                 {error && (
@@ -130,22 +126,8 @@ export default function SignUp() {
                 
                 <Button 
                   type="submit"
-                  onClick={(e) => {
-                    // Mobile fallback: handle click explicitly for touch devices
-                    if (!email.trim() || !password.trim() || busy) {
-                      e.preventDefault();
-                      return;
-                    }
-                    handleSignUp(e as any);
-                  }}
-                  onTouchStart={(e) => {
-                    // Ensure touch events work on mobile
-                    e.currentTarget.focus();
-                  }}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                  style={{ touchAction: 'manipulation' }}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={busy || !email.trim() || !password.trim()}
-                  aria-label="Create account"
                 >
                   {busy ? (
                     <>
@@ -163,14 +145,14 @@ export default function SignUp() {
                   <div className="w-full border-t border-neutral-700"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-4 bg-neutral-800 text-white">Already have an account?</span>
+                  <span className="px-4 bg-neutral-800 text-neutral-500">Already have an account?</span>
                 </div>
               </div>
               
               <Button
                 asChild
                 variant="outline"
-                className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white py-3"
+                className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
               >
                 <Link to="/signin">Sign in</Link>
               </Button>

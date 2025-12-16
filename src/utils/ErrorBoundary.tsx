@@ -28,23 +28,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Filter out React DevTools initialization errors
-    const errorMessage = error.message || '';
-    const errorStack = error.stack || '';
-    const isDevToolsError = 
-      errorMessage.includes("Cannot access 'd' before initialization") ||
-      errorMessage.includes("Cannot access 'd' before initialization") ||
-      errorStack.includes('installHook') ||
-      errorStack.includes('installHook.js') ||
-      errorStack.includes('react_devtools') ||
-      errorMessage.includes('reactDevtoolsAgent');
-    
-    // Skip logging DevTools errors
-    if (isDevToolsError) {
-      // Silently ignore - these are expected in production with DevTools disabled
-      return;
-    }
-    
     this.setState({ errorInfo });
     logError(error, { 
       componentStack: errorInfo.componentStack || '',

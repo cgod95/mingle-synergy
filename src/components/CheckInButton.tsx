@@ -6,8 +6,6 @@ import { MapPin, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { mockUsers } from '@/data/mock';
-import config from '@/config';
-import { logError } from '@/utils/errorHandler';
 
 interface CheckInButtonProps {
   venueId: string;
@@ -90,22 +88,7 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
       setCheckInStatus(newCheckIn);
       setActiveCheckIns(prev => [...prev, newCheckIn]);
 
-      // CRITICAL: Check in to Firebase so other users can see you
-      if (!config.DEMO_MODE && currentUser?.uid) {
-        try {
-          const venueService = await import('@/services/firebase/venueService');
-          await venueService.default.checkInToVenue(currentUser.uid, venueId);
-        } catch (error) {
-          logError(error instanceof Error ? error : new Error(String(error)), {
-            source: 'CheckInButton',
-            action: 'checkInToVenue',
-            venueId
-          });
-          // Don't fail the check-in if Firebase fails, but log it
-        }
-      }
-
-      // Update user's current venue in mock data (for demo mode)
+      // Update user's current venue in mock data
       const userIndex = mockUsers.findIndex(u => u.id === currentUser.uid);
       if (userIndex !== -1) {
         mockUsers[userIndex].currentVenue = venueId;
@@ -148,21 +131,7 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
       setCheckInStatus(null);
       setActiveCheckIns(prev => prev.filter(ci => ci.venueName !== venueName));
 
-      // CRITICAL: Check out from Firebase
-      if (!config.DEMO_MODE && currentUser?.uid) {
-        try {
-          const venueService = await import('@/services/firebase/venueService');
-          await venueService.default.checkOutFromVenue(currentUser.uid);
-        } catch (error) {
-          logError(error instanceof Error ? error : new Error(String(error)), {
-            source: 'CheckInButton',
-            action: 'checkOutFromVenue',
-            venueId
-          });
-        }
-      }
-
-      // Update user's current venue in mock data (for demo mode)
+      // Update user's current venue in mock data
       const userIndex = mockUsers.findIndex(u => u.id === currentUser.uid);
       if (userIndex !== -1) {
         delete mockUsers[userIndex].currentVenue;

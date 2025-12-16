@@ -17,13 +17,16 @@ export async function getVenues() {
   try {
     const venueService = await import('@/services/firebase/venueService');
     const venues = await venueService.default.getVenues();
+    console.log('[api] Loaded venues from venueService:', venues.length, venues.map(v => v.id));
     return venues;
   } catch (error) {
+    console.error('[api] Error loading venues from venueService:', error);
     // In production, return empty array (no demo fallback)
     if (!config.DEMO_MODE) {
       return [];
     }
     // Only fallback to demo venues in demo mode
+    console.log('[api] Falling back to demoVenues');
     return getVenuesFromDemoVenues();
   }
 }
@@ -33,13 +36,16 @@ export async function getVenue(id: string) {
   try {
     const venueService = await import('@/services/firebase/venueService');
     const venue = await venueService.default.getVenueById(id);
+    console.log('[api] Loaded venue:', id, venue ? venue.name : 'not found');
     return venue;
   } catch (error) {
+    console.error('[api] Error loading venue from venueService:', id, error);
     // In production, return null (no demo fallback)
     if (!config.DEMO_MODE) {
       return null;
     }
     // Only fallback to demo venues in demo mode
+    console.log('[api] Falling back to demoVenues');
     return getVenueFromDemoVenues(id);
   }
 }

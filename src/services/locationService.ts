@@ -1,8 +1,6 @@
 import { GeoPoint, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, firestore } from '@/firebase/config';
 import { auth } from '@/firebase/config';
-import logger from '@/utils/Logger';
-import { logError } from '@/utils/errorHandler';
 
 export class LocationService {
   private watchId: number | null = null;
@@ -81,7 +79,7 @@ export class LocationService {
   async requestLocationPermission(): Promise<boolean> {
     // Check if geolocation API is available
     if (!navigator.geolocation) {
-      logger.warn('Geolocation API not supported in this browser');
+      console.warn('Geolocation API not supported in this browser');
       localStorage.setItem('locationPermissionGranted', 'false');
       return false;
     }
@@ -92,10 +90,7 @@ export class LocationService {
         // @ts-ignore - featurePolicy may not be in TypeScript types
         const allowed = document.featurePolicy.allowsFeature('geolocation');
         if (!allowed) {
-          logError(new Error('Geolocation is blocked by Permissions-Policy. Please check server configuration.'), {
-            source: 'LocationService',
-            action: 'checkPermission'
-          });
+          console.error('Geolocation is blocked by Permissions-Policy. Please check server configuration.');
           localStorage.setItem('locationPermissionGranted', 'false');
           return false;
         }
@@ -113,7 +108,7 @@ export class LocationService {
         });
       });
       
-      logger.info('Location permission granted');
+      console.log('Location permission granted');
       localStorage.setItem('locationPermissionGranted', 'true');
       
       // Store location in user profile
@@ -140,27 +135,20 @@ export class LocationService {
         errorMessage.includes('Permissions-Policy') ||
         (errorMessage.includes('permission denied') && errorMessage.includes('policy'))
       ) {
-        logError(new Error('Geolocation blocked by Permissions-Policy. The server configuration needs to allow geolocation=(self).'), {
-          source: 'LocationService',
-          action: 'requestPermission'
-        });
+        console.error('Geolocation blocked by Permissions-Policy. The server configuration needs to allow geolocation=(self).');
         localStorage.setItem('locationPermissionGranted', 'false');
         return false;
       }
       
       // Handle specific error codes
       if (errorCode === 1) {
-        logger.warn('User denied geolocation permission');
+        console.warn('User denied geolocation permission');
       } else if (errorCode === 2) {
-        logger.warn('Geolocation position unavailable');
+        console.warn('Geolocation position unavailable');
       } else if (errorCode === 3) {
-        logger.warn('Geolocation request timed out');
+        console.warn('Geolocation request timed out');
       } else {
-        logError(error instanceof Error ? error : new Error(String(error)), {
-          source: 'LocationService',
-          action: 'requestPermission',
-          errorCode: String(errorCode)
-        });
+        console.error('Location permission error:', error);
       }
       
       localStorage.setItem('locationPermissionGranted', 'false');
@@ -219,10 +207,7 @@ export class LocationService {
         longitude: position.coords.longitude
       };
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'LocationService',
-        action: 'getCurrentLocation'
-      });
+      console.error('Error getting current location:', error);
       return null;
     }
   }

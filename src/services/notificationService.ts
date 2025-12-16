@@ -3,8 +3,6 @@
 // import { firestore } from '@/firebase/config';
 import { analytics } from './analytics';
 import { advancedFeatures } from './advancedFeatures';
-import logger from '@/utils/Logger';
-import { logError } from '@/utils/errorHandler';
 
 // Enhanced notification service for Mingle's unique features
 export interface NotificationData {
@@ -76,17 +74,14 @@ class NotificationService {
     try {
       localStorage.setItem('mingle_notification_permission', this.permission);
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'NotificationService',
-        action: 'savePermission'
-      });
+      console.error('Failed to save notification permission:', error);
     }
   }
 
   // Initialize push notifications
   private async initializePushNotifications(): Promise<void> {
     if (!this.isSupported) {
-      logger.warn('Push notifications not supported');
+      console.warn('Push notifications not supported');
       return;
     }
 
@@ -114,10 +109,7 @@ class NotificationService {
       
       return permission;
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'NotificationService',
-        action: 'requestPermission'
-      });
+      console.error('Failed to request notification permission:', error);
       return 'denied';
     }
   }
@@ -133,10 +125,7 @@ class NotificationService {
         });
       }
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'NotificationService',
-        action: 'subscribeToPushNotifications'
-      });
+      console.error('Failed to subscribe to push notifications:', error);
     }
   }
 
@@ -212,10 +201,7 @@ class NotificationService {
 
       return id;
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'NotificationService',
-        action: 'sendLocalNotification'
-      });
+      console.error('Failed to send local notification:', error);
       return '';
     }
   }
@@ -489,10 +475,7 @@ class NotificationService {
       
       return permission;
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'NotificationService',
-        action: 'requestPermission'
-      });
+      console.error('Failed to request notification permission:', error);
       return 'denied';
     }
   }

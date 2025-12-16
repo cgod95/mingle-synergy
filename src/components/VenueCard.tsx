@@ -1,7 +1,18 @@
-import React from 'react';
-import { Users, MapPin, Coffee, Wine, Utensils, Dumbbell } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Heart, MapPin, Coffee, Wine, Utensils, Dumbbell, CheckCircle, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { getUsersAtVenue } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom';
+import OptimizedImage from './shared/OptimizedImage';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 // Removed motion import to prevent flickering from animations
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,8 +36,36 @@ const VenueCard: React.FC<VenueCardProps> = ({
   userCount,
   index = 0
 }) => {
+  const navigate = useNavigate();
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  
+  const handleCardClick = () => {
+    navigate(`/simple-venue/${venue.id}`);
+  };
+  
   const usersAtVenue = getUsersAtVenue(venue.id);
   const hasUsers = usersAtVenue.length > 0;
+  
+  const getVenueIcon = () => {
+    switch (venue.category?.toLowerCase()) {
+      case 'cafe': return <Coffee size={20} className="text-[#6B7280]" />;
+      case 'bar': return <Wine size={20} className="text-[#6B7280]" />;
+      case 'restaurant': return <Utensils size={20} className="text-[#6B7280]" />;
+      case 'gym': return <Dumbbell size={20} className="text-[#6B7280]" />;
+      default: return <MapPin size={20} className="text-[#6B7280]" />;
+    }
+  };
+
+  const handleCheckIn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowConfirmation(true);
+  };
+
+  const confirmCheckIn = () => {
+    onCheckIn(venue.id);
+    setShowConfirmation(false);
+    navigate(`/venue/${venue.id}`);
+  };
   
   return (
     <div className="w-full">
@@ -88,10 +127,61 @@ const VenueCard: React.FC<VenueCardProps> = ({
               View Details
             </Button>
             
+            <Button
+              size="lg"
+              onClick={handleCheckIn}
+              disabled={isCheckedIn}
+              className={`w-full font-semibold min-h-[48px] ${
+                isCheckedIn 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg'
+              }`}
+            >
+              {isCheckedIn ? (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Checked In
+                </>
+              ) : (
+                <>
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Check In Here
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Check in to {venue.name}?</DialogTitle>
+            <DialogDescription>
+              Other users will be able to see you here for the next few hours.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-row justify-end gap-2 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowConfirmation(false)}
+              className="mt-2 sm:mt-0"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmCheckIn}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Check In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -9,14 +9,6 @@
       ]
     },
     {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "currentVenue", "order": "ASCENDING" },
-        { "fieldPath": "isVisible", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "matches",
       "queryScope": "COLLECTION",
       "fields": [

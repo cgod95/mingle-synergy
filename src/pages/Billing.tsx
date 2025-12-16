@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
 import SubscriptionService from '@/services/subscriptionService';
-import { logError } from '@/utils/errorHandler';
 
 const subscriptionService = new SubscriptionService();
 
@@ -87,7 +86,7 @@ const Billing: React.FC = () => {
       ]);
 
     } catch (error) {
-      logError(error as Error, { source: 'Billing', action: 'loadBillingData' });
+      console.error('Failed to load billing data:', error);
       toast({
         title: "Error",
         description: "Failed to load billing information",
@@ -184,13 +183,7 @@ const Billing: React.FC = () => {
           <div className="mb-6">
             <Button
               variant="ghost"
-              onClick={() => {
-                if (window.history.length > 1) {
-                  navigate(-1);
-                } else {
-                  navigate('/settings');
-                }
-              }}
+              onClick={() => navigate(-1)}
               className="mb-4"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

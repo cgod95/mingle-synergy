@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getVenues } from "../lib/api";
 import { Venue } from "@/types";
-import { logError } from "@/utils/errorHandler";
 
 export default function Venues() {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -10,12 +9,7 @@ export default function Venues() {
   useEffect(() => {
     getVenues().then((venues: Venue[]) => {
       setVenues(venues);
-    }).catch((error) => {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'Venues',
-        action: 'loadVenues'
-      });
-    });
+    }).catch(console.error);
   }, []);
 
   return (

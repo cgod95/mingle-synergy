@@ -39,7 +39,6 @@ import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { logError } from '@/utils/errorHandler';
 
 const SettingsPage: React.FC = () => {
   const { currentUser, signOut } = useAuth();
@@ -259,10 +258,7 @@ const SettingsPage: React.FC = () => {
         analytics.track('data_exported');
       }
     } catch (error) {
-      logError(error instanceof Error ? error : new Error(String(error)), {
-        source: 'SettingsPage',
-        action: 'exportData'
-      });
+      console.error('Failed to export data:', error);
       toast({
         title: "Failed to export data",
         description: "Please try again.",
@@ -281,10 +277,7 @@ const SettingsPage: React.FC = () => {
         localStorage.clear();
         navigate('/');
       } catch (error) {
-        logError(error instanceof Error ? error : new Error(String(error)), {
-          source: 'SettingsPage',
-          action: 'deleteAccount'
-        });
+        console.error('Failed to delete account:', error);
         toast({
           title: "Failed to delete account",
           description: "Please try again.",
@@ -664,10 +657,7 @@ const SettingsPage: React.FC = () => {
                       navigate('/');
                     } catch (error) {
                       // Failed to sign out - still navigate to home
-                      logError(error instanceof Error ? error : new Error(String(error)), {
-                        source: 'SettingsPage',
-                        action: 'signOut'
-                      });
+                      console.error('Failed to sign out:', error);
                       navigate('/');
                     }
                   }}

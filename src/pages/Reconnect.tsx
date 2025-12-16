@@ -14,7 +14,7 @@ const Reconnect: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-neutral-900 pb-16 p-6">
+      <div className="pb-16 p-6">
         <CenteredContainer>
           <div className="text-center">
             <SectionHeader 
@@ -23,7 +23,7 @@ const Reconnect: React.FC = () => {
             />
             <button
               onClick={handleCheckIn}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 rounded-full transition-all font-semibold shadow-lg"
+              className="bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors font-medium"
             >
               Check Into a Venue
             </button>

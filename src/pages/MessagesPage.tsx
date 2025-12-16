@@ -9,7 +9,6 @@ import { Match, User } from '@/types';
 import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 import { MessageCircle, Clock, MapPin } from 'lucide-react';
-import { logError } from '@/utils/errorHandler';
 
 export default function MessagesPage() {
   const navigate = useNavigate();
@@ -34,10 +33,7 @@ export default function MessagesPage() {
 
         setMatchedUsers(users);
       } catch (err) {
-        logError(err instanceof Error ? err : new Error(String(err)), {
-          source: 'MessagesPage',
-          action: 'loadMatches'
-        });
+        console.error('Error loading matches:', err);
         setError('Failed to load messages');
       } finally {
         setLoading(false);

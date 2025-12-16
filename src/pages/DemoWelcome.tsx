@@ -1,12 +1,12 @@
 // Closed Beta Welcome Screen - Introduces closed beta experience
 
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { MessageCircle, Zap, MapPin } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
-import { logError } from '@/utils/errorHandler';
 
 export default function DemoWelcome() {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function DemoWelcome() {
         navigate('/signup');
       }
     } catch (error) {
-      logError(error as Error, { source: 'DemoWelcome', action: 'handleGetStarted' });
+      console.error('Navigation error:', error);
       // Fallback: try direct navigation
       if (currentUser) {
         window.location.href = '/checkin';
@@ -47,7 +47,7 @@ export default function DemoWelcome() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-base text-neutral-300 leading-relaxed">
+                <p className="text-sm text-neutral-300 mb-4">
                   Mingle is a meeting app that encourages introductions and gets people meeting face-to-face. Less time spent on screens, more time connecting in person.
                 </p>
               </CardContent>

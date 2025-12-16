@@ -7,13 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { mockMessages } from '@/data/mock';
 import { Message } from '@/types';
-import { logUserAction, logError } from '@/utils/errorHandler';
-import config from '@/config';
-// Firebase message sending
-import { sendMessage as sendFirebaseMessage } from '@/services/firebase/matchService';
-import { doc, getDoc } from 'firebase/firestore';
-import { firestore } from '@/firebase/config';
-import { FEATURE_FLAGS } from '@/lib/flags';
+import { logUserAction } from '@/utils/errorHandler';
 
 interface MessageInputProps {
   matchId: string;
@@ -25,84 +19,56 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [remainingMessages, setRemainingMessages] = useState<number>(5);
+  const [remainingMessages, setRemainingMessages] = useState<number>(3);
   const [canSend, setCanSend] = useState(true);
 
-  // Calculate remaining messages
+  // Subscribe to message limit updates
   useEffect(() => {
     if (!currentUser?.uid || !matchId) return;
 
-    const calculateRemaining = async () => {
-      const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' 
-        ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-        : 5;
+    // Simulate real-time updates for message limits
+    const interval = setInterval(() => {
+      const userMessages = mockMessages.filter(
+        msg => msg.matchId === matchId && msg.senderId === currentUser.uid
+      );
+      const messageLimit = 5; // Use feature flag in production
+      const remaining = Math.max(0, messageLimit - userMessages.length);
+      const canSendMessages = remaining > 0;
+      
+      setCanSend(canSendMessages);
+      setRemainingMessages(remaining);
+    }, 1000);
 
-      if (config.DEMO_MODE) {
-        // Demo mode: count from mock messages
-        const userMessages = mockMessages.filter(
-          msg => msg.matchId === matchId && msg.senderId === currentUser.uid
-        );
-        const remaining = Math.max(0, messageLimit - userMessages.length);
-        setCanSend(remaining > 0);
-        setRemainingMessages(remaining);
-      } else {
-        // Production: count from Firebase match document
-        if (!firestore) return;
-        try {
-          const matchDoc = await getDoc(doc(firestore, 'matches', matchId));
-          if (matchDoc.exists()) {
-            const matchData = matchDoc.data();
-            const userMessages = (matchData.messages || []).filter(
-              (msg: { senderId: string }) => msg.senderId === currentUser.uid
-            );
-            const remaining = Math.max(0, messageLimit - userMessages.length);
-            setCanSend(remaining > 0);
-            setRemainingMessages(remaining);
-          }
-        } catch (err) {
-          // Ignore errors, use default
-        }
-      }
-    };
-
-    calculateRemaining();
-    // Re-check every 5 seconds (for real-time updates)
-    const interval = config.DEMO_MODE ? null : setInterval(calculateRemaining, 5000);
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [matchId, currentUser?.uid]);
 
   const handleSend = async () => {
-    if (!text.trim() || !currentUser?.uid || !canSend) return;
+    if (!text.trim() || !currentUser || !canSend) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      if (config.DEMO_MODE) {
-        // Demo mode: just log and clear (no actual persistence)
-        logUserAction('message_sent', { matchId, messageLength: text.trim().length });
-      } else {
-        // Production: send to Firebase
-        await sendFirebaseMessage(matchId, currentUser.uid, text.trim());
-        logUserAction('message_sent', { matchId, messageLength: text.trim().length });
-      }
+      // Create new message
+      const newMessage: Message = {
+        id: `msg_${Date.now()}`,
+        matchId,
+        senderId: currentUser.uid,
+        receiverId: '', // Will be set by the parent component
+        text: text.trim(),
+        content: text.trim(), // Add content property for compatibility
+        timestamp: Date.now()
+      };
+
+      // In a real app, this would be saved to the backend
+      // For now, we'll just simulate the success
+      logUserAction('message_sent', { matchId, messageLength: text.trim().length });
       
       setText('');
-      setRemainingMessages(prev => Math.max(0, prev - 1));
-      if (remainingMessages <= 1) {
-        setCanSend(false);
-      }
       onMessageSent();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
       setError(errorMessage);
-      logError(err instanceof Error ? err : new Error(errorMessage), {
-        source: 'MessageInput',
-        action: 'sendMessage',
-        matchId
-      });
     } finally {
       setLoading(false);
     }

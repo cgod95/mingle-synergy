@@ -380,10 +380,7 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
       }
 
       // Get unread count (simplified - you might want to track this in the match document)
-      // TODO: Implement unread message tracking
-      // Implementation: Track lastReadTimestamp per match in user's match document or local storage
-      // Compare with message timestamps to calculate unread count
-      const unreadCount = 0; // Placeholder until unread tracking is implemented
+      const unreadCount = 0; // TODO: Implement unread message tracking
 
       chatPreviews.push({
         chatId: match.id,

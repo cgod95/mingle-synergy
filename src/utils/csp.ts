@@ -29,8 +29,6 @@ export const generateCSP = (): string => {
     ],
     'connect-src': [
       "'self'",
-      'http://127.0.0.1:7242',
-      'http://localhost:7242',
       'https://firestore.googleapis.com',
       'https://identitytoolkit.googleapis.com',
       'https://securetoken.googleapis.com',

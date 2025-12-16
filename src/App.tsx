@@ -21,6 +21,7 @@ const Matches = lazy(() => import("./pages/Matches"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 const ProfileUpload = lazy(() => import("./pages/ProfileUpload"));
+const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const CreateProfile = lazy(() => import("./pages/CreateProfile"));
 const PhotoUpload = lazy(() => import("./pages/PhotoUpload"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
@@ -72,32 +73,33 @@ function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<ErrorBoundary stepName="landing"><LandingPage /></ErrorBoundary>} />
-        <Route path="/demo-welcome" element={<ErrorBoundary stepName="demo-welcome"><DemoWelcome /></ErrorBoundary>} />
-        <Route path="/signin" element={<ErrorBoundary stepName="signin"><SignIn /></ErrorBoundary>} />
-        <Route path="/signup" element={<ErrorBoundary stepName="signup"><SignUp /></ErrorBoundary>} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/demo-welcome" element={<DemoWelcome />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
         {/* Onboarding routes - require auth but allow authenticated users */}
         <Route path="/upload" element={<ProtectedRoute><ErrorBoundary stepName="upload"><ProfileUpload /></ErrorBoundary></ProtectedRoute>} />
         <Route path="/create-profile" element={<ProtectedRoute><ErrorBoundary stepName="profile"><CreateProfile /></ErrorBoundary></ProtectedRoute>} />
         <Route path="/photo-upload" element={<ProtectedRoute><ErrorBoundary stepName="photo"><PhotoUpload /></ErrorBoundary></ProtectedRoute>} />
-        {/* App shell - all routes wrapped in ErrorBoundary for crash prevention */}
+        {/* App shell */}
         <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
-          <Route path="/checkin" element={<ErrorBoundary stepName="checkin"><CheckInPage /></ErrorBoundary>} />
-          <Route path="/venues/:id" element={<ErrorBoundary stepName="venue"><VenueDetails /></ErrorBoundary>} />
-          <Route path="/matches" element={<ErrorBoundary stepName="matches"><Matches /></ErrorBoundary>} />
+          <Route path="/checkin" element={<CheckInPage />} />
+          <Route path="/venues/:id" element={<VenueDetails />} />
+          <Route path="/matches" element={<Matches />} />
           {/* ChatIndex removed - unified into Matches page */}
-          <Route path="/profile" element={<ErrorBoundary stepName="profile"><Profile /></ErrorBoundary>} />
-          <Route path="/profile/edit" element={<ErrorBoundary stepName="profile-edit"><ProfileEdit /></ErrorBoundary>} />
-          <Route path="/settings" element={<ErrorBoundary stepName="settings"><SettingsPage /></ErrorBoundary>} />
-          <Route path="/privacy" element={<ErrorBoundary stepName="privacy"><Privacy /></ErrorBoundary>} />
-          <Route path="/verification" element={<ErrorBoundary stepName="verification"><Verification /></ErrorBoundary>} />
-          <Route path="/billing" element={<ErrorBoundary stepName="billing"><Billing /></ErrorBoundary>} />
-          <Route path="/usage" element={<ErrorBoundary stepName="usage"><UsageStats /></ErrorBoundary>} />
-          <Route path="/help" element={<ErrorBoundary stepName="help"><Help /></ErrorBoundary>} />
-          <Route path="/feedback" element={<ErrorBoundary stepName="feedback"><Feedback /></ErrorBoundary>} />
-          <Route path="/contact" element={<ErrorBoundary stepName="contact"><Contact /></ErrorBoundary>} />
-          <Route path="/about" element={<ErrorBoundary stepName="about"><About /></ErrorBoundary>} />
-          <Route path="/debug" element={<ErrorBoundary stepName="debug"><Debug /></ErrorBoundary>} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/edit" element={<ProfileEdit />} />
+          <Route path="/user/:userId" element={<UserProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/verification" element={<Verification />} />
+          <Route path="/billing" element={<Billing />} />
+          <Route path="/usage" element={<UsageStats />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/feedback" element={<Feedback />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/debug" element={<Debug />} />
         </Route>
         {/* Chat room - full screen, bypasses AppShell */}
         {/* ChatRoomGuard must be inside Route to have Router context */}
@@ -105,9 +107,7 @@ function AppRoutes() {
           path="/chat/:id" 
           element={
             <ProtectedRoute>
-              <ErrorBoundary stepName="chat">
-                <ChatRoomGuard />
-              </ErrorBoundary>
+              <ChatRoomGuard />
             </ProtectedRoute>
           } 
         />

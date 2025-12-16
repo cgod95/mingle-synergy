@@ -4,11 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles } from "lucide-react";
-// Firebase matches for production
-import matchService, { getActiveMatches as getFirebaseMatches } from "@/services/firebase/matchService";
-import { FirestoreMatch } from "@/types/match";
-// Demo mode fallback (localStorage-based)
-import { getAllMatches as getDemoMatches, getRemainingSeconds, isExpired, type Match, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
+import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
 import { timeAgo } from "@/lib/timeago";
 import { useAuth } from "@/context/AuthContext";
@@ -25,8 +21,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { logError } from "@/utils/errorHandler";
-import { doc, getDoc } from "firebase/firestore";
-import { firestore } from "@/firebase/config";
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -53,88 +47,25 @@ export default function Matches() {
         return;
       }
       
+      // Demo data seeding removed for closed beta - using real Firebase data
       setIsLoading(true);
       try {
-        const now = Date.now();
-        let enrichedMatches: MatchWithPreview[] = [];
+        // Get all matches (including expired) for display
+        const allMatches = await getAllMatches(currentUser.uid);
         
-        if (config.DEMO_MODE) {
-          // Demo mode: use localStorage-based matches
-          const allMatches = await getDemoMatches(currentUser.uid);
-          enrichedMatches = allMatches.map((match) => {
-            const lastMsg = getLastMessage(match.id);
-            const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
-            return {
-              ...match,
-              lastMessage: lastMsg?.text,
-              lastMessageTime: lastMsg?.ts,
-              isNew,
-            };
-          });
-        } else {
-          // Production: use Firebase matches
-          const firebaseMatches = await matchService.getMatches(currentUser.uid);
-          
-          // Transform Firebase matches to display format
-          enrichedMatches = await Promise.all(firebaseMatches.map(async (match: FirestoreMatch) => {
-            // Determine partner ID
-            const partnerId = match.userId1 === currentUser.uid ? match.userId2 : match.userId1;
-            
-            // Get partner's profile from Firebase
-            let displayName = 'Unknown';
-            let avatarUrl = '';
-            try {
-              if (firestore) {
-                const userDoc = await getDoc(doc(firestore, 'users', partnerId));
-                if (userDoc.exists()) {
-                  const userData = userDoc.data();
-                  displayName = userData.name || userData.displayName || 'Unknown';
-                  avatarUrl = userData.photos?.[0] || '';
-                }
-              }
-            } catch (error) {
-              // Ignore profile load errors
-            }
-            
-            // Get venue name
-            let venueName = '';
-            try {
-              if (firestore && match.venueId) {
-                const venueDoc = await getDoc(doc(firestore, 'venues', match.venueId));
-                if (venueDoc.exists()) {
-                  venueName = venueDoc.data().name || '';
-                }
-              }
-            } catch (error) {
-              // Ignore venue load errors
-            }
-            
-            // Get last message from match.messages array
-            const lastMsg = match.messages?.length > 0 
-              ? match.messages[match.messages.length - 1] 
-              : null;
-            
-            const createdAt = match.timestamp;
-            const expiresAt = createdAt + MATCH_EXPIRY_MS;
-            const isNew = !lastMsg && (now - createdAt < 60 * 60 * 1000);
-            
-            return {
-              id: match.id,
-              userId: currentUser.uid,
-              partnerId,
-              createdAt,
-              expiresAt,
-              displayName,
-              avatarUrl,
-              venueName,
-              venueId: match.venueId,
-              lastMessage: lastMsg?.text,
-              lastMessageTime: lastMsg?.timestamp,
-              unreadCount: 0, // TODO: Calculate unread count
-              isNew,
-            };
-          }));
-        }
+        // Enrich with last message preview and new match indicator
+        const now = Date.now();
+        const enrichedMatches: MatchWithPreview[] = allMatches.map((match) => {
+          const lastMsg = getLastMessage(match.id);
+          // Consider match "new" if created within last hour and no messages yet
+          const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
+          return {
+            ...match,
+            lastMessage: lastMsg?.text,
+            lastMessageTime: lastMsg?.ts,
+            isNew,
+          };
+        });
 
         // Sort by last message time (most recent first), then by expiry (soonest first)
         enrichedMatches.sort((a, b) => {
@@ -143,7 +74,7 @@ export default function Matches() {
           }
           if (a.lastMessageTime) return -1;
           if (b.lastMessageTime) return 1;
-          return a.expiresAt - b.expiresAt;
+          return a.expiresAt - b.expiresAt; // Soonest expiry first
         });
 
         setMatches(enrichedMatches);
@@ -155,12 +86,14 @@ export default function Matches() {
     };
 
     fetchMatches();
-    // Refresh every 30 seconds in production (Firebase updates)
+    // Refresh every 30 seconds
+    // CRITICAL: Disabled in demo mode to prevent periodic re-renders
+    // In demo mode, matches are loaded from localStorage and don't need polling
     const interval = config.DEMO_MODE ? null : setInterval(fetchMatches, 30000);
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid]); // CRITICAL: Only depend on user ID, not whole object
 
 
   const formatRemainingTime = (expiresAt: number): string => {
