@@ -194,7 +194,8 @@ export const getUserFriendlyErrorMessage = (error: Error | unknown): string => {
 export const initErrorTracking = (): void => {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  // BETA FIX: Only check VITE_DEMO_MODE, not development mode
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
   
   if (!dsn) {
     if (isProduction && !isDemoMode) {

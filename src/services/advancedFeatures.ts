@@ -131,13 +131,30 @@ class AdvancedFeaturesService {
 
   private async registerServiceWorker(): Promise<void> {
     try {
+      // Check if service worker is already registered (VitePWA handles this)
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        if (registrations.length > 0) {
+          // Service worker already registered (likely by VitePWA)
+          // Don't register again to avoid conflicts
+          return;
+        }
+      }
+      
       const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      // Only register if no service worker exists and we have a custom one
+      // Note: VitePWA handles service worker registration automatically
+      // This is only for custom service worker if needed
       const registration = await navigator.serviceWorker.register('/service-worker.js');
       if (!vapidKey) {
         console.warn('VAPID public key is not set. Push notifications will be disabled.');
       }
     } catch (error) {
-      console.error('Failed to register service worker:', error);
+      // Silently fail if service worker registration fails (VitePWA might have already registered)
+      // Only log if it's not a "service worker already registered" error
+      if (!(error instanceof Error && error.message.includes('already registered'))) {
+        console.error('Failed to register service worker:', error);
+      }
     }
   }
 
@@ -259,7 +276,8 @@ class AdvancedFeaturesService {
   // Real-time Updates
   private initializeRealTimeUpdates(): void {
     // Skip initialization in demo mode to prevent unnecessary warnings
-    if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
+    // BETA FIX: Only check VITE_DEMO_MODE, not development mode
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
       return;
     }
     

@@ -161,8 +161,8 @@ class BusinessFeaturesService {
 
   async getPlans(): Promise<SubscriptionPlan[]> {
     // In demo mode, return plans with unlimited limits
-    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-    if (isDemoMode) {
+    // BETA FIX: Only check VITE_DEMO_MODE, not development mode
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
       return this.plans.map(plan => ({
         ...plan,
         limits: {

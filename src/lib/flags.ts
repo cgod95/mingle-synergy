@@ -6,7 +6,8 @@ export const FEATURE_FLAGS = {
   // Chat & Messaging
   UNLOCK_FULL_CHAT_ON_COLOCATION: import.meta.env.VITE_UNLOCK_FULL_CHAT_ON_COLOCATION !== 'false', // default: ON
   ALLOW_REMOTE_RECONNECT_CHAT: import.meta.env.VITE_ALLOW_REMOTE_RECONNECT_CHAT === 'true', // default: OFF
-  LIMIT_MESSAGES_PER_USER: (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') 
+  // BETA FIX: Only check VITE_DEMO_MODE, not development mode
+  LIMIT_MESSAGES_PER_USER: import.meta.env.VITE_DEMO_MODE === 'true'
     ? -1 // Unlimited in demo mode
     : parseInt(import.meta.env.VITE_LIMIT_MESSAGES_PER_USER || '5', 10), // default: 5
 

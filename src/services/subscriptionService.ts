@@ -186,7 +186,8 @@ export class SubscriptionService {
   // Check if user has a specific feature
   hasFeature(userId: string, feature: string): boolean {
     // In demo mode, grant all features
-    if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
+    // BETA FIX: Only check VITE_DEMO_MODE, not development mode
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
       return true;
     }
 
@@ -204,7 +205,8 @@ export class SubscriptionService {
   // Check if user can perform an action (respecting limits)
   canPerformAction(userId: string, action: keyof UserSubscription['usage']): boolean {
     // In demo mode, allow all actions (unlimited)
-    if (import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development') {
+    // BETA FIX: Only check VITE_DEMO_MODE, not development mode
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
       return true;
     }
 

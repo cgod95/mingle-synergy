@@ -19,6 +19,7 @@ import { FirestoreMatch } from "@/types/match";
 import { FEATURE_FLAGS } from "@/lib/flags";
 import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { logError } from '@/utils/errorHandler';
+import config from '@/config';
 
 export interface Message {
   id: string;
@@ -60,9 +61,7 @@ export const sendMessageWithLimit = async ({
     // Continue to send message without limit check
   } else {
     // In demo mode, skip message limit checks
-    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-    
-    if (!isDemoMode) {
+    if (!config.DEMO_MODE) {
       // Check if firestore is available before using collection
       if (!firestore) {
         throw new Error('Firestore not available');
@@ -87,8 +86,7 @@ export const sendMessageWithLimit = async ({
   }
 
   // In demo mode, use localStorage-based chatStore instead of Firestore
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-  if (isDemoMode) {
+  if (config.DEMO_MODE) {
     const { appendMessage } = await import('@/lib/chatStore');
     appendMessage(matchId, {
       sender: 'me',
@@ -135,8 +133,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
   }
   
   // In demo mode, always allow sending messages (unlimited)
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-  if (isDemoMode) {
+  if (config.DEMO_MODE) {
     return true;
   }
 

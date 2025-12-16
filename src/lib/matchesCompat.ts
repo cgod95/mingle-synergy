@@ -21,10 +21,71 @@ export type Match = {
 export const MATCH_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const MATCH_TTL_MS = MATCH_EXPIRY_MS; // Alias for compatibility
 
-// Demo/local store fallback (UI-first; replace with Firestore wiring later)
+// Demo/local store fallback (used only in demo mode)
 const DEMO: Record<string, Match[]> = Object.create(null);
 
+// Cache for Firebase matches
+const FIREBASE_CACHE: Record<string, { matches: Match[]; fetchedAt: number }> = Object.create(null);
+const CACHE_TTL_MS = 30000; // 30 seconds cache
+
+/**
+ * Fetch matches from Firebase and transform to local Match format
+ */
+async function fetchFirebaseMatches(userId: string): Promise<Match[]> {
+  // Check cache first
+  const cached = FIREBASE_CACHE[userId];
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
+    return cached.matches;
+  }
+  
+  try {
+    // Dynamic import to avoid circular dependencies
+    const { matchService, userService } = await import('@/services');
+    const firebaseMatches = await matchService.getMatches(userId);
+    
+    const matches: Match[] = await Promise.all(firebaseMatches.map(async (fm: any) => {
+      const partnerId = fm.userId1 === userId ? fm.userId2 : fm.userId1;
+      
+      // Try to get partner's profile
+      let displayName = partnerId;
+      let avatarUrl = '';
+      try {
+        const partnerProfile = await userService.getUserProfile(partnerId);
+        if (partnerProfile) {
+          displayName = partnerProfile.name || partnerId;
+          avatarUrl = partnerProfile.photos?.[0] || partnerProfile.photoURL || '';
+        }
+      } catch {
+        // Use defaults if profile fetch fails
+      }
+      
+      return {
+        id: fm.id || `match_${partnerId}`,
+        userId,
+        partnerId,
+        createdAt: fm.timestamp,
+        expiresAt: fm.timestamp + MATCH_EXPIRY_MS,
+        displayName,
+        avatarUrl,
+        venueName: fm.venueName,
+        venueId: fm.venueId,
+      };
+    }));
+    
+    // Update cache
+    FIREBASE_CACHE[userId] = { matches, fetchedAt: Date.now() };
+    
+    return matches;
+  } catch (error) {
+    console.error('Failed to fetch Firebase matches:', error);
+    return cached?.matches || [];
+  }
+}
+
 function seedIfNeeded(userId: string) {
+  // Only seed demo data in demo mode
+  if (!config.DEMO_MODE) return;
+  
   const now = Date.now();
   
   // Get matches from likesStore (mutual likes)
@@ -64,8 +125,8 @@ function seedIfNeeded(userId: string) {
     };
   });
   
-  // If no matches from likesStore, seed some demo matches (only in demo mode)
-  if (config.DEMO_MODE && matchesFromLikes.length === 0 && !DEMO[userId]?.length) {
+  // If no matches from likesStore, seed some demo matches
+  if (matchesFromLikes.length === 0 && !DEMO[userId]?.length) {
     DEMO[userId] = [
       {
         id: "mx_1",
@@ -118,8 +179,16 @@ export function getRemainingSeconds(m: Match): number {
 /**
  * Get all active (non-expired) matches for a user
  * This is the canonical function - use this instead of direct Firestore queries
+ * BETA FIX: Now uses Firebase in production mode
  */
 export async function getActiveMatches(userId: string): Promise<Match[]> {
+  if (!config.DEMO_MODE) {
+    // Production: use Firebase
+    const matches = await fetchFirebaseMatches(userId);
+    return matches.filter(m => !isExpired(m));
+  }
+  
+  // Demo mode: use local storage
   seedIfNeeded(userId);
   return (DEMO[userId] || []).filter(m => !isExpired(m));
 }
@@ -129,6 +198,12 @@ export async function getActiveMatches(userId: string): Promise<Match[]> {
  * Used for displaying expired matches in UI
  */
 export async function getAllMatches(userId: string): Promise<Match[]> {
+  if (!config.DEMO_MODE) {
+    // Production: use Firebase
+    return fetchFirebaseMatches(userId);
+  }
+  
+  // Demo mode: use local storage
   seedIfNeeded(userId);
   return DEMO[userId] || [];
 }

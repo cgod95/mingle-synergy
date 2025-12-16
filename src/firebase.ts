@@ -2,10 +2,12 @@ import { getApps, getApp, initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import config from "@/config";
 
 // Read config from env (fallbacks keep demo mode from crashing)
-// CRITICAL: In production, validate required Firebase config (only if not in demo mode)
-const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+// CRITICAL: Only use config.DEMO_MODE - no development fallback
+// This ensures Firebase initializes in development when testing real Firebase
+const isDemoMode = config.DEMO_MODE;
 if (import.meta.env.PROD && !isDemoMode) {
   const required = ['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_PROJECT_ID'];
   const missing = required.filter(key => !import.meta.env[key]);

@@ -140,11 +140,9 @@ class AnalyticsService {
     
     // Track time on site - store interval ID for cleanup
     // CRITICAL: Only update internal state, don't trigger React re-renders
-    // DISABLED in demo/dev mode to prevent unnecessary intervals that could cause re-renders
-    // The 1-second interval is too frequent and can accumulate on HMR
-    // In production, this can be re-enabled if needed
-    const isDemoOrDev = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-    if (!isDemoOrDev) {
+    // DISABLED in demo mode to prevent unnecessary intervals that could cause re-renders
+    // BETA FIX: Only check VITE_DEMO_MODE, not development mode
+    if (import.meta.env.VITE_DEMO_MODE !== 'true') {
       this.timeOnSiteInterval = setInterval(() => {
         this.userBehavior.timeOnSite += 1;
         // Only save to localStorage periodically (every 10 seconds) to avoid excessive writes
