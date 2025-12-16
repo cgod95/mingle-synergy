@@ -16,8 +16,10 @@ import {
 import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
 import { InterestService } from '@/types/services';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
-import services from '..';
 import { logError } from '@/utils/errorHandler';
+
+// Lazy getter to avoid circular dependency with services/index.ts
+const getServices = () => import('..').then(m => m.default);
 
 class FirebaseInterestService extends FirebaseServiceBase implements InterestService {
   private getInterestsCollection() {
@@ -79,6 +81,7 @@ class FirebaseInterestService extends FirebaseServiceBase implements InterestSer
       
       if (!mutualSnapshot.empty) {
         // It's a match! Create a match between the users
+        const services = await getServices();
         const venue = await services.venue.getVenueById(venueId);
         
         if (venue) {

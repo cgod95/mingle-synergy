@@ -20,7 +20,6 @@ import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
 import { Match, MatchService } from '@/types/services';
 import { localStorageUtils } from '@/utils/localStorageUtils';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
-import services from '..';
 import { FirestoreMatch } from '@/types/match';
 import { firestore } from '@/firebase';
 import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
