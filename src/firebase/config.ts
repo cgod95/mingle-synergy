@@ -6,7 +6,9 @@ import config from "@/config";
 // import { getAnalytics, isSupported } from "firebase/analytics";
 
 // Check if we're in demo mode
-const isDemoMode = config.DEMO_MODE || import.meta.env.MODE === 'development';
+// BETA FIX: Only use config.DEMO_MODE (no development fallback)
+// This ensures Firebase initializes in development when DEMO_MODE is not explicitly set
+const isDemoMode = config.DEMO_MODE;
 
 let app: any = null;
 let auth: any = null;

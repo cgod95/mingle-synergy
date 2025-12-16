@@ -197,9 +197,12 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
     }
     
     // Suppress "object is not extensible" errors from DevTools
+    // BUT: Don't suppress "Cannot access before initialization" - that's a real error
     if (
       (errorMessage.includes('object is not extensible') || errorMessage.includes('Cannot add property reactDevtoolsAgent')) &&
-      (errorSource.includes('react_devtools') || errorSource.includes('installHook') || errorStack.includes('react_devtools'))
+      (errorSource.includes('react_devtools') || errorSource.includes('installHook') || errorStack.includes('react_devtools')) &&
+      !errorMessage.includes('Cannot access') && // Don't suppress initialization errors
+      !errorStack.includes('Cannot access') // Don't suppress initialization errors
     ) {
       event.preventDefault();
       event.stopPropagation();
@@ -236,14 +239,17 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
     }
     
     // Suppress DevTools-related promise rejections
+    // BUT: Don't suppress "Cannot access before initialization" - that's a real error
     if (
-      errorMessage.includes('reactDevtoolsAgent') ||
+      (errorMessage.includes('reactDevtoolsAgent') ||
       errorMessage.includes('React DevTools') ||
       errorMessage.includes('object is not extensible') ||
       errorMessage.includes('Cannot add property reactDevtoolsAgent') ||
       errorStack.includes('react_devtools') ||
       errorStack.includes('installHook') ||
-      (errorMessage.includes('Minified React error #300') && (errorStack.includes('react_devtools') || errorStack.includes('installHook')))
+      (errorMessage.includes('Minified React error #300') && (errorStack.includes('react_devtools') || errorStack.includes('installHook')))) &&
+      !errorMessage.includes('Cannot access') && // Don't suppress initialization errors
+      !errorStack.includes('Cannot access') // Don't suppress initialization errors
     ) {
       event.preventDefault();
       return false;
