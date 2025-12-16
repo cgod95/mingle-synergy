@@ -1,7 +1,9 @@
 import { useParams } from "react-router-dom";
-import { getVenue } from "../lib/api";
+import { getVenue, getPeople } from "../lib/api";
+import { likePerson, isMatched, isLiked } from "../lib/likesStore";
+yesimport { getAllMatches } from "@/lib/matchesCompat";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,12 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
+import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
+import { canSeePeopleAtVenues } from "@/utils/locationPermission";
 import { logError } from "@/utils/errorHandler";
-import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
-import matchService from "@/services/firebase/matchService";
-import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
-import { firestore } from "@/firebase";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -60,91 +60,30 @@ export default function VenueDetails() {
     }
   }, [id]);
   
-  // Load real users from Firebase who are checked in to this venue
-  const [people, setPeople] = useState<any[]>([]);
-  const [loadingPeople, setLoadingPeople] = useState(true);
-  
-  useEffect(() => {
-    if (!venue?.id || !firestore) {
-      setPeople([]);
-      setLoadingPeople(false);
-      return;
-    }
-    
-    setLoadingPeople(true);
-    
-    // Query users where currentVenue === this venue and isCheckedIn === true
-    const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, 
-      where('currentVenue', '==', venue.id),
-      where('isCheckedIn', '==', true)
-    );
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersAtVenue = snapshot.docs
-        .filter(doc => doc.id !== currentUser?.uid) // Exclude self
-        .map(doc => ({ 
-          id: doc.id, 
-          name: doc.data().name || 'Anonymous',
-          photo: doc.data().photos?.[0] || doc.data().photoURL || null,
-          bio: doc.data().bio || '',
-          ...doc.data() 
-        }));
-      setPeople(usersAtVenue);
-      setLoadingPeople(false);
-    }, (error) => {
-      logError(error, { context: 'VenueDetails.loadPeople', venueId: venue.id });
-      setPeople([]);
-      setLoadingPeople(false);
-    });
-    
-    return () => unsubscribe();
-  }, [venue?.id, currentUser?.uid]);
+  // In demo mode, use dynamic presence hook; otherwise use static getPeople
+  const demoPeople = useDemoPresence(config.DEMO_MODE ? id : undefined);
+  const staticPeople = useMemo(() => id ? getPeople(id) : [], [id]);
+  const people = config.DEMO_MODE && demoPeople.length > 0 ? demoPeople : staticPeople;
   
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [likeNotification, setLikeNotification] = useState<{ personId: string; message: string } | null>(null);
   const [mutualConnections, setMutualConnections] = useState<number>(0);
-  const [likedUsers, setLikedUsers] = useState<Set<string>>(new Set());
-  const [matchedUsers, setMatchedUsers] = useState<Set<string>>(new Set());
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     setCheckedIn(getCheckedVenueId());
     
-    // Load mutual connections count and matches
+    // Load mutual connections count
     if (currentUser?.uid && venue?.id) {
-      matchService.getMatches(currentUser.uid).then(matches => {
+      getAllMatches(currentUser.uid).then(matches => {
         const matchesAtVenue = matches.filter(m => m.venueId === venue.id);
         setMutualConnections(matchesAtVenue.length);
-        
-        // Update matched users set
-        const matchedIds = new Set<string>();
-        matches.forEach(m => {
-          const partnerId = m.userId1 === currentUser.uid ? m.userId2 : m.userId1;
-          matchedIds.add(partnerId);
-        });
-        setMatchedUsers(matchedIds);
       }).catch(() => {
         // Non-critical
       });
-      
-      // Load user's likes from Firestore
-      const loadLikes = async () => {
-        try {
-          if (!firestore) return;
-          const likesRef = doc(firestore, 'likes', currentUser.uid);
-          const snap = await getDoc(likesRef);
-          if (snap.exists()) {
-            setLikedUsers(new Set(snap.data()?.likes || []));
-          }
-        } catch (error) {
-          // Non-critical
-        }
-      };
-      loadLikes();
     }
   }, [venue?.id, currentUser?.uid]);
 
@@ -223,35 +162,24 @@ export default function VenueDetails() {
   };
 
   const handleLike = async (personId: string) => {
-    if (isLiking === personId || likedUsers.has(personId) || matchedUsers.has(personId)) return;
-    if (!currentUser?.uid || !id) return;
-    
+    if (isLiking === personId) return;
     setIsLiking(personId);
     
-    try {
-      await likeUserWithMutualDetection(currentUser.uid, personId, id);
-      
-      // Check if it's now a match
-      const matches = await matchService.getMatches(currentUser.uid);
-      const isNowMatched = matches.some(m => 
-        (m.userId1 === personId || m.userId2 === personId)
-      );
-      
-      if (isNowMatched) {
-        setMatchedUsers(prev => new Set([...prev, personId]));
-        setLikeNotification({ personId, message: "It's a match! 🎉" });
-      } else {
-        setLikedUsers(prev => new Set([...prev, personId]));
-        setLikeNotification({ personId, message: "Like sent! ❤️" });
-      }
-    } catch (error) {
-      logError(error as Error, { context: 'VenueDetails.handleLike', personId });
-      setToast("Failed to send like. Please try again.");
-      setTimeout(() => setToast(null), 2000);
-    } finally {
-      setIsLiking(null);
-      setTimeout(() => setLikeNotification(null), 2000);
+    // Simulate API delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const matched = likePerson(personId);
+    setIsLiking(null);
+    
+    // Show notification on card
+    if (matched) {
+      setLikeNotification({ personId, message: "It's a match! 🎉" });
+    } else {
+      setLikeNotification({ personId, message: "Like sent! ❤️" });
     }
+    
+    // Clear notification after 2 seconds
+    setTimeout(() => setLikeNotification(null), 2000);
   };
 
   return (
@@ -325,7 +253,7 @@ export default function VenueDetails() {
           <div className="bg-neutral-800 rounded-xl border-2 border-neutral-700 p-6 shadow-lg">
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-xl font-bold text-white whitespace-nowrap">Here Now</h2>
+                <h2 className="text-heading-2 text-white">People here now</h2>
                 {mutualConnections > 0 && (
                   <Badge className="bg-indigo-600 text-white px-3 py-1">
                     <Sparkles className="w-3 h-3 mr-1" />
@@ -347,7 +275,50 @@ export default function VenueDetails() {
                 </div>
               )}
             </div>
-          {people.length === 0 ? (
+          {!canSeePeopleAtVenues() ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12 bg-neutral-800 rounded-2xl border border-neutral-700"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-900 flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-indigo-400" />
+              </div>
+              <p className="text-neutral-200 font-medium mb-2">Location access required</p>
+              <p className="text-sm text-neutral-300 mb-4">
+                Enable location access to see people at this venue. You can still browse venues without location.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={async () => {
+                    const { requestLocationPermission } = await import("@/utils/locationPermission");
+                    const granted = await requestLocationPermission();
+                    if (granted) {
+                      setToast("Location enabled! You can now see people at venues.");
+                      setTimeout(() => setToast(null), 2000);
+                      // Refresh the page to show people
+                      window.location.reload();
+                    } else {
+                      setToast("Location permission denied. Please enable it in browser settings.");
+                      setTimeout(() => setToast(null), 3000);
+                    }
+                  }}
+                  size="sm"
+                  className="w-full"
+                >
+                  Enable Location Now
+                </Button>
+                <Button
+                  onClick={() => navigate('/settings')}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Go to Settings
+                </Button>
+              </div>
+            </motion.div>
+          ) : people.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -375,8 +346,7 @@ export default function VenueDetails() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ scale: 1.05, y: -4 }}
-                  onClick={() => navigate(`/user/${p.id}`)}
-                  className="bg-neutral-800 rounded-2xl border border-neutral-700 overflow-hidden shadow-md hover:shadow-xl transition-all relative cursor-pointer"
+                  className="bg-neutral-800 rounded-2xl border border-neutral-700 overflow-hidden shadow-md hover:shadow-xl transition-all relative"
                 >
                   <div className="relative aspect-square overflow-hidden bg-neutral-200">
                     <img
@@ -402,7 +372,6 @@ export default function VenueDetails() {
                   </div>
                   <div className="p-4">
                     <div className="text-lg font-bold text-white mb-1">{p.name}</div>
-                    <p className="text-xs text-neutral-500 mb-2">Tap to view profile</p>
                     {(p as any).bio && (
                       <p className="text-sm text-neutral-300 mb-2 line-clamp-2">{(p as any).bio}</p>
                     )}
@@ -419,7 +388,7 @@ export default function VenueDetails() {
                            Date.now() - (p as any).lastActive < 1800000 ? `Active recently` :
                            'Earlier'}
                         </span>
-                        {matchedUsers.has(p.id) && (
+                        {isMatched(p.id) && (
                           <Badge className="ml-2 bg-indigo-600 text-white text-xs px-2 py-0.5">
                             Matched
                           </Badge>
@@ -429,11 +398,11 @@ export default function VenueDetails() {
 
                     <div className="flex items-center justify-between">
                       <div>
-                        {matchedUsers.has(p.id) ? (
+                        {isMatched(p.id) ? (
                           <Badge className="bg-indigo-900 text-indigo-300 border-indigo-700 text-xs font-medium">
                             Matched
                           </Badge>
-                        ) : likedUsers.has(p.id) ? (
+                        ) : isLiked(p.id) ? (
                           <Badge className="bg-blue-900 text-blue-300 border-blue-700 text-xs font-medium">
                             Liked
                           </Badge>
@@ -442,26 +411,23 @@ export default function VenueDetails() {
                         )}
                       </div>
                       <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLike(p.id);
-                        }}
+                        onClick={() => handleLike(p.id)}
                         size="sm"
                         className={`rounded-full text-xs h-8 px-4 transition-all shadow-sm ${
-                          likedUsers.has(p.id) || matchedUsers.has(p.id)
+                          isLiked(p.id) || isMatched(p.id)
                             ? "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
                             : "bg-indigo-600 hover:bg-indigo-700 text-white"
                         }`}
-                        disabled={likedUsers.has(p.id) || matchedUsers.has(p.id) || isLiking === p.id}
+                        disabled={isLiked(p.id) || isMatched(p.id) || isLiking === p.id}
                       >
                         <motion.div
                           animate={isLiking === p.id ? { rotate: 360 } : {}}
                           transition={{ duration: 0.5, repeat: isLiking === p.id ? Infinity : 0 }}
                           className="inline-flex items-center"
                         >
-                          <Heart className={`w-3.5 h-3.5 mr-1.5 ${likedUsers.has(p.id) || matchedUsers.has(p.id) ? "fill-current" : ""}`} />
+                          <Heart className={`w-3.5 h-3.5 mr-1.5 ${isLiked(p.id) || isMatched(p.id) ? "fill-current" : ""}`} />
                         </motion.div>
-                        {isLiking === p.id ? "Liking..." : matchedUsers.has(p.id) ? "Matched" : likedUsers.has(p.id) ? "Liked" : "Like"}
+                        {isLiking === p.id ? "Liking..." : isMatched(p.id) ? "Matched" : isLiked(p.id) ? "Liked" : "Like"}
                       </Button>
                     </div>
                   </div>

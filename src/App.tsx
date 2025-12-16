@@ -21,7 +21,6 @@ const Matches = lazy(() => import("./pages/Matches"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 const ProfileUpload = lazy(() => import("./pages/ProfileUpload"));
-const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const CreateProfile = lazy(() => import("./pages/CreateProfile"));
 const PhotoUpload = lazy(() => import("./pages/PhotoUpload"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
@@ -89,7 +88,6 @@ function AppRoutes() {
           {/* ChatIndex removed - unified into Matches page */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />
-          <Route path="/user/:userId" element={<UserProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/verification" element={<Verification />} />

@@ -8,6 +8,7 @@ import MingleMLogo from '@/components/ui/MingleMLogo';
 import { getVenues } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { DEMO_PEOPLE } from '@/lib/demoPeople';
+import config from '@/config';
 
 interface Venue {
   id: string;
@@ -221,30 +222,45 @@ export default function LandingPage() {
               </Button>
             </motion.div>
 
-            {/* Secondary Actions - Create Account and Sign In */}
+            {/* Primary Actions - Show as primary CTA when not in demo mode */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
+              transition={{ duration: 0.5, delay: config.DEMO_MODE ? 0.6 : 0.4 }}
+              className={`flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto ${config.DEMO_MODE ? '' : 'mb-8'}`}
             >
-              <Button 
-                asChild 
-                className="flex-1 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 font-semibold text-base"
-              >
-                <Link to="/signup">
-                  Create Account
-                </Link>
-              </Button>
-              <Button 
-                asChild 
-                variant="outline" 
-                className="flex-1 border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
-              >
-                <Link to="/signin">
-                  Sign In
-                </Link>
-              </Button>
+              {!config.DEMO_MODE && (
+                <Button 
+                  asChild 
+                  className="flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all backdrop-blur-sm"
+                  size="lg"
+                >
+                  <Link to="/signup">
+                    Get Started
+                  </Link>
+                </Button>
+              )}
+              {config.DEMO_MODE && (
+                <>
+                  <Button 
+                    asChild 
+                    className="flex-1 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 font-semibold text-base"
+                  >
+                    <Link to="/signup">
+                      Create Account
+                    </Link>
+                  </Button>
+                  <Button 
+                    asChild 
+                    variant="outline" 
+                    className="flex-1 border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
+                  >
+                    <Link to="/signin">
+                      Sign In
+                    </Link>
+                  </Button>
+                </>
+              )}
             </motion.div>
             </div>
           </div>

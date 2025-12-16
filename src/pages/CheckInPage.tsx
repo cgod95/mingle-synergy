@@ -63,56 +63,22 @@ export default function CheckInPage() {
   }, []);
 
   const onCheckIn = async (id: string) => {
-    if (!currentUser?.uid) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to check in to venues.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // DEMO MODE: Photo requirement disabled
+    // Photo check removed for easier demo/testing
     
-    setIsCheckingIn(true);
+    localStorage.setItem(ACTIVE_KEY, id);
+    setChecked(true);
     
+    // Track user checked in event per spec section 9
     try {
-      // Save to Firebase - this makes user visible to others at the venue
-      const venueService = (await import("@/services/firebase/venueService")).default;
-      await venueService.checkInToVenue(currentUser.uid, id);
-      
-      // Also save to localStorage for quick access
-      localStorage.setItem(ACTIVE_KEY, id);
-      
-      // Update recently visited venues
-      try {
-        const recent = JSON.parse(localStorage.getItem('checkedInVenues') || '[]');
-        const updated = [id, ...recent.filter((v: string) => v !== id)].slice(0, 5);
-        localStorage.setItem('checkedInVenues', JSON.stringify(updated));
-      } catch {
-        // Non-critical
-      }
-      
-      setChecked(true);
-      
-      // Track user checked in event per spec section 9
-      try {
-        const { trackUserCheckedIn } = await import("@/services/specAnalytics");
-        const venue = venues.find(v => v.id === id);
-        trackUserCheckedIn(id, venue?.name || id);
-      } catch (error) {
-        // Failed to track check-in event - non-critical
-      }
-      
-      navigate(`/venues/${id}`);
+      const { trackUserCheckedIn } = await import("@/services/specAnalytics");
+      const venue = venues.find(v => v.id === id);
+      trackUserCheckedIn(id, venue?.name || id);
     } catch (error) {
-      logError(error as Error, { context: 'CheckInPage.onCheckIn', venueId: id });
-      toast({
-        title: "Check-in failed",
-        description: "Could not check in to venue. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCheckingIn(false);
+      // Failed to track check-in event - non-critical
     }
+    
+    navigate(`/venues/${id}`);
   };
 
   // Memoize loadVenues to prevent recreation and use stable dependencies
@@ -302,14 +268,8 @@ export default function CheckInPage() {
           </div>
         )}
 
-          {/* 
-            FEATURE: Auto-detect "I'm Here" button - DISABLED for beta
-            This feature auto-detects the nearest venue using geolocation and checks the user in.
-            Temporarily removed as it's not fully functional yet.
-            To re-enable: uncomment the Card component below.
-            See: FEATURES_DISABLED.md for details
-          */}
-          {/* {navigator.geolocation && (
+          {/* Auto-detect Button - Secondary */}
+          {navigator.geolocation && (
             <div className="w-full max-w-md">
               <Card
                 className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
@@ -383,7 +343,7 @@ export default function CheckInPage() {
                 )}
               </Card>
             </div>
-          )} */}
+          )}
         </div>
 
         {/* Recently Visited Section */}

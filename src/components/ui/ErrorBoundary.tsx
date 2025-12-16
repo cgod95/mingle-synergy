@@ -85,14 +85,18 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.props.onGoBack) {
       this.props.onGoBack();
     } else {
-      // Default: go back to previous onboarding step
       const stepName = this.props.stepName;
       if (stepName === 'photo') {
         window.location.href = '/create-profile';
       } else if (stepName === 'profile') {
         window.location.href = '/demo-welcome';
       } else {
-        window.history.back();
+        // Try browser history, fallback to home if no history
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '/';
+        }
       }
     }
   };
