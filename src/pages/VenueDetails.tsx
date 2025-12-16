@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
-import { getVenue, getPeople } from "../lib/api";
+import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
-import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { logError } from "@/utils/errorHandler";
 import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import matchService from "@/services/firebase/matchService";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { firestore } from "@/firebase";
 
 function Toast({ text }: { text: string }) {
@@ -61,10 +60,46 @@ export default function VenueDetails() {
     }
   }, [id]);
   
-  // In demo mode, use dynamic presence hook; otherwise use static getPeople
-  const demoPeople = useDemoPresence(config.DEMO_MODE ? id : undefined);
-  const staticPeople = useMemo(() => id ? getPeople(id) : [], [id]);
-  const people = config.DEMO_MODE && demoPeople.length > 0 ? demoPeople : staticPeople;
+  // Load real users from Firebase who are checked in to this venue
+  const [people, setPeople] = useState<any[]>([]);
+  const [loadingPeople, setLoadingPeople] = useState(true);
+  
+  useEffect(() => {
+    if (!venue?.id || !firestore) {
+      setPeople([]);
+      setLoadingPeople(false);
+      return;
+    }
+    
+    setLoadingPeople(true);
+    
+    // Query users where currentVenue === this venue and isCheckedIn === true
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, 
+      where('currentVenue', '==', venue.id),
+      where('isCheckedIn', '==', true)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const usersAtVenue = snapshot.docs
+        .filter(doc => doc.id !== currentUser?.uid) // Exclude self
+        .map(doc => ({ 
+          id: doc.id, 
+          name: doc.data().name || 'Anonymous',
+          photo: doc.data().photos?.[0] || doc.data().photoURL || null,
+          bio: doc.data().bio || '',
+          ...doc.data() 
+        }));
+      setPeople(usersAtVenue);
+      setLoadingPeople(false);
+    }, (error) => {
+      logError(error, { context: 'VenueDetails.loadPeople', venueId: venue.id });
+      setPeople([]);
+      setLoadingPeople(false);
+    });
+    
+    return () => unsubscribe();
+  }, [venue?.id, currentUser?.uid]);
   
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);

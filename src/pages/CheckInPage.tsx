@@ -63,22 +63,56 @@ export default function CheckInPage() {
   }, []);
 
   const onCheckIn = async (id: string) => {
-    // DEMO MODE: Photo requirement disabled
-    // Photo check removed for easier demo/testing
-    
-    localStorage.setItem(ACTIVE_KEY, id);
-    setChecked(true);
-    
-    // Track user checked in event per spec section 9
-    try {
-      const { trackUserCheckedIn } = await import("@/services/specAnalytics");
-      const venue = venues.find(v => v.id === id);
-      trackUserCheckedIn(id, venue?.name || id);
-    } catch (error) {
-      // Failed to track check-in event - non-critical
+    if (!currentUser?.uid) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to check in to venues.",
+        variant: "destructive",
+      });
+      return;
     }
     
-    navigate(`/venues/${id}`);
+    setIsCheckingIn(true);
+    
+    try {
+      // Save to Firebase - this makes user visible to others at the venue
+      const venueService = (await import("@/services/firebase/venueService")).default;
+      await venueService.checkInToVenue(currentUser.uid, id);
+      
+      // Also save to localStorage for quick access
+      localStorage.setItem(ACTIVE_KEY, id);
+      
+      // Update recently visited venues
+      try {
+        const recent = JSON.parse(localStorage.getItem('checkedInVenues') || '[]');
+        const updated = [id, ...recent.filter((v: string) => v !== id)].slice(0, 5);
+        localStorage.setItem('checkedInVenues', JSON.stringify(updated));
+      } catch {
+        // Non-critical
+      }
+      
+      setChecked(true);
+      
+      // Track user checked in event per spec section 9
+      try {
+        const { trackUserCheckedIn } = await import("@/services/specAnalytics");
+        const venue = venues.find(v => v.id === id);
+        trackUserCheckedIn(id, venue?.name || id);
+      } catch (error) {
+        // Failed to track check-in event - non-critical
+      }
+      
+      navigate(`/venues/${id}`);
+    } catch (error) {
+      logError(error as Error, { context: 'CheckInPage.onCheckIn', venueId: id });
+      toast({
+        title: "Check-in failed",
+        description: "Could not check in to venue. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingIn(false);
+    }
   };
 
   // Memoize loadVenues to prevent recreation and use stable dependencies

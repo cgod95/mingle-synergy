@@ -18,10 +18,11 @@ service cloud.firestore {
       );
     }
 
-    // User profiles - users can read/write their own document
+    // User profiles - any signed-in user can read profiles (needed to see people at venues)
+    // Users can only write their own document
     // Enforce bio (min 10 chars) and photos (at least 1) for profile updates
     match /users/{uid} {
-      allow read: if isSelf(uid);
+      allow read: if isSignedIn();
       allow create: if isSelf(uid);
       
       // Update: validate bio and photos if they're being updated
