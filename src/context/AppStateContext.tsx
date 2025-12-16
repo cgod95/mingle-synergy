@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useRef, ReactNod
 import { Interest, Match, User } from '../types';
 import { getInterests, getMatches } from '../utils/localStorageUtils';
 import services from '../services';
-import { AppStateContext } from './AppStateContext';
 
 // Explicitly define what a UserType looks like for TypeScript
 type UserType = {
@@ -45,6 +44,9 @@ interface AppStateContextType {
   expressInterest: (userId: string, venueId: string) => Promise<boolean>;
   shareContact: (matchId: string) => Promise<boolean>;
 }
+
+// Create the context (defined here after type to avoid circular dependency)
+const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
 export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<{ id: string; name?: string } | null>(null);
@@ -149,3 +151,15 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     </AppStateContext.Provider>
   );
 };
+
+// Export hook to use the context
+export const useAppState = () => {
+  const context = useContext(AppStateContext);
+  if (context === undefined) {
+    throw new Error('useAppState must be used within an AppStateProvider');
+  }
+  return context;
+};
+
+// Export context for direct access if needed
+export { AppStateContext };

@@ -11,8 +11,12 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Explicitly include index.html in precache
+        globIgnores: ['**/node_modules/**/*'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/assets\//],
+        // Fix for workbox non-precached-url error - use NetworkFirst for index.html
+        navigateFallbackAllowlist: [/^(?!\/__).*/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
@@ -25,8 +29,19 @@ export default defineConfig({
               },
             },
           },
+          {
+            // Cache index.html with NetworkFirst strategy
+            urlPattern: /\/index\.html/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+              },
+            },
+          },
         ],
-        // Fix for workbox non-precached-url error
         cleanupOutdatedCaches: true,
         skipWaiting: true,
       },
