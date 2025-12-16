@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { getVenue, getPeople } from "../lib/api";
 import { likePerson, isMatched, isLiked } from "../lib/likesStore";
-yesimport { getAllMatches } from "@/lib/matchesCompat";
+import { getAllMatches } from "@/lib/matchesCompat";
 import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";

@@ -44,7 +44,7 @@ const checkBinaryExists = (packageName) => {
 const installBinary = (packageName) => {
   try {
     console.log(`Installing ${packageName}...`);
-    execSync(`npm install ${packageName}@4.52.5 --no-save --legacy-peer-deps`, {
+    execSync(`npm install ${packageName}@4.52.5 --no-save --ignore-scripts --legacy-peer-deps`, {
       stdio: 'inherit',
       cwd: process.cwd(),
     });
