@@ -26,6 +26,9 @@ export default defineConfig({
             },
           },
         ],
+        // Fix for workbox non-precached-url error
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
       },
     }),
   ],

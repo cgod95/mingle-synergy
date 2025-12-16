@@ -335,24 +335,15 @@ class FirebaseVenueService implements VenueService {
       // First check out from any existing venue
       await this.checkOutFromVenue(userId);
       
-      const batch = writeBatch(firestore);
-      
-      // Update user's check-in status
+      // Update user's check-in status only
+      // NOTE: We don't update the venue document because venues collection has write: false
+      // Check-in counts are calculated by querying users collection
       const userDocRef = doc(firestore, 'users', userId);
-      batch.update(userDocRef, {
+      await updateDoc(userDocRef, {
         isCheckedIn: true,
         currentVenue: venueId,
         checkInTime: serverTimestamp()
       });
-      
-      // Increment venue's check-in count and add user to checkedInUsers array
-      const venueDocRef = doc(firestore, 'venues', venueId);
-      batch.update(venueDocRef, {
-        checkInCount: increment(1),
-        checkedInUsers: arrayUnion(userId)
-      });
-      
-      await batch.commit();
       logUserAction('venue_checkin', { userId, venueId });
     } catch (error) {
       logError(error as Error, { source: 'venueService', action: 'checkInToVenue', userId, venueId });
@@ -383,24 +374,15 @@ class FirebaseVenueService implements VenueService {
         return;
       }
       
-      const batch = writeBatch(firestore);
-      
-      // Update user's check-out status
-      batch.update(userDocRef, {
+      // Update user's check-out status only
+      // NOTE: We don't update the venue document because venues collection has write: false
+      // Check-in counts are calculated by querying users collection
+      await updateDoc(userDocRef, {
         isCheckedIn: false,
         currentVenue: null,
         currentZone: null,
         checkOutTime: serverTimestamp()
       });
-      
-      // Decrement venue's check-in count and remove user from checkedInUsers array
-      const venueDocRef = doc(firestore, 'venues', currentVenue);
-      batch.update(venueDocRef, {
-        checkInCount: increment(-1),
-        checkedInUsers: arrayRemove(userId)
-      });
-      
-      await batch.commit();
       logUserAction('venue_checkout', { userId, venueId: currentVenue });
     } catch (error) {
       // Get currentVenue for error logging
