@@ -20,9 +20,21 @@ type PartialUserProfile = Partial<UserProfile>;
 
 class FirebaseUserService implements UserService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
+    // #region agent log
+    console.log('[DEBUG:getUserProfile:entry]', {userId, hasFirestore: !!firestore});
+    // #endregion
     try {
+      // #region agent log
+      console.log('[DEBUG:getUserProfile:beforeDoc]', {firestoreType: typeof firestore});
+      // #endregion
       const userRef = doc(firestore, 'users', userId);
+      // #region agent log
+      console.log('[DEBUG:getUserProfile:afterDoc]', {hasUserRef: !!userRef});
+      // #endregion
       const userSnap = await getDoc(userRef);
+      // #region agent log
+      console.log('[DEBUG:getUserProfile:afterGetDoc]', {exists: userSnap.exists()});
+      // #endregion
       if (userSnap.exists()) {
         const userData = userSnap.data();
         return { 
@@ -35,6 +47,9 @@ class FirebaseUserService implements UserService {
         return null;
       }
     } catch (error) {
+      // #region agent log
+      console.log('[DEBUG:getUserProfile:catch]', {errorMessage: (error as Error)?.message, errorName: (error as Error)?.name});
+      // #endregion
       logError(error as Error, { source: 'userService', action: 'getUserProfile', userId });
       return null;
     }
