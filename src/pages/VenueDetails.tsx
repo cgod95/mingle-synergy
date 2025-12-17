@@ -299,13 +299,14 @@ export default function VenueDetails() {
         }
       }
     } catch (error) {
+      console.error('[VenueDetails] Like error:', error);
       logError(error instanceof Error ? error : new Error('Failed to like user'), {
         context: 'VenueDetails.handleLike',
         personId
       });
       showToast({
         title: "Couldn't send like",
-        description: "Please try again",
+        description: error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
     } finally {

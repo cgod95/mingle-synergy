@@ -225,6 +225,11 @@ class MockMatchService implements MatchService {
       return false;
     }
   }
+
+  async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<void> {
+    console.log(`[Mock] User ${currentUserId} liked ${targetUserId} at venue ${venueId}`);
+    // In demo mode, just log - the local storage flow in VenueDetails handles likes
+  }
 }
 
 export default new MockMatchService();

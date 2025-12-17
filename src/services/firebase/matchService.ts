@@ -357,52 +357,70 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
    * Like a user and check for mutual match
    */
   public async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<void> {
+    console.log('[likeUser] Starting like flow:', { currentUserId, targetUserId, venueId });
+    
     try {
+      console.log('[likeUser] Checking Firebase availability...');
       if (!this.isFirebaseAvailable()) {
+        console.error('[likeUser] Firebase not available or offline');
         throw new Error('Cannot like user while offline');
       }
+      console.log('[likeUser] Firebase is available');
 
       // Check if there's already a match between these users
+      console.log('[likeUser] Checking for existing matches...');
       const existingMatches = await this.getMatches(currentUserId);
+      console.log('[likeUser] Found existing matches:', existingMatches.length);
+      
       const existingMatch = existingMatches.find(match => 
         (match.userId1 === targetUserId && match.userId2 === currentUserId) ||
         (match.userId1 === currentUserId && match.userId2 === targetUserId)
       );
 
       if (existingMatch) {
-        // Match already exists, don't create another
+        console.log('[likeUser] Match already exists, returning early');
         return;
       }
 
       // Check if target user has already liked current user (check likes, not matches)
       // Use the likes collection to check for mutual likes
       if (!firestore) {
-        return;
+        console.error('[likeUser] Firestore is null');
+        throw new Error('Firestore not initialized');
       }
       
+      console.log('[likeUser] Reading target user likes...');
       const likesRef = collection(firestore, 'likes');
       const targetUserLikesRef = doc(likesRef, targetUserId);
       const targetUserLikesSnap = await getDoc(targetUserLikesRef);
+      console.log('[likeUser] Target user likes document exists:', targetUserLikesSnap.exists());
       
       const targetUserLikes = targetUserLikesSnap.exists() 
         ? targetUserLikesSnap.data()?.likes || [] 
         : [];
+      console.log('[likeUser] Target user likes:', targetUserLikes);
       
       const isMutual = targetUserLikes.includes(currentUserId);
+      console.log('[likeUser] Is mutual like:', isMutual);
 
       if (isMutual) {
         // Mutual like detected - create a match
+        console.log('[likeUser] Creating match (mutual like detected)...');
         const venue = await this.getVenueName(venueId);
         await this.createMatch(currentUserId, targetUserId, venueId, venue);
+        console.log('[likeUser] Match created successfully');
       } else {
         // One-way like - just record the like, don't create match yet
         // Store the like in the likes collection
+        console.log('[likeUser] Recording one-way like...');
         const currentUserLikesRef = doc(likesRef, currentUserId);
         await setDoc(currentUserLikesRef, { 
           likes: arrayUnion(targetUserId) 
         }, { merge: true });
+        console.log('[likeUser] Like recorded successfully');
       }
     } catch (error) {
+      console.error('[likeUser] Error:', error);
       logError(error as Error, { source: 'matchService', action: 'likeUser', currentUserId, targetUserId, venueId });
       throw error;
     }
