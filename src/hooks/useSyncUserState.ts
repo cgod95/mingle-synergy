@@ -56,17 +56,38 @@ export function useSyncUserState() {
         // #endregion
         // Get user profile from Firebase
         const profile = await userService.getUserProfile(currentUser.uid);
+        // #region agent log
+        console.log('[DEBUG:afterGetProfile]', {hasProfile: !!profile, profileKeys: profile ? Object.keys(profile) : []});
+        // #endregion
         
         if (profile) {
+          // #region agent log
+          console.log('[DEBUG:beforeCheckInLogic]', {isCheckedIn: profile.isCheckedIn, currentVenue: profile.currentVenue});
+          // #endregion
           // Sync check-in status
           if (profile.isCheckedIn && profile.currentVenue) {
+            // #region agent log
+            console.log('[DEBUG:callingCheckInAt]', {venueId: profile.currentVenue});
+            // #endregion
             // User is checked in - update local storage
             checkInAt(profile.currentVenue);
+            // #region agent log
+            console.log('[DEBUG:afterCheckInAt]');
+            // #endregion
           } else {
+            // #region agent log
+            console.log('[DEBUG:callingClearCheckIn]');
+            // #endregion
             // User is not checked in - clear local storage
             clearCheckIn();
+            // #region agent log
+            console.log('[DEBUG:afterClearCheckIn]');
+            // #endregion
           }
           
+          // #region agent log
+          console.log('[DEBUG:beforeLocalStorage]');
+          // #endregion
           // Store user profile data in localStorage for offline access
           try {
             localStorage.setItem('mingle:userProfile', JSON.stringify({
@@ -77,10 +98,16 @@ export function useSyncUserState() {
               currentVenue: profile.currentVenue,
               lastSynced: Date.now()
             }));
+            // #region agent log
+            console.log('[DEBUG:afterLocalStorage]');
+            // #endregion
           } catch {
             // Non-critical - localStorage might be full or unavailable
           }
         }
+        // #region agent log
+        console.log('[DEBUG:syncStateComplete]');
+        // #endregion
       } catch (error) {
         logError(error instanceof Error ? error : new Error('Failed to sync user state'), {
           context: 'useSyncUserState.profileFetch',
