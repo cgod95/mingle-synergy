@@ -140,6 +140,26 @@ export default function VenueDetails() {
         setMatchedUserIds(matchedIds);
       });
     });
+    
+    // Load likes from Firebase (only in production mode)
+    if (!config.DEMO_MODE) {
+      import('@/firebase/config').then(({ firestore }) => {
+        if (!firestore) return;
+        import('firebase/firestore').then(({ doc, getDoc }) => {
+          const likesRef = doc(firestore, 'likes', currentUser.uid);
+          getDoc(likesRef).then(snap => {
+            if (snap.exists()) {
+              const likesData = snap.data()?.likes || [];
+              setLikedUserIds(new Set(likesData));
+            }
+          }).catch(err => {
+            logError(err instanceof Error ? err : new Error('Failed to load likes'), {
+              context: 'VenueDetails.loadLikes'
+            });
+          });
+        });
+      });
+    }
   }, [venue?.id, currentUser?.uid]);
   
   // Helper functions to check like/match status

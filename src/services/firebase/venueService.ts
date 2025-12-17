@@ -502,7 +502,12 @@ class FirebaseVenueService implements VenueService {
       }
       
       const usersRef = collection(firestore, 'users');
-      const q = query(usersRef, where('currentVenue', '==', venueId));
+      // Query for users at this venue who are explicitly checked in
+      const q = query(
+        usersRef, 
+        where('currentVenue', '==', venueId),
+        where('isCheckedIn', '==', true)
+      );
       const snapshot = await getDocs(q);
       
       return snapshot.docs.map(doc => ({
