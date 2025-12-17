@@ -341,6 +341,7 @@ class FirebaseVenueService implements VenueService {
       const userDocRef = doc(firestore, 'users', userId);
       await updateDoc(userDocRef, {
         isCheckedIn: true,
+        isVisible: true,  // Ensure user is visible to others at the venue
         currentVenue: venueId,
         checkInTime: serverTimestamp()
       });

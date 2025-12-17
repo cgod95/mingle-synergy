@@ -26,8 +26,10 @@ service cloud.firestore {
       // This enables seeing other users at a venue
       allow read: if isSignedIn() && (
         isSelf(uid) ||
-        // Allow reading other users who are visible and checked in
-        (resource.data.isVisible == true && resource.data.isCheckedIn == true)
+        // Allow reading other users who are checked in
+        // isVisible defaults to true if field is missing (for backwards compatibility)
+        (resource.data.isCheckedIn == true && 
+         (resource.data.isVisible == true || !('isVisible' in resource.data)))
       );
       allow create: if isSelf(uid);
       

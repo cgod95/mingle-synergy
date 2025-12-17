@@ -35,9 +35,6 @@ class FirebaseUserService implements UserService {
         return null;
       }
     } catch (error) {
-      // #region agent log
-      console.log('[DEBUG:getUserProfile:catch]', {errorMessage: (error as Error)?.message, errorName: (error as Error)?.name});
-      // #endregion
       logError(error as Error, { source: 'userService', action: 'getUserProfile', userId });
       return null;
     }
