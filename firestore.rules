@@ -95,8 +95,11 @@ service cloud.firestore {
         resource.data.userId2 == request.auth.uid
       );
       
-      // Delete: not allowed (matches are soft-deleted or archived)
-      allow delete: if false;
+      // Delete: participants can delete their expired matches
+      allow delete: if isSignedIn() && (
+        resource.data.userId1 == request.auth.uid ||
+        resource.data.userId2 == request.auth.uid
+      );
     }
 
     // Messages - only participants of the match can read/write
