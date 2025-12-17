@@ -21,7 +21,7 @@ import { Match, MatchService } from '@/types/services';
 import { localStorageUtils } from '@/utils/localStorageUtils';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
 import { FirestoreMatch } from '@/types/match';
-import { firestore } from '@/firebase';
+import { firestore } from '@/firebase/config';
 import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
 import { logError, ErrorSeverity } from '@/utils/errorHandler';
 import { FEATURE_FLAGS } from '@/lib/flags';
