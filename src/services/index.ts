@@ -15,7 +15,6 @@ import MockVenueService from './mock/mockVenueService';
 import MockMatchService from './mock/mockMatchService';
 import MockInterestService from './mock/mockInterestService';
 import { mockSubscriptionService } from './mock';
-import SubscriptionService from './subscriptionService';
 // If you have a mockReconnectService, import it here
 
 // AuthService always uses Firebase
@@ -26,7 +25,47 @@ export const userService = DEMO_MODE ? MockUserService : FirebaseUserService;
 export const venueService = DEMO_MODE ? MockVenueService : FirebaseVenueService;
 export const matchService = DEMO_MODE ? MockMatchService : FirebaseMatchService;
 export const interestService = DEMO_MODE ? MockInterestService : FirebaseInterestService;
-export const subscriptionService = DEMO_MODE ? mockSubscriptionService : new SubscriptionService();
+
+// Lazy initialization for SubscriptionService to avoid TDZ issues
+// The service is only instantiated when first accessed, not at module load time
+let _subscriptionServiceInstance: InstanceType<typeof import('./subscriptionService').default> | null = null;
+
+export const subscriptionService = DEMO_MODE ? mockSubscriptionService : {
+  // Proxy object that lazily initializes the real service
+  get _instance() {
+    if (!_subscriptionServiceInstance) {
+      // Dynamic import would be ideal but we use sync approach for compatibility
+      const SubscriptionService = require('./subscriptionService').default;
+      _subscriptionServiceInstance = new SubscriptionService();
+    }
+    return _subscriptionServiceInstance;
+  },
+  getTiers() { return this._instance.getTiers(); },
+  getTier(tierId: string) { return this._instance.getTier(tierId); },
+  getUserSubscription(userId: string) { return this._instance.getUserSubscription(userId); },
+  hasFeature(userId: string, feature: string) { return this._instance.hasFeature(userId, feature); },
+  canPerformAction(userId: string, action: string) { return this._instance.canPerformAction(userId, action); },
+  recordUsage(userId: string, action: string) { return this._instance.recordUsage(userId, action); },
+  createSubscription(userId: string, tierId: string, paymentMethodId: string) { 
+    return this._instance.createSubscription(userId, tierId, paymentMethodId); 
+  },
+  cancelSubscription(userId: string, cancelAtPeriodEnd?: boolean) { 
+    return this._instance.cancelSubscription(userId, cancelAtPeriodEnd); 
+  },
+  upgradeSubscription(userId: string, newTierId: string) { 
+    return this._instance.upgradeSubscription(userId, newTierId); 
+  },
+  getUserPaymentMethods(userId: string) { return this._instance.getUserPaymentMethods(userId); },
+  addPaymentMethod(userId: string, paymentMethod: unknown) { 
+    return this._instance.addPaymentMethod(userId, paymentMethod); 
+  },
+  removePaymentMethod(userId: string, paymentMethodId: string) { 
+    return this._instance.removePaymentMethod(userId, paymentMethodId); 
+  },
+  getSubscriptionAnalytics() { return this._instance.getSubscriptionAnalytics(); },
+  resetDailyUsage() { return this._instance.resetDailyUsage(); },
+};
+
 // For now, set reconnectService to undefined in both modes
 export const reconnectService = undefined; // TODO: Add mockReconnectService if needed
 

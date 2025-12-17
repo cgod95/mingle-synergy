@@ -1,5 +1,4 @@
 // 🧠 Purpose: Centralized logging utility with environment-aware behavior and security
-import config from '@/config';
 
 interface LogLevel {
   DEBUG: 0;
@@ -42,16 +41,30 @@ const SENSITIVE_FIELDS = [
 ];
 
 class Logger {
-  private currentLevel: number;
+  private currentLevel: number | null = null;
+
+  private getLevel(): number {
+    // Lazy initialization of log level to avoid TDZ issues with config import
+    if (this.currentLevel === null) {
+      try {
+        // Dynamic import to avoid circular dependency issues
+        const config = require('@/config').default;
+        this.currentLevel = config.ENVIRONMENT === 'production' ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
+      } catch {
+        // Fallback to DEBUG level if config can't be loaded
+        this.currentLevel = LOG_LEVELS.DEBUG;
+      }
+    }
+    return this.currentLevel;
+  }
 
   constructor() {
-    // In production, only show WARN and ERROR
-    // In development, show all levels
-    this.currentLevel = config.ENVIRONMENT === 'production' ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
+    // Don't initialize level in constructor to avoid TDZ issues
+    // Level will be lazily initialized on first log call
   }
 
   private shouldLog(level: number): boolean {
-    return level >= this.currentLevel;
+    return level >= this.getLevel();
   }
 
   private sanitizeData(data: unknown): unknown {

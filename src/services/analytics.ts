@@ -420,44 +420,88 @@ class AnalyticsService {
   }
 }
 
-// Create singleton instance
-export const analytics = new AnalyticsService();
+// Lazy singleton instance - only created when first accessed
+// This prevents TDZ errors from module-level instantiation
+let _analyticsInstance: AnalyticsService | null = null;
+
+const getAnalytics = (): AnalyticsService => {
+  if (!_analyticsInstance) {
+    _analyticsInstance = new AnalyticsService();
+  }
+  return _analyticsInstance;
+};
+
+// Proxy object that lazily initializes the real service
+export const analytics = {
+  get _instance() { return getAnalytics(); },
+  track(eventName: string, properties?: Record<string, unknown>) { return this._instance.track(eventName, properties); },
+  trackPageView(page: string) { return this._instance.trackPageView(page); },
+  trackUserBehavior(action: string, data?: unknown) { return this._instance.trackUserBehavior(action, data); },
+  trackConversionFunnel(step: 'signup' | 'profile_complete' | 'first_venue' | 'first_like' | 'first_match' | 'first_message') { 
+    return this._instance.trackConversionFunnel(step); 
+  },
+  trackMatch(matchData: MatchData) { return this._instance.trackMatch(matchData); },
+  trackVenueInteraction(venueId: string, action: string, data?: unknown) { 
+    return this._instance.trackVenueInteraction(venueId, action, data); 
+  },
+  trackABTest(testName: string, variant: string, conversion?: boolean) { 
+    return this._instance.trackABTest(testName, variant, conversion); 
+  },
+  trackPerformance(metric: string, value: number, unit?: string) { 
+    return this._instance.trackPerformance(metric, value, unit); 
+  },
+  trackError(error: Error, context?: unknown) { return this._instance.trackError(error, context); },
+  trackEngagement(action: string, duration?: number) { return this._instance.trackEngagement(action, duration); },
+  trackRevenue(amount: number, currency?: string, source?: string) { 
+    return this._instance.trackRevenue(amount, currency, source); 
+  },
+  trackCustomEvent(eventName: string, properties?: Record<string, unknown>) { 
+    return this._instance.trackCustomEvent(eventName, properties); 
+  },
+  getAnalyticsReport() { return this._instance.getAnalyticsReport(); },
+  exportAnalyticsData() { return this._instance.exportAnalyticsData(); },
+  setUserId(userId: string) { return this._instance.setUserId(userId); },
+  enable() { return this._instance.enable(); },
+  disable() { return this._instance.disable(); },
+  clear() { return this._instance.clear(); },
+  destroy() { return this._instance.destroy(); },
+};
 
 // Export individual tracking functions for convenience
 export const track = (eventName: string, properties?: Record<string, unknown>) => {
-  analytics.track(eventName, properties);
+  getAnalytics().track(eventName, properties);
 };
 
 export const trackPageView = (page: string) => {
-  analytics.trackPageView(page);
+  getAnalytics().trackPageView(page);
 };
 
 export const trackMatch = (matchData: MatchData) => {
-  analytics.trackMatch(matchData);
+  getAnalytics().trackMatch(matchData);
 };
 
 export const trackVenueInteraction = (venueId: string, action: string, data?: unknown) => {
-  analytics.trackVenueInteraction(venueId, action, data);
+  getAnalytics().trackVenueInteraction(venueId, action, data);
 };
 
 export const trackABTest = (testName: string, variant: string, conversion?: boolean) => {
-  analytics.trackABTest(testName, variant, conversion);
+  getAnalytics().trackABTest(testName, variant, conversion);
 };
 
 export const trackPerformance = (metric: string, value: number, unit?: string) => {
-  analytics.trackPerformance(metric, value, unit);
+  getAnalytics().trackPerformance(metric, value, unit);
 };
 
 export const trackError = (error: Error, context?: unknown) => {
-  analytics.trackError(error, context);
+  getAnalytics().trackError(error, context);
 };
 
 export const trackEngagement = (action: string, duration?: number) => {
-  analytics.trackEngagement(action, duration);
+  getAnalytics().trackEngagement(action, duration);
 };
 
 export const trackRevenue = (amount: number, currency?: string, source?: string) => {
-  analytics.trackRevenue(amount, currency, source);
+  getAnalytics().trackRevenue(amount, currency, source);
 };
 
 export default analytics; 

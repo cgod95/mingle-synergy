@@ -13,19 +13,27 @@ export function useSyncUserState() {
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    // TEMPORARILY DISABLED to diagnose TDZ error
-    // If error disappears, this hook is the source
-    // TODO: Re-enable after proper fix is implemented
-    console.log('[useSyncUserState] Temporarily disabled for TDZ diagnosis');
-    return;
-    
     if (!currentUser?.uid || config.DEMO_MODE) return;
 
     const syncState = async () => {
+      // Step 1: Import services with separate error handling
+      let userService;
       try {
-        // Import services dynamically to avoid circular dependencies
-        const { userService } = await import('@/services');
-        
+        const services = await import('@/services');
+        userService = services.userService;
+      } catch (importError) {
+        console.error('[useSyncUserState] Failed to import services:', importError);
+        return; // Exit early - can't proceed without services
+      }
+      
+      // Step 2: Validate the service was loaded correctly
+      if (!userService) {
+        console.error('[useSyncUserState] userService is undefined after import');
+        return;
+      }
+      
+      // Step 3: Use the service with error handling
+      try {
         // Get user profile from Firebase
         const profile = await userService.getUserProfile(currentUser.uid);
         
@@ -50,12 +58,12 @@ export function useSyncUserState() {
               lastSynced: Date.now()
             }));
           } catch {
-            // Non-critical
+            // Non-critical - localStorage might be full or unavailable
           }
         }
       } catch (error) {
         logError(error instanceof Error ? error : new Error('Failed to sync user state'), {
-          context: 'useSyncUserState',
+          context: 'useSyncUserState.profileFetch',
           userId: currentUser.uid
         });
       }
