@@ -24,6 +24,9 @@ export const logError = (
   context: Record<string, string | number | boolean> = {},
   severity: ErrorSeverity = ErrorSeverity.ERROR
 ): void => {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'errorHandler.ts:logError',message:'logError called',data:{errorMessage:error?.message,errorStack:error?.stack?.substring(0,500),contextKeys:Object.keys(context),contextSource:context.source||context.context||'unknown'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   const appError = error as AppError;
   appError.context = context.source as string || 'unknown';
   appError.severity = severity;

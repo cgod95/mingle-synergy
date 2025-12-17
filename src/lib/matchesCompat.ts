@@ -32,6 +32,9 @@ const CACHE_TTL_MS = 30000; // 30 seconds cache
  * Fetch matches from Firebase and transform to local Match format
  */
 async function fetchFirebaseMatches(userId: string): Promise<Match[]> {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchesCompat.ts:fetchFirebaseMatches:start',message:'fetchFirebaseMatches called',data:{userId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
   // Check cache first
   const cached = FIREBASE_CACHE[userId];
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
@@ -40,7 +43,13 @@ async function fetchFirebaseMatches(userId: string): Promise<Match[]> {
   
   try {
     // Dynamic import to avoid circular dependencies
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchesCompat.ts:beforeImport',message:'About to import services in matchesCompat',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     const { matchService, userService } = await import('@/services');
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchesCompat.ts:afterImport',message:'Services imported in matchesCompat',data:{hasMatchService:!!matchService,hasUserService:!!userService},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     const firebaseMatches = await matchService.getMatches(userId);
     
     const matches: Match[] = await Promise.all(firebaseMatches.map(async (fm: any) => {

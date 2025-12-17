@@ -16,12 +16,24 @@ export function useSyncUserState() {
     if (!currentUser?.uid || config.DEMO_MODE) return;
 
     const syncState = async () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useSyncUserState.ts:syncState:start',message:'syncState starting',data:{userId:currentUser.uid},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       // Step 1: Import services with separate error handling
       let userService;
       try {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useSyncUserState.ts:beforeImport',message:'About to import services',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
         const services = await import('@/services');
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useSyncUserState.ts:afterImport',message:'Services imported',data:{hasUserService:!!services.userService,serviceKeys:Object.keys(services)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
         userService = services.userService;
       } catch (importError) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useSyncUserState.ts:importError',message:'Import failed',data:{error:String(importError),stack:(importError as Error)?.stack?.substring(0,500)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
         console.error('[useSyncUserState] Failed to import services:', importError);
         return; // Exit early - can't proceed without services
       }
@@ -34,6 +46,9 @@ export function useSyncUserState() {
       
       // Step 3: Use the service with error handling
       try {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useSyncUserState.ts:beforeGetProfile',message:'About to call getUserProfile',data:{userId:currentUser.uid},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
         // Get user profile from Firebase
         const profile = await userService.getUserProfile(currentUser.uid);
         
