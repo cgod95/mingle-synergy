@@ -33,6 +33,10 @@ function Toast({ text }: { text: string }) {
 
 export default function VenueDetails() {
   const { id } = useParams<{ id: string }>();
+  const { currentUser } = useAuth();  // MOVED UP: Must be declared before useEffects that use it
+  const navigate = useNavigate();
+  const { toast: showToast } = useToast();
+  
   const [venue, setVenue] = useState<any>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
   const [venueError, setVenueError] = useState<Error | null>(null);
@@ -109,9 +113,6 @@ export default function VenueDetails() {
   const [mutualConnections, setMutualConnections] = useState<number>(0);
   const [likedUserIds, setLikedUserIds] = useState<Set<string>>(new Set());
   const [matchedUserIds, setMatchedUserIds] = useState<Set<string>>(new Set());
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { toast: showToast } = useToast();
 
   // Load user's likes and matches from Firebase
   useEffect(() => {
