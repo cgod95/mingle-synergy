@@ -25,8 +25,12 @@ export const logError = (
   severity: ErrorSeverity = ErrorSeverity.ERROR
 ): void => {
   // #region agent log
-  const debugPayload = {location:'errorHandler.ts:logError',message:'logError called',data:{errorMessage:error?.message,errorStack:error?.stack?.substring(0,500),contextKeys:Object.keys(context),contextSource:context.source||context.context||'unknown'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'};
-  console.log('[DEBUG:logError]', debugPayload);
+  // Capture call stack to identify the caller
+  const callerStack = new Error().stack?.split('\n').slice(1, 6).join(' | ') || 'unknown';
+  const debugPayload = {location:'errorHandler.ts:logError',message:'logError called',data:{errorMessage:error?.message,errorStack:error?.stack?.substring(0,800),contextKeys:Object.keys(context),contextSource:context.source||context.context||'unknown',callerStack},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'};
+  console.log('[DEBUG:logError] CALLER:', context.source || context.context || 'unknown');
+  console.log('[DEBUG:logError] ERROR:', error?.message);
+  console.log('[DEBUG:logError] STACK:', error?.stack?.substring(0, 500));
   fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(debugPayload)}).catch(()=>{});
   // #endregion
   const appError = error as AppError;
