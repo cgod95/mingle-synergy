@@ -13,6 +13,12 @@ export function useSyncUserState() {
   const { currentUser } = useAuth();
 
   useEffect(() => {
+    // TEMPORARILY DISABLED to diagnose TDZ error
+    // If error disappears, this hook is the source
+    // TODO: Re-enable after proper fix is implemented
+    console.log('[useSyncUserState] Temporarily disabled for TDZ diagnosis');
+    return;
+    
     if (!currentUser?.uid || config.DEMO_MODE) return;
 
     const syncState = async () => {
