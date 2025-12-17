@@ -17,6 +17,8 @@ import { logError } from "@/utils/errorHandler";
 import venueService from "@/services/firebase/venueService";
 import { matchService } from "@/services";
 import { useToast } from "@/hooks/use-toast";
+import { doc, getDoc } from "firebase/firestore";
+import { firestore } from "@/firebase/config";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -142,21 +144,16 @@ export default function VenueDetails() {
     });
     
     // Load likes from Firebase (only in production mode)
-    if (!config.DEMO_MODE) {
-      import('@/firebase/config').then(({ firestore }) => {
-        if (!firestore) return;
-        import('firebase/firestore').then(({ doc, getDoc }) => {
-          const likesRef = doc(firestore, 'likes', currentUser.uid);
-          getDoc(likesRef).then(snap => {
-            if (snap.exists()) {
-              const likesData = snap.data()?.likes || [];
-              setLikedUserIds(new Set(likesData));
-            }
-          }).catch(err => {
-            logError(err instanceof Error ? err : new Error('Failed to load likes'), {
-              context: 'VenueDetails.loadLikes'
-            });
-          });
+    if (!config.DEMO_MODE && firestore) {
+      const likesRef = doc(firestore, 'likes', currentUser.uid);
+      getDoc(likesRef).then(snap => {
+        if (snap.exists()) {
+          const likesData = snap.data()?.likes || [];
+          setLikedUserIds(new Set(likesData));
+        }
+      }).catch(err => {
+        logError(err instanceof Error ? err : new Error('Failed to load likes'), {
+          context: 'VenueDetails.loadLikes'
         });
       });
     }

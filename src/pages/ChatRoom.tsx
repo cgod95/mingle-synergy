@@ -324,14 +324,6 @@ export default function ChatRoom() {
     }
   };
 
-  const sendStarter = (starter: string) => {
-    const next: Msg[] = [...msgs, { sender: "you" as const, text: starter, ts: Date.now() }];
-    setMsgs(next);
-    saveMessages(matchId, next);
-    setShowStarters(false);
-    inputRef.current?.focus();
-  };
-
       return (
         <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
           <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl">
