@@ -128,7 +128,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         venueId,
         venueName,
         timestamp: Date.now(),
-        messages: [],
+        // Note: Messages are stored in separate 'messages' collection, not embedded here
       };
 
       const newDocRef = await addDoc(matchRef, newMatch);
@@ -325,7 +325,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     }
 
     const messagesFromSender = match.messages.filter(msg => msg.senderId === senderId);
-    const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+    const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
     if (messagesFromSender.length >= messageLimit) {
       throw new Error('Message limit reached');
     }
@@ -523,7 +523,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         userId2,
         venueId,
         timestamp: Date.now(), // Use consistent numeric timestamp
-        messages: [],
+        // Note: Messages are stored in separate 'messages' collection, not embedded here
       };
 
       const docRef = await addDoc(matchRef, newMatch);
@@ -607,7 +607,7 @@ export const sendMessage = async (
 
   // Message limit per user
   const userMessages = matchData.messages.filter(m => m.senderId === senderId);
-  const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+  const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
   if (userMessages.length >= messageLimit) throw new Error("Message limit reached");
 
   await updateDoc(matchRef, {
@@ -695,10 +695,35 @@ export const getActiveMatches = async (userId: string): Promise<FirestoreMatch[]
 };
 
 export const removeLikeBetweenUsers = async (uid1: string, uid2: string) => {
-  const ids = [`${uid1}_${uid2}`, `${uid2}_${uid1}`];
-  await Promise.all(
-    ids.map(id => deleteDoc(doc(firestore, "likes", id)))
-  );
+  // Likes are stored with user ID as document ID, containing an array of liked user IDs
+  // To remove likes between users, we need to update both users' likes arrays
+  if (!firestore) return;
+  
+  try {
+    const batch = writeBatch(firestore);
+    
+    // Remove uid2 from uid1's likes array
+    const uid1LikesRef = doc(firestore, "likes", uid1);
+    const uid1LikesSnap = await getDoc(uid1LikesRef);
+    if (uid1LikesSnap.exists()) {
+      const currentLikes = uid1LikesSnap.data()?.likes || [];
+      const updatedLikes = currentLikes.filter((id: string) => id !== uid2);
+      batch.update(uid1LikesRef, { likes: updatedLikes });
+    }
+    
+    // Remove uid1 from uid2's likes array
+    const uid2LikesRef = doc(firestore, "likes", uid2);
+    const uid2LikesSnap = await getDoc(uid2LikesRef);
+    if (uid2LikesSnap.exists()) {
+      const currentLikes = uid2LikesSnap.data()?.likes || [];
+      const updatedLikes = currentLikes.filter((id: string) => id !== uid1);
+      batch.update(uid2LikesRef, { likes: updatedLikes });
+    }
+    
+    await batch.commit();
+  } catch (error) {
+    logError(error as Error, { source: 'matchService', action: 'removeLikeBetweenUsers', uid1, uid2 });
+  }
 };
 
 export const getPreviousMatch = async (uid1: string, uid2: string): Promise<FirestoreMatch | null> => {
@@ -769,8 +794,8 @@ export const createRematch = async (uid1: string, uid2: string, venueId: string)
       userId2: uid2,
       venueId,
       timestamp: Date.now(),
-      messages: [],
       isRematch: true, // Flag to indicate this is a rematch
+      // Note: Messages are stored in separate 'messages' collection, not embedded here
     };
 
     const newDocRef = await addDoc(matchRef, newMatch);

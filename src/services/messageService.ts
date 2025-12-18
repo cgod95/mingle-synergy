@@ -230,7 +230,7 @@ export const getMessageCount = async (matchId: string, senderId: string): Promis
 export const getRemainingMessages = async (matchId: string, senderId: string): Promise<number> => {
   const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
     ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 3;
+    : 10;
   const count = await getMessageCount(matchId, senderId);
   return Math.max(0, messageLimit - count);
 };
@@ -278,7 +278,7 @@ export const subscribeToMessageLimit = (
 
   const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
     ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 3;
+    : 10;
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const messageCount = snapshot.docs.length;
     const canSend = messageCount < messageLimit;
@@ -438,7 +438,8 @@ export const getMatchMessages = async (matchId: string): Promise<Message[]> => {
  */
 export const subscribeToMessages = (
   matchId: string, 
-  callback: (messages: Message[]) => void
+  callback: (messages: Message[]) => void,
+  onError?: (error: Error) => void
 ) => {
   // Check if firestore is available
   if (!firestore) {
@@ -453,16 +454,26 @@ export const subscribeToMessages = (
     orderBy("createdAt", "asc")
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const messages: Message[] = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      senderId: doc.data().senderId,
-      text: doc.data().text,
-      createdAt: doc.data().createdAt?.toDate?.() ?? new Date(),
-      readBy: doc.data().readBy || [],
-    }));
-    callback(messages);
-  });
+  return onSnapshot(
+    q, 
+    (snapshot) => {
+      const messages: Message[] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        senderId: doc.data().senderId,
+        text: doc.data().text,
+        createdAt: doc.data().createdAt?.toDate?.() ?? new Date(),
+        readBy: doc.data().readBy || [],
+      }));
+      callback(messages);
+    },
+    (error) => {
+      // Log the error but don't wipe existing messages
+      logError(error as Error, { source: 'messageService', action: 'subscribeToMessages', matchId });
+      if (onError) {
+        onError(error as Error);
+      }
+    }
+  );
 };
 
 /**
