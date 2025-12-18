@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '@/components/Layout';
 import { motion } from 'framer-motion';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, LogIn } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function SignIn() {
@@ -58,8 +58,10 @@ export default function SignIn() {
           transition={{ duration: 0.2 }}
           className="w-full max-w-sm mt-8"
         >
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
-            <CardHeader className="text-center space-y-2 pb-6 relative">
+          <Card className="border-2 border-amber-900/30 bg-neutral-800 shadow-xl overflow-hidden">
+            {/* Warm gradient accent bar for returning users */}
+            <div className="h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
+            <CardHeader className="text-center space-y-3 pb-6 relative pt-8">
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -70,14 +72,20 @@ export default function SignIn() {
                     navigate(-1);
                   }
                 }}
-                className="absolute top-0 left-0 text-neutral-300 hover:text-white"
+                className="absolute top-2 left-2 text-neutral-300 hover:text-white"
                 size="sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Welcome back</CardTitle>
-              <p className="text-sm text-neutral-400">Sign in to continue</p>
+              
+              {/* Icon for sign in */}
+              <div className="mx-auto w-14 h-14 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center border border-amber-500/30">
+                <LogIn className="w-7 h-7 text-amber-400" />
+              </div>
+              
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">Welcome back</CardTitle>
+              <p className="text-sm text-neutral-400">Good to see you again</p>
           </CardHeader>
           <CardContent className="space-y-4">
               <form onSubmit={handleSignIn} className="space-y-4">

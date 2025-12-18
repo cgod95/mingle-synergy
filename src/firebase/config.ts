@@ -28,13 +28,20 @@ if (!isDemoMode && config.FIREBASE_API_KEY && config.FIREBASE_PROJECT_ID) {
       measurementId: config.FIREBASE_MEASUREMENT_ID,
     };
 
+    // Log Firebase project for debugging permission issues
+    console.log('[Firebase] Initializing with project:', config.FIREBASE_PROJECT_ID);
+
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
     firestore = getFirestore(app);
     storage = getStorage(app);
+    
+    console.log('[Firebase] Initialized successfully');
   } catch (error) {
     console.error('Firebase initialization error:', error);
   }
+} else {
+  console.log('[Firebase] Skipped initialization - isDemoMode:', isDemoMode, 'hasApiKey:', !!config.FIREBASE_API_KEY, 'hasProjectId:', !!config.FIREBASE_PROJECT_ID);
 }
 
 // let analytics: ReturnType<typeof getAnalytics> | undefined;

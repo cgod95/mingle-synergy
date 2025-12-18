@@ -77,6 +77,27 @@
   }
 }
 
+/* ---- Mobile viewport fix for fixed positioning ---- */
+/* This ensures the bottom nav stays visible on iOS/Android */
+html, body {
+  height: 100%;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+}
+
+body {
+  /* Prevent rubber-banding from affecting fixed elements */
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ---- Utility shims so JSX classes keep working ---- */
 @layer utilities {
   .bg-background { background-color: hsl(var(--background)); }

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '@/components/Layout';
 import { motion } from 'framer-motion';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Sparkles } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function SignUp() {
@@ -62,8 +62,10 @@ export default function SignUp() {
           transition={{ duration: 0.2 }}
           className="w-full max-w-sm mt-8"
         >
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-xl">
-            <CardHeader className="text-center space-y-2 pb-6">
+          <Card className="border-2 border-purple-900/30 bg-neutral-800 shadow-xl overflow-hidden relative">
+            {/* Vibrant gradient accent bar for new users */}
+            <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+            <CardHeader className="text-center space-y-3 pb-6 relative pt-8">
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -74,14 +76,20 @@ export default function SignUp() {
                     navigate(-1);
                   }
                 }}
-                className="absolute top-4 left-4 text-neutral-300 hover:text-white"
+                className="absolute top-2 left-2 text-neutral-300 hover:text-white"
                 size="sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Create account</CardTitle>
-              <p className="text-sm text-neutral-400">Join Mingle and start meeting people</p>
+              
+              {/* Icon for sign up - sparkles for new beginnings */}
+              <div className="mx-auto w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-purple-500/30">
+                <Sparkles className="w-7 h-7 text-purple-400" />
+              </div>
+              
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Join Mingle</CardTitle>
+              <p className="text-sm text-neutral-400">Start meeting people in real life</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
