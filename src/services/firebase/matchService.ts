@@ -133,16 +133,31 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       const newDocRef = await addDoc(matchRef, newMatch);
       
-      // Notify the other user (user2) about the new match
-      // This allows the first user who liked to see a notification
+      // Notify both users about the new match
+      // user1Id = the person who just completed the match (they get immediate toast, but also store for consistency)
+      // user2Id = the person who liked first (they need notification: "Someone you liked matched you back!")
       try {
-        const notificationRef = doc(firestore, 'notifications', user2Id);
-        await setDoc(notificationRef, {
+        // Notify first liker (user2) - they've been waiting for a match
+        const notification2Ref = doc(firestore, 'notifications', user2Id);
+        await setDoc(notification2Ref, {
           newMatches: arrayUnion({
             matchId: newDocRef.id,
             userId: user1Id,
             venueId,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            type: 'matched_back' // First liker - someone they liked matched them back
+          })
+        }, { merge: true });
+        
+        // Notify match completer (user1) - they just completed the match
+        const notification1Ref = doc(firestore, 'notifications', user1Id);
+        await setDoc(notification1Ref, {
+          newMatches: arrayUnion({
+            matchId: newDocRef.id,
+            userId: user2Id,
+            venueId,
+            timestamp: Date.now(),
+            type: 'new_match' // Match completer - it's a match!
           })
         }, { merge: true });
       } catch (notifError) {

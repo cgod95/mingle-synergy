@@ -278,7 +278,6 @@ export default function ChatRoom() {
       }
       
       setText("");
-      setShowStarters(false); // Hide starters after first message
       inputRef.current?.focus();
     } catch (error) {
       logError(error as Error, { context: 'ChatRoom.onSend', matchId, userId: currentUser?.uid || 'unknown' });
