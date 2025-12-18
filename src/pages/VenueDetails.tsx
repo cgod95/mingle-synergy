@@ -294,18 +294,15 @@ export default function VenueDetails() {
       if (!config.DEMO_MODE) {
         // Use matchService.likeUser for consistent like handling
         // This stores likes in the 'likes' collection and automatically creates matches
-        await matchService.likeUser(currentUser.uid, personId, venue.id);
+        // Returns { isMatch: boolean, matchId?: string } to indicate if a match was created
+        const result = await matchService.likeUser(currentUser.uid, personId, venue.id);
+        console.log('[VenueDetails] likeUser result:', result);
         
         // Update local liked state
         setLikedUserIds(prev => new Set([...prev, personId]));
         
-        // Check if this created a match
-        const matches = await matchService.getMatches(currentUser.uid);
-        const isNewMatch = matches.some(m => 
-          (m.userId1 === personId || m.userId2 === personId)
-        );
-        
-        if (isNewMatch) {
+        if (result.isMatch) {
+          // Match was created!
           setMatchedUserIds(prev => new Set([...prev, personId]));
           setLikeNotification({ personId, message: "It's a match! 🎉" });
           showToast({

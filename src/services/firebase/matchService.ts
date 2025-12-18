@@ -361,8 +361,9 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
   /**
    * Like a user and check for mutual match
+   * @returns Object with isMatch (true if mutual like created a match) and matchId (if created)
    */
-  public async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<void> {
+  public async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<{ isMatch: boolean; matchId?: string }> {
     console.log('[likeUser] Starting like flow:', { currentUserId, targetUserId, venueId });
     
     try {
@@ -385,7 +386,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       if (existingMatch) {
         console.log('[likeUser] Match already exists, returning early');
-        return;
+        return { isMatch: true, matchId: existingMatch.id };
       }
 
       // Check if target user has already liked current user (check likes, not matches)
@@ -406,24 +407,27 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         : [];
       console.log('[likeUser] Target user likes:', targetUserLikes);
       
+      // Always record the current user's like first
+      console.log('[likeUser] Recording current user like...');
+      const currentUserLikesRef = doc(likesRef, currentUserId);
+      await setDoc(currentUserLikesRef, { 
+        likes: arrayUnion(targetUserId) 
+      }, { merge: true });
+      console.log('[likeUser] Like recorded');
+      
       const isMutual = targetUserLikes.includes(currentUserId);
       console.log('[likeUser] Is mutual like:', isMutual);
 
       if (isMutual) {
         // Mutual like detected - create a match
         console.log('[likeUser] Creating match (mutual like detected)...');
-        const venue = await this.getVenueName(venueId);
-        await this.createMatch(currentUserId, targetUserId, venueId, venue);
-        console.log('[likeUser] Match created successfully');
+        const venueName = await this.getVenueName(venueId);
+        const matchId = await this.createMatch(currentUserId, targetUserId, venueId, venueName);
+        console.log('[likeUser] Match created successfully with ID:', matchId);
+        return { isMatch: true, matchId };
       } else {
-        // One-way like - just record the like, don't create match yet
-        // Store the like in the likes collection
-        console.log('[likeUser] Recording one-way like...');
-        const currentUserLikesRef = doc(likesRef, currentUserId);
-        await setDoc(currentUserLikesRef, { 
-          likes: arrayUnion(targetUserId) 
-        }, { merge: true });
-        console.log('[likeUser] Like recorded successfully');
+        console.log('[likeUser] One-way like recorded, no match yet');
+        return { isMatch: false };
       }
     } catch (error) {
       console.error('[likeUser] Error:', error);
