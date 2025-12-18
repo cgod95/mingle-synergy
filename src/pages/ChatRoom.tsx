@@ -297,8 +297,11 @@ export default function ChatRoom() {
   };
 
       return (
-        <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
-          <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl">
+        <div 
+          className="fixed inset-0 flex flex-col bg-neutral-900 z-50"
+          style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}
+        >
+          <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl overflow-hidden">
             <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
             {/* Mingle Branding */}
             <div className="bg-neutral-800/80 backdrop-blur-md border-b border-neutral-700 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
@@ -438,10 +441,14 @@ export default function ChatRoom() {
         <div ref={endRef} />
       </div>
 
-      {/* Input - Fixed at bottom */}
+      {/* Input - Fixed at bottom with safe area handling */}
       <div 
         className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
-        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        style={{ 
+          paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+          WebkitTransform: 'translateZ(0)', // Force GPU layer for iOS
+          transform: 'translateZ(0)'
+        }}
       >
         {/* Message limit indicator (hidden for premium users) */}
         

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles } from "lucide-react";
 import { getAllMatches as getLocalMatches, getRemainingSeconds, isExpired, type Match, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
+import { getLastMessageForMatch, LastMessageInfo } from "@/services/messageService";
 import { timeAgo } from "@/lib/timeago";
 import { useAuth } from "@/context/AuthContext";
 import config from "@/config";
@@ -27,6 +28,7 @@ import { FirestoreMatch } from "@/types/match";
 type MatchWithPreview = Match & {
   lastMessage?: string;
   lastMessageTime?: number;
+  lastMessageSenderId?: string; // To determine "You:" or "Name:" prefix
   isNew?: boolean;
 };
 
@@ -93,17 +95,43 @@ export default function Matches() {
         
         // Enrich with last message preview and new match indicator
         const now = Date.now();
-        const enrichedMatches: MatchWithPreview[] = allMatches.map((match) => {
-          const lastMsg = getLastMessage(match.id);
-          // Consider match "new" if created within last hour and no messages yet
-          const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
-          return {
-            ...match,
-            lastMessage: lastMsg?.text,
-            lastMessageTime: lastMsg?.ts,
-            isNew,
-          };
-        });
+        const enrichedMatches: MatchWithPreview[] = await Promise.all(
+          allMatches.map(async (match) => {
+            let lastMessage: string | undefined;
+            let lastMessageTime: number | undefined;
+            let lastMessageSenderId: string | undefined;
+            
+            if (!config.DEMO_MODE) {
+              // Production: Fetch last message from Firebase
+              const lastMsgInfo = await getLastMessageForMatch(match.id);
+              if (lastMsgInfo) {
+                lastMessage = lastMsgInfo.text;
+                lastMessageTime = lastMsgInfo.createdAt.getTime();
+                lastMessageSenderId = lastMsgInfo.senderId;
+              }
+            } else {
+              // Demo mode: Use localStorage
+              const lastMsg = getLastMessage(match.id);
+              if (lastMsg) {
+                lastMessage = lastMsg.text;
+                lastMessageTime = lastMsg.ts;
+                // In demo mode, 'me' = currentUser, 'them' = other user
+                lastMessageSenderId = lastMsg.sender === 'me' ? currentUser?.uid : match.partnerId;
+              }
+            }
+            
+            // Consider match "new" if created within last hour and no messages yet
+            const isNew = !lastMessage && (now - match.createdAt < 60 * 60 * 1000);
+            
+            return {
+              ...match,
+              lastMessage,
+              lastMessageTime,
+              lastMessageSenderId,
+              isNew,
+            };
+          })
+        );
 
         // Sort by last message time (most recent first), then by expiry (soonest first)
         enrichedMatches.sort((a, b) => {
@@ -115,7 +143,15 @@ export default function Matches() {
           return a.expiresAt - b.expiresAt; // Soonest expiry first
         });
 
-        setMatches(enrichedMatches);
+        // Only update state if data actually changed (prevents flickering)
+        setMatches(prev => {
+          const prevJson = JSON.stringify(prev.map(m => ({ id: m.id, lastMessage: m.lastMessage, lastMessageTime: m.lastMessageTime })));
+          const nextJson = JSON.stringify(enrichedMatches.map(m => ({ id: m.id, lastMessage: m.lastMessage, lastMessageTime: m.lastMessageTime })));
+          if (prevJson === nextJson) {
+            return prev; // No change, don't trigger re-render
+          }
+          return enrichedMatches;
+        });
       } catch (error) {
         logError(error as Error, { context: 'Matches.fetchMatches', userId: currentUser?.uid || 'unknown' });
         
@@ -373,6 +409,9 @@ export default function Matches() {
                                     ? 'text-white font-semibold'
                                     : 'text-neutral-300 font-medium'
                                 }`}>
+                                  <span className="text-neutral-400 font-normal">
+                                    {match.lastMessageSenderId === currentUser?.uid ? 'You: ' : `${match.displayName?.split(' ')[0] || 'Them'}: `}
+                                  </span>
                                   {match.lastMessage}
                                 </p>
                               </div>
@@ -392,8 +431,8 @@ export default function Matches() {
                               </div>
                             )}
 
-                            {/* Time Remaining Badge - Only show if not expired and not expiring soon */}
-                            {matchExpired ? (
+                            {/* Time Remaining Badge - Only show if expired (active matches show timer in header row) */}
+                            {matchExpired && (
                               <div className="mt-2 flex items-center gap-2">
                                 <Badge variant="outline" className="text-xs text-neutral-500 border-neutral-600 bg-neutral-800">
                                   <Clock className="w-3 h-3 mr-1" />
@@ -410,13 +449,6 @@ export default function Matches() {
                                 >
                                   Reactivate
                                 </Button>
-                              </div>
-                            ) : !isExpiringSoon && (
-                              <div className="mt-1">
-                                <Badge variant="outline" className="text-xs text-green-400 border-green-600 bg-green-900/20">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  Active for {remainingTime}
-                                </Badge>
                               </div>
                             )}
                           </div>
@@ -489,11 +521,14 @@ export default function Matches() {
                                     </Badge>
                                   </div>
                                   
-                                  {match.lastMessage && (
+                                  {match.lastMessage ? (
                                     <p className="text-sm text-neutral-400 line-clamp-2 mb-2">
+                                      <span className="text-neutral-500">
+                                        {match.lastMessageSenderId === currentUser?.uid ? 'You: ' : `${match.displayName?.split(' ')[0] || 'Them'}: `}
+                                      </span>
                                       {match.lastMessage}
                                     </p>
-                                  )}
+                                  ) : null}
                                   
                                   {match.venueName && (
                                     <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-neutral-800/50 rounded-md border border-neutral-700/50">

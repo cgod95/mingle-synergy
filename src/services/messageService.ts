@@ -477,6 +477,54 @@ export const subscribeToMessages = (
 };
 
 /**
+ * Get the last message for a specific match (for Matches page preview)
+ * Returns null if no messages exist
+ */
+export interface LastMessageInfo {
+  text: string;
+  senderId: string;
+  createdAt: Date;
+}
+
+export const getLastMessageForMatch = async (matchId: string): Promise<LastMessageInfo | null> => {
+  // In demo mode, return null (use localStorage instead)
+  if (config.DEMO_MODE) {
+    return null;
+  }
+  
+  // Check if firestore is available
+  if (!firestore) {
+    return null;
+  }
+  
+  try {
+    const messagesRef = collection(firestore, "messages");
+    const q = query(
+      messagesRef,
+      where("matchId", "==", matchId),
+      orderBy("createdAt", "desc"),
+      limit(1)
+    );
+    
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      return null;
+    }
+    
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+      text: data.text || '',
+      senderId: data.senderId || '',
+      createdAt: data.createdAt?.toDate?.() ?? new Date(),
+    };
+  } catch (error) {
+    logError(error as Error, { source: 'messageService', action: 'getLastMessageForMatch', matchId });
+    return null;
+  }
+};
+
+/**
  * Mark messages as read for a specific user in a match
  */
 export const markMessagesAsRead = async (matchId: string, userId: string): Promise<void> => {
