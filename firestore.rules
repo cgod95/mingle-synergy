@@ -177,5 +177,12 @@ service cloud.firestore {
       allow create, update: if isSignedIn();
       allow delete: if false;
     }
+
+    // Notifications collection - users can read/write their own notifications
+    match /notifications/{userId} {
+      allow read: if isSelf(userId);
+      allow create, update: if isSelf(userId);
+      allow delete: if isSelf(userId);
+    }
   }
 }

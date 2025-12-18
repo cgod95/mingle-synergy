@@ -149,13 +149,12 @@ export default function SignIn() {
                 </div>
               </div>
               
-              <Button
-                asChild
-                variant="outline"
-                className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
+              <Link 
+                to="/signup"
+                className="w-full inline-flex items-center justify-center h-10 px-4 py-2 rounded-md border border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors font-medium text-sm"
               >
-                <Link to="/signup">Sign up</Link>
-              </Button>
+                Sign up
+              </Link>
           </CardContent>
         </Card>
         </motion.div>

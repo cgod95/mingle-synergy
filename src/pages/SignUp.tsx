@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Layout from '@/components/Layout';
 import { motion } from 'framer-motion';
-import { Loader2, ArrowLeft, Sparkles } from 'lucide-react';
+import { Loader2, ArrowLeft, UserPlus } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
 
 export default function SignUp() {
@@ -83,9 +83,9 @@ export default function SignUp() {
                 Back
               </Button>
               
-              {/* Icon for sign up - sparkles for new beginnings */}
+              {/* Icon for sign up - user plus for creating account */}
               <div className="mx-auto w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-purple-500/30">
-                <Sparkles className="w-7 h-7 text-purple-400" />
+                <UserPlus className="w-7 h-7 text-purple-400" />
               </div>
               
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Join Mingle</CardTitle>
@@ -157,13 +157,12 @@ export default function SignUp() {
                 </div>
               </div>
               
-              <Button
-                asChild
-                variant="outline"
-                className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
+              <Link 
+                to="/signin"
+                className="w-full inline-flex items-center justify-center h-10 px-4 py-2 rounded-md border border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors font-medium text-sm"
               >
-                <Link to="/signin">Sign in</Link>
-              </Button>
+                Sign in
+              </Link>
             </CardContent>
           </Card>
         </motion.div>
