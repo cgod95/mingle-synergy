@@ -15,29 +15,17 @@ const BottomNav: React.FC = () => {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Hide bottom nav during onboarding (except demo mode)
-  // Show after profile and photo are complete
-  // Use localStorage flag as primary check since it's set immediately when onboarding completes
-  // Don't hide if still loading onboarding state
-  if (isLoading && !config.DEMO_MODE) {
-    return null; // Don't show while loading onboarding state
-  }
-  
-  const localStorageComplete = localStorage.getItem('onboardingComplete') === 'true';
-  const allStepsComplete = onboardingProgress.profile && 
-                           onboardingProgress.photo;
-  
+  // Compute shouldShow BEFORE any useEffect (React hooks must be called unconditionally)
+  const localStorageComplete = typeof window !== 'undefined' 
+    ? localStorage.getItem('onboardingComplete') === 'true' 
+    : false;
+  const allStepsComplete = onboardingProgress.profile && onboardingProgress.photo;
   const shouldShow = config.DEMO_MODE || localStorageComplete || (
-    allStepsComplete && 
-    isOnboardingComplete
+    allStepsComplete && isOnboardingComplete
   );
 
-  // Don't render if onboarding not complete
-  if (!shouldShow) {
-    return null;
-  }
-
   // Get unread count (works for both demo and production)
+  // IMPORTANT: This useEffect must be called unconditionally (before any early returns)
   useEffect(() => {
     if (!currentUser?.uid) return;
     
@@ -83,6 +71,15 @@ const BottomNav: React.FC = () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [currentUser?.uid]);
+
+  // Early returns AFTER all hooks (React requires hooks to be called unconditionally)
+  if (isLoading && !config.DEMO_MODE) {
+    return null; // Don't show while loading onboarding state
+  }
+
+  if (!shouldShow) {
+    return null;
+  }
 
   const navItems = [
     { path: '/checkin', icon: MapPin, label: 'Venues' },
