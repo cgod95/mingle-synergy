@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Send, MoreVertical, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -26,16 +26,6 @@ import config from "@/config";
 import { sendMessageWithLimit, getMatchMessages, subscribeToMessages } from "@/services/messageService";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
-// Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
-const CONVERSATION_STARTERS = [
-  "What brings you here tonight?",
-  "Have you been to this venue before?",
-  "What do you think of the vibe here?",
-  "Are you here with friends?",
-  "What's your favorite spot in this place?",
-  "How's your night going?",
-  "What do you think of the music?",
-];
 
 /** Local storage helpers */
 const messagesKey = (id: string) => `mingle:messages:${id}`;
@@ -75,7 +65,6 @@ export default function ChatRoom() {
   const [matchAvatar, setMatchAvatar] = useState<string>("");
   const [matchExpiresAt, setMatchExpiresAt] = useState<number>(0);
   const [venueName, setVenueName] = useState<string>("");
-  const [showStarters, setShowStarters] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -83,7 +72,7 @@ export default function ChatRoom() {
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showMessageLimitModal, setShowMessageLimitModal] = useState(false);
-  const [remainingMessages, setRemainingMessages] = useState(3);
+  const [remainingMessages, setRemainingMessages] = useState(10);
   const [canSendMsg, setCanSendMsg] = useState(true);
   const [sendError, setSendError] = useState<Error | null>(null);
   const [sending, setSending] = useState(false);
@@ -100,10 +89,6 @@ export default function ChatRoom() {
           setMatchName(match.displayName || "Chat");
           setMatchAvatar(match.avatarUrl || "");
           setMatchExpiresAt(match.expiresAt || 0);
-          // Show conversation starters if this is a new conversation
-          if (msgs.length <= 1) {
-            setShowStarters(true);
-          }
         }
       } catch (error) {
         logError(error as Error, { context: 'ChatRoom.loadMatchInfo', matchId });
@@ -289,7 +274,6 @@ export default function ChatRoom() {
       if (remaining === 1) {
         toast({
           title: "1 message remaining",
-          description: "Make it count! Focus on meeting up in person.",
         });
       }
       
@@ -376,7 +360,7 @@ export default function ChatRoom() {
         <div className="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-t border-b border-indigo-500/30 px-4 py-2 flex-shrink-0">
           <div className="flex items-center justify-between max-w-4xl mx-auto w-full">
             <span className="text-sm text-neutral-200">
-              You have 10 messages to make something happen
+              You have {remainingMessages} message{remainingMessages !== 1 ? 's' : ''} to make something happen
             </span>
             <span className="text-sm font-medium text-indigo-400">
               {getRemainingTime()} left
@@ -387,37 +371,6 @@ export default function ChatRoom() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
-
-        {/* Conversation Starters - Show when conversation is new */}
-        {showStarters && msgs.length <= 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4"
-          >
-            <div className="flex items-center gap-2 mb-3 px-2">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              <p className="text-sm font-medium text-neutral-300">Try a conversation starter</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {CONVERSATION_STARTERS.slice(0, 3).map((starter, idx) => (
-                <motion.button
-                  key={idx}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setText(starter);
-                    setShowStarters(false);
-                    inputRef.current?.focus();
-                  }}
-                  className="px-4 py-2 text-sm bg-neutral-700 border-2 border-indigo-600 rounded-full text-neutral-200 hover:border-indigo-500 hover:bg-indigo-900/30 transition-all"
-                >
-                  {starter}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
         <AnimatePresence>
           {msgs.map((m, i) => (
@@ -492,29 +445,6 @@ export default function ChatRoom() {
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
         {/* Message limit indicator (hidden for premium users) */}
-        {remainingMessages < 5 && remainingMessages < 999 && (
-          <div className="mb-2 px-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className={`font-medium ${
-                remainingMessages === 0 ? 'text-red-400' : 
-                remainingMessages === 1 ? 'text-orange-400' : 
-                'text-neutral-400'
-              }`}>
-                {remainingMessages === 0 
-                  ? "Make plans to meet up" 
-                  : `Chat to coordinate meeting`}
-              </span>
-              {remainingMessages === 0 && (
-                <button
-                  onClick={() => setShowMessageLimitModal(true)}
-                  className="text-indigo-400 hover:text-indigo-300 underline text-xs"
-                >
-                  Learn more
-                </button>
-              )}
-            </div>
-          </div>
-        )}
         
         <form onSubmit={onSend} className="flex gap-2 sm:gap-3 items-end">
           <div className="flex-1 relative">
@@ -563,13 +493,6 @@ export default function ChatRoom() {
             )}
           </Button>
         </form>
-        
-        {/* Helpful tip */}
-        {remainingMessages > 0 && remainingMessages < 5 && (
-          <p className="text-xs text-neutral-400 mt-2 px-2 text-center">
-            💡 Tip: Focus on meeting up in person rather than long conversations
-          </p>
-        )}
       </div>
       
       {/* Message Limit Modal */}

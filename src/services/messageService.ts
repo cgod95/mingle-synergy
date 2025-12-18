@@ -70,7 +70,7 @@ export const sendMessageWithLimit = async ({
       const messagesRef = collection(firestore, "messages");
       const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
         ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-        : 3;
+        : 10;
 
       const q = query(
         messagesRef,
@@ -145,7 +145,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
     
     const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
       ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-      : 3;
+      : 10;
     const q = query(
       collection(firestore, "messages"),
       where("matchId", "==", matchId),

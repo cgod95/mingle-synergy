@@ -59,7 +59,7 @@ export async function canSendMessage(matchId: string, userId: string): Promise<b
   }
   
   const count = getMessageCount(matchId, userId);
-  const messageLimit = 5; // Use feature flag in production
+  const messageLimit = 10; // Use feature flag in production
   return count < messageLimit;
 }
 
@@ -74,7 +74,7 @@ export async function getRemainingMessages(matchId: string, userId: string): Pro
   }
   
   const count = getMessageCount(matchId, userId);
-  const messageLimit = 5; // Use feature flag in production
+  const messageLimit = 10; // Use feature flag in production
   return Math.max(0, messageLimit - count);
 }
 

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getActiveMatches } from "@/lib/matchesCompat";
 import { toast, Toaster } from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 const RealChatRoom = React.lazy(() => import("./ChatRoom"));
 
@@ -57,8 +58,8 @@ export default function ChatRoomGuard() {
   return (
     <>
       <Toaster position="top-center" />
-      {!ready ? <div className="p-6 animate-pulse text-muted-foreground">Loading chat…</div> :
-        ok ? <React.Suspense fallback={<div className="p-6">Opening chat…</div>}><RealChatRoom /></React.Suspense> : null}
+      {!ready ? <LoadingSpinner variant="fullscreen" message="Loading chat..." /> :
+        ok ? <React.Suspense fallback={<LoadingSpinner variant="fullscreen" message="Opening chat..." />}><RealChatRoom /></React.Suspense> : null}
     </>
   );
 }
