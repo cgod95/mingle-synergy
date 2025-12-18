@@ -17,7 +17,7 @@ import { logError } from "@/utils/errorHandler";
 import venueService from "@/services/firebase/venueService";
 import { matchService } from "@/services";
 import { useToast } from "@/hooks/use-toast";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { firestore } from "@/firebase/config";
 
 function Toast({ text }: { text: string }) {
@@ -74,33 +74,62 @@ export default function VenueDetails() {
   const [firebaseUsers, setFirebaseUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   
-  // Load real users from Firebase in production mode
+  // Load and subscribe to real users from Firebase in production mode
+  // Uses onSnapshot for real-time updates when users check in/out
   useEffect(() => {
-    if (config.DEMO_MODE || !id) return;
+    if (config.DEMO_MODE || !id || !firestore) return;
     
     setLoadingUsers(true);
-    venueService.getUsersAtVenue(id)
-      .then(users => {
-        // Filter out current user and transform to expected format
-        const filteredUsers = users
-          .filter(u => u.id !== currentUser?.uid)
-          .map(u => ({
-            id: u.id,
-            name: u.name || 'Anonymous',
-            photo: u.photos?.[0] || u.photoURL || '',
-            bio: u.bio || '',
-            age: u.age,
-            lastActive: u.lastActive || Date.now(),
-          }));
-        setFirebaseUsers(filteredUsers);
-      })
-      .catch(err => {
-        logError(err instanceof Error ? err : new Error('Failed to load users'), {
-          context: 'VenueDetails.loadUsers',
+    
+    // Create a real-time subscription to users at this venue
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('currentVenue', '==', id), where('isCheckedIn', '==', true));
+    
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        const users = snapshot.docs
+          .filter(doc => doc.id !== currentUser?.uid) // Filter out current user
+          .map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || 'Anonymous',
+              photo: data.photos?.[0] || data.photoURL || '',
+              bio: data.bio || '',
+              age: data.age,
+              lastActive: data.lastActive || Date.now(),
+            };
+          });
+        setFirebaseUsers(users);
+        setLoadingUsers(false);
+      },
+      (error) => {
+        logError(error instanceof Error ? error : new Error('Failed to subscribe to users'), {
+          context: 'VenueDetails.subscribeUsers',
           venueId: id
         });
-      })
-      .finally(() => setLoadingUsers(false));
+        setLoadingUsers(false);
+        
+        // Fallback to one-time fetch
+        venueService.getUsersAtVenue(id)
+          .then(users => {
+            const filteredUsers = users
+              .filter(u => u.id !== currentUser?.uid)
+              .map(u => ({
+                id: u.id,
+                name: u.name || 'Anonymous',
+                photo: u.photos?.[0] || u.photoURL || '',
+                bio: u.bio || '',
+                age: u.age,
+                lastActive: u.lastActive || Date.now(),
+              }));
+            setFirebaseUsers(filteredUsers);
+          })
+          .catch(() => {}); // Silent fail on fallback
+      }
+    );
+    
+    return () => unsubscribe();
   }, [id, currentUser?.uid]);
   
   // Use Firebase users in production, demo people in demo mode

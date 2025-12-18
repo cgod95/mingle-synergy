@@ -63,7 +63,17 @@ export default function CheckInPage() {
     }
   }, []);
 
-  const onCheckIn = async (id: string) => {
+  const onCheckIn = async (id: string, e?: React.MouseEvent | React.KeyboardEvent) => {
+    // Prevent double-clicks and event propagation issues
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Prevent multiple clicks while processing
+    if (isCheckingIn) return;
+    setIsCheckingIn(true);
+    
     // DEMO MODE: Photo requirement disabled
     // Photo check removed for easier demo/testing
     
@@ -92,6 +102,7 @@ export default function CheckInPage() {
       // Failed to track check-in event - non-critical
     }
     
+    // Navigate immediately - don't wait for async operations
     navigate(`/venues/${id}`);
   };
 
@@ -375,7 +386,7 @@ export default function CheckInPage() {
                   <Card
                     key={venueId}
                     className="cursor-pointer border border-neutral-700 hover:border-indigo-500 bg-neutral-800 overflow-hidden"
-                    onClick={() => onCheckIn(venueId)}
+                    onClick={(e) => onCheckIn(venueId, e)}
                     aria-label={`Check in to ${venue.name}`}
                   >
                     <div className="relative h-24 w-full overflow-hidden bg-neutral-200">
@@ -482,11 +493,11 @@ export default function CheckInPage() {
                       ? "border-indigo-600 shadow-lg bg-indigo-900/30 ring-2 ring-indigo-500" 
                       : "border-neutral-700 hover:border-indigo-500 hover:shadow-lg bg-neutral-800"
                   } focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900`}
-                  onClick={() => onCheckIn(v.id)}
+                  onClick={(e) => onCheckIn(v.id, e)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      onCheckIn(v.id);
+                      onCheckIn(v.id, e);
                     }
                   }}
                   tabIndex={0}

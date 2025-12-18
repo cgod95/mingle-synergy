@@ -86,16 +86,22 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       }
       
       const matchRef = collection(firestore, 'matches');
-      const q = query(
-        matchRef,
-        where('userId1', 'in', [user1Id, user2Id]),
-        where('userId2', 'in', [user1Id, user2Id])
-      );
-
-      const snapshot = await getDocs(q);
+      
+      // Use separate queries to comply with Firestore security rules
+      // The 'in' operator with both user IDs fails because Firestore can't prove
+      // all results will have the current user as a participant
+      const q1 = query(matchRef, where('userId1', '==', user1Id));
+      const q2 = query(matchRef, where('userId2', '==', user1Id));
+      
+      const [snapshot1, snapshot2] = await Promise.all([
+        getDocs(q1),
+        getDocs(q2)
+      ]);
+      
+      const allDocs = [...snapshot1.docs, ...snapshot2.docs];
       const now = Date.now();
 
-      for (const docSnap of snapshot.docs) {
+      for (const docSnap of allDocs) {
         const match = docSnap.data() as FirestoreMatch;
 
         const isMatch = (
@@ -457,16 +463,23 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       }
 
       const matchRef = collection(firestore, 'matches');
-      const matchQuery = query(
-        matchRef,
-        where('userId1', 'in', [userId1, userId2]),
-        where('userId2', 'in', [userId1, userId2]),
-        where('venueId', '==', venueId)
-      );
-
-      const snapshot = await getDocs(matchQuery);
-      if (!snapshot.empty) {
-        return snapshot.docs[0].id; // Match already exists
+      
+      // Use separate queries to comply with Firestore security rules
+      const q1 = query(matchRef, where('userId1', '==', userId1), where('venueId', '==', venueId));
+      const q2 = query(matchRef, where('userId2', '==', userId1), where('venueId', '==', venueId));
+      
+      const [snapshot1, snapshot2] = await Promise.all([
+        getDocs(q1),
+        getDocs(q2)
+      ]);
+      
+      // Check if match already exists
+      for (const docSnap of [...snapshot1.docs, ...snapshot2.docs]) {
+        const match = docSnap.data();
+        if ((match.userId1 === userId1 && match.userId2 === userId2) ||
+            (match.userId1 === userId2 && match.userId2 === userId1)) {
+          return docSnap.id; // Match already exists
+        }
       }
 
       const newMatch = {

@@ -75,12 +75,11 @@ service cloud.firestore {
 
     // Matches - only participants can read/write
     match /matches/{matchId} {
-      // Read: user must be participant (check existing resource or request data)
+      // Read: user must be participant
+      // Note: request.resource is only for writes, resource is for existing docs
       allow read: if isSignedIn() && (
         resource.data.userId1 == request.auth.uid ||
-        resource.data.userId2 == request.auth.uid ||
-        request.resource.data.userId1 == request.auth.uid ||
-        request.resource.data.userId2 == request.auth.uid
+        resource.data.userId2 == request.auth.uid
       );
       
       // Create: user must be one of the participants
