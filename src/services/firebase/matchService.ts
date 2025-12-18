@@ -133,6 +133,23 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       const newDocRef = await addDoc(matchRef, newMatch);
       
+      // Notify the other user (user2) about the new match
+      // This allows the first user who liked to see a notification
+      try {
+        const notificationRef = doc(firestore, 'notifications', user2Id);
+        await setDoc(notificationRef, {
+          newMatches: arrayUnion({
+            matchId: newDocRef.id,
+            userId: user1Id,
+            venueId,
+            timestamp: Date.now()
+          })
+        }, { merge: true });
+      } catch (notifError) {
+        // Non-critical - don't fail match creation if notification fails
+        logError(notifError as Error, { source: 'matchService', action: 'createMatchNotification', matchId: newDocRef.id }, ErrorSeverity.WARNING);
+      }
+      
       // Track match created event per spec section 9
       try {
         const { trackMatchCreated } = await import('../specAnalytics');

@@ -24,6 +24,7 @@ import { retryWithMessage, isNetworkError } from "@/utils/retry";
 import { logError } from "@/utils/errorHandler";
 import config from "@/config";
 import { sendMessageWithLimit, getMatchMessages, subscribeToMessages } from "@/services/messageService";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 // Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
 const CONVERSATION_STARTERS = [
@@ -219,19 +220,7 @@ export default function ChatRoom() {
   }, []);
 
   if (!matchId) {
-    return (
-      <div className="min-h-screen bg-neutral-900 p-4 flex items-center justify-center">
-        <div className="max-w-md w-full bg-neutral-800 border-2 border-neutral-700 rounded-2xl shadow-lg p-6 text-center">
-          <p className="text-neutral-300">Chat not found.</p>
-          <Button 
-            onClick={() => navigate(-1)} 
-            className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-          >
-            Go Back
-          </Button>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner variant="fullscreen" message="Loading chat..." />;
   }
 
   const onSend = async (e: React.FormEvent) => {
@@ -382,24 +371,22 @@ export default function ChatRoom() {
         )}
       </div>
 
+      {/* Countdown Banner - Outside chat scroll area */}
+      {matchExpiresAt && (
+        <div className="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-t border-b border-indigo-500/30 px-4 py-2 flex-shrink-0">
+          <div className="flex items-center justify-between max-w-4xl mx-auto w-full">
+            <span className="text-sm text-neutral-200">
+              You have 10 messages to make something happen
+            </span>
+            <span className="text-sm font-medium text-indigo-400">
+              {getRemainingTime()} left
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
-        {/* How Mingle Works Info Banner */}
-        {msgs.length <= 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 bg-indigo-900/50 rounded-xl border border-indigo-700 p-3"
-          >
-            <div className="flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-neutral-200 mb-1">You have 5 messages to make plans</p>
-                <p className="text-xs text-neutral-300">Focus on meeting up in person - that's what Mingle is all about!</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
 
         {/* Conversation Starters - Show when conversation is new */}
         {showStarters && msgs.length <= 1 && (
@@ -442,18 +429,6 @@ export default function ChatRoom() {
               transition={{ duration: 0.2 }}
               className={`flex items-end gap-2 ${m.sender === "you" ? "justify-end" : "justify-start"}`}
             >
-              {/* Avatar for their messages */}
-              {m.sender === "them" && (
-                <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
-                  {matchAvatar ? (
-                    <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
-                  ) : null}
-                  <AvatarFallback className="bg-indigo-600 text-white text-xs rounded-md">
-                    {matchName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              
               <div
                 className={`max-w-[75%] sm:max-w-[70%] rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 shadow-sm ${
                   m.sender === "you"
@@ -466,15 +441,6 @@ export default function ChatRoom() {
                   {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
-
-              {/* Avatar for your messages (smaller, optional) */}
-              {m.sender === "you" && (
-                <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
-                  <AvatarFallback className="bg-purple-600 text-white text-xs rounded-md">
-                    {currentUser?.name?.charAt(0) || "Y"}
-                  </AvatarFallback>
-                </Avatar>
-              )}
             </motion.div>
           ))}
         </AnimatePresence>

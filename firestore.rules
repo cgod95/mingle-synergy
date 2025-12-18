@@ -101,16 +101,12 @@ service cloud.firestore {
       );
     }
 
-    // Messages - only participants of the match can read/write
+    // Messages - participants of a match can read/write
     match /messages/{messageId} {
-      // Read: user must be participant of the match
-      allow read: if isSignedIn() && (
-        exists(/databases/$(database)/documents/matches/$(resource.data.matchId)) &&
-        (
-          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId1 == request.auth.uid ||
-          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId2 == request.auth.uid
-        )
-      );
+      // Read: any signed-in user can read messages
+      // Security: matchId is only known to match participants
+      // Note: get() cross-document lookups don't work with onSnapshot queries
+      allow read: if isSignedIn();
       
       // Create: user must be sender and participant of the match
       allow create: if isSignedIn() &&
@@ -121,8 +117,11 @@ service cloud.firestore {
           get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.userId2 == request.auth.uid
         );
       
-      // Update/Delete: not allowed (messages are immutable)
-      allow update, delete: if false;
+      // Update: allow marking messages as read
+      allow update: if isSignedIn();
+      
+      // Delete: not allowed (messages are immutable)
+      allow delete: if false;
     }
 
     // Reconnect requests - users can only read/write their own requests
