@@ -146,12 +146,16 @@ service cloud.firestore {
 
     // Likes collection - stores arrays of liked user IDs per user
     // Used by matchService.likeUser - document ID is the user's ID
+    // NOTE: For mutual like detection, users need to read other users' likes.
+    // In production, this should be moved to Cloud Functions for better privacy.
+    // For beta, we allow reads if signed in since the data only contains user IDs.
     match /likes/{userId} {
-      // Users can read their own likes or likes where they might be a target
+      // Allow read for signed-in users (required for mutual like detection)
+      // TODO: Move mutual detection to Cloud Functions for better privacy
       allow read: if isSignedIn();
       // Users can only create/update their own likes document
-      allow create: if isSignedIn() && userId == request.auth.uid;
-      allow update: if isSignedIn() && userId == request.auth.uid;
+      allow create: if isSelf(userId);
+      allow update: if isSelf(userId);
       allow delete: if false;
     }
 

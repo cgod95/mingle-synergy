@@ -3,12 +3,9 @@ export type Match = {
   userId1: string;
   userId2: string;
   venueId: string;
+  venueName?: string;
   timestamp: number;
-  messages: {
-    senderId: string;
-    text: string;
-    timestamp: number;
-  }[];
+  // NOTE: Messages are stored in the separate 'messages' collection, not embedded here
   isRematch?: boolean;
   matchExpired?: boolean;
   expiredAt?: number;

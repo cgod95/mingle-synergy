@@ -296,7 +296,6 @@ export default function VenueDetails() {
         // This stores likes in the 'likes' collection and automatically creates matches
         // Returns { isMatch: boolean, matchId?: string } to indicate if a match was created
         const result = await matchService.likeUser(currentUser.uid, personId, venue.id);
-        console.log('[VenueDetails] likeUser result:', result);
         
         // Update local liked state
         setLikedUserIds(prev => new Set([...prev, personId]));
@@ -322,7 +321,6 @@ export default function VenueDetails() {
         }
       }
     } catch (error) {
-      console.error('[VenueDetails] Like error:', error);
       logError(error instanceof Error ? error : new Error('Failed to like user'), {
         context: 'VenueDetails.handleLike',
         personId

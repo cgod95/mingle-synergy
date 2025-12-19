@@ -303,6 +303,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
   
   /**
    * Send a message in a match
+   * NOTE: Messages are stored in the separate 'messages' collection, not embedded in match documents
    */
   public async sendMessage(
     matchId: string,
@@ -324,20 +325,26 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       throw new Error('Match has expired');
     }
 
-    const messagesFromSender = match.messages.filter(msg => msg.senderId === senderId);
+    // Query messages from the separate messages collection (not embedded in match)
+    const messagesRef = collection(firestore, 'messages');
+    const senderMessagesQuery = query(
+      messagesRef,
+      where('matchId', '==', matchId),
+      where('senderId', '==', senderId)
+    );
+    const senderMessagesSnap = await getDocs(senderMessagesQuery);
+    
     const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
-    if (messagesFromSender.length >= messageLimit) {
+    if (senderMessagesSnap.size >= messageLimit) {
       throw new Error('Message limit reached');
     }
 
-    const newMessage = {
+    // Add message to the messages collection
+    await addDoc(messagesRef, {
+      matchId,
       senderId,
       text,
-      timestamp: now,
-    };
-
-    await updateDoc(matchRef, {
-      messages: arrayUnion(newMessage),
+      createdAt: serverTimestamp(),
     });
     
     return true;
@@ -396,20 +403,13 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
    * @returns Object with isMatch (true if mutual like created a match) and matchId (if created)
    */
   public async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<{ isMatch: boolean; matchId?: string }> {
-    console.log('[likeUser] Starting like flow:', { currentUserId, targetUserId, venueId });
-    
     try {
-      console.log('[likeUser] Checking Firebase availability...');
       if (!this.isFirebaseAvailable()) {
-        console.error('[likeUser] Firebase not available or offline');
         throw new Error('Cannot like user while offline');
       }
-      console.log('[likeUser] Firebase is available');
 
       // Check if there's already a match between these users
-      console.log('[likeUser] Checking for existing matches...');
       const existingMatches = await this.getMatches(currentUserId);
-      console.log('[likeUser] Found existing matches:', existingMatches.length);
       
       const existingMatch = existingMatches.find(match => 
         (match.userId1 === targetUserId && match.userId2 === currentUserId) ||
@@ -417,52 +417,39 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       );
 
       if (existingMatch) {
-        console.log('[likeUser] Match already exists, returning early');
         return { isMatch: true, matchId: existingMatch.id };
       }
 
       // Check if target user has already liked current user (check likes, not matches)
-      // Use the likes collection to check for mutual likes
       if (!firestore) {
-        console.error('[likeUser] Firestore is null');
         throw new Error('Firestore not initialized');
       }
       
-      console.log('[likeUser] Reading target user likes...');
       const likesRef = collection(firestore, 'likes');
       const targetUserLikesRef = doc(likesRef, targetUserId);
       const targetUserLikesSnap = await getDoc(targetUserLikesRef);
-      console.log('[likeUser] Target user likes document exists:', targetUserLikesSnap.exists());
       
       const targetUserLikes = targetUserLikesSnap.exists() 
         ? targetUserLikesSnap.data()?.likes || [] 
         : [];
-      console.log('[likeUser] Target user likes:', targetUserLikes);
       
       // Always record the current user's like first
-      console.log('[likeUser] Recording current user like...');
       const currentUserLikesRef = doc(likesRef, currentUserId);
       await setDoc(currentUserLikesRef, { 
         likes: arrayUnion(targetUserId) 
       }, { merge: true });
-      console.log('[likeUser] Like recorded');
       
       const isMutual = targetUserLikes.includes(currentUserId);
-      console.log('[likeUser] Is mutual like:', isMutual);
 
       if (isMutual) {
         // Mutual like detected - create a match
-        console.log('[likeUser] Creating match (mutual like detected)...');
         const venueName = await this.getVenueName(venueId);
         const matchId = await this.createMatch(currentUserId, targetUserId, venueId, venueName);
-        console.log('[likeUser] Match created successfully with ID:', matchId);
         return { isMatch: true, matchId };
       } else {
-        console.log('[likeUser] One-way like recorded, no match yet');
         return { isMatch: false };
       }
     } catch (error) {
-      console.error('[likeUser] Error:', error);
       logError(error as Error, { source: 'matchService', action: 'likeUser', currentUserId, targetUserId, venueId });
       throw error;
     }
@@ -539,7 +526,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 export default new FirebaseMatchService();
 
 // Export likeUser as a standalone function
-export const likeUser = async (currentUserId: string, targetUserId: string, venueId: string): Promise<void> => {
+export const likeUser = async (currentUserId: string, targetUserId: string, venueId: string): Promise<{ isMatch: boolean; matchId?: string }> => {
   const matchService = new FirebaseMatchService();
   return matchService.likeUser(currentUserId, targetUserId, venueId);
 };
@@ -605,17 +592,24 @@ export const sendMessage = async (
   const expiresAt = matchCreatedAt + MATCH_EXPIRY_TIME;
   if (now > expiresAt) throw new Error("Match has expired");
 
-  // Message limit per user
-  const userMessages = matchData.messages.filter(m => m.senderId === senderId);
+  // Query messages from the separate messages collection (not embedded in match)
+  const messagesRef = collection(firestore, 'messages');
+  const senderMessagesQuery = query(
+    messagesRef,
+    where('matchId', '==', matchId),
+    where('senderId', '==', senderId)
+  );
+  const senderMessagesSnap = await getDocs(senderMessagesQuery);
+  
   const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
-  if (userMessages.length >= messageLimit) throw new Error("Message limit reached");
+  if (senderMessagesSnap.size >= messageLimit) throw new Error("Message limit reached");
 
-  await updateDoc(matchRef, {
-    messages: arrayUnion({
-      senderId,
-      text,
-      timestamp: now,
-    }),
+  // Add message to the messages collection
+  await addDoc(messagesRef, {
+    matchId,
+    senderId,
+    text,
+    createdAt: serverTimestamp(),
   });
 };
 
@@ -663,36 +657,7 @@ export const deleteExpiredMatches = async (userId: string) => {
   await Promise.all(deletions);
 };
 
-export const getActiveMatches = async (userId: string): Promise<FirestoreMatch[]> => {
-  if (!firestore) {
-    return [];
-  }
-  
-  const matchesRef = collection(firestore, "matches");
-  const now = Date.now();
-
-  // Query for matches where user is userId1
-  const q1 = query(matchesRef, where("userId1", "==", userId));
-  const snapshot1 = await getDocs(q1);
-  
-  // Query for matches where user is userId2
-  const q2 = query(matchesRef, where("userId2", "==", userId));
-  const snapshot2 = await getDocs(q2);
-
-  const allMatches = [
-    ...snapshot1.docs.map((doc) => ({ id: doc.id, ...doc.data() } as FirestoreMatch)),
-    ...snapshot2.docs.map((doc) => ({ id: doc.id, ...doc.data() } as FirestoreMatch))
-  ];
-
-  const activeMatches = allMatches.filter(
-    (match: FirestoreMatch) =>
-      match.timestamp &&
-      typeof match.timestamp === "number" &&
-      now - match.timestamp < MATCH_EXPIRY_TIME // Use consistent 24-hour expiry
-  );
-
-  return activeMatches.sort((a, b) => b.timestamp - a.timestamp);
-};
+// Note: getActiveMatches standalone function removed - use matchService.getMatches() instead
 
 export const removeLikeBetweenUsers = async (uid1: string, uid2: string) => {
   // Likes are stored with user ID as document ID, containing an array of liked user IDs
@@ -806,69 +771,7 @@ export const createRematch = async (uid1: string, uid2: string, venueId: string)
   }
 };
 
-/**
- * Get all matches for a user (both active and expired)
- */
-export const getAllMatchesForUser = async (userId: string) => {
-  if (!firestore) {
-    return [];
-  }
-  
-  const matchesRef = collection(firestore, 'matches');
-  
-  // Query for matches where user is userId1
-  const q1 = query(matchesRef, where('userId1', '==', userId));
-  const snapshot1 = await getDocs(q1);
-  
-  // Query for matches where user is userId2
-  const q2 = query(matchesRef, where('userId2', '==', userId));
-  const snapshot2 = await getDocs(q2);
-
-  const allMatches = [...snapshot1.docs, ...snapshot2.docs];
-  const matches = [];
-
-  for (const match of allMatches) {
-    const data = match.data() as FirestoreMatch;
-    matches.push({ ...data, id: match.id }); // Ensure id from document takes precedence
-  }
-
-  return matches.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-};
-
-/**
- * Get all active (non-expired) matches for a user and delete expired ones.
- */
-export const getActiveMatchesForUser = async (userId: string) => {
-  if (!firestore) {
-    return [];
-  }
-  
-  const now = Date.now();
-
-  const matchesRef = collection(firestore, 'matches');
-  // Query for matches where user is userId1
-  const q1 = query(matchesRef, where('userId1', '==', userId));
-  const snapshot1 = await getDocs(q1);
-  // Query for matches where user is userId2
-  const q2 = query(matchesRef, where('userId2', '==', userId));
-  const snapshot2 = await getDocs(q2);
-
-  const allMatches = [...snapshot1.docs, ...snapshot2.docs];
-  const activeMatches = [];
-
-  for (const match of allMatches) {
-    const data = match.data();
-    const createdAt = typeof data.timestamp === 'number' ? data.timestamp : 0;
-    if (now - createdAt <= MATCH_EXPIRY_TIME) { // Use consistent 24-hour expiry
-      activeMatches.push({ id: match.id, ...data });
-    } else {
-      // Mark expired matches with the new structure instead of deleting
-      await expireMatch(match.id);
-    }
-  }
-
-  return activeMatches;
-};
+// Note: getAllMatchesForUser and getActiveMatchesForUser removed - use matchService.getMatches() instead
 
 /**
  * Mark a match as expired with explicit flag for frontend
