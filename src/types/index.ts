@@ -52,6 +52,7 @@ export interface Venue {
   distance?: number;
   description?: string;
   tags?: string[]; // Add tags property for PublicVenue
+  categories?: string[]; // Venue categories
 }
 
 // Add Special interface for venue specials

@@ -104,9 +104,23 @@ class FirebaseUserService implements UserService {
   }
 
   async completeOnboarding(userId: string): Promise<void> {
-    // Onboarding completion is handled by onboardingService
-    // This method exists for interface compatibility
-    // The actual completion is tracked in the onboarding collection
+    try {
+      if (!firestore) {
+        throw new Error('Firestore not available');
+      }
+      
+      const userRef = doc(firestore, 'users', userId);
+      await updateDoc(userRef, {
+        onboardingComplete: true,
+        onboardingCompletedAt: Date.now(),
+      });
+      
+      // Also set localStorage for quick access
+      localStorage.setItem('onboardingComplete', 'true');
+    } catch (error) {
+      logError(error as Error, { source: 'userService', action: 'completeOnboarding', userId });
+      throw new Error('Failed to complete onboarding');
+    }
   }
 
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
@@ -117,7 +131,12 @@ class FirebaseUserService implements UserService {
       }
       
       const usersRef = collection(firestore, 'users');
-      const q = query(usersRef, where('currentVenue', '==', venueId));
+      // Filter by both currentVenue AND isCheckedIn to exclude stale check-ins
+      const q = query(
+        usersRef, 
+        where('currentVenue', '==', venueId),
+        where('isCheckedIn', '==', true)
+      );
       const snapshot = await getDocs(q);
       
       return snapshot.docs.map(doc => ({

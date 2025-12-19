@@ -18,7 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, History } from "lucide-react";
 import venueService from "@/services/firebase/venueService";
 
-const ACTIVE_KEY = "mingle_active_venue";
+// Use the same key as checkinStore.ts for consistency
+import { getCheckedVenueId, checkInAt } from "@/lib/checkinStore";
 
 interface VenueWithDistance {
   id: string;
@@ -36,7 +37,7 @@ export default function CheckInPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [venues, setVenues] = useState<VenueWithDistance[]>([]);
-  const [checked, setChecked] = useState<boolean>(() => !!localStorage.getItem(ACTIVE_KEY));
+  const [checked, setChecked] = useState<boolean>(() => !!getCheckedVenueId());
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -44,6 +45,10 @@ export default function CheckInPage() {
   const [venueError, setVenueError] = useState<Error | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
+  
+  // Pagination state
+  const VENUES_PER_PAGE = 9;
+  const [visibleCount, setVisibleCount] = useState(VENUES_PER_PAGE);
   
   // Add refs to prevent duplicate concurrent calls
   const loadingRef = useRef(false);
@@ -77,7 +82,7 @@ export default function CheckInPage() {
     // DEMO MODE: Photo requirement disabled
     // Photo check removed for easier demo/testing
     
-    localStorage.setItem(ACTIVE_KEY, id);
+    checkInAt(id);
     setChecked(true);
     
     // Sync check-in to Firebase (in production mode)
@@ -184,12 +189,12 @@ export default function CheckInPage() {
       // Auto-check-in if coming from QR code URL
       if (qrVenueId && source === "qr" && currentUser) {
         const venue = loadedVenues.find(v => v.id === qrVenueId);
-        const alreadyChecked = !!localStorage.getItem(ACTIVE_KEY);
+        const alreadyChecked = !!getCheckedVenueId();
         
         if (venue && !alreadyChecked) {
           // Small delay to show user what's happening
           setTimeout(() => {
-            localStorage.setItem(ACTIVE_KEY, qrVenueId);
+            checkInAt(qrVenueId);
             setChecked(true);
             
             // Track check-in
@@ -477,8 +482,9 @@ export default function CheckInPage() {
         )}
 
         {!loadingVenues && venues.length > 0 && (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {venues.map((v, index) => {
+          {venues.slice(0, visibleCount).map((v, index) => {
             const distanceText = v.distanceKm !== undefined 
               ? v.distanceKm < 1 
                 ? `${Math.round(v.distanceKm * 1000)}m`
@@ -588,9 +594,9 @@ export default function CheckInPage() {
                       </p>
                     )}
                     {/* Venue Categories/Tags */}
-                    {(v as any).categories && Array.isArray((v as any).categories) && (v as any).categories.length > 0 && (
+                    {v.categories && Array.isArray(v.categories) && v.categories.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-3">
-                        {(v as any).categories.slice(0, 3).map((cat: string, idx: number) => (
+                        {v.categories.slice(0, 3).map((cat: string, idx: number) => (
                           <Badge key={idx} variant="outline" className="text-xs border-indigo-700/50 text-indigo-300 bg-indigo-900/20">
                             {cat}
                           </Badge>
@@ -614,6 +620,31 @@ export default function CheckInPage() {
             );
           })}
         </div>
+        
+        {/* Show More / Show Less buttons for pagination */}
+        {venues.length > VENUES_PER_PAGE && (
+          <div className="flex justify-center gap-4 mt-6">
+            {visibleCount < venues.length && (
+              <Button
+                onClick={() => setVisibleCount(prev => Math.min(prev + VENUES_PER_PAGE, venues.length))}
+                variant="outline"
+                className="border-indigo-600 text-indigo-400 hover:bg-indigo-900/30"
+              >
+                Show More ({venues.length - visibleCount} remaining)
+              </Button>
+            )}
+            {visibleCount > VENUES_PER_PAGE && (
+              <Button
+                onClick={() => setVisibleCount(VENUES_PER_PAGE)}
+                variant="ghost"
+                className="text-neutral-400 hover:text-white"
+              >
+                Show Less
+              </Button>
+            )}
+          </div>
+        )}
+        </>
         )}
       </div>
       <BottomNav />

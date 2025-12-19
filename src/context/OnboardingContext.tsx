@@ -5,6 +5,7 @@ import React, { useState, useEffect, createContext, useContext } from "react";
 import { useAuth } from "./AuthContext";
 import config from "../config";
 import onboardingService, { OnboardingStepId } from "@/services/firebase/onboardingService";
+import { logError } from "@/utils/errorHandler";
 
 export type OnboardingProgress = {
   email: boolean;
@@ -78,7 +79,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
           localStorage.setItem('onboardingComplete', 'true');
           localStorage.setItem('profileComplete', 'true');
         } catch (error) {
-          console.error('Error saving demo onboarding:', error);
+          logError(error as Error, { source: 'OnboardingContext', action: 'saveDemoOnboarding' });
         }
         setIsLoading(false);
         return;
@@ -107,7 +108,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
 
         setOnboardingProgress(convertedProgress);
       } catch (error) {
-        console.error('Error loading onboarding from Firebase:', error);
+        logError(error as Error, { source: 'OnboardingContext', action: 'loadFromFirebase' });
         // Fallback to localStorage on error
         try {
           const saved = localStorage.getItem('onboardingProgress');
@@ -135,7 +136,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
       try {
         localStorage.setItem('onboardingProgress', JSON.stringify(onboardingProgress));
       } catch (error) {
-        console.error('Error saving onboarding to localStorage:', error);
+        // Non-critical localStorage error, silently continue
       }
     }
   }, [onboardingProgress, currentUser?.uid]);
@@ -151,7 +152,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
           isInternalUpdate.current = true; // Mark as internal update to prevent save loop
           setOnboardingProgress(JSON.parse(event.newValue));
         } catch (error) {
-          console.error('Error parsing storage event:', error);
+          // Non-critical storage event parse error
         }
       }
     };
@@ -162,7 +163,6 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
   const setOnboardingStepComplete = async (step: keyof OnboardingProgress) => {
     // Prevent operations during loading
     if (isLoading) {
-      console.warn('Cannot complete step while loading onboarding progress');
       return;
     }
 
@@ -172,9 +172,8 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
     // Always save to localStorage first (for offline support and demo mode)
     try {
       localStorage.setItem('onboardingProgress', JSON.stringify(updatedProgress));
-    } catch (localStorageError) {
-      console.error('Error saving to localStorage:', localStorageError);
-      // Continue even if localStorage fails
+    } catch {
+      // Continue even if localStorage fails - non-critical
     }
 
     // Save to Firebase if in production mode and not a demo user
@@ -191,19 +190,20 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
             try {
               await onboardingService.syncWithUserProfile(currentUser.uid);
             } catch (syncError) {
-              // Log sync error but don't block completion (localStorage already saved)
-              console.error('Error syncing with user profile:', syncError);
+              // Non-critical sync error - localStorage already saved
+              logError(syncError as Error, { source: 'OnboardingContext', action: 'syncWithUserProfile' });
             }
             // Mark as complete in localStorage to prevent redirect loops
             localStorage.setItem('onboardingComplete', 'true');
             localStorage.setItem('profileComplete', 'true');
           }
         } catch (error) {
-          console.error('Error saving step to Firebase:', error);
+          logError(error as Error, { source: 'OnboardingContext', action: 'saveStepToFirebase' });
           // Don't revert state - localStorage is already saved
           // Only revert if it's a critical error (not network/permission)
-          const errorCode = (error as any)?.code || '';
-          const errorMessage = (error as any)?.message || '';
+          const err = error as Error & { code?: string };
+          const errorCode = err.code || '';
+          const errorMessage = err.message || '';
           
           // Only revert for critical errors (not network/permission errors)
           if (!errorCode.includes('unavailable') && 
@@ -260,7 +260,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
           setHasRequiredData(false);
         }
       } catch (error) {
-        console.error('Error checking required data:', error);
+        logError(error as Error, { source: 'OnboardingContext', action: 'checkRequiredData' });
         setHasRequiredData(false);
       }
     };
@@ -286,7 +286,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
       try {
         await onboardingService.resetOnboardingProgress(currentUser.uid);
       } catch (error) {
-        console.error('Error resetting onboarding in Firebase:', error);
+        logError(error as Error, { source: 'OnboardingContext', action: 'resetOnboarding' });
       }
     }
   };
@@ -320,7 +320,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
         setOnboardingStepComplete(stepKey);
       }
     } catch (error) {
-      console.error('Error completing step:', error);
+      logError(error as Error, { source: 'OnboardingContext', action: 'completeStep' });
     }
   };
 

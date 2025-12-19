@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getActiveMatches } from "@/lib/matchesCompat";
-import { toast, Toaster } from "react-hot-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
@@ -11,7 +11,10 @@ export default function ChatRoomGuard() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const userId = currentUser?.uid || localStorage.getItem("userId") || "demo_user";
+  const { toast } = useToast();
+  
+  // Only use currentUser.uid - don't fall back to arbitrary values
+  const userId = currentUser?.uid;
 
   const [ready, setReady] = React.useState(false);
   const [ok, setOk] = React.useState(false);
@@ -19,6 +22,17 @@ export default function ChatRoomGuard() {
   React.useEffect(() => {
     // Guard: ensure we have required values before proceeding
     if (!id || typeof navigate !== 'function') {
+      return;
+    }
+    
+    // If no authenticated user, redirect to sign in
+    if (!userId) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to view chats.",
+        variant: "destructive",
+      });
+      navigate("/signin", { replace: true });
       return;
     }
 
@@ -30,11 +44,17 @@ export default function ChatRoomGuard() {
         if (!alive) return;
         if (!match) {
           if (all.length) {
-            toast("Previous chat isn't available; opening your active chat.");
+            toast({
+              title: "Chat unavailable",
+              description: "Opening your most recent chat instead.",
+            });
             navigate(`/chat/${all[0].id}`, { replace: true });
             setOk(true);
           } else {
-            toast("No active chats right now.");
+            toast({
+              title: "No active chats",
+              description: "You don't have any active matches right now.",
+            });
             navigate("/matches", { replace: true });
             setOk(false);
           }
@@ -43,7 +63,11 @@ export default function ChatRoomGuard() {
         }
       } catch (error) {
         console.error("Error loading chat:", error);
-        toast("Error loading chat.");
+        toast({
+          title: "Error loading chat",
+          description: "Please try again.",
+          variant: "destructive",
+        });
         navigate("/matches", { replace: true });
         setOk(false);
       } finally {
@@ -53,11 +77,10 @@ export default function ChatRoomGuard() {
       }
     })();
     return () => { alive = false; };
-  }, [id, navigate, userId]);
+  }, [id, navigate, userId, toast]);
 
   return (
     <>
-      <Toaster position="top-center" />
       {!ready ? <LoadingSpinner variant="fullscreen" message="Loading chat..." /> :
         ok ? <React.Suspense fallback={<LoadingSpinner variant="fullscreen" message="Opening chat..." />}><RealChatRoom /></React.Suspense> : null}
     </>

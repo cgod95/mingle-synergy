@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { seedDemoMatchesIfEmpty, Person } from "../lib/matchStore";
 import { DEMO_PEOPLE } from "../lib/demoPeople";
-import { authService } from "@/services";
+import { authService, venueService } from "@/services";
 import config from "@/config";
+import { clearCheckIn, getCheckedVenueId } from "@/lib/checkinStore";
 
 type User = { id: string; name: string; email?: string; uid?: string } | null;
 type Ctx = {
@@ -87,10 +88,35 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Check out from current venue before logging out
+    const currentUserId = userIdRef.current;
+    const currentVenueId = getCheckedVenueId();
+    
+    if (currentUserId && currentVenueId && !config.DEMO_MODE) {
+      try {
+        await venueService.checkOutFromVenue(currentUserId, currentVenueId);
+      } catch (error) {
+        // Non-critical - continue with logout even if checkout fails
+      }
+    }
+    
+    // Clear local check-in state
+    clearCheckIn();
+    
+    // Clear user state
     setUser(null);
     userIdRef.current = null;
     try { localStorage.removeItem(KEY); } catch {}
+    
+    // Sign out from Firebase if not in demo mode
+    if (!config.DEMO_MODE && authService.signOut) {
+      try {
+        await authService.signOut();
+      } catch (error) {
+        // Non-critical
+      }
+    }
   }, []);
 
   const createDemoUser = useCallback(() => {

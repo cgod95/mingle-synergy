@@ -1,8 +1,8 @@
-
 import { MatchService } from '@/types/services';
 import type { FirestoreMatch } from '@/types/match';
 import { matches } from '@/data/mockData';
 import type { Match } from '@/types/services';
+import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
 
 // Calculate time remaining until match expires
 export const calculateTimeRemaining = (expiresAt: number): string => {
@@ -43,11 +43,6 @@ export const checkExpiringMatches = async (userId: string): Promise<void> => {
 };
 
 class MockMatchService implements MatchService {
-  constructor() {
-    // Simulate some received messages for testing
-    this.receiveMessage('match1', 'Hey! I noticed you at the café earlier. Would you like to meet up again sometime?');
-    // Add more test messages as needed
-  }
 
   async getMatches(userId: string): Promise<FirestoreMatch[]> {
     // Find all matches where the user is involved
@@ -74,7 +69,7 @@ class MockMatchService implements MatchService {
       venueName,
       timestamp: Date.now(),
       isActive: true,
-      expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3 hours
+      expiresAt: Date.now() + MATCH_EXPIRY_MS, // 24 hours
       contactShared: false
     };
     
@@ -144,7 +139,7 @@ class MockMatchService implements MatchService {
         matches[matchIndex] = {
           ...updatedMatch,
           isActive: true,
-          expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3 hours
+          expiresAt: Date.now() + MATCH_EXPIRY_MS, // 24 hours
           userRequestedReconnect: false,
           matchedUserRequestedReconnect: false,
           reconnectedAt: Date.now()
@@ -182,31 +177,14 @@ class MockMatchService implements MatchService {
     }
   }
 
-  // Add this function to simulate receiving messages
-  receiveMessage(matchId: string, message: string): void {
-    localStorage.setItem(`received_message_${matchId}`, message);
-  }
-
-  // Add a new method to check expiring matches
+  // Check expiring matches
   async checkExpiringMatches(userId: string): Promise<void> {
     return checkExpiringMatches(userId);
   }
 
-  // Add a method to get time remaining for a match
-  getTimeRemaining(expiresAt: number): string {
-    return calculateTimeRemaining(expiresAt);
-  }
-
-  // Calculate time remaining for a match (to match interface)
+  // Calculate time remaining for a match
   calculateTimeRemaining(expiresAt: Date): string {
-    const timeLeft = expiresAt.getTime() - Date.now();
-    
-    if (timeLeft <= 0) return 'Expired';
-    
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m remaining`;
+    return calculateTimeRemaining(expiresAt.getTime());
   }
 
   async sendMessage(matchId: string, userId: string, message: string): Promise<boolean> {
@@ -227,8 +205,29 @@ class MockMatchService implements MatchService {
   }
 
   async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<{ isMatch: boolean; matchId?: string }> {
-    console.log(`[Mock] User ${currentUserId} liked ${targetUserId} at venue ${venueId}`);
-    // In demo mode, just log - the local storage flow in VenueDetails handles likes
+    // Store like in localStorage for demo mode persistence
+    const likesKey = `mingle:likes:${currentUserId}`;
+    const currentLikes: string[] = JSON.parse(localStorage.getItem(likesKey) || '[]');
+    
+    if (!currentLikes.includes(targetUserId)) {
+      currentLikes.push(targetUserId);
+      localStorage.setItem(likesKey, JSON.stringify(currentLikes));
+    }
+    
+    // Check if target user has liked current user (mutual like)
+    const targetLikesKey = `mingle:likes:${targetUserId}`;
+    const targetLikes: string[] = JSON.parse(localStorage.getItem(targetLikesKey) || '[]');
+    
+    if (targetLikes.includes(currentUserId)) {
+      // Mutual like! Create a match
+      const matchId = `m${Date.now()}_${currentUserId}_${targetUserId}`;
+      const venueName = localStorage.getItem('mingle:lastVenueName') || 'Unknown Venue';
+      
+      await this.createMatch(currentUserId, targetUserId, venueId, venueName);
+      
+      return { isMatch: true, matchId };
+    }
+    
     return { isMatch: false };
   }
 }

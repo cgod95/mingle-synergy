@@ -85,6 +85,7 @@ export const subscribeToUnreadCounts = (
   const q2 = query(matchesRef, where("userId2", "==", userId));
 
   let allMatchIds: Set<string> = new Set();
+  let messagesUnsubscribes: (() => void)[] = [];
 
   const updateCounts = async () => {
     if (allMatchIds.size === 0) {
@@ -97,21 +98,52 @@ export const subscribeToUnreadCounts = (
     callback(counts);
   };
 
+  // Subscribe to messages for specific match IDs for real-time updates
+  const setupMessagesListener = () => {
+    // Cleanup old listeners
+    messagesUnsubscribes.forEach(unsub => unsub());
+    messagesUnsubscribes = [];
+    
+    if (allMatchIds.size === 0) return;
+    
+    // Process in batches of 10 (Firestore 'in' limit)
+    const matchIdArray = Array.from(allMatchIds);
+    for (let i = 0; i < matchIdArray.length; i += 10) {
+      const batch = matchIdArray.slice(i, i + 10);
+      const messagesQuery = query(
+        collection(firestore!, 'messages'),
+        where('matchId', 'in', batch)
+      );
+      
+      const unsub = onSnapshot(messagesQuery, async () => {
+        await updateCounts();
+      }, (error) => {
+        // Silently handle errors - non-critical
+        console.error('Error in messages subscription:', error);
+      });
+      
+      messagesUnsubscribes.push(unsub);
+    }
+  };
+
   const unsubscribe1 = onSnapshot(q1, async (snapshot1) => {
     const ids1 = snapshot1.docs.map(doc => doc.id);
     ids1.forEach(id => allMatchIds.add(id));
+    setupMessagesListener();
     await updateCounts();
   });
 
   const unsubscribe2 = onSnapshot(q2, async (snapshot2) => {
     const ids2 = snapshot2.docs.map(doc => doc.id);
     ids2.forEach(id => allMatchIds.add(id));
+    setupMessagesListener();
     await updateCounts();
   });
 
   return () => {
     unsubscribe1();
     unsubscribe2();
+    messagesUnsubscribes.forEach(unsub => unsub());
   };
 };
 
