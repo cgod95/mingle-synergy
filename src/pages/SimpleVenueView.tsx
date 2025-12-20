@@ -14,6 +14,9 @@ import Layout from '@/components/Layout';
 import BottomNav from '@/components/BottomNav';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { matchService } from '@/services';
+import config from '@/config';
+import { logError } from '@/utils/errorHandler';
 
 interface VenueUser {
   id: string;
@@ -35,6 +38,8 @@ const SimpleVenueView: React.FC = () => {
   const [venue, setVenue] = useState(mockVenues.find(v => v.id === venueId));
   const [venueUsers, setVenueUsers] = useState<VenueUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [likedUserIds, setLikedUserIds] = useState<Set<string>>(new Set());
+  const [isLiking, setIsLiking] = useState<string | null>(null);
 
   useEffect(() => {
     if (!venueId) {
@@ -71,23 +76,67 @@ const SimpleVenueView: React.FC = () => {
     setLoading(false);
   }, [venueId, currentUser?.uid, navigate]);
 
-  const handleLike = (userId: string) => {
+  const handleLike = async (userId: string) => {
     const user = venueUsers.find(u => u.id === userId);
-    if (!user) return;
-
-    // Simulate match chance
-    const isMatch = Math.random() < 0.3; // 30% chance for demo
-
-    if (isMatch) {
+    if (!user || !currentUser?.uid || !venueId || isLiking === userId) return;
+    
+    // Prevent double-clicking
+    if (likedUserIds.has(userId)) {
       toast({
-        title: "It's a match! 💕",
-        description: `You and ${user.name} liked each other at ${venue?.name}!`,
+        title: "Already liked",
+        description: `You've already liked ${user.name}`,
       });
-    } else {
+      return;
+    }
+    
+    setIsLiking(userId);
+    
+    try {
+      if (!config.DEMO_MODE) {
+        // Production: Use real matchService
+        const result = await matchService.likeUser(currentUser.uid, userId, venueId);
+        
+        setLikedUserIds(prev => new Set([...prev, userId]));
+        
+        if (result.isMatch) {
+          toast({
+            title: "It's a match! 💕",
+            description: `You and ${user.name} liked each other at ${venue?.name}!`,
+          });
+        } else {
+          toast({
+            title: "Like sent! ❤️",
+            description: `${user.name} will be notified of your interest`,
+          });
+        }
+      } else {
+        // Demo mode: Use localStorage-based mock
+        const mockMatchService = (await import('@/services/mock/mockMatchService')).default;
+        const result = await mockMatchService.likeUser(currentUser.uid, userId, venueId);
+        
+        setLikedUserIds(prev => new Set([...prev, userId]));
+        
+        if (result.isMatch) {
+          toast({
+            title: "It's a match! 💕",
+            description: `You and ${user.name} liked each other at ${venue?.name}!`,
+          });
+        } else {
+          toast({
+            title: "Like sent! ❤️",
+            description: `${user.name} will be notified of your interest`,
+          });
+        }
+      }
+    } catch (error) {
+      logError(error as Error, { source: 'SimpleVenueView', action: 'handleLike', userId, venueId });
       toast({
-        title: "Like sent! ❤️",
-        description: `${user.name} will be notified of your interest`,
+        title: "Couldn't send like",
+        description: "Please try again",
+        variant: "destructive",
       });
+    } finally {
+      setIsLiking(null);
     }
   };
 
@@ -215,13 +264,14 @@ const SimpleVenueView: React.FC = () => {
                         <Button
                           size="sm"
                           variant="secondary"
-                          className="w-8 h-8 p-0 bg-white/90 hover:bg-white"
+                          className={`w-8 h-8 p-0 ${likedUserIds.has(user.id) ? 'bg-red-500 hover:bg-red-500' : 'bg-white/90 hover:bg-white'}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleLike(user.id);
                           }}
+                          disabled={isLiking === user.id || likedUserIds.has(user.id)}
                         >
-                          <Heart className="w-4 h-4 text-red-500" />
+                          <Heart className={`w-4 h-4 ${likedUserIds.has(user.id) ? 'text-white fill-white' : 'text-red-500'}`} />
                         </Button>
                         <Button
                           size="sm"

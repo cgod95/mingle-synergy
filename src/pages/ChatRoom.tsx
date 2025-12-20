@@ -98,9 +98,9 @@ export default function ChatRoom() {
   }, [matchId, currentUser, msgs.length]);
 
   // Typing indicator logic
-  // Note: In production, this would receive typing events from Firebase/WebSocket
-  // For now, we simulate typing when user types (demo mode)
-  // TODO: Integrate with real-time service to show when OTHER user is typing
+  // TODO: Integrate with real-time typing events from Firebase/WebSocket
+  // Future: Subscribe to typing events from other user in the match
+  // For now, this is simulated for demo purposes only
   useEffect(() => {
     // Simulate other user typing occasionally (demo)
     // In production, this would be: onTypingEvent from Firebase/WebSocket
@@ -131,11 +131,36 @@ export default function ChatRoom() {
   };
 
   // Get other user ID from match (for block/report)
-  const otherUserId = useMemo(() => {
-    // In a real implementation, fetch match data to get otherUserId
-    // For now, use matchId as placeholder
-    return matchId || "";
-  }, [matchId]);
+  const [otherUserId, setOtherUserId] = useState<string>("");
+  
+  useEffect(() => {
+    const fetchOtherUserId = async () => {
+      if (!matchId || !currentUser?.uid) return;
+      
+      try {
+        if (!config.DEMO_MODE) {
+          // Production: Fetch match from Firebase
+          const { matchService } = await import('@/services');
+          const match = await matchService.getMatchById(matchId);
+          if (match) {
+            const otherId = match.userId1 === currentUser.uid ? match.userId2 : match.userId1;
+            setOtherUserId(otherId);
+          }
+        } else {
+          // Demo mode: Get from matchesCompat
+          const matches = await getActiveMatches(currentUser.uid);
+          const match = matches.find(m => m.id === matchId);
+          if (match) {
+            setOtherUserId(match.partnerId || "");
+          }
+        }
+      } catch (error) {
+        logError(error as Error, { context: 'ChatRoom.fetchOtherUserId', matchId });
+      }
+    };
+    
+    fetchOtherUserId();
+  }, [matchId, currentUser?.uid]);
 
   useEffect(() => {
     if (!matchId || !currentUser?.uid) return;
@@ -226,7 +251,7 @@ export default function ChatRoom() {
       if (!canSend) {
         toast({
           title: "Message limit reached",
-          description: "You've sent all 5 messages. Wait for a reply or reconnect at a venue.",
+          description: "You've sent all 10 messages. Wait for a reply or reconnect at a venue.",
           variant: "destructive",
         });
         setShowMessageLimitModal(true);

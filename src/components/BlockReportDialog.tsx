@@ -17,6 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { blockUser, reportUser } from '@/lib/block';
 import { useAuth } from '@/context/AuthContext';
 import { logError } from '@/utils/errorHandler';
+import { userService } from '@/services';
+import config from '@/config';
 
 interface BlockReportDialogProps {
   userId: string;
@@ -46,8 +48,10 @@ export function BlockReportDialog({
       // Block user locally
       blockUser(userId);
       
-      // TODO: Sync with Firebase userService
-      // await userService.blockUser(currentUser.uid, userId);
+      // Sync with Firebase in production mode
+      if (!config.DEMO_MODE) {
+        await userService.blockUser(currentUser.uid, userId);
+      }
       
       toast({
         title: "User Blocked",
@@ -76,8 +80,10 @@ export function BlockReportDialog({
       // Report user locally
       reportUser(userId);
       
-      // TODO: Sync with Firebase - store report with context
-      // await userService.reportUser(currentUser.uid, userId, reportReason);
+      // Sync with Firebase in production mode
+      if (!config.DEMO_MODE) {
+        await userService.reportUser(currentUser.uid, userId, reportReason);
+      }
       
       toast({
         title: "Report Submitted",

@@ -248,6 +248,43 @@ class FirebaseUserService implements UserService {
       throw error;
     }
   }
+
+  async blockUser(currentUserId: string, blockedUserId: string): Promise<void> {
+    try {
+      if (!firestore) {
+        throw new Error('Firestore not available');
+      }
+      
+      const userRef = doc(firestore, 'users', currentUserId);
+      await updateDoc(userRef, {
+        blockedUsers: arrayUnion(blockedUserId)
+      });
+    } catch (error) {
+      logError(error as Error, { source: 'userService', action: 'blockUser', currentUserId, blockedUserId });
+      throw error;
+    }
+  }
+
+  async reportUser(currentUserId: string, reportedUserId: string, reason: string): Promise<void> {
+    try {
+      if (!firestore) {
+        throw new Error('Firestore not available');
+      }
+      
+      // Create a report document in the reports collection
+      const reportsRef = collection(firestore, 'reports');
+      await setDoc(doc(reportsRef), {
+        reporterId: currentUserId,
+        reportedUserId,
+        reason,
+        timestamp: Date.now(),
+        status: 'pending'
+      });
+    } catch (error) {
+      logError(error as Error, { source: 'userService', action: 'reportUser', currentUserId, reportedUserId });
+      throw error;
+    }
+  }
 }
 
 export default new FirebaseUserService();

@@ -12,12 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { getCheckedVenueId } from '@/lib/checkinStore';
 
 type UserCardProps = {
   user: UserProfile;
+  venueId?: string; // Optional - will use checked-in venue if not provided
 };
 
-const UserCard: React.FC<UserCardProps> = ({ user }) => {
+const UserCard: React.FC<UserCardProps> = ({ user, venueId: propVenueId }) => {
   const { currentUser } = useUser();
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isLiking, setIsLiking] = useState<boolean>(false);
@@ -27,8 +29,13 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
     
     setIsLiking(true);
     try {
-      // Get venueId from context or use a default - you may need to pass this as a prop
-      const venueId = ''; // TODO: Get from context or props
+      // Get venueId from prop, or fallback to checked-in venue
+      const venueId = propVenueId || getCheckedVenueId() || '';
+      
+      if (!venueId) {
+        throw new Error('No venue ID available. Please check in to a venue first.');
+      }
+      
       await likeUserWithMutualDetection(currentUser.uid || currentUser.id, user.id || user.uid || '', venueId);
       setIsLiked(true);
     } catch (error) {

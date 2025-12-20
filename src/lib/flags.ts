@@ -23,6 +23,9 @@ export const FEATURE_FLAGS = {
 
   // Offline Mode
   OFFLINE_MODE_ENABLED: import.meta.env.VITE_OFFLINE_MODE_ENABLED === 'true', // default: OFF
+
+  // Debug & Development
+  DEBUG_ROUTES_ENABLED: import.meta.env.VITE_DEBUG_ROUTES_ENABLED === 'true' || import.meta.env.DEV, // default: OFF in production
 } as const;
 
 // Helper to check if a feature is enabled

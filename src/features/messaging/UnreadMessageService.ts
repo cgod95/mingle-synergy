@@ -86,6 +86,7 @@ export const subscribeToUnreadCounts = (
 
   let allMatchIds: Set<string> = new Set();
   let messagesUnsubscribes: (() => void)[] = [];
+  let subscribedMatchIds: Set<string> = new Set(); // Track which matchIds we're subscribed to
 
   const updateCounts = async () => {
     if (allMatchIds.size === 0) {
@@ -100,16 +101,22 @@ export const subscribeToUnreadCounts = (
 
   // Subscribe to messages for specific match IDs for real-time updates
   const setupMessagesListener = () => {
-    // Cleanup old listeners
-    messagesUnsubscribes.forEach(unsub => unsub());
-    messagesUnsubscribes = [];
+    // Cleanup subscriptions for matchIds that are no longer in allMatchIds
+    const removedMatchIds = Array.from(subscribedMatchIds).filter(id => !allMatchIds.has(id));
+    if (removedMatchIds.length > 0) {
+      // Cleanup all and rebuild - simpler than tracking individual subscriptions
+      messagesUnsubscribes.forEach(unsub => unsub());
+      messagesUnsubscribes = [];
+      subscribedMatchIds.clear();
+    }
     
-    if (allMatchIds.size === 0) return;
+    // Only set up new subscriptions if we have new matchIds
+    const newMatchIds = Array.from(allMatchIds).filter(id => !subscribedMatchIds.has(id));
+    if (newMatchIds.length === 0) return;
     
     // Process in batches of 10 (Firestore 'in' limit)
-    const matchIdArray = Array.from(allMatchIds);
-    for (let i = 0; i < matchIdArray.length; i += 10) {
-      const batch = matchIdArray.slice(i, i + 10);
+    for (let i = 0; i < newMatchIds.length; i += 10) {
+      const batch = newMatchIds.slice(i, i + 10);
       const messagesQuery = query(
         collection(firestore!, 'messages'),
         where('matchId', 'in', batch)
@@ -123,6 +130,7 @@ export const subscribeToUnreadCounts = (
       });
       
       messagesUnsubscribes.push(unsub);
+      batch.forEach(matchId => subscribedMatchIds.add(matchId));
     }
   };
 

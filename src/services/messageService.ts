@@ -376,8 +376,24 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
         lastMessageTime = lastMessageData.createdAt?.toDate?.() ?? new Date(match.timestamp || Date.now());
       }
 
-      // Get unread count (simplified - you might want to track this in the match document)
-      const unreadCount = 0; // TODO: Implement unread message tracking
+      // Get unread count - count messages not read by current user
+      let unreadCount = 0;
+      try {
+        const unreadMessagesQuery = query(
+          messagesRef,
+          where("matchId", "==", match.id),
+          where("senderId", "!=", userId) // Only messages from other user
+        );
+        const unreadSnapshot = await getDocs(unreadMessagesQuery);
+        unreadCount = unreadSnapshot.docs.filter(doc => {
+          const data = doc.data();
+          const readBy = data.readBy || [];
+          return !readBy.includes(userId); // Not read by current user
+        }).length;
+      } catch (error) {
+        // Non-critical - continue with 0 unread count
+        logError(error as Error, { source: 'messageService', action: 'getUnreadCount', matchId: match.id, userId });
+      }
 
       chatPreviews.push({
         chatId: match.id,

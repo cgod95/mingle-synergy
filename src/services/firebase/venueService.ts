@@ -521,31 +521,8 @@ class FirebaseVenueService implements VenueService {
   }
 }
 
-// Simple standalone check-in function
-export const checkInToVenue = async (venueId: string): Promise<void> => {
-  // In demo mode, just return without Firebase operations
-  if (config.DEMO_MODE || !firestore) {
-    return;
-  }
-  
-  const auth = getAuth();
-  const user = auth.currentUser;
-
-  if (!user) throw new Error('User not authenticated.');
-
-  const userRef = doc(firestore, 'users', user.uid);
-  const venueRef = doc(firestore, 'venues', venueId);
-
-  // Confirm venue exists
-  const venueSnap = await getDoc(venueRef);
-  if (!venueSnap.exists()) throw new Error('Venue does not exist.');
-
-  // Update user's checkedInVenues field
-  await updateDoc(userRef, {
-    checkedInVenues: arrayUnion(venueId),
-    lastCheckIn: Date.now(),
-  });
-};
+// Note: Use venueService.checkInToVenue() instead of standalone function
+// The standalone function has been removed to avoid inconsistency
 
 export const getCheckedInUsers = async (venueId: string): Promise<UserProfile[]> => {
   // Return empty array in demo mode or if firestore is not available
@@ -554,7 +531,12 @@ export const getCheckedInUsers = async (venueId: string): Promise<UserProfile[]>
   }
   
   const usersRef = collection(firestore, 'users');
-  const q = query(usersRef, where('checkedInVenues', 'array-contains', venueId));
+  // Use currentVenue and isCheckedIn fields (consistent with checkInToVenue)
+  const q = query(
+    usersRef, 
+    where('currentVenue', '==', venueId),
+    where('isCheckedIn', '==', true)
+  );
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
 };

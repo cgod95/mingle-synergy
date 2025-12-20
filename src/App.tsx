@@ -54,6 +54,7 @@ import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { Toaster } from "./components/ui/toaster";
 import { NetworkErrorBanner } from "./components/ui/NetworkErrorBanner";
 import analytics from "./services/appAnalytics";
+import { FEATURE_FLAGS } from "./lib/flags";
 
 function AppRoutes() {
   const location = useLocation();
@@ -97,7 +98,9 @@ function AppRoutes() {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
-          <Route path="/debug" element={<Debug />} />
+          {FEATURE_FLAGS.DEBUG_ROUTES_ENABLED && (
+            <Route path="/debug" element={<Debug />} />
+          )}
         </Route>
         {/* Chat room - full screen, bypasses AppShell */}
         {/* ChatRoomGuard must be inside Route to have Router context */}

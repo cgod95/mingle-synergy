@@ -22,6 +22,9 @@ import { mockUsers } from '@/data/mock';
 import { mockVenues } from '@/data/mock';
 import { notificationService } from '@/services/notificationService';
 import { useToast } from '@/components/ui/use-toast';
+import { matchService } from '@/services';
+import config from '@/config';
+import { logError } from '@/utils/errorHandler';
 
 interface VenueUserGridProps {
   venueId: string;
@@ -98,6 +101,8 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'recent' | 'nearby'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'mutual' | 'distance'>('recent');
+  const [likedUserIds, setLikedUserIds] = useState<Set<string>>(new Set());
+  const [isLiking, setIsLiking] = useState<string | null>(null);
 
   // Get venue details
   const venue = mockVenues.find(v => v.id === venueId);
@@ -154,35 +159,67 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
     }
   }, [venueId, currentUser?.uid, venueName]);
 
-  const handleLike = (userId: string) => {
+  const handleLike = async (userId: string) => {
     const user = venueUsers.find(u => u.id === userId);
-    if (!user) return;
-
-    // Check if it's a mutual like (match)
-    const isMatch = Math.random() < 0.3; // 30% chance for demo
-
-    if (isMatch) {
+    if (!user || !currentUser?.uid || isLiking === userId) return;
+    
+    // Prevent double-liking
+    if (likedUserIds.has(userId)) {
       toast({
-        title: "It's a match! 💕",
-        description: `You and ${user.name} liked each other at ${venueName}!`,
+        title: "Already liked",
+        description: `You've already liked ${user.name}`,
       });
-
-      // Send match notification
-      if (currentUser?.uid) {
+      return;
+    }
+    
+    setIsLiking(userId);
+    
+    try {
+      let isMatch = false;
+      
+      if (!config.DEMO_MODE) {
+        // Production: Use real matchService
+        const result = await matchService.likeUser(currentUser.uid, userId, venueId);
+        isMatch = result.isMatch;
+      } else {
+        // Demo mode: Use localStorage-based mock
+        const mockMatchService = (await import('@/services/mock/mockMatchService')).default;
+        const result = await mockMatchService.likeUser(currentUser.uid, userId, venueId);
+        isMatch = result.isMatch;
+      }
+      
+      setLikedUserIds(prev => new Set([...prev, userId]));
+      
+      if (isMatch) {
+        toast({
+          title: "It's a match! 💕",
+          description: `You and ${user.name} liked each other at ${venueName}!`,
+        });
+        
+        // Send match notification
         notificationService.notifyNewMatch({
           userId: currentUser.uid,
           matchId: `match_${Date.now()}`,
           otherUserId: user.id
         });
+      } else {
+        toast({
+          title: "Like sent! ❤️",
+          description: `${user.name} will be notified of your interest`,
+        });
       }
-    } else {
+      
+      onUserLike?.(userId);
+    } catch (error) {
+      logError(error as Error, { source: 'VenueUserGrid', action: 'handleLike', userId, venueId });
       toast({
-        title: "Like sent! ❤️",
-        description: `${user.name} will be notified of your interest`,
+        title: "Couldn't send like",
+        description: "Please try again",
+        variant: "destructive",
       });
+    } finally {
+      setIsLiking(null);
     }
-
-    onUserLike?.(userId);
   };
 
   const handleViewProfile = (userId: string) => {
@@ -377,10 +414,11 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
                         <Button
                           size="sm"
                           onClick={() => handleLike(user.id)}
-                          className="flex-1"
+                          className={`flex-1 ${likedUserIds.has(user.id) ? 'bg-red-500 hover:bg-red-500 text-white' : ''}`}
+                          disabled={isLiking === user.id || likedUserIds.has(user.id)}
                         >
-                          <Heart className="w-3 h-3 mr-1" />
-                          Like
+                          <Heart className={`w-3 h-3 mr-1 ${likedUserIds.has(user.id) ? 'fill-white' : ''}`} />
+                          {likedUserIds.has(user.id) ? 'Liked' : 'Like'}
                         </Button>
                       </div>
                     </div>
