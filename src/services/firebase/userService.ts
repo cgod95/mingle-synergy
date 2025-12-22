@@ -18,6 +18,10 @@ import { logError } from '@/utils/errorHandler';
 
 type PartialUserProfile = Partial<UserProfile>;
 
+// Check-in expiry configuration (must match venueService)
+const CHECKIN_EXPIRY_HOURS = 12;
+const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000;
+
 class FirebaseUserService implements UserService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
@@ -130,6 +134,7 @@ class FirebaseUserService implements UserService {
         return [];
       }
       
+      const now = Date.now();
       const usersRef = collection(firestore, 'users');
       // Filter by both currentVenue AND isCheckedIn to exclude stale check-ins
       const q = query(
@@ -139,10 +144,22 @@ class FirebaseUserService implements UserService {
       );
       const snapshot = await getDocs(q);
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as UserProfile));
+      // Filter out expired users (those whose checkInExpiry has passed)
+      return snapshot.docs
+        .filter(doc => {
+          const data = doc.data();
+          const expiry = data.checkInExpiry;
+          // If no expiry field, use checkInTime + 12 hours as fallback
+          if (!expiry && data.checkInTime) {
+            const checkInTime = data.checkInTime?.toMillis?.() || data.checkInTime;
+            return (checkInTime + CHECKIN_EXPIRY_MS) > now;
+          }
+          return !expiry || expiry > now;
+        })
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as UserProfile));
     } catch (error) {
       logError(error as Error, { source: 'userService', action: 'getUsersAtVenue', venueId });
       return [];
