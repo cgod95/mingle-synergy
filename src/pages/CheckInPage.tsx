@@ -17,6 +17,8 @@ import { calculateDistance } from "@/utils/locationUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, History } from "lucide-react";
 import venueService from "@/services/firebase/venueService";
+import { LocationStatusBanner } from "@/components/LocationStatusBanner";
+import { getLocationPermissionStatus } from "@/utils/locationPermission";
 
 // Use the same key as checkinStore.ts for consistency
 import { getCheckedVenueId, checkInAt } from "@/lib/checkinStore";
@@ -31,6 +33,7 @@ interface VenueWithDistance {
   image?: string;
   distanceKm?: number;
   openingHours?: string;
+  categories?: string[];
 }
 
 export default function CheckInPage() {
@@ -49,6 +52,9 @@ export default function CheckInPage() {
   // Pagination state
   const VENUES_PER_PAGE = 9;
   const [visibleCount, setVisibleCount] = useState(VENUES_PER_PAGE);
+  
+  // Location status for graceful degradation
+  const [locationAvailable, setLocationAvailable] = useState<boolean | null>(null);
   
   // Add refs to prevent duplicate concurrent calls
   const loadingRef = useRef(false);
@@ -141,7 +147,10 @@ export default function CheckInPage() {
       let userLat: number | null = null;
       let userLng: number | null = null;
       
-      if (navigator.geolocation) {
+      // Check location permission status first
+      const permissionStatus = getLocationPermissionStatus();
+      
+      if (navigator.geolocation && permissionStatus !== 'denied') {
         try {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -153,9 +162,13 @@ export default function CheckInPage() {
           userLat = position.coords.latitude;
           userLng = position.coords.longitude;
           setUserLocation({ lat: userLat, lng: userLng });
+          setLocationAvailable(true);
         } catch (error) {
           // Location not available - continue without distance calculation
+          setLocationAvailable(false);
         }
+      } else {
+        setLocationAvailable(permissionStatus === 'denied' ? false : null);
       }
       
       // Calculate distances and sort by proximity
@@ -173,18 +186,25 @@ export default function CheckInPage() {
         };
       });
       
-      // Sort by distance (closest first), then by check-in count
-      venuesWithDistance.sort((a, b) => {
-        if (a.distanceKm !== undefined && b.distanceKm !== undefined) {
-          return a.distanceKm - b.distanceKm;
-        }
-        if (a.distanceKm !== undefined) return -1;
-        if (b.distanceKm !== undefined) return 1;
-        return (b.checkInCount || 0) - (a.checkInCount || 0);
-      });
+      // Sort venues based on location availability
+      if (userLat !== null && userLng !== null) {
+        // Sort by distance (closest first), then by check-in count
+        venuesWithDistance.sort((a, b) => {
+          if (a.distanceKm !== undefined && b.distanceKm !== undefined) {
+            return a.distanceKm - b.distanceKm;
+          }
+          if (a.distanceKm !== undefined) return -1;
+          if (b.distanceKm !== undefined) return 1;
+          return (b.checkInCount || 0) - (a.checkInCount || 0);
+        });
+      } else {
+        // No location - sort alphabetically by name
+        venuesWithDistance.sort((a, b) => a.name.localeCompare(b.name));
+      }
       
-      // Show top 3 closest venues
-      setVenues(venuesWithDistance.slice(0, 3));
+      // Show all venues when location unavailable, top 3 when available
+      const venuesToShow = userLat !== null ? venuesWithDistance.slice(0, 3) : venuesWithDistance;
+      setVenues(venuesToShow);
       
       // Auto-check-in if coming from QR code URL
       if (qrVenueId && source === "qr" && currentUser) {
@@ -252,9 +272,22 @@ export default function CheckInPage() {
             <p className="text-neutral-300 mb-3">Check in with the QR code at the venue, auto check-in, or choose from the venues below.</p>
             <div className="flex items-center gap-2 text-sm text-neutral-400">
               <MapPin className="w-4 h-4 text-indigo-400" />
-              <span>Showing venues closest to you</span>
+              <span>
+                {locationAvailable === false 
+                  ? 'Showing all venues (enable location to see distance)'
+                  : 'Showing venues closest to you'}
+              </span>
             </div>
           </div>
+          
+          {/* Location status banner - shows when location is denied */}
+          <LocationStatusBanner 
+            onPermissionGranted={() => {
+              setLocationAvailable(true);
+              loadVenues();
+            }}
+            className="mb-4"
+          />
         </div>
 
         {/* Check-in Options - Uniform Cards */}

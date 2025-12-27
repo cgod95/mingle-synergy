@@ -19,6 +19,8 @@ import { matchService } from "@/services";
 import { useToast } from "@/hooks/use-toast";
 import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { firestore } from "@/firebase/config";
+import { LocationStatusBanner } from "@/components/LocationStatusBanner";
+import { getLocationPermissionStatus } from "@/utils/locationPermission";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -144,6 +146,12 @@ export default function VenueDetails() {
   const [mutualConnections, setMutualConnections] = useState<number>(0);
   const [likedUserIds, setLikedUserIds] = useState<Set<string>>(new Set());
   const [matchedUserIds, setMatchedUserIds] = useState<Set<string>>(new Set());
+  const [locationStatus, setLocationStatus] = useState<'granted' | 'denied' | 'prompt' | 'unsupported'>('prompt');
+  
+  // Check location permission status on mount
+  useEffect(() => {
+    setLocationStatus(getLocationPermissionStatus());
+  }, []);
 
   // Load user's likes and matches from Firebase
   useEffect(() => {
@@ -388,6 +396,11 @@ export default function VenueDetails() {
                 <CheckCircle2 className="w-4 h-4" />
                 <span className="text-sm font-medium">You're Here</span>
               </div>
+            ) : locationStatus === 'denied' ? (
+              <div className="flex items-center gap-2 bg-amber-600/80 text-white px-3 py-2 rounded-full text-sm">
+                <MapPin className="w-4 h-4" />
+                <span>Location needed</span>
+              </div>
             ) : (
               <Button
                 onClick={handleCheckIn}
@@ -398,6 +411,15 @@ export default function VenueDetails() {
             )}
           </div>
         </div>
+
+        {/* Location banner when denied */}
+        {locationStatus === 'denied' && checkedIn !== venue.id && (
+          <div className="px-4 mb-4">
+            <LocationStatusBanner 
+              onPermissionGranted={() => setLocationStatus('granted')}
+            />
+          </div>
+        )}
 
         <div className="p-6 space-y-6">
           {/* People here now section */}
@@ -559,3 +581,4 @@ export default function VenueDetails() {
     </div>
   );
 }
+

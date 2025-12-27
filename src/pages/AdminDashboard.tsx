@@ -28,6 +28,7 @@ import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 import { deploymentVerifier, type DeploymentReport } from '@/utils/deploymentVerifier';
 import { testRunner, type TestSuite } from '@/testing/testSuite';
+import { logError } from '@/utils/errorHandler';
 
 interface SystemMetrics {
   activeUsers: number;
@@ -108,7 +109,7 @@ const AdminDashboard: React.FC = () => {
       const results = await testRunner.runAllTests();
       setTestResults(results);
     } catch (error) {
-      console.error('Test execution failed:', error);
+      logError(error instanceof Error ? error : new Error('Test execution failed'), { source: 'AdminDashboard', action: 'runSystemTests' });
     } finally {
       setIsRunningTests(false);
     }
@@ -119,7 +120,7 @@ const AdminDashboard: React.FC = () => {
       const status = await deploymentVerifier.runFullVerification();
       setDeploymentStatus(status);
     } catch (error) {
-      console.error('Deployment check failed:', error);
+      logError(error instanceof Error ? error : new Error('Deployment check failed'), { source: 'AdminDashboard', action: 'checkDeploymentStatus' });
     }
   };
 

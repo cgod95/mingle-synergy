@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
+import { logError } from '@/utils/errorHandler';
 
 interface SystemMetrics {
   totalUsers: number;
@@ -122,7 +123,7 @@ const AdvancedAdmin: React.FC = () => {
       setSecurity(mockSecurity);
 
     } catch (error) {
-      console.error('Failed to load admin data:', error);
+      logError(error instanceof Error ? error : new Error('Failed to load admin data'), { source: 'AdvancedAdmin' });
       toast({
         title: "Error",
         description: "Failed to load admin dashboard data",

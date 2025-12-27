@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { MessageCircle, Zap, MapPin } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
+import { logError } from '@/utils/errorHandler';
 
 export default function DemoWelcome() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function DemoWelcome() {
         navigate('/signup');
       }
     } catch (error) {
-      console.error('Navigation error:', error);
+      logError(error instanceof Error ? error : new Error('Navigation error'), { source: 'DemoWelcome' });
       // Fallback: try direct navigation
       if (currentUser) {
         window.location.href = '/checkin';

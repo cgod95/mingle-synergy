@@ -11,6 +11,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { ArrowLeft, User as UserIcon, Calendar, MapPin } from 'lucide-react';
 import { mockUsers } from '@/data/mock';
 import Layout from '@/components/Layout';
+import { logError } from '@/utils/errorHandler';
 
 const UserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -35,7 +36,7 @@ const UserProfilePage: React.FC = () => {
           setError('User profile not found');
         }
       } catch (err) {
-        console.error('Error fetching user profile:', err);
+        logError(err instanceof Error ? err : new Error('Error fetching user profile'), { source: 'UserProfilePage', userId });
         setError('Failed to load user profile');
       } finally {
         setLoading(false);

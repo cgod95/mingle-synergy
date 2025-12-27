@@ -4,6 +4,7 @@ import { getActiveMatches } from "@/lib/matchesCompat";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { logError } from "@/utils/errorHandler";
 
 const RealChatRoom = React.lazy(() => import("./ChatRoom"));
 
@@ -62,7 +63,7 @@ export default function ChatRoomGuard() {
           setOk(true);
         }
       } catch (error) {
-        console.error("Error loading chat:", error);
+        logError(error instanceof Error ? error : new Error('Error loading chat'), { source: 'ChatRoomGuard', matchId: id });
         toast({
           title: "Error loading chat",
           description: "Please try again.",
