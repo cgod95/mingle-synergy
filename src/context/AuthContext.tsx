@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     
     if (currentUserId && currentVenueId && !config.DEMO_MODE) {
       try {
-        await venueService.checkOutFromVenue(currentUserId, currentVenueId);
+        await venueService.checkOutFromVenue(currentUserId);
       } catch (error) {
         // Non-critical - continue with logout even if checkout fails
       }

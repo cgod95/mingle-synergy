@@ -53,6 +53,7 @@ import { OnboardingProvider } from "./context/OnboardingContext";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { Toaster } from "./components/ui/toaster";
 import { NetworkErrorBanner } from "./components/ui/NetworkErrorBanner";
+import { ExpiryWarning } from "./components/ExpiryWarning";
 import analytics from "./services/appAnalytics";
 import { FEATURE_FLAGS } from "./lib/flags";
 
@@ -153,6 +154,7 @@ export default function App() {
                 v7_relativeSplatPath: true,
               }}
             >
+              <ExpiryWarning />
               <AppRoutes />
             </BrowserRouter>
             <Toaster />

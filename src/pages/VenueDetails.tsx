@@ -2,10 +2,10 @@ import { useParams } from "react-router-dom";
 import { getVenue, getPeople } from "../lib/api";
 import { likePerson as localLikePerson, isMatched as localIsMatched, isLiked as localIsLiked } from "../lib/likesStore";
 import { getAllMatches } from "@/lib/matchesCompat";
-import { checkInAt, getCheckedVenueId } from "../lib/checkinStore";
+import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, ArrowLeft, Sparkles, LogOut, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +21,10 @@ import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/fire
 import { firestore } from "@/firebase/config";
 import { LocationStatusBanner } from "@/components/LocationStatusBanner";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
+
+// Check-in expiry constants (must match venueService.ts)
+const CHECKIN_EXPIRY_HOURS = 12;
+const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000;
 
 function Toast({ text }: { text: string }) {
   return (
@@ -89,8 +93,25 @@ export default function VenueDetails() {
     
     const unsubscribe = onSnapshot(q, 
       (snapshot) => {
+        const now = Date.now();
         const users = snapshot.docs
-          .filter(doc => doc.id !== currentUser?.uid) // Filter out current user
+          .filter(doc => {
+            // Filter out current user
+            if (doc.id === currentUser?.uid) return false;
+            
+            // Filter out expired users (12h expiry)
+            const data = doc.data();
+            const expiry = data.checkInExpiry;
+            if (expiry && expiry <= now) return false;
+            
+            // Fallback: if no expiry field, check checkInTime + 12h
+            if (!expiry && data.checkInTime) {
+              const checkInTime = data.checkInTime?.toMillis?.() || data.checkInTime;
+              if ((checkInTime + CHECKIN_EXPIRY_MS) <= now) return false;
+            }
+            
+            return true;
+          })
           .map(doc => {
             const data = doc.data();
             return {
@@ -112,7 +133,7 @@ export default function VenueDetails() {
         });
         setLoadingUsers(false);
         
-        // Fallback to one-time fetch
+        // Fallback to one-time fetch (already filters by expiry)
         venueService.getUsersAtVenue(id)
           .then(users => {
             const filteredUsers = users
@@ -293,6 +314,36 @@ export default function VenueDetails() {
     setTimeout(() => setToast(null), 1600);
   };
 
+  const handleCheckOut = async () => {
+    // Clear local state
+    clearCheckIn();
+    setCheckedIn(null);
+    
+    // Sync to Firebase (in production mode)
+    if (!config.DEMO_MODE && currentUser?.uid) {
+      try {
+        await venueService.checkOutFromVenue(currentUser.uid);
+      } catch (error) {
+        logError(error instanceof Error ? error : new Error('Failed to sync checkout'), {
+          context: 'VenueDetails.handleCheckOut',
+          venueId: venue.id
+        });
+        // Local state already cleared
+      }
+    }
+    
+    // Track checkout event
+    try {
+      const { trackEvent } = await import("@/services/specAnalytics");
+      trackEvent('user_checked_out', { venueId: venue.id, venueName: venue.name });
+    } catch {
+      // Non-critical
+    }
+    
+    setToast(`Checked out from ${venue.name}`);
+    setTimeout(() => setToast(null), 1600);
+  };
+
   const handleLike = async (personId: string) => {
     if (isLiking === personId || !currentUser?.uid || !venue?.id) return;
     setIsLiking(personId);
@@ -392,9 +443,20 @@ export default function VenueDetails() {
               )}
             </div>
             {checkedIn === venue.id ? (
-              <div className="flex items-center gap-2 bg-green-600/80 text-white px-4 py-2 rounded-full">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="text-sm font-medium">You're Here</span>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-2 bg-green-600/80 text-white px-4 py-2 rounded-full">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">You're Here</span>
+                </div>
+                <Button
+                  onClick={handleCheckOut}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full px-4 py-1.5 text-xs font-medium bg-neutral-800/80 hover:bg-neutral-700 text-white border-neutral-600"
+                >
+                  <LogOut className="w-3 h-3 mr-1.5" />
+                  Check Out
+                </Button>
               </div>
             ) : locationStatus === 'denied' ? (
               <div className="flex items-center gap-2 bg-amber-600/80 text-white px-3 py-2 rounded-full text-sm">
@@ -581,5 +643,7 @@ export default function VenueDetails() {
     </div>
   );
 }
+
+
 
 

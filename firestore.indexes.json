@@ -9,6 +9,15 @@
       ]
     },
     {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "currentVenue", "order": "ASCENDING" },
+        { "fieldPath": "isCheckedIn", "order": "ASCENDING" },
+        { "fieldPath": "checkInExpiry", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "matches",
       "queryScope": "COLLECTION",
       "fields": [
