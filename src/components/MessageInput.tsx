@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { mockMessages } from '@/data/mock';
 import { Message } from '@/types';
 import { logUserAction } from '@/utils/errorHandler';
+import { FEATURE_FLAGS } from '@/lib/flags';
 
 interface MessageInputProps {
   matchId: string;
@@ -31,7 +32,9 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
       const userMessages = mockMessages.filter(
         msg => msg.matchId === matchId && msg.senderId === currentUser.uid
       );
-      const messageLimit = 5; // Use feature flag in production
+      const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 
+        ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+        : 10;
       const remaining = Math.max(0, messageLimit - userMessages.length);
       const canSendMessages = remaining > 0;
       

@@ -3,7 +3,15 @@
  * Tracks message count per user per match for demo/localStorage mode
  */
 
+import { FEATURE_FLAGS } from "@/lib/flags";
+
 const MESSAGE_COUNT_KEY_PREFIX = "mingle:messageCount:";
+
+// Get the message limit from feature flags (default: 10)
+function getMessageLimit(): number {
+  const limit = FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER;
+  return typeof limit === 'number' && limit > 0 ? limit : 10;
+}
 
 /**
  * Get message count for a user in a match
@@ -59,8 +67,7 @@ export async function canSendMessage(matchId: string, userId: string): Promise<b
   }
   
   const count = getMessageCount(matchId, userId);
-  const messageLimit = 10; // Use feature flag in production
-  return count < messageLimit;
+  return count < getMessageLimit();
 }
 
 /**
@@ -74,8 +81,7 @@ export async function getRemainingMessages(matchId: string, userId: string): Pro
   }
   
   const count = getMessageCount(matchId, userId);
-  const messageLimit = 10; // Use feature flag in production
-  return Math.max(0, messageLimit - count);
+  return Math.max(0, getMessageLimit() - count);
 }
 
 /**

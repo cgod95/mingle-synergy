@@ -104,7 +104,7 @@ const Chat: React.FC = () => {
 
   const isExpired = match && Date.now() - match.timestamp > 3 * 60 * 60 * 1000;
   const myMessages = match?.messages?.filter(m => m.senderId === currentUser?.uid) ?? [];
-  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
   const canSend = !isExpired && myMessages.length < messageLimit;
 
   if (!matchId) {
