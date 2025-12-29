@@ -14,7 +14,7 @@ const CACHE_KEYS = {
   VENUE_PREFIX: 'venue_'
 };
 
-// Check-in expiry configuration
+// Check-in expiry configuration - users auto-checkout after 12 hours
 const CHECKIN_EXPIRY_HOURS = 12;
 const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000; // 12 hours in milliseconds
 
@@ -349,7 +349,7 @@ class FirebaseVenueService implements VenueService {
         isVisible: true,  // Ensure user is visible to others at the venue
         currentVenue: venueId,
         checkInTime: serverTimestamp(),
-        checkInExpiry: now + CHECKIN_EXPIRY_MS // User expires from venue after 12 hours
+        checkInExpiry: now + CHECKIN_EXPIRY_MS // User auto-checkouts after 12 hours
       });
       logUserAction('venue_checkin', { userId, venueId });
     } catch (error) {
@@ -392,8 +392,17 @@ class FirebaseVenueService implements VenueService {
         checkOutTime: serverTimestamp()
       });
       
-      // Reset likes when checking out to prevent ghost interactions
-      // This ensures users don't see stale likes from previous check-ins
+      // Clear venue-specific likes when checking out
+      // Likes are now stored per venue, so we delete the venue-specific likes document
+      try {
+        const matchService = (await import('./matchService')).default;
+        await matchService.clearVenueLikes(userId, currentVenue);
+      } catch (likesError) {
+        // Non-critical - log but don't fail checkout
+        logError(likesError instanceof Error ? likesError : new Error('Unknown error clearing likes'), { source: 'venueService', action: 'clearVenueLikesOnCheckout', userId, venueId: currentVenue });
+      }
+      
+      // Also clear any legacy global likes (backward compatibility)
       try {
         const likesRef = doc(firestore, 'likes', userId);
         const likesDoc = await getDoc(likesRef);
@@ -402,7 +411,7 @@ class FirebaseVenueService implements VenueService {
         }
       } catch (likesError) {
         // Non-critical - log but don't fail checkout
-        logError(likesError as Error, { source: 'venueService', action: 'resetLikesOnCheckout', userId });
+        logError(likesError instanceof Error ? likesError : new Error('Unknown error resetting likes'), { source: 'venueService', action: 'resetLikesOnCheckout', userId });
       }
       
       logUserAction('venue_checkout', { userId, venueId: currentVenue });

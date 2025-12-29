@@ -57,6 +57,25 @@ service cloud.firestore {
            resource.data.photos.size() == 0)
         )
       );
+      
+      // MUTUAL BLOCKING: Allow users to add their own ID to another user's blockedUsers array
+      // This enables blocking to be bidirectional without a Cloud Function
+      // Security: Only the blockedUsers field can be modified, and only to ADD the current user's ID
+      allow update: if isSignedIn() && 
+        // Only blockedUsers field is being modified
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['blockedUsers']) &&
+        // The new blockedUsers array must contain the current user's ID
+        request.resource.data.blockedUsers.hasAll([request.auth.uid]) &&
+        (
+          // Case 1: blockedUsers array didn't exist before - new array should only have current user's ID
+          (!('blockedUsers' in resource.data) && request.resource.data.blockedUsers.size() == 1) ||
+          // Case 2: blockedUsers array existed - must keep all existing entries and add exactly one (current user)
+          (
+            'blockedUsers' in resource.data &&
+            request.resource.data.blockedUsers.hasAll(resource.data.blockedUsers) &&
+            request.resource.data.blockedUsers.size() == resource.data.blockedUsers.size() + 1
+          )
+        );
     }
 
     // Onboarding progress - users can read/write their own onboarding progress

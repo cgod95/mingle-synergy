@@ -18,7 +18,7 @@ import { logError } from '@/utils/errorHandler';
 
 type PartialUserProfile = Partial<UserProfile>;
 
-// Check-in expiry configuration (must match venueService)
+// Check-in expiry configuration (must match venueService) - 12 hours
 const CHECKIN_EXPIRY_HOURS = 12;
 const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000;
 
@@ -250,13 +250,9 @@ class FirebaseUserService implements UserService {
       // Get the download URL
       const downloadURL = await getDownloadURL(snapshot.ref);
       
-      // Get current user profile to update photos array
-      const currentProfile = await this.getUserProfile(userId);
-      const currentPhotos = currentProfile?.photos || [];
-      
-      // Update user profile with the new photo URL
+      // ENFORCE 1 PHOTO MAX: Replace existing photo instead of appending
       await this.updateUserProfile(userId, {
-        photos: [...currentPhotos, downloadURL]
+        photos: [downloadURL] // Only store the single new photo
       });
       
       return downloadURL;
@@ -272,9 +268,18 @@ class FirebaseUserService implements UserService {
         throw new Error('Firestore not available');
       }
       
-      const userRef = doc(firestore, 'users', currentUserId);
-      await updateDoc(userRef, {
+      // MUTUAL BLOCK: Block is bidirectional - both users cannot see each other
+      const currentUserRef = doc(firestore, 'users', currentUserId);
+      const blockedUserRef = doc(firestore, 'users', blockedUserId);
+      
+      // Add blockedUserId to current user's blockedUsers
+      await updateDoc(currentUserRef, {
         blockedUsers: arrayUnion(blockedUserId)
+      });
+      
+      // Add currentUserId to blocked user's blockedUsers (mutual block)
+      await updateDoc(blockedUserRef, {
+        blockedUsers: arrayUnion(currentUserId)
       });
     } catch (error) {
       logError(error as Error, { source: 'userService', action: 'blockUser', currentUserId, blockedUserId });
