@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CreditCard, Calendar, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { goBackSafely } from '@/utils/navigation';
 import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
 import SubscriptionService from '@/services/subscriptionService';
@@ -184,7 +185,7 @@ const Billing: React.FC = () => {
           <div className="mb-6">
             <Button
               variant="ghost"
-              onClick={() => navigate(-1)}
+              onClick={() => goBackSafely(navigate, '/settings')}
               className="mb-4"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

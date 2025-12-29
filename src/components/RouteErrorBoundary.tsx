@@ -87,8 +87,12 @@ class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: strin
   };
 
   private handleGoBack = () => {
-    // Use navigate(-1) for React Router compatibility
-    this.props.navigate(-1);
+    // Try to go back, but if no history, go home
+    if (window.history.length > 2) {
+      this.props.navigate(-1);
+    } else {
+      this.props.navigate('/');
+    }
   };
 
   render() {

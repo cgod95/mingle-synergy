@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { goBackSafely } from "@/utils/navigation";
 import { ArrowLeft, Send, MoreVertical } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -339,7 +340,7 @@ export default function ChatRoom() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={() => goBackSafely(navigate, '/matches')}
           className="rounded-full"
         >
           <ArrowLeft className="w-5 h-5" />

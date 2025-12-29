@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { goBackSafely } from "@/utils/navigation";
 import { setMyPhoto, getMyPhoto } from "../lib/me";
 
 export default function ProfileUpload() {
@@ -46,7 +47,7 @@ export default function ProfileUpload() {
         />
 
         <div className="mt-4 flex gap-3">
-          <button onClick={onPick} className="flex-1 rounded-xl border px-4 py-2">
+          <button type="button" onClick={onPick} className="flex-1 rounded-xl border px-4 py-2">
             Choose photo
           </button>
           <button
@@ -59,7 +60,8 @@ export default function ProfileUpload() {
         </div>
 
         <button
-          onClick={() => navigate(-1)}
+          type="button"
+          onClick={() => goBackSafely(navigate, '/profile')}
           className="mt-6 w-full text-sm text-neutral-600 underline"
         >
           Back

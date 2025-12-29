@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { goBackSafely } from '@/utils/navigation';
 import PublicLayout from '@/components/PublicLayout';
 import { toast } from '@/components/ui/use-toast';
 
@@ -70,7 +71,7 @@ const Contact: React.FC = () => {
           <div className="mb-6">
             <Button
               variant="ghost"
-              onClick={() => navigate(-1)}
+              onClick={() => goBackSafely(navigate, '/settings')}
               className="mb-4"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

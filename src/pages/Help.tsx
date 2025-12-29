@@ -5,6 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Search, MessageCircle, BookOpen, Video, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { goBackSafely } from '@/utils/navigation';
 import PublicLayout from '@/components/PublicLayout';
 
 const Help: React.FC = () => {
@@ -67,7 +68,7 @@ const Help: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(-1)}
+              onClick={() => goBackSafely(navigate, '/settings')}
               className="hover:bg-indigo-900/30 text-indigo-400"
             >
               <ArrowLeft className="h-5 w-5" />

@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { goBackSafely } from '@/utils/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -337,7 +338,7 @@ export default function Verification() {
           <div className="flex gap-4">
             <Button 
               variant="outline" 
-              onClick={() => navigate(-1)} 
+              onClick={() => goBackSafely(navigate, '/settings')} 
               className="flex-1 border-indigo-200 hover:bg-indigo-50"
             >
               Back

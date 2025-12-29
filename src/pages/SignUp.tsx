@@ -68,14 +68,7 @@ export default function SignUp() {
             <CardHeader className="text-center space-y-3 pb-6 relative pt-8">
               <Button
                 variant="ghost"
-                onClick={() => {
-                  try {
-                    navigate('/demo-welcome');
-                  } catch (error) {
-                    // Fallback navigation
-                    navigate(-1);
-                  }
-                }}
+                onClick={() => navigate('/')}
                 className="absolute top-2 left-2 text-neutral-300 hover:text-white"
                 size="sm"
               >

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Send, CheckCircle2, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { goBackSafely } from "@/utils/navigation";
 import BottomNav from "@/components/BottomNav";
 
 type FeedbackType = 'bug' | 'feature' | 'improvement' | 'other';
@@ -89,7 +90,7 @@ export default function FeedbackPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(-1)}
+            onClick={() => goBackSafely(navigate, '/settings')}
             className="text-indigo-400 hover:text-indigo-300 hover:bg-neutral-800"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
