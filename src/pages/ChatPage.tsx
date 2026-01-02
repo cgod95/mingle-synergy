@@ -12,12 +12,18 @@ import { Match, User, Message } from '@/types'
 import Layout from '@/components/Layout'
 import BottomNav from '@/components/BottomNav'
 import { logError } from '@/utils/errorHandler'
+import { FEATURE_FLAGS } from '@/lib/flags'
 
-// Helper function to check if match has expired (3 hours)
+// Get message limit from feature flags (default: 10)
+const MESSAGE_LIMIT = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0
+  ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER
+  : 10;
+
+// Helper function to check if match has expired (24 hours)
 function isMatchExpired(timestamp: number): boolean {
   const now = Date.now()
   const matchAgeMs = now - timestamp
-  return matchAgeMs >= 3 * 60 * 60 * 1000 // 3 hours in milliseconds
+  return matchAgeMs >= 24 * 60 * 60 * 1000 // 24 hours in milliseconds
 }
 
 export default function ChatPage() {
@@ -28,7 +34,7 @@ export default function ChatPage() {
 
   const [match, setMatch] = useState<Match | null>(null)
   const [message, setMessage] = useState('')
-  const [messagesLeft, setMessagesLeft] = useState(3)
+  const [messagesLeft, setMessagesLeft] = useState(MESSAGE_LIMIT)
   const [expired, setExpired] = useState(false)
   const [userMessageCount, setUserMessageCount] = useState(0)
   const [canSend, setCanSend] = useState(true)
@@ -86,7 +92,7 @@ export default function ChatPage() {
         
         if (currentUser) {
           const sentByUser = matchMessages.filter(msg => msg.senderId === currentUser.uid).length
-          setMessagesLeft(3 - sentByUser)
+          setMessagesLeft(MESSAGE_LIMIT - sentByUser)
         }
       } catch (error) {
         logError(error instanceof Error ? error : new Error('Error fetching match'), { source: 'ChatPage', matchId })
@@ -110,7 +116,7 @@ export default function ChatPage() {
       const matchMessages = mockMessages.filter(msg => msg.matchId === matchId);
       const count = matchMessages.filter(msg => msg.senderId === currentUser.uid).length;
       setUserMessageCount(count);
-      setCanSend(count < 3);
+      setCanSend(count < MESSAGE_LIMIT);
       setMessages(matchMessages);
       return;
     }
@@ -119,7 +125,7 @@ export default function ChatPage() {
       const matchMessages = mockMessages.filter(msg => msg.matchId === matchId)
       const count = matchMessages.filter(msg => msg.senderId === currentUser.uid).length
       setUserMessageCount(count)
-      setCanSend(count < 3)
+      setCanSend(count < MESSAGE_LIMIT)
       setMessages(matchMessages)
     }, 1000)
 
@@ -209,7 +215,7 @@ export default function ChatPage() {
 
         {isExpired ? (
           <div className="text-sm text-center text-muted-foreground mt-4">
-            This match expired after 3 hours. You can rematch by liking them again.
+            This match has expired. You can rematch by liking them again at a venue.
           </div>
         ) : (
           <>
@@ -234,7 +240,7 @@ export default function ChatPage() {
 
             {!canSend && (
               <p className="text-sm text-red-500 mt-2">
-                You've sent 3 messages. Wait for a reply or reconnect.
+                You've sent {MESSAGE_LIMIT} messages. Meet up to continue chatting!
               </p>
             )}
           </>

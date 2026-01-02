@@ -30,19 +30,12 @@ const BottomNav: React.FC = () => {
     if (!currentUser?.uid) return;
     
     let unsubscribe: (() => void) | undefined;
-    let intervalId: NodeJS.Timeout | undefined;
     
     const updateUnreadCount = async () => {
       if (config.DEMO_MODE) {
-        // Demo mode: count unread from matchesCompat
-        try {
-          const { getAllMatches } = await import('@/lib/matchesCompat');
-          const matches = await getAllMatches(currentUser.uid);
-          const total = matches.reduce((sum, m) => sum + (m.unreadCount || 0), 0);
-          setUnreadCount(total);
-        } catch (error) {
-          // Error fetching demo unread count - non-critical, silently fail
-        }
+        // Demo mode: In demo mode, we don't track read status, so show 0
+        // This prevents showing incorrect/stale badge numbers
+        setUnreadCount(0);
       } else {
         // Production: use Firebase service
         try {
@@ -53,6 +46,7 @@ const BottomNav: React.FC = () => {
           });
         } catch (error) {
           // UnreadMessageService not available - non-critical, silently fail
+          setUnreadCount(0);
         }
       }
     };
@@ -60,17 +54,27 @@ const BottomNav: React.FC = () => {
     // Initial load
     updateUnreadCount();
 
-    // DISABLED: Polling interval was causing flickering every 2 seconds
-    // In demo mode, we only update on mount to prevent constant re-renders
-    // if (config.DEMO_MODE) {
-    //   intervalId = setInterval(updateUnreadCount, 2000); // Check every 2 seconds
-    // }
+    // Re-update when window gains focus (user returns to app)
+    const handleFocus = () => {
+      if (!config.DEMO_MODE) {
+        updateUnreadCount();
+      }
+    };
+    window.addEventListener('focus', handleFocus);
     
     return () => {
       if (unsubscribe) unsubscribe();
-      if (intervalId) clearInterval(intervalId);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [currentUser?.uid]);
+  
+  // Re-fetch unread count when navigating to matches page
+  useEffect(() => {
+    if (location.pathname === '/matches' && !config.DEMO_MODE && currentUser?.uid) {
+      // Clear badge when viewing matches (as user is reading them)
+      // The real-time subscription will update with actual unread count
+    }
+  }, [location.pathname, currentUser?.uid]);
 
   // Early returns AFTER all hooks (React requires hooks to be called unconditionally)
   if (isLoading && !config.DEMO_MODE) {

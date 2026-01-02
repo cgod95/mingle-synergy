@@ -23,11 +23,26 @@ export function LocationStatusBanner({ onPermissionGranted, className = '' }: Lo
 
   useEffect(() => {
     // Check initial status
-    setStatus(getLocationPermissionStatus());
+    const currentStatus = getLocationPermissionStatus();
+    setStatus(currentStatus);
     
-    // Check if previously dismissed this session
-    const sessionDismissed = sessionStorage.getItem('locationBannerDismissed');
-    if (sessionDismissed === 'true') {
+    // If location is already granted, never show the banner
+    if (currentStatus === 'granted') {
+      // Also persist this so we don't show banner on future visits
+      localStorage.setItem('locationPermissionGranted', 'true');
+      return;
+    }
+    
+    // Check if location was previously granted (persisted)
+    const previouslyGranted = localStorage.getItem('locationPermissionGranted');
+    if (previouslyGranted === 'true') {
+      setDismissed(true);
+      return;
+    }
+    
+    // Check if previously dismissed permanently
+    const permanentlyDismissed = localStorage.getItem('locationBannerDismissed');
+    if (permanentlyDismissed === 'true') {
       setDismissed(true);
     }
   }, []);
@@ -38,6 +53,8 @@ export function LocationStatusBanner({ onPermissionGranted, className = '' }: Lo
       const granted = await requestLocationPermission();
       if (granted) {
         setStatus('granted');
+        // Persist that location was granted so banner never shows again
+        localStorage.setItem('locationPermissionGranted', 'true');
         onPermissionGranted?.();
       } else {
         setStatus('denied');
@@ -51,7 +68,8 @@ export function LocationStatusBanner({ onPermissionGranted, className = '' }: Lo
 
   const handleDismiss = () => {
     setDismissed(true);
-    sessionStorage.setItem('locationBannerDismissed', 'true');
+    // Use localStorage for permanent dismissal (persists across sessions)
+    localStorage.setItem('locationBannerDismissed', 'true');
   };
 
   // Don't show if permission granted, unsupported, or dismissed

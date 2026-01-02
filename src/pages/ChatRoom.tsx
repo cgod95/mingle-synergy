@@ -26,6 +26,7 @@ import { logError } from "@/utils/errorHandler";
 import config from "@/config";
 import { sendMessageWithLimit, getMatchMessages, subscribeToMessages } from "@/services/messageService";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import BottomNav from "@/components/BottomNav";
 
 
 /** Local storage helpers */
@@ -66,8 +67,8 @@ export default function ChatRoom() {
   const [matchAvatar, setMatchAvatar] = useState<string>("");
   const [matchExpiresAt, setMatchExpiresAt] = useState<number>(0);
   const [venueName, setVenueName] = useState<string>("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  // Typing indicator removed - only show when real-time typing events are implemented
+  // const [isTyping, setIsTyping] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
@@ -98,26 +99,8 @@ export default function ChatRoom() {
     loadMatchInfo();
   }, [matchId, currentUser, msgs.length]);
 
-  // Typing indicator logic
-  // TODO: Integrate with real-time typing events from Firebase/WebSocket
-  // Future: Subscribe to typing events from other user in the match
-  // For now, this is simulated for demo purposes only
-  useEffect(() => {
-    // Simulate other user typing occasionally (demo)
-    // In production, this would be: onTypingEvent from Firebase/WebSocket
-    if (text.length > 0 && Math.random() > 0.7) {
-      setIsTyping(true);
-      const timeout = setTimeout(() => {
-        setIsTyping(false);
-      }, 2000);
-      return () => clearTimeout(timeout);
-    }
-    return () => {
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
-      }
-    };
-  }, [msgs.length]); // Trigger on new messages (simulating response)
+  // Typing indicator removed - simulated typing was confusing users
+  // TODO: Re-enable when real-time typing events are implemented via Firebase/WebSocket
 
   // Calculate remaining time until match expires
   const getRemainingTime = () => {
@@ -324,7 +307,7 @@ export default function ChatRoom() {
 
       return (
         <div 
-          className="fixed inset-0 flex flex-col bg-neutral-900 z-50"
+          className="fixed inset-0 flex flex-col bg-neutral-900 z-40 pb-16"
           style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}
         >
           <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl overflow-hidden">
@@ -371,11 +354,11 @@ export default function ChatRoom() {
                 <MoreVertical className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowBlockDialog(true)}>
-                <span className="text-red-600">Block User</span>
+            <DropdownMenuContent align="end" className="bg-neutral-800 border-neutral-700">
+              <DropdownMenuItem onClick={() => setShowBlockDialog(true)} className="hover:bg-neutral-700 focus:bg-neutral-700">
+                <span className="text-red-500">Block User</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
+              <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="hover:bg-neutral-700 focus:bg-neutral-700 text-neutral-200">
                 <span>Report User</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -426,43 +409,8 @@ export default function ChatRoom() {
           ))}
         </AnimatePresence>
         
-        {/* Typing Indicator */}
-        {isTyping && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center gap-2 px-2"
-          >
-            <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
-              {matchAvatar ? (
-                <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
-              ) : null}
-              <AvatarFallback className="bg-indigo-600 text-white text-xs rounded-md">
-                {matchName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="bg-neutral-700 border-2 border-neutral-600 rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
-              <div className="flex gap-1">
-                <motion.div
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                  className="w-2 h-2 bg-neutral-400 rounded-full"
-                />
-                <motion.div
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                  className="w-2 h-2 bg-neutral-400 rounded-full"
-                />
-                <motion.div
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                  className="w-2 h-2 bg-neutral-400 rounded-full"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
+        {/* Typing Indicator - Removed (was showing randomly, confusing users)
+            TODO: Re-enable when real-time typing events are implemented via Firebase/WebSocket */}
         
         <div ref={endRef} />
       </div>
@@ -554,6 +502,8 @@ export default function ChatRoom() {
         </>
       )}
           </div>
+          {/* Bottom Navigation */}
+          <BottomNav />
         </div>
       );
 }

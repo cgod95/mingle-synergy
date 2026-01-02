@@ -6,6 +6,12 @@ import MessageLimitNotice from './Notices/MessageLimitNotice';
 import ReconnectionPrompt from './ReconnectionPrompt';
 import { mockUsers } from '@/data/mock';
 import { mockMessages } from '@/data/mock';
+import { FEATURE_FLAGS } from '@/lib/flags';
+
+// Get message limit from feature flags (default: 10)
+const MESSAGE_LIMIT = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0
+  ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER
+  : 10;
 
 interface ChatViewProps {
   match: Match;
@@ -36,7 +42,7 @@ export default function ChatView({ match, currentUserId, onNewMessage }: ChatVie
     setMessages(matchMessages);
     
     const sentMessages = matchMessages.filter(m => m.senderId === currentUserId).length;
-    setMessageLimitReached(sentMessages >= 3);
+    setMessageLimitReached(sentMessages >= MESSAGE_LIMIT);
   }, [match, currentUserId]);
 
   useEffect(() => {

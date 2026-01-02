@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import { canSendMessage, sendMessage } from '@/services/messageService';
+import { FEATURE_FLAGS } from '@/lib/flags';
+
+// Get message limit from feature flags (default: 10)
+const MESSAGE_LIMIT = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0
+  ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER
+  : 10;
 
 type ChatBoxProps = {
   matchId: string;
@@ -52,7 +58,7 @@ export default function ChatBox({ matchId, currentUserId }: ChatBoxProps) {
   return (
     <div className="p-4 border-t">
       {!canSend ? (
-        <p className="text-sm text-gray-500">You've reached the 3-message limit for this match.</p>
+        <p className="text-sm text-gray-500">You've sent {MESSAGE_LIMIT} messages. Meet up to continue chatting!</p>
       ) : (
         <div className="flex flex-col space-y-2">
           <div className="flex gap-2">

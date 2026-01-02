@@ -1,7 +1,7 @@
 // 🧠 Purpose: Unified Matches & Chats page - like dating apps
 // Shows all matches with last message preview and avatar
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles, RefreshCw } from "lucide-react";
 import { getAllMatches as getLocalMatches, getRemainingSeconds, isExpired, type Match, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
@@ -146,8 +146,21 @@ export default function Matches() {
 
         // Only update state if data actually changed (prevents flickering)
         setMatches(prev => {
-          const prevJson = JSON.stringify(prev.map(m => ({ id: m.id, lastMessage: m.lastMessage, lastMessageTime: m.lastMessageTime })));
-          const nextJson = JSON.stringify(enrichedMatches.map(m => ({ id: m.id, lastMessage: m.lastMessage, lastMessageTime: m.lastMessageTime })));
+          // Compare all relevant fields to prevent unnecessary re-renders
+          const prevJson = JSON.stringify(prev.map(m => ({ 
+            id: m.id, 
+            lastMessage: m.lastMessage, 
+            lastMessageTime: m.lastMessageTime,
+            isNew: m.isNew,
+            displayName: m.displayName
+          })));
+          const nextJson = JSON.stringify(enrichedMatches.map(m => ({ 
+            id: m.id, 
+            lastMessage: m.lastMessage, 
+            lastMessageTime: m.lastMessageTime,
+            isNew: m.isNew,
+            displayName: m.displayName
+          })));
           if (prevJson === nextJson) {
             return prev; // No change, don't trigger re-render
           }
@@ -169,8 +182,9 @@ export default function Matches() {
     };
 
     fetchMatches();
-    // Refresh every 30 seconds (always, since we're using Firebase)
-    const interval = setInterval(fetchMatches, 30000);
+    // Refresh every 60 seconds to reduce flickering while still keeping data fresh
+    // Firebase subscriptions handle real-time updates for critical changes
+    const interval = setInterval(fetchMatches, 60000);
     return () => clearInterval(interval);
   }, [currentUser?.uid]); // CRITICAL: Only depend on user ID, not whole object
 
@@ -197,37 +211,44 @@ export default function Matches() {
     navigate(`/chat/${matchId}`);
   };
 
-  // Filter matches based on selected filter and search
-  const filteredMatches = matches.filter(match => {
-    // Filter by search query first
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const name = (match.displayName || '').toLowerCase();
-      const venue = (match.venueName || '').toLowerCase();
-      const message = (match.lastMessage || '').toLowerCase();
-      if (!name.includes(query) && !venue.includes(query) && !message.includes(query)) {
-        return false;
+  // Filter matches based on selected filter and search - memoized to prevent recalculation
+  const filteredMatches = useMemo(() => {
+    return matches.filter(match => {
+      // Filter by search query first
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const name = (match.displayName || '').toLowerCase();
+        const venue = (match.venueName || '').toLowerCase();
+        const message = (match.lastMessage || '').toLowerCase();
+        if (!name.includes(query) && !venue.includes(query) && !message.includes(query)) {
+          return false;
+        }
       }
-    }
-    
-    return true;
-  });
+      return true;
+    });
+  }, [matches, searchQuery]);
 
-  // Separate active and expired matches based on filter
-  const activeMatchesList = filteredMatches.filter(m => {
-    if (filter === 'expired') return false;
-    return !isExpired(m);
-  });
+  // Separate active and expired matches based on filter - memoized
+  const activeMatchesList = useMemo(() => {
+    return filteredMatches.filter(m => {
+      if (filter === 'expired') return false;
+      return !isExpired(m);
+    });
+  }, [filteredMatches, filter]);
   
-  const expiredMatchesList = filteredMatches.filter(m => {
-    if (filter === 'active') return false;
-    return isExpired(m);
-  });
+  const expiredMatchesList = useMemo(() => {
+    return filteredMatches.filter(m => {
+      if (filter === 'active') return false;
+      return isExpired(m);
+    });
+  }, [filteredMatches, filter]);
 
-  // Calculate stats
-  const activeMatches = matches.filter(m => !isExpired(m)).length;
-  const expiredMatches = matches.filter(m => isExpired(m)).length;
-  const totalMatches = matches.length;
+  // Calculate stats - memoized
+  const { activeMatches, expiredMatches, totalMatches } = useMemo(() => ({
+    activeMatches: matches.filter(m => !isExpired(m)).length,
+    expiredMatches: matches.filter(m => isExpired(m)).length,
+    totalMatches: matches.length
+  }), [matches]);
 
   return (
     <ErrorBoundary>

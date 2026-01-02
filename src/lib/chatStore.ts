@@ -34,8 +34,34 @@ export function getThread(id: string): ChatThread | undefined {
   return s[id];
 }
 export function getLastMessage(id: string): ChatMessage | undefined {
+  // First check the chatStore (mingle_chats_v1)
   const t = getThread(id);
-  return t && t.messages.length ? t.messages[t.messages.length - 1] : undefined;
+  if (t && t.messages.length) {
+    return t.messages[t.messages.length - 1];
+  }
+  
+  // Also check ChatRoom's storage format (mingle:messages:${id})
+  // This ensures we find messages regardless of which component saved them
+  try {
+    const chatRoomKey = `mingle:messages:${id}`;
+    const raw = localStorage.getItem(chatRoomKey);
+    if (raw) {
+      const msgs = JSON.parse(raw) as { sender: "you" | "them"; text: string; ts: number }[];
+      if (msgs.length) {
+        const last = msgs[msgs.length - 1];
+        // Convert 'you'/'them' to 'me'/'them' format
+        return {
+          sender: last.sender === 'you' ? 'me' : 'them',
+          text: last.text,
+          ts: last.ts
+        };
+      }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  
+  return undefined;
 }
 export function listThreads(): ChatThread[] {
   const s = load();

@@ -22,7 +22,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
     },
     {
       title: "Seize the moment",
-      description: "When you match, you have just 3 hours to introduce yourself. No endless waiting - just real connections.",
+      description: "When you match, introduce yourself! Matches expire, so don't wait - just real connections.",
       icon: <Clock className="h-16 w-16 text-brand-primary" />
     },
     {

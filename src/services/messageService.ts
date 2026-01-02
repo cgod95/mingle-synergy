@@ -31,7 +31,7 @@ export interface Message {
 
 /**
  * Send a message with validation for the message limit per user per match
- * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 10)
  */
 export const sendMessageWithLimit = async ({
   matchId,
@@ -111,7 +111,7 @@ export const sendMessageWithLimit = async ({
 
 /**
  * Check if a user can send a message (enforce message limit per user per match)
- * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 10)
  */
 export const canSendMessage = async (matchId: string, senderId: string): Promise<boolean> => {
   // Check if user is premium (premium users get unlimited messages)
@@ -160,7 +160,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
 };
 
 /**
- * Send a message, but prevent sending to expired matches (older than 3 hours)
+ * Send a message, but prevent sending to expired matches
  */
 export const sendMessage = async (matchId: string, senderId: string, text: string): Promise<void> => {
   // Check if firestore is available

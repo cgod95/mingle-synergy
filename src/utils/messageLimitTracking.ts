@@ -57,7 +57,7 @@ async function isPremiumUser(userId: string): Promise<boolean> {
 }
 
 /**
- * Check if user can send more messages (5 message limit)
+ * Check if user can send more messages (10 message limit from feature flags)
  * Premium users bypass this check
  */
 export async function canSendMessage(matchId: string, userId: string): Promise<boolean> {
