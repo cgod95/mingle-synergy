@@ -2,6 +2,7 @@ import { getPerson } from './demoPeople';
 import { listMatches } from './likesStore';
 import { ensureChat } from './chatStore';
 import config from '@/config';
+import { APP_CONSTANTS } from '@/constants/app';
 
 export type Match = {
   id: string;
@@ -17,8 +18,8 @@ export type Match = {
   venueId?: string;      // venue ID where match was made
 };
 
-// Single source of truth for match expiry (24 hours per user decision)
-export const MATCH_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+// Re-export from centralized constants for backwards compatibility
+export const MATCH_EXPIRY_MS = APP_CONSTANTS.MATCH_EXPIRY_MS;
 export const MATCH_TTL_MS = MATCH_EXPIRY_MS; // Alias for compatibility
 
 // Demo/local store fallback (used only in demo mode)
@@ -26,7 +27,7 @@ const DEMO: Record<string, Match[]> = Object.create(null);
 
 // Cache for Firebase matches
 const FIREBASE_CACHE: Record<string, { matches: Match[]; fetchedAt: number }> = Object.create(null);
-const CACHE_TTL_MS = 30000; // 30 seconds cache
+const CACHE_TTL_MS = APP_CONSTANTS.MATCHES_CACHE_TTL_MS;
 
 /**
  * Fetch matches from Firebase and transform to local Match format

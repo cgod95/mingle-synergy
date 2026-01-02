@@ -33,14 +33,11 @@ export function LocationStatusBanner({ onPermissionGranted, className = '' }: Lo
       return;
     }
     
-    // Check if location was previously granted (persisted)
-    const previouslyGranted = localStorage.getItem('locationPermissionGranted');
-    if (previouslyGranted === 'true') {
-      setDismissed(true);
-      return;
-    }
+    // If location is NOT currently granted, clear the previouslyGranted flag
+    // This handles the case where permission was revoked
+    localStorage.removeItem('locationPermissionGranted');
     
-    // Check if previously dismissed permanently
+    // Only respect manual dismissal (user clicked "Maybe Later" or "Dismiss")
     const permanentlyDismissed = localStorage.getItem('locationBannerDismissed');
     if (permanentlyDismissed === 'true') {
       setDismissed(true);

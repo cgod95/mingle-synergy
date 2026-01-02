@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { FirestoreMatch } from '@/types/match';
 import { logError } from '@/utils/errorHandler';
+import { APP_CONSTANTS } from '@/constants/app';
 
 // Define ContactInfo type
 export type ContactInfo = {
@@ -41,7 +42,7 @@ export type MatchCardProps = {
 // Helper function to calculate time remaining
 const getTimeRemaining = (timestamp: number) => {
   const now = Date.now();
-  const expiresAt = timestamp + 3 * 60 * 60 * 1000;
+  const expiresAt = timestamp + APP_CONSTANTS.MATCH_EXPIRY_MS;
   const diff = expiresAt - now;
   return diff > 0 ? diff : 0;
 };

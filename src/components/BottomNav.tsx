@@ -67,14 +67,6 @@ const BottomNav: React.FC = () => {
       window.removeEventListener('focus', handleFocus);
     };
   }, [currentUser?.uid]);
-  
-  // Re-fetch unread count when navigating to matches page
-  useEffect(() => {
-    if (location.pathname === '/matches' && !config.DEMO_MODE && currentUser?.uid) {
-      // Clear badge when viewing matches (as user is reading them)
-      // The real-time subscription will update with actual unread count
-    }
-  }, [location.pathname, currentUser?.uid]);
 
   // Early returns AFTER all hooks (React requires hooks to be called unconditionally)
   if (isLoading && !config.DEMO_MODE) {

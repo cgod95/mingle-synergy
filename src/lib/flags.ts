@@ -2,6 +2,8 @@
 // All flags are read synchronously and can be toggled via environment variables
 // DEMO MODE: Photo requirement disabled for easier testing
 
+import { APP_CONSTANTS } from '@/constants/app';
+
 export const FEATURE_FLAGS = {
   // Chat & Messaging
   UNLOCK_FULL_CHAT_ON_COLOCATION: import.meta.env.VITE_UNLOCK_FULL_CHAT_ON_COLOCATION !== 'false', // default: ON
@@ -9,7 +11,7 @@ export const FEATURE_FLAGS = {
   // BETA FIX: Only check VITE_DEMO_MODE, not development mode
   LIMIT_MESSAGES_PER_USER: import.meta.env.VITE_DEMO_MODE === 'true'
     ? -1 // Unlimited in demo mode
-    : parseInt(import.meta.env.VITE_LIMIT_MESSAGES_PER_USER || '10', 10), // default: 10
+    : parseInt(import.meta.env.VITE_LIMIT_MESSAGES_PER_USER || String(APP_CONSTANTS.DEFAULT_MESSAGE_LIMIT), 10), // default from constants
 
   // UI & Privacy
   BLUR_PHOTOS_UNTIL_MATCH: import.meta.env.VITE_BLUR_PHOTOS_UNTIL_MATCH === 'true', // default: OFF
