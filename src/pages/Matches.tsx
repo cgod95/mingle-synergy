@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles, RefreshCw } from "lucide-react";
 import { getAllMatches as getLocalMatches, getRemainingSeconds, isExpired, type Match, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
 import { getLastMessageForMatch, LastMessageInfo } from "@/services/messageService";
@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { logError } from "@/utils/errorHandler";
 import { matchService, userService } from "@/services";
 import { FirestoreMatch } from "@/types/match";
+import ReconnectButton from "@/components/ReconnectButton";
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -494,11 +495,13 @@ export default function Matches() {
                         return (
                           <div key={match.id}>
                             <Card
-                              className="cursor-pointer transition-all border overflow-hidden opacity-60 border-neutral-700 bg-neutral-800/50"
-                              onClick={() => handleMatchClick(match.id)}
+                              className="transition-all border overflow-hidden opacity-70 border-neutral-700 bg-neutral-800/50 hover:opacity-90 hover:border-neutral-600"
                             >
                               <div className="flex items-center gap-4 px-4 py-4 md:px-6 md:py-6">
-                                <Avatar className="h-20 w-20 flex-shrink-0 ring-2 ring-offset-2 ring-offset-neutral-800 ring-neutral-500">
+                                <Avatar 
+                                  className="h-20 w-20 flex-shrink-0 ring-2 ring-offset-2 ring-offset-neutral-800 ring-neutral-500 cursor-pointer grayscale hover:grayscale-0 transition-all"
+                                  onClick={() => handleMatchClick(match.id)}
+                                >
                                   {match.avatarUrl ? (
                                     <AvatarImage 
                                       src={match.avatarUrl} 
@@ -512,7 +515,10 @@ export default function Matches() {
 
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center justify-between mb-2">
-                                    <h3 className="font-bold text-xl text-white truncate">
+                                    <h3 
+                                      className="font-bold text-xl text-neutral-300 truncate cursor-pointer hover:text-white transition-colors"
+                                      onClick={() => handleMatchClick(match.id)}
+                                    >
                                       {match.displayName || "Match"}
                                     </h3>
                                     <Badge variant="outline" className="text-xs text-neutral-500 border-neutral-600 bg-neutral-800">
@@ -530,17 +536,33 @@ export default function Matches() {
                                     </p>
                                   ) : null}
                                   
-                                  {match.venueName && (
-                                    <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-neutral-800/50 rounded-md border border-neutral-700/50">
-                                      <MapPin className="w-3 h-3 text-neutral-500" />
-                                      <span className="text-xs text-neutral-500">
-                                        Met at {match.venueName}
-                                      </span>
-                                    </div>
-                                  )}
+                                  <div className="flex items-center gap-3 mt-2">
+                                    {match.venueName && (
+                                      <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-neutral-800/50 rounded-md border border-neutral-700/50">
+                                        <MapPin className="w-3 h-3 text-neutral-500" />
+                                        <span className="text-xs text-neutral-500">
+                                          Met at {match.venueName}
+                                        </span>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Reconnect Button for expired matches */}
+                                    <ReconnectButton
+                                      targetUserId={match.partnerId}
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-indigo-400 border-indigo-500/50 hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-400"
+                                    >
+                                      <RefreshCw className="w-3 h-3 mr-1.5" />
+                                      Reconnect
+                                    </ReconnectButton>
+                                  </div>
                                 </div>
 
-                                <ArrowRight className="w-5 h-5 text-neutral-500 flex-shrink-0" />
+                                <ArrowRight 
+                                  className="w-5 h-5 text-neutral-500 flex-shrink-0 cursor-pointer hover:text-neutral-300 transition-colors" 
+                                  onClick={() => handleMatchClick(match.id)}
+                                />
                               </div>
                             </Card>
                           </div>

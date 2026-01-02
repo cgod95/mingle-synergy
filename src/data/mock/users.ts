@@ -3,7 +3,7 @@ import { User } from '@/types';
 export const mockUsers: User[] = [
   {
     id: 'u1',
-    name: 'Alex (they/them)',
+    name: 'Alex',
     photos: [
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d'
@@ -15,8 +15,8 @@ export const mockUsers: User[] = [
     zone: 'Near Counter',
     isVisible: true,
     interests: ['croissants', 'bouldering', 'urban beekeeping', 'bad puns'],
-    gender: 'non-binary',
-    interestedIn: ['female', 'male', 'non-binary'],
+    gender: 'man',
+    interestedIn: 'everyone',
     age: 28,
     ageRangePreference: { min: 25, max: 35 },
     matches: ['u2', 'u3'],
@@ -27,7 +27,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'u2',
-    name: 'Jordan (she/her)',
+    name: 'Jordan',
     photos: [
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
       'https://images.unsplash.com/photo-1438761681033-6461ffad8d80'
@@ -39,8 +39,8 @@ export const mockUsers: User[] = [
     zone: 'Seated Area',
     isVisible: true,
     interests: ['art', 'photography', 'jazz', 'murals'],
-    gender: 'female',
-    interestedIn: ['male', 'non-binary'],
+    gender: 'woman',
+    interestedIn: 'men',
     age: 26,
     ageRangePreference: { min: 25, max: 35 },
     matches: ['u1', 'u4'],
@@ -51,7 +51,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'u3',
-    name: 'Taylor (he/him)',
+    name: 'Taylor',
     photos: [
       'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6',
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'
@@ -61,8 +61,8 @@ export const mockUsers: User[] = [
     currentVenue: 'v2',
     isVisible: true,
     interests: ['music', 'cocktails', 'trivia', 'vinyl records'],
-    gender: 'male',
-    interestedIn: ['female', 'non-binary'],
+    gender: 'man',
+    interestedIn: 'women',
     age: 29,
     ageRangePreference: { min: 25, max: 40 },
     matches: ['u1', 'u5'],
@@ -73,7 +73,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'u4',
-    name: 'Morgan (she/her)',
+    name: 'Morgan',
     photos: [
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2'
@@ -83,8 +83,8 @@ export const mockUsers: User[] = [
     currentVenue: 'v3',
     isVisible: true,
     interests: ['hiking', 'travel', 'haikus', 'ramen'],
-    gender: 'female',
-    interestedIn: ['male', 'female'],
+    gender: 'woman',
+    interestedIn: 'everyone',
     age: 31,
     ageRangePreference: { min: 28, max: 38 },
     matches: ['u2', 'u6'],
@@ -95,7 +95,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'u5',
-    name: 'Casey (they/them)',
+    name: 'Casey',
     photos: [
       'https://images.unsplash.com/photo-1519345182560-3f2917c472ef',
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d'
@@ -105,8 +105,8 @@ export const mockUsers: User[] = [
     currentVenue: 'v2',
     isVisible: true,
     interests: ['fitness', 'health', 'karaoke', 'push-ups'],
-    gender: 'non-binary',
-    interestedIn: ['female', 'male'],
+    gender: 'man',
+    interestedIn: 'everyone',
     age: 33,
     ageRangePreference: { min: 28, max: 40 },
     matches: ['u3', 'u7'],
@@ -117,7 +117,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'u6',
-    name: 'Riley (she/they)',
+    name: 'Riley',
     photos: [
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2',
       'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04'
@@ -127,8 +127,8 @@ export const mockUsers: User[] = [
     currentVenue: 'v3',
     isVisible: true,
     interests: ['food', 'wine', 'gardening', 'balcony tomatoes'],
-    gender: 'female',
-    interestedIn: ['male', 'female', 'non-binary'],
+    gender: 'woman',
+    interestedIn: 'everyone',
     age: 27,
     ageRangePreference: { min: 25, max: 35 },
     matches: ['u4', 'u8'],
@@ -139,7 +139,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'u7',
-    name: 'Emma (she/her)',
+    name: 'Emma',
     photos: [
       'https://images.unsplash.com/photo-1614644147798-f8c0fc9da7f6',
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2'
@@ -151,8 +151,8 @@ export const mockUsers: User[] = [
     zone: 'Near Counter',
     isVisible: true,
     interests: ['reading', 'coffee', 'novels', 'plot twists'],
-    gender: 'female',
-    interestedIn: ['male', 'female'],
+    gender: 'woman',
+    interestedIn: 'everyone',
     age: 27,
     ageRangePreference: { min: 25, max: 38 },
     matches: ['u3', 'u9'],
@@ -163,7 +163,7 @@ export const mockUsers: User[] = [
   },
   {
     id: 'u8',
-    name: 'Michael (he/him)',
+    name: 'Michael',
     photos: [
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d'
@@ -175,8 +175,8 @@ export const mockUsers: User[] = [
     zone: 'Outside',
     isVisible: true,
     interests: ['photography', 'arts', 'boats', 'weddings'],
-    gender: 'male',
-    interestedIn: ['female', 'non-binary'],
+    gender: 'man',
+    interestedIn: 'women',
     age: 31,
     ageRangePreference: { min: 27, max: 36 },
     matches: ['u4', 'u10'],
@@ -199,8 +199,8 @@ export const mockUsers: User[] = [
     zone: 'Seated Area',
     isVisible: true,
     interests: ['yoga', 'cooking'],
-    gender: 'female',
-    interestedIn: ['male', 'female'],
+    gender: 'woman',
+    interestedIn: 'everyone',
     age: 29,
     ageRangePreference: {
       min: 25,
@@ -224,8 +224,8 @@ export const mockUsers: User[] = [
     zone: 'At the Bar',
     isVisible: true,
     interests: ['music', 'cocktails'],
-    gender: 'male',
-    interestedIn: ['female'],
+    gender: 'man',
+    interestedIn: 'women',
     age: 32,
     ageRangePreference: {
       min: 28,
@@ -249,8 +249,8 @@ export const mockUsers: User[] = [
     zone: 'Near Entrance',
     isVisible: true,
     interests: ['classical music', 'wine'],
-    gender: 'female',
-    interestedIn: ['male'],
+    gender: 'woman',
+    interestedIn: 'men',
     age: 28,
     ageRangePreference: {
       min: 27,
@@ -274,8 +274,8 @@ export const mockUsers: User[] = [
     zone: 'At the Bar',
     isVisible: true,
     interests: ['guitar', 'craft beer'],
-    gender: 'male',
-    interestedIn: ['female'],
+    gender: 'man',
+    interestedIn: 'women',
     age: 30,
     ageRangePreference: {
       min: 25,
@@ -299,8 +299,8 @@ export const mockUsers: User[] = [
     zone: 'Lounge',
     isVisible: true,
     interests: ['technology', 'running', 'startups'],
-    gender: 'non-binary',
-    interestedIn: ['female', 'male', 'non-binary'],
+    gender: 'man',
+    interestedIn: 'everyone',
     age: 34,
     ageRangePreference: {
       min: 28,
@@ -324,8 +324,8 @@ export const mockUsers: User[] = [
     zone: 'Patio',
     isVisible: true,
     interests: ['dogs', 'cooking', 'travel'],
-    gender: 'female',
-    interestedIn: ['male', 'female'],
+    gender: 'woman',
+    interestedIn: 'everyone',
     age: 25,
     ageRangePreference: {
       min: 23,
@@ -349,8 +349,8 @@ export const mockUsers: User[] = [
     zone: 'Game Room',
     isVisible: true,
     interests: ['cycling', 'gaming', 'craft beer'],
-    gender: 'male',
-    interestedIn: ['female', 'non-binary'],
+    gender: 'man',
+    interestedIn: 'women',
     age: 29,
     ageRangePreference: {
       min: 25,
@@ -374,8 +374,8 @@ export const mockUsers: User[] = [
     zone: 'Balcony',
     isVisible: true,
     interests: ['poetry', 'jazz', 'vintage'],
-    gender: 'male',
-    interestedIn: ['female', 'male'],
+    gender: 'man',
+    interestedIn: 'everyone',
     age: 36,
     ageRangePreference: {
       min: 30,

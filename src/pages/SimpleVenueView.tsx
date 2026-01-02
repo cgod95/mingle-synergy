@@ -17,6 +17,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { matchService } from '@/services';
 import config from '@/config';
 import { logError } from '@/utils/errorHandler';
+import { triggerNewMatchNotification } from '@/hooks/useNewMatchNotification';
 
 interface VenueUser {
   id: string;
@@ -99,9 +100,12 @@ const SimpleVenueView: React.FC = () => {
         setLikedUserIds(prev => new Set([...prev, userId]));
         
         if (result.isMatch) {
-          toast({
-            title: "It's a match! 💕",
-            description: `You and ${user.name} liked each other at ${venue?.name}!`,
+          // Trigger in-app match popup
+          triggerNewMatchNotification({
+            matchId: result.matchId || `match_${Date.now()}`,
+            partnerName: user.name,
+            partnerPhoto: user.photos?.[0],
+            venueName: venue?.name
           });
         } else {
           toast({
@@ -117,9 +121,12 @@ const SimpleVenueView: React.FC = () => {
         setLikedUserIds(prev => new Set([...prev, userId]));
         
         if (result.isMatch) {
-          toast({
-            title: "It's a match! 💕",
-            description: `You and ${user.name} liked each other at ${venue?.name}!`,
+          // Trigger in-app match popup
+          triggerNewMatchNotification({
+            matchId: result.matchId || `match_${Date.now()}`,
+            partnerName: user.name,
+            partnerPhoto: user.photos?.[0],
+            venueName: venue?.name
           });
         } else {
           toast({

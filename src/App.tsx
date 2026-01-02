@@ -54,8 +54,28 @@ import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { Toaster } from "./components/ui/toaster";
 import { NetworkErrorBanner } from "./components/ui/NetworkErrorBanner";
 import { ExpiryWarning } from "./components/ExpiryWarning";
+import { NewMatchModal } from "./components/NewMatchModal";
+import { useNewMatchNotification } from "./hooks/useNewMatchNotification";
 import analytics from "./services/appAnalytics";
 import { FEATURE_FLAGS } from "./lib/flags";
+
+// Wrapper for NewMatchModal to use hooks
+function NewMatchModalWrapper() {
+  const { currentMatch, isModalOpen, closeModal } = useNewMatchNotification();
+  
+  if (!currentMatch) return null;
+  
+  return (
+    <NewMatchModal
+      isOpen={isModalOpen}
+      onClose={closeModal}
+      matchId={currentMatch.matchId}
+      partnerName={currentMatch.partnerName}
+      partnerPhoto={currentMatch.partnerPhoto}
+      venueName={currentMatch.venueName}
+    />
+  );
+}
 
 function AppRoutes() {
   const location = useLocation();
@@ -156,6 +176,7 @@ export default function App() {
             >
               <ExpiryWarning />
               <AppRoutes />
+              <NewMatchModalWrapper />
             </BrowserRouter>
             <Toaster />
             {/* Global network error banner - shows when offline or network errors occur */}

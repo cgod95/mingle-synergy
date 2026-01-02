@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,9 @@ import {
   Music,
   Dumbbell,
   Palette,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { mockUsers } from '@/data/mock';
@@ -25,6 +27,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { matchService } from '@/services';
 import config from '@/config';
 import { logError } from '@/utils/errorHandler';
+import { triggerNewMatchNotification } from '@/hooks/useNewMatchNotification';
 
 interface VenueUserGridProps {
   venueId: string;
@@ -94,6 +97,109 @@ const getZoneColor = (zone: string) => {
   }
 };
 
+// Waiting Room UI Component - shown when no other users are checked in
+function WaitingRoomUI({ venueName }: { venueName: string }) {
+  const [dots, setDots] = useState('');
+  const [checkInCount, setCheckInCount] = useState(0);
+  const [showPulse, setShowPulse] = useState(false);
+
+  // Animate the waiting dots
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Simulate occasional "someone just checked in" moments (for demo only)
+  useEffect(() => {
+    // Random pulse animation every 15-30 seconds to show activity
+    const pulseInterval = setInterval(() => {
+      setShowPulse(true);
+      setTimeout(() => setShowPulse(false), 2000);
+    }, Math.random() * 15000 + 15000);
+
+    return () => clearInterval(pulseInterval);
+  }, []);
+
+  return (
+    <div className="text-center py-12 px-6">
+      {/* Animated Icon */}
+      <div className={`relative inline-block mb-6 ${showPulse ? 'animate-pulse' : ''}`}>
+        <div className="w-24 h-24 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center">
+          <Users className="w-12 h-12 text-indigo-500" />
+        </div>
+        {/* Sparkle decoration */}
+        <Sparkles className="absolute -top-1 -right-1 w-6 h-6 text-amber-400 animate-pulse" />
+        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
+      </div>
+
+      {/* Main Message */}
+      <h3 className="text-xl font-bold text-gray-800 mb-2">
+        You're the first one here! 🎉
+      </h3>
+      <p className="text-gray-600 mb-4">
+        Be the trendsetter at {venueName}
+      </p>
+
+      {/* Waiting Animation */}
+      <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full mb-6">
+        <Bell className="w-4 h-4" />
+        <span className="text-sm font-medium">
+          Waiting for others to check in{dots}
+        </span>
+      </div>
+
+      {/* Live Counter Section */}
+      <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-xl p-6 mb-6 border border-indigo-100">
+        <div className="flex items-center justify-center gap-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-indigo-600">
+              {checkInCount}
+            </div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide">
+              People Today
+            </div>
+          </div>
+          <div className="h-12 w-px bg-gray-200" />
+          <div className="text-center">
+            <div className="text-3xl font-bold text-purple-600">
+              1
+            </div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide">
+              That's You!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tips */}
+      <div className="space-y-3 text-left bg-gray-50 rounded-lg p-4">
+        <p className="text-sm font-medium text-gray-700">While you wait:</p>
+        <ul className="text-sm text-gray-600 space-y-2">
+          <li className="flex items-center gap-2">
+            <span className="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center text-xs">✨</span>
+            Make sure your profile is complete
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center text-xs">📸</span>
+            Add a great photo if you haven't
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="w-5 h-5 bg-pink-100 rounded-full flex items-center justify-center text-xs">💬</span>
+            We'll notify you when someone arrives
+          </li>
+        </ul>
+      </div>
+
+      {/* Encouragement */}
+      <p className="text-xs text-gray-400 mt-6">
+        Venues get busier throughout the evening — stick around! 
+      </p>
+    </div>
+  );
+}
+
 export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserView }: VenueUserGridProps) {
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -112,10 +218,12 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
     if (!currentUser?.uid) return;
 
     // Get users checked in to this venue
+    // PHOTO FILTER: Only show users with at least 1 photo
     const usersAtVenue = mockUsers.filter(user => 
       user.currentVenue === venueId && 
       user.isCheckedIn && 
-      user.id !== currentUser.uid
+      user.id !== currentUser.uid &&
+      user.photos && user.photos.length > 0 // Must have at least 1 photo
     );
 
     // Enhance user data with venue-specific information
@@ -191,12 +299,15 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
       setLikedUserIds(prev => new Set([...prev, userId]));
       
       if (isMatch) {
-        toast({
-          title: "It's a match! 💕",
-          description: `You and ${user.name} liked each other at ${venueName}!`,
+        // Trigger in-app match popup
+        triggerNewMatchNotification({
+          matchId: `match_${Date.now()}`,
+          partnerName: user.name,
+          partnerPhoto: user.photos?.[0],
+          venueName
         });
         
-        // Send match notification
+        // Send match notification (for background/push)
         notificationService.notifyNewMatch({
           userId: currentUser.uid,
           matchId: `match_${Date.now()}`,
@@ -357,11 +468,7 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
 
       <CardContent>
         {filteredUsers.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>No one else is checked in right now</p>
-            <p className="text-sm">Check back later or try another venue</p>
-          </div>
+          <WaitingRoomUI venueName={venueName} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredUsers.map((user) => (

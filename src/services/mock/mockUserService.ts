@@ -2,13 +2,13 @@ import { UserService, UserProfile } from '@/types/services';
 import { users } from '@/data/mockData';
 
 // Type guard for gender validation
-function isValidGender(gender: string): gender is 'male' | 'female' | 'non-binary' | 'other' {
-  return ['male', 'female', 'non-binary', 'other'].includes(gender);
+function isValidGender(gender: string): gender is 'man' | 'woman' {
+  return ['man', 'woman'].includes(gender);
 }
 
 // Type guard for interestedIn validation
-function areValidGenders(genders: string[]): genders is ('male' | 'female' | 'non-binary' | 'other')[] {
-  return Array.isArray(genders) && genders.every(g => isValidGender(g));
+function isValidInterestedIn(value: string): value is 'men' | 'women' | 'everyone' {
+  return ['men', 'women', 'everyone'].includes(value);
 }
 
 class MockUserService implements UserService {
@@ -32,8 +32,8 @@ class MockUserService implements UserService {
               isCheckedIn: false,
               isVisible: true,
               interests: parsed.interests || [],
-              gender: (parsed.gender && isValidGender(parsed.gender)) ? parsed.gender : 'other',
-              interestedIn: (parsed.interestedIn && areValidGenders(parsed.interestedIn)) ? parsed.interestedIn : ['other'],
+              gender: (parsed.gender && isValidGender(parsed.gender)) ? parsed.gender : 'man',
+              interestedIn: (parsed.interestedIn && isValidInterestedIn(parsed.interestedIn)) ? parsed.interestedIn : 'everyone',
               age: parsed.age || 25,
               ageRangePreference: parsed.ageRangePreference || { min: 18, max: 40 },
               matches: parsed.matches || [],
@@ -64,8 +64,8 @@ class MockUserService implements UserService {
       isCheckedIn: user.isCheckedIn ?? false,
       isVisible: user.isVisible ?? true,
       interests: user.interests || [],
-      gender: isValidGender(user.gender || '') ? (user.gender || 'other') : 'other',
-      interestedIn: areValidGenders(user.interestedIn || []) ? (user.interestedIn || ['other']) : ['other'],
+      gender: isValidGender(user.gender || '') ? (user.gender || 'man') : 'man',
+      interestedIn: isValidInterestedIn(user.interestedIn as unknown as string || '') ? (user.interestedIn as unknown as 'men' | 'women' | 'everyone') : 'everyone',
       age: user.age || 25,
       ageRangePreference: user.ageRangePreference || { min: 18, max: 40 },
       matches: user.matches || [],
@@ -101,8 +101,8 @@ class MockUserService implements UserService {
         zone: undefined,
         isVisible: data.isVisible !== undefined ? data.isVisible : true,
         interests: data.interests || [],
-        gender: (data.gender && isValidGender(data.gender)) ? data.gender : 'other',
-        interestedIn: (data.interestedIn && areValidGenders(data.interestedIn)) ? data.interestedIn as ('male' | 'female' | 'non-binary' | 'other')[] : ['other'] as ('male' | 'female' | 'non-binary' | 'other')[],
+        gender: (data.gender && isValidGender(data.gender)) ? data.gender : 'man',
+        interestedIn: (data.interestedIn && isValidInterestedIn(data.interestedIn)) ? data.interestedIn : 'everyone',
         age: data.age || 25,
         ageRangePreference: data.ageRangePreference || { min: 18, max: 40 },
         matches: data.matches || [],
@@ -119,12 +119,12 @@ class MockUserService implements UserService {
     // Handle gender validation
     const safeData = { ...data };
     if (data.gender && !isValidGender(data.gender)) {
-      safeData.gender = 'other';
+      safeData.gender = 'man';
     }
     
     // Handle interestedIn validation
-    if (data.interestedIn && !areValidGenders(data.interestedIn)) {
-      safeData.interestedIn = ['other'] as ('male' | 'female' | 'non-binary' | 'other')[];
+    if (data.interestedIn && !isValidInterestedIn(data.interestedIn)) {
+      safeData.interestedIn = 'everyone';
     }
     
     // Map displayName to name if provided
@@ -151,10 +151,10 @@ class MockUserService implements UserService {
     }
     
     // Ensure gender is valid
-    const safeGender = isValidGender(data.gender) ? data.gender : 'other';
+    const safeGender = isValidGender(data.gender) ? data.gender : 'man';
     
     // Ensure interestedIn is valid
-    const safeInterestedIn = areValidGenders(data.interestedIn) ? data.interestedIn : ['other'] as ('male' | 'female' | 'non-binary' | 'other')[];
+    const safeInterestedIn = isValidInterestedIn(data.interestedIn) ? data.interestedIn : 'everyone';
     
     // Add the new user to our mock data with validated data
     users.push({
@@ -214,8 +214,8 @@ class MockUserService implements UserService {
           isCheckedIn: user.isCheckedIn ?? false,
           isVisible: user.isVisible ?? true,
           interests: user.interests || [],
-          gender: isValidGender(user.gender || '') ? (user.gender || 'other') : 'other',
-          interestedIn: areValidGenders(user.interestedIn || []) ? (user.interestedIn || ['other']) : ['other'],
+          gender: isValidGender(user.gender || '') ? (user.gender || 'man') : 'man',
+          interestedIn: isValidInterestedIn(user.interestedIn as unknown as string || '') ? (user.interestedIn as unknown as 'men' | 'women' | 'everyone') : 'everyone',
           age: user.age || 25,
           ageRangePreference: user.ageRangePreference || { min: 18, max: 40 },
           matches: user.matches || [],
@@ -236,6 +236,19 @@ class MockUserService implements UserService {
   getReconnectRequests() { return Promise.resolve([]); }
   acceptReconnectRequest() { return Promise.resolve(); }
   sendReconnectRequest() { return Promise.resolve(); }
+  
+  // Block and report user methods (mock implementations)
+  async blockUser(currentUserId: string, blockedUserId: string): Promise<void> {
+    console.log(`[Mock] User ${currentUserId} blocked user ${blockedUserId}`);
+    // In mock, we don't persist this
+    return Promise.resolve();
+  }
+  
+  async reportUser(currentUserId: string, reportedUserId: string, reason: string): Promise<void> {
+    console.log(`[Mock] User ${currentUserId} reported user ${reportedUserId} for: ${reason}`);
+    // In mock, we don't persist this
+    return Promise.resolve();
+  }
 
   async uploadProfilePhoto(userId: string, file: File): Promise<string> {
     // In demo mode, convert file to data URL and store in user profile
@@ -246,12 +259,8 @@ class MockUserService implements UserService {
         try {
           const dataUrl = e.target?.result as string;
           
-          // Get current user profile
-          const currentProfile = await this.getUserProfile(userId);
-          const currentPhotos = currentProfile?.photos || [];
-          
-          // Add new photo to photos array
-          const updatedPhotos = [...currentPhotos, dataUrl];
+          // ENFORCE 1 PHOTO MAX: Replace existing photo instead of appending
+          const updatedPhotos = [dataUrl];
           
           // Update user profile with new photo
           await this.updateUserProfile(userId, {

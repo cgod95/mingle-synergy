@@ -17,8 +17,8 @@ interface TestUser {
   profile: {
     name: string;
     age: number;
-    gender: 'male' | 'female' | 'non-binary' | 'other';
-    interestedIn: ('male' | 'female' | 'non-binary' | 'other')[];
+    gender: 'man' | 'woman';
+    interestedIn: 'men' | 'women' | 'everyone';
     bio: string;
   };
 }
@@ -57,8 +57,8 @@ const BrowserE2ETestRunner: React.FC = () => {
       profile: {
         name: 'Test User 1',
         age: 25,
-        gender: 'male',
-        interestedIn: ['female'],
+        gender: 'man',
+        interestedIn: 'women',
         bio: 'Test user for E2E testing',
       },
     },
@@ -68,8 +68,8 @@ const BrowserE2ETestRunner: React.FC = () => {
       profile: {
         name: 'Test User 2',
         age: 23,
-        gender: 'female',
-        interestedIn: ['male'],
+        gender: 'woman',
+        interestedIn: 'men',
         bio: 'Test user for E2E testing',
       },
     },

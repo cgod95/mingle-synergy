@@ -186,6 +186,17 @@ class MockMatchService implements MatchService {
   calculateTimeRemaining(expiresAt: Date): string {
     return calculateTimeRemaining(expiresAt.getTime());
   }
+  
+  // Get time remaining (alternative signature used by MatchTimer)
+  getTimeRemaining(expiresAt: number): string {
+    return calculateTimeRemaining(expiresAt);
+  }
+  
+  // Get a match by its ID
+  async getMatchById(matchId: string): Promise<FirestoreMatch | null> {
+    const match = matches.find(m => m.id === matchId);
+    return match ? (match as unknown as FirestoreMatch) : null;
+  }
 
   async sendMessage(matchId: string, userId: string, message: string): Promise<boolean> {
     try {

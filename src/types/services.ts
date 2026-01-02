@@ -117,8 +117,8 @@ export interface UserProfile {
   currentZone?: string;
   isVisible: boolean;
   interests: string[];
-  gender: 'male' | 'female' | 'non-binary' | 'other';
-  interestedIn: ('male' | 'female' | 'non-binary' | 'other')[];
+  gender: 'man' | 'woman';
+  interestedIn: 'men' | 'women' | 'everyone';
   age: number;
   ageRangePreference: {
     min: number;

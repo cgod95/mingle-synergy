@@ -20,7 +20,12 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [remainingMessages, setRemainingMessages] = useState<number>(3);
+  
+  // Get message limit from feature flags (default: 10)
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 
+    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
+    : 10;
+  const [remainingMessages, setRemainingMessages] = useState<number>(messageLimit);
   const [canSend, setCanSend] = useState(true);
 
   // Subscribe to message limit updates
@@ -32,9 +37,6 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
       const userMessages = mockMessages.filter(
         msg => msg.matchId === matchId && msg.senderId === currentUser.uid
       );
-      const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 
-        ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-        : 10;
       const remaining = Math.max(0, messageLimit - userMessages.length);
       const canSendMessages = remaining > 0;
       
@@ -43,7 +45,7 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [matchId, currentUser?.uid]);
+  }, [matchId, currentUser?.uid, messageLimit]);
 
   const handleSend = async () => {
     if (!text.trim() || !currentUser || !canSend) return;
@@ -89,9 +91,12 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
   return (
     <div className="flex flex-col gap-2 p-4 bg-white border-t">
       {/* Message limit indicator */}
-      <div className="flex justify-between items-center text-xs text-gray-500">
-        <span>
-          {canSend ? `${remainingMessages} messages remaining` : 'Message limit reached'}
+      <div className="flex justify-between items-center text-xs">
+        <span className={canSend ? "text-gray-500" : "text-amber-600 font-medium"}>
+          {canSend 
+            ? `${remainingMessages} message${remainingMessages !== 1 ? 's' : ''} remaining` 
+            : `You've sent ${messageLimit} messages. Meet up to continue chatting!`
+          }
         </span>
         {error && <span className="text-red-500">{error}</span>}
       </div>
@@ -99,7 +104,7 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
       {/* Input and send button */}
       <div className="flex items-center gap-2">
         <input
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
           placeholder={canSend ? "Type your message..." : "Message limit reached"}
           value={text}
           onChange={(e) => setText(e.target.value)}

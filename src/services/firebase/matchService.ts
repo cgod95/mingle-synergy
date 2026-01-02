@@ -400,6 +400,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
   /**
    * Like a user and check for mutual match
+   * Likes are VENUE-SPECIFIC - they only count within the same venue
    * @returns Object with isMatch (true if mutual like created a match) and matchId (if created)
    */
   public async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<{ isMatch: boolean; matchId?: string }> {
@@ -420,29 +421,34 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         return { isMatch: true, matchId: existingMatch.id };
       }
 
-      // Check if target user has already liked current user (check likes, not matches)
+      // Check if target user has already liked current user AT THE SAME VENUE
       if (!firestore) {
         throw new Error('Firestore not initialized');
       }
       
-      const likesRef = collection(firestore, 'likes');
-      const targetUserLikesRef = doc(likesRef, targetUserId);
-      const targetUserLikesSnap = await getDoc(targetUserLikesRef);
+      // VENUE-SPECIFIC LIKES: Use compound document ID: {venueId}_{userId}
+      // This ensures likes are scoped to the specific venue
+      const venueLikesRef = collection(firestore, 'venueLikes');
+      const targetUserVenueLikesRef = doc(venueLikesRef, `${venueId}_${targetUserId}`);
+      const targetUserVenueLikesSnap = await getDoc(targetUserVenueLikesRef);
       
-      const targetUserLikes = targetUserLikesSnap.exists() 
-        ? targetUserLikesSnap.data()?.likes || [] 
+      const targetUserLikes = targetUserVenueLikesSnap.exists() 
+        ? targetUserVenueLikesSnap.data()?.likes || [] 
         : [];
       
-      // Always record the current user's like first
-      const currentUserLikesRef = doc(likesRef, currentUserId);
-      await setDoc(currentUserLikesRef, { 
-        likes: arrayUnion(targetUserId) 
+      // Record the current user's like for this venue
+      const currentUserVenueLikesRef = doc(venueLikesRef, `${venueId}_${currentUserId}`);
+      await setDoc(currentUserVenueLikesRef, { 
+        venueId,
+        userId: currentUserId,
+        likes: arrayUnion(targetUserId),
+        updatedAt: Date.now()
       }, { merge: true });
       
       const isMutual = targetUserLikes.includes(currentUserId);
 
       if (isMutual) {
-        // Mutual like detected - create a match
+        // Mutual like detected at the same venue - create a match
         const venueName = await this.getVenueName(venueId);
         const matchId = await this.createMatch(currentUserId, targetUserId, venueId, venueName);
         return { isMatch: true, matchId };
@@ -452,6 +458,20 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     } catch (error) {
       logError(error as Error, { source: 'matchService', action: 'likeUser', currentUserId, targetUserId, venueId });
       throw error;
+    }
+  }
+
+  /**
+   * Clear all venue-specific likes for a user when they check out
+   */
+  public async clearVenueLikes(userId: string, venueId: string): Promise<void> {
+    try {
+      if (!firestore) return;
+      
+      const venueLikesRef = doc(firestore, 'venueLikes', `${venueId}_${userId}`);
+      await deleteDoc(venueLikesRef);
+    } catch (error) {
+      logError(error as Error, { source: 'matchService', action: 'clearVenueLikes', userId, venueId }, ErrorSeverity.WARNING);
     }
   }
 

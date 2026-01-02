@@ -395,6 +395,10 @@ class MatchingService {
   }
 
   private isEligibleMatch(user1: User, user2: User): boolean {
+    // PHOTO FILTER: Users must have at least 1 photo to be shown as potential matches
+    if (!user1.photos || user1.photos.length === 0) return false;
+    if (!user2.photos || user2.photos.length === 0) return false;
+
     // Check age preferences
     const user1AgeOk = user2.age >= user1.preferences.ageRange[0] && 
                       user2.age <= user1.preferences.ageRange[1];

@@ -16,16 +16,19 @@ import { retryWithMessage } from '@/utils/retry';
 import { logError } from '@/utils/errorHandler';
 
 const ageOptions = Array.from({ length: 83 }, (_, i) => i + 18); // ages 18–100
-const genderOptions = ['male', 'female', 'non-binary', 'other'];
+const genderOptions = [
+  { value: 'man', label: 'Man' },
+  { value: 'woman', label: 'Woman' },
+];
 const interestedInOptions = [
-  { value: 'everyone', label: 'Doesn\'t matter' },
-  { value: 'female', label: 'Women' },
-  { value: 'male', label: 'Men' },
+  { value: 'everyone', label: 'Everyone' },
+  { value: 'women', label: 'Women' },
+  { value: 'men', label: 'Men' },
 ];
 
 export default function CreateProfile() {
   const [name, setName] = useState('');
-  const [gender, setGender] = useState('other');
+  const [gender, setGender] = useState('man');
   const [interestedIn, setInterestedIn] = useState<string>('everyone');
   const [age, setAge] = useState(25);
   const [error, setError] = useState('');
@@ -66,7 +69,7 @@ export default function CreateProfile() {
       if (saved) {
         const draft = JSON.parse(saved);
         setName(draft.name || '');
-        setGender(draft.gender || 'other');
+        setGender(draft.gender || 'man');
         setInterestedIn(draft.interestedIn || 'everyone');
         setAge(draft.age || 25);
       }
@@ -100,13 +103,8 @@ export default function CreateProfile() {
       return;
     }
     
-    // Convert interestedIn from "everyone" to array
-    let interestedInArray: ('male' | 'female' | 'non-binary' | 'other')[] = [];
-    if (interestedIn === 'everyone') {
-      interestedInArray = ['male', 'female'];
-    } else {
-      interestedInArray = [interestedIn as 'male' | 'female'];
-    }
+    // interestedIn is now stored as a single value: 'men', 'women', or 'everyone'
+    // No conversion needed - store directly
     
     setSaving(true);
     setError('');
@@ -121,7 +119,7 @@ export default function CreateProfile() {
         isVisible: true,
         interests: [],
         gender,
-        interestedIn: interestedInArray,
+        interestedIn,
         age,
         ageRangePreference: { min: 18, max: 99 }, // Default, can be updated in preferences
         matches: [],
@@ -284,15 +282,15 @@ export default function CreateProfile() {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Gender</label>
+              <label className="block text-sm font-medium text-neutral-300">I am a</label>
               <Select value={gender} onValueChange={setGender}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {genderOptions.map((g) => (
-                    <SelectItem key={g} value={g}>
-                      {g.charAt(0).toUpperCase() + g.slice(1)}
+                    <SelectItem key={g.value} value={g.value}>
+                      {g.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

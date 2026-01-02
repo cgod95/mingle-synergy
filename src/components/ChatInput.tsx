@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { sendMessage, subscribeToMessageLimit } from '@/services/messageService';
+import { FEATURE_FLAGS } from '@/lib/flags';
 
 interface ChatInputProps {
   matchId: string;
@@ -11,7 +12,10 @@ interface ChatInputProps {
 export default function ChatInput({ matchId, userId, onSend, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [canSend, setCanSend] = useState(true);
-  const [remainingMessages, setRemainingMessages] = useState(3);
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0
+    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER
+    : 10;
+  const [remainingMessages, setRemainingMessages] = useState(messageLimit);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,7 +61,7 @@ export default function ChatInput({ matchId, userId, onSend, disabled = false }:
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           disabled={isInputDisabled}
-          placeholder={canSend ? `Send a message... (${remainingMessages} left)` : "Limit reached (5 messages)"}
+          placeholder={canSend ? `Send a message... (${remainingMessages} left)` : "Message limit reached"}
           className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
         />
         <button
@@ -72,9 +76,11 @@ export default function ChatInput({ matchId, userId, onSend, disabled = false }:
         <p className="text-red-500 text-sm">{error}</p>
       )}
       {!canSend && (
-        <p className="text-gray-500 text-sm">You've reached the 5-message limit for this match.</p>
+        <p className="text-amber-600 text-sm font-medium">
+          You've sent {messageLimit} messages. Meet up to continue chatting!
+        </p>
       )}
-      {canSend && remainingMessages < 5 && (
+      {canSend && remainingMessages <= 3 && (
         <p className="text-blue-500 text-sm">{remainingMessages} message{remainingMessages !== 1 ? 's' : ''} remaining</p>
       )}
     </div>
