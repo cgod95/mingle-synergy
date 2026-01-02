@@ -199,6 +199,23 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Venue-specific likes - used for mutual like detection within venues
+    // Document ID format: {venueId}_{userId}
+    // Used by matchService.likeUser for tracking who a user has liked at a specific venue
+    match /venueLikes/{docId} {
+      // Allow read for signed-in users (needed for mutual like detection)
+      allow read: if isSignedIn();
+      
+      // Users can only create/update documents where they are the owner
+      // Document ID must end with their user ID (format: venueId_userId)
+      allow create, update: if isSignedIn() && 
+        docId.matches('.*_' + request.auth.uid);
+      
+      // Allow delete for cleanup on checkout
+      allow delete: if isSignedIn() && 
+        docId.matches('.*_' + request.auth.uid);
+    }
+
     // Notifications collection - users can read their own, any signed-in user can write
     // This allows User A to notify User B about a match
     match /notifications/{userId} {
