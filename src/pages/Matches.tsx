@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Clock, ArrowRight, MapPin, Filter, Sparkles, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getAllMatches as getLocalMatches, getRemainingSeconds, isExpired, type Match, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
 import { getLastMessageForMatch, LastMessageInfo } from "@/services/messageService";
@@ -25,6 +26,29 @@ import { logError } from "@/utils/errorHandler";
 import { matchService, userService } from "@/services";
 import { FirestoreMatch } from "@/types/match";
 import ReconnectButton from "@/components/ReconnectButton";
+
+// Animation variants for staggered list
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut" as const,
+    },
+  },
+};
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -328,7 +352,12 @@ export default function Matches() {
               }}
             />
           ) : (
-            <div className="space-y-4">
+            <motion.div 
+              className="space-y-4"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {/* Active Matches */}
               {activeMatchesList.length > 0 && (
                 <div className="space-y-3">
@@ -341,7 +370,7 @@ export default function Matches() {
                   const expiryColor = getExpiryColor(remainingSeconds);
                   
                   return (
-                    <div key={match.id}>
+                    <motion.div key={match.id} variants={itemVariants}>
                       <Card
                         className={`cursor-pointer transition-all border overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
                           matchExpired
@@ -483,7 +512,7 @@ export default function Matches() {
                           }`} />
                         </div>
                       </Card>
-                    </div>
+                    </motion.div>
                   );
                     })}
                 </div>
@@ -593,7 +622,7 @@ export default function Matches() {
                   )}
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
         </div>
         <BottomNav />

@@ -3,15 +3,17 @@ import { Skeleton } from './skeleton';
 import { Card, CardContent, CardHeader } from './card';
 import { LoadingSpinner } from './LoadingSpinner';
 
-// Skeleton animation component
+// Skeleton animation component - Dark mode optimized with shimmer effect
 const SkeletonPulse: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ 
   className = '', 
   style 
 }) => (
   <div
-    className={`bg-neutral-200 rounded animate-pulse ${className}`}
+    className={`bg-neutral-700/50 rounded animate-pulse relative overflow-hidden ${className}`}
     style={style}
-  />
+  >
+    <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-neutral-600/20 to-transparent" />
+  </div>
 );
 
 // User card skeleton

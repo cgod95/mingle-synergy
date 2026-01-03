@@ -16,7 +16,7 @@ const PublicLayout: React.FC<LayoutProps> = ({
 }) => {
   return (
     <div className={`min-h-screen bg-background text-base text-foreground font-sans ${className}`}>
-      <PageTransition mode="fade">
+      <PageTransition>
         <motion.main
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

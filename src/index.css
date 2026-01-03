@@ -120,6 +120,70 @@ body {
     animation: fade-in 0.2s ease-out forwards;
   }
   
+  /* Shimmer effect for skeleton loaders */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  /* Page transition animations */
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes page-exit {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  
+  .page-enter {
+    animation: page-enter 0.25s ease-out forwards;
+  }
+  
+  .page-exit {
+    animation: page-exit 0.2s ease-in forwards;
+  }
+  
+  /* Smooth scale animation for cards and buttons */
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out forwards;
+  }
+  
+  /* Stagger delay utilities for lists */
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
+  
   /* Mobile touch targets - ensure minimum 44x44px for accessibility */
   @media (max-width: 640px) {
     button, .btn, [role="button"], a[role="button"] {
