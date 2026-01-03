@@ -21,10 +21,7 @@ import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/fire
 import { firestore } from "@/firebase/config";
 import { LocationStatusBanner } from "@/components/LocationStatusBanner";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
-
-// Check-in expiry constants (must match venueService.ts)
-const CHECKIN_EXPIRY_HOURS = 12;
-const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000;
+import { APP_CONSTANTS } from "@/constants/app";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -107,7 +104,7 @@ export default function VenueDetails() {
             // Fallback: if no expiry field, check checkInTime + 12h
             if (!expiry && data.checkInTime) {
               const checkInTime = data.checkInTime?.toMillis?.() || data.checkInTime;
-              if ((checkInTime + CHECKIN_EXPIRY_MS) <= now) return false;
+              if ((checkInTime + APP_CONSTANTS.CHECKIN_EXPIRY_MS) <= now) return false;
             }
             
             return true;

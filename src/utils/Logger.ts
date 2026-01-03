@@ -44,16 +44,11 @@ class Logger {
   private currentLevel: number | null = null;
 
   private getLevel(): number {
-    // Lazy initialization of log level to avoid TDZ issues with config import
+    // Lazy initialization of log level using Vite env vars directly
+    // This avoids circular dependency issues with config import
     if (this.currentLevel === null) {
-      try {
-        // Dynamic import to avoid circular dependency issues
-        const config = require('@/config').default;
-        this.currentLevel = config.ENVIRONMENT === 'production' ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
-      } catch {
-        // Fallback to DEBUG level if config can't be loaded
-        this.currentLevel = LOG_LEVELS.DEBUG;
-      }
+      const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
+      this.currentLevel = isProduction ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
     }
     return this.currentLevel;
   }

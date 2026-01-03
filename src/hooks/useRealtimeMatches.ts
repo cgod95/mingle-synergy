@@ -13,8 +13,6 @@ import { FirestoreMatch } from "@/types/match";
 import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import config from "@/config";
 
-const MATCH_EXPIRATION_HOURS = 3; // Keep for compatibility, but use MATCH_EXPIRY_MS for calculations
-
 export function useRealtimeMatches(): FirestoreMatch[] {
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState<FirestoreMatch[]>([]);

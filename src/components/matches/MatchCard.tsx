@@ -9,6 +9,7 @@ import { useUser } from '@/context/UserContext';
 import { FirestoreMatch } from '@/types/match';
 import { logError } from '@/utils/errorHandler';
 import { APP_CONSTANTS } from '@/constants/app';
+import { hasRematched } from '@/utils/rematchTracking';
 
 // Define ContactInfo type
 export type ContactInfo = {
@@ -235,28 +236,18 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </p>
           ) : (
             <div className="mb-3">
-              {(() => {
-                // Check rematch status
-                const { hasRematched } = require("@/utils/rematchTracking");
-                const alreadyRematched = hasRematched(match.id);
-                
-                if (alreadyRematched) {
-                  return (
-                    <p className="text-xs text-gray-500 italic">
-                      Already rematched - reconnect unavailable
-                    </p>
-                  );
-                }
-                
-                return (
-                  <button
-                    className="text-sm text-blue-600 underline hover:text-blue-700"
-                    onClick={handleReconnect}
-                  >
-                    Reconnect (check in required)
-                  </button>
-                );
-              })()}
+              {hasRematched(match.id) ? (
+                <p className="text-xs text-gray-500 italic">
+                  Already rematched - reconnect unavailable
+                </p>
+              ) : (
+                <button
+                  className="text-sm text-blue-600 underline hover:text-blue-700"
+                  onClick={handleReconnect}
+                >
+                  Reconnect (check in required)
+                </button>
+              )}
             </div>
           )
         )}

@@ -244,25 +244,8 @@ export const subscribeToMessageLimit = (
   senderId: string,
   callback: (canSend: boolean, remaining: number) => void
 ) => {
-  // Check if user is premium (premium users get unlimited messages)
-  // Note: Premium is NOT available in beta, but logic is here for future
-  let isPremium = false;
-  try {
-    const { subscriptionService } = require("@/services");
-    if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
-      const subscription = subscriptionService.getUserSubscription(senderId);
-      isPremium = subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
-    }
-  } catch {
-    // Ignore errors - assume not premium
-  }
-  
-  // Premium users bypass message limits (hide UI)
-  if (isPremium) {
-    // Return a no-op unsubscribe function
-    callback(true, 999); // Show unlimited for premium
-    return () => {}; // No-op unsubscribe
-  }
+  // Note: Premium check removed for beta - premium is not available
+  // When premium is enabled, add async check here
   
   // Check if firestore is available
   if (!firestore) {
