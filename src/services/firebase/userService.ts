@@ -15,12 +15,12 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from '../../firebase';
 import { UserProfile, UserService } from '@/types/services';
 import { logError } from '@/utils/errorHandler';
+import { APP_CONSTANTS } from '@/constants/app';
 
 type PartialUserProfile = Partial<UserProfile>;
 
-// Check-in expiry configuration (must match venueService) - 12 hours
-const CHECKIN_EXPIRY_HOURS = 12;
-const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000;
+// Check-in expiry from centralized constants - 12 hours
+const CHECKIN_EXPIRY_MS = APP_CONSTANTS.CHECKIN_EXPIRY_MS;
 
 class FirebaseUserService implements UserService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {

@@ -1,9 +1,11 @@
+import { APP_CONSTANTS } from '@/constants/app';
+
 const KEY = "mingle:checkedVenueId";
 const TIME_KEY = "mingle:checkInTime";
 
-// Check-in expiry configuration (must match venueService.ts)
-export const CHECKIN_EXPIRY_HOURS = 12;
-export const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000;
+// Re-export from centralized constants for backwards compatibility
+export const CHECKIN_EXPIRY_HOURS = APP_CONSTANTS.CHECKIN_EXPIRY_HOURS;
+export const CHECKIN_EXPIRY_MS = APP_CONSTANTS.CHECKIN_EXPIRY_MS;
 export const CHECKIN_WARNING_MS = 30 * 60 * 1000; // 30 minutes before expiry
 
 export function setCurrentZone(venueId: string, zone: string): void {

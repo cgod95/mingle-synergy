@@ -7,6 +7,7 @@ import { isOnline } from '@/utils/networkMonitor';
 import { getAuth } from 'firebase/auth';
 import config from '@/config';
 import { logError, logUserAction } from '@/utils/errorHandler';
+import { APP_CONSTANTS } from '@/constants/app';
 
 // Cache key constants
 const CACHE_KEYS = {
@@ -14,9 +15,8 @@ const CACHE_KEYS = {
   VENUE_PREFIX: 'venue_'
 };
 
-// Check-in expiry configuration - users auto-checkout after 12 hours
-const CHECKIN_EXPIRY_HOURS = 12;
-const CHECKIN_EXPIRY_MS = CHECKIN_EXPIRY_HOURS * 60 * 60 * 1000; // 12 hours in milliseconds
+// Check-in expiry from centralized constants - users auto-checkout after 12 hours
+const CHECKIN_EXPIRY_MS = APP_CONSTANTS.CHECKIN_EXPIRY_MS;
 
 // Mock venue data for demo mode - expanded with Unsplash images
 // Sydney venues with Sydney coordinates
