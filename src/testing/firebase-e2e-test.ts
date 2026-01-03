@@ -53,7 +53,7 @@ class FirebaseE2ETest {
     longitude: -122.4194,
     type: 'coffee',
     checkInCount: 0,
-    expiryTime: 3 * 60 * 60 * 1000, // 3 hours
+    expiryTime: 24 * 60 * 60 * 1000, // 24 hours
     zones: ['front', 'back'],
     image: 'https://example.com/coffee.jpg',
     checkedInUsers: []
@@ -298,7 +298,7 @@ class FirebaseE2ETest {
     
     if (timeDiff < 0) {
       console.log(`✅ Match has already expired (as expected)`);
-    } else if (timeDiff <= 3 * 60 * 60 * 1000) { // 3 hours
+    } else if (timeDiff <= 24 * 60 * 60 * 1000) { // 24 hours
       console.log(`✅ Match expiration time set correctly`);
     } else {
       throw new Error('Match expiration time not set correctly');

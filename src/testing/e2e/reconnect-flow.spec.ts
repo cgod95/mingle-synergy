@@ -85,11 +85,11 @@ test.describe('Reconnect Flow E2E', () => {
       await matchWithReconnect.click();
       await page.locator('[data-testid="accept-reconnect-button"]').click();
       
-      // Verify countdown timer shows ~3 hours
+      // Verify countdown timer shows ~24 hours
       const countdownTimer = page.locator('[data-testid="match-countdown"]');
       await expect(countdownTimer).toBeVisible();
       
-      // Verify timer shows approximately 3 hours (10800 seconds)
+      // Verify timer shows approximately 24 hours (86400 seconds)
       const timerText = await countdownTimer.textContent();
       expect(timerText).toMatch(/\d{1,2}:\d{2}:\d{2}/); // Format: HH:MM:SS
     } else {

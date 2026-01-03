@@ -31,6 +31,8 @@ const UsageStats = lazy(() => import("./pages/UsageStats"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const About = lazy(() => import("./pages/About"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Safety = lazy(() => import("./pages/Safety"));
 const Debug = lazy(() => import("./pages/Debug"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 
@@ -119,6 +121,8 @@ function AppRoutes() {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/safety" element={<Safety />} />
           {FEATURE_FLAGS.DEBUG_ROUTES_ENABLED && (
             <Route path="/debug" element={<Debug />} />
           )}

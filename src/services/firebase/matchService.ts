@@ -404,9 +404,6 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
    * @returns Object with isMatch (true if mutual like created a match) and matchId (if created)
    */
   public async likeUser(currentUserId: string, targetUserId: string, venueId: string): Promise<{ isMatch: boolean; matchId?: string }> {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:entry',message:'likeUser called',data:{currentUserId,targetUserId,venueId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3-H4-H5'})}).catch(()=>{});
-    // #endregion
     try {
       if (!this.isFirebaseAvailable()) {
         throw new Error('Cannot like user while offline');
@@ -433,21 +430,8 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       // This ensures likes are scoped to the specific venue
       const venueLikesRef = collection(firestore, 'venueLikes');
       const targetUserVenueLikesRef = doc(venueLikesRef, `${venueId}_${targetUserId}`);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:readTargetLikes',message:'Reading target user venueLikes',data:{docId:`${venueId}_${targetUserId}`,collection:'venueLikes'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-      // #endregion
-      let targetUserVenueLikesSnap;
-      try {
-        targetUserVenueLikesSnap = await getDoc(targetUserVenueLikesRef);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:readTargetLikesSuccess',message:'Read target venueLikes SUCCESS',data:{exists:targetUserVenueLikesSnap.exists()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-        // #endregion
-      } catch (readErr: any) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:readTargetLikesFAIL',message:'Read target venueLikes FAILED',data:{error:readErr?.message,code:readErr?.code},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-        // #endregion
-        throw readErr;
-      }
+      
+      const targetUserVenueLikesSnap = await getDoc(targetUserVenueLikesRef);
       
       const targetUserLikes = targetUserVenueLikesSnap.exists() 
         ? targetUserVenueLikesSnap.data()?.likes || [] 
@@ -455,46 +439,21 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       
       // Record the current user's like for this venue
       const currentUserVenueLikesRef = doc(venueLikesRef, `${venueId}_${currentUserId}`);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:writeCurrentLikes',message:'Writing current user venueLikes',data:{docId:`${venueId}_${currentUserId}`,collection:'venueLikes'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-      // #endregion
-      try {
-        await setDoc(currentUserVenueLikesRef, { 
-          venueId,
-          userId: currentUserId,
-          likes: arrayUnion(targetUserId),
-          updatedAt: Date.now()
-        }, { merge: true });
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:writeCurrentLikesSuccess',message:'Write current venueLikes SUCCESS',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
-      } catch (writeErr: any) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:writeCurrentLikesFAIL',message:'Write current venueLikes FAILED',data:{error:writeErr?.message,code:writeErr?.code},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
-        throw writeErr;
-      }
+      
+      await setDoc(currentUserVenueLikesRef, { 
+        venueId,
+        userId: currentUserId,
+        likes: arrayUnion(targetUserId),
+        updatedAt: Date.now()
+      }, { merge: true });
       
       const isMutual = targetUserLikes.includes(currentUserId);
 
       if (isMutual) {
         // Mutual like detected at the same venue - create a match
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:mutualLike',message:'Mutual like detected, creating match',data:{currentUserId,targetUserId,venueId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-        // #endregion
         const venueName = await this.getVenueName(venueId);
-        try {
-          const matchId = await this.createMatch(currentUserId, targetUserId, venueId, venueName);
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:createMatchSuccess',message:'Match created SUCCESS',data:{matchId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-          // #endregion
-          return { isMatch: true, matchId };
-        } catch (matchErr: any) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/9af3d496-4d58-4d8c-9b68-52ff87ec5850',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'matchService.ts:likeUser:createMatchFAIL',message:'Match creation FAILED',data:{error:matchErr?.message,code:matchErr?.code},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-          // #endregion
-          throw matchErr;
-        }
+        const matchId = await this.createMatch(currentUserId, targetUserId, venueId, venueName);
+        return { isMatch: true, matchId };
       } else {
         return { isMatch: false };
       }

@@ -21,7 +21,7 @@
 - [x] Status updates to show contact has been shared
 
 ## Match Expiry
-- [x] Match expires after 3 hours if no contact is shared
+- [x] Match expires after 24 hours if no contact is shared
 - [x] Expiry warning is displayed when less than 1 hour remains
 - [x] Expired match moves to "Past Matches" section
 - [x] Expired match shows correct status
