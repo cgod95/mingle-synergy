@@ -89,7 +89,7 @@ VITE_ENVIRONMENT=production
 # ============================================
 VITE_ENABLE_VERIFICATION=true
 VITE_ENABLE_RECONNECT=true
-VITE_LIMIT_MESSAGES_PER_USER=3
+VITE_LIMIT_MESSAGES_PER_USER=10
 VITE_ENABLE_ANALYTICS=true
 
 # ============================================

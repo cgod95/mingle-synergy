@@ -114,7 +114,7 @@ This checklist covers all critical areas that need testing before launching clos
   - [ ] Messages display correctly
   - [ ] Can send message
   - [ ] Message appears immediately
-  - [ ] Message limit counter works (3 messages)
+  - [ ] Message limit counter works (10 messages)
   - [ ] Toast appears when 1 message remaining
   - [ ] Button disables when limit reached
   - [ ] Modal appears when limit reached
@@ -122,7 +122,7 @@ This checklist covers all critical areas that need testing before launching clos
   - [ ] Loading state shows while sending
 
 - [ ] **Message Limits**
-  - [ ] Can send 3 messages per match
+  - [ ] Can send 10 messages per match
   - [ ] Counter decreases correctly
   - [ ] Can't send after limit reached
   - [ ] Clear messaging about limit

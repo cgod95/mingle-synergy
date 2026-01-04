@@ -43,7 +43,7 @@
 ## 🎯 Spec Compliance
 
 - ✅ Match expiry: 3 hours (configurable via `MATCH_EXPIRY_MS`)
-- ✅ Message limit: 3 per user per match (configurable via `LIMIT_MESSAGES_PER_USER`)
+- ✅ Message limit: 10 per user per match (configurable via `LIMIT_MESSAGES_PER_USER`)
 - ✅ Photo required for check-in (configurable via `STRICT_PHOTO_REQUIRED_FOR_CHECKIN`)
 - ✅ Reconnect flow: Only for expired matches, creates fresh match when both request
 - ✅ Onboarding resume: Redirects to next incomplete step

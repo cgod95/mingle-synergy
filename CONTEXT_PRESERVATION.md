@@ -9,7 +9,7 @@
 
 ## 🎯 Project Overview
 
-**Mingle** is a location-based social matching app built with React + TypeScript + Firebase. Users check in at venues, get matched with other users, and can chat (with 3-message limit per match). Matches expire after 3 hours.
+**Mingle** is a location-based social matching app built with React + TypeScript + Firebase. Users check in at venues, get matched with other users, and can chat (with 10-message limit per match). Matches expire after 24 hours.
 
 **Tech Stack:**
 - React 18.x + TypeScript
@@ -87,7 +87,7 @@ import { firestore } from '@/firebase/config';
 - `matchesCompat.ts` provides shim layer
 
 ### Message Limits
-- 3 messages per user per match
+- 10 messages per user per match
 - Enforced in `messageService.ts`
 - UI should disable send button when limit reached
 

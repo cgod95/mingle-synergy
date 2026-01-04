@@ -128,7 +128,9 @@ export default function Matches() {
             
             if (!config.DEMO_MODE) {
               // Production: Fetch last message from Firebase
+              console.log('[Matches] Fetching last message for match:', match.id);
               const lastMsgInfo = await getLastMessageForMatch(match.id);
+              console.log('[Matches] Last message result for match', match.id, ':', lastMsgInfo);
               if (lastMsgInfo) {
                 lastMessage = lastMsgInfo.text;
                 lastMessageTime = lastMsgInfo.createdAt.getTime();

@@ -77,7 +77,7 @@ Mingle is the anti-dating app dating app. No swiping. No endless chats. Just rea
 **Q: Why do matches expire?**  
 A: To encourage real conversation and meeting up, not endless texting.
 
-**Q: Why only 3 messages?**  
+**Q: Why only 10 messages?**  
 A: To nudge you to meet in person. Full chat unlocks when you reconnect at the same venue.
 
 **Q: What if I'm not at a venue?**  

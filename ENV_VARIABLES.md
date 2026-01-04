@@ -76,8 +76,8 @@ VITE_UNLOCK_FULL_CHAT_ON_COLOCATION=true
 # Allow remote reconnect chat (default: OFF)
 VITE_ALLOW_REMOTE_RECONNECT_CHAT=false
 
-# Limit messages per user per match (default: 3, unlimited in demo mode)
-VITE_LIMIT_MESSAGES_PER_USER=3
+# Limit messages per user per match (default: 10, unlimited in demo mode)
+VITE_LIMIT_MESSAGES_PER_USER=10
 ```
 
 ### UI & Privacy

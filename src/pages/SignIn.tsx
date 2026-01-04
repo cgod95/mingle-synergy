@@ -11,6 +11,9 @@ import { motion } from 'framer-motion';
 import { Loader2, ArrowLeft, LogIn } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
 
+// Session storage key for pending venue check-in (for QR code deep link handling)
+const PENDING_VENUE_CHECKIN_KEY = 'pendingVenueCheckIn';
+
 export default function SignIn() {
   const { signInUser } = useAuth();
   const navigate = useNavigate();
@@ -26,9 +29,18 @@ export default function SignIn() {
 
     try {
       await signInUser(email, password);
-      // After sign in, ProtectedRoute will handle onboarding redirect if needed
-      // Otherwise, go to check-in page
-      navigate('/checkin');
+      
+      // Check for pending venue check-in from QR code deep link
+      const pendingVenueId = sessionStorage.getItem(PENDING_VENUE_CHECKIN_KEY);
+      if (pendingVenueId) {
+        sessionStorage.removeItem(PENDING_VENUE_CHECKIN_KEY);
+        // Navigate to check-in page with the venue ID and source
+        navigate(`/checkin?venueId=${pendingVenueId}&source=qr`);
+      } else {
+        // After sign in, ProtectedRoute will handle onboarding redirect if needed
+        // Otherwise, go to check-in page
+        navigate('/checkin');
+      }
     } catch (e: any) {
       // Provide user-friendly error messages
       const errorMessage = e?.message || 'Failed to sign in';

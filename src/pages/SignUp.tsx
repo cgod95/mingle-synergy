@@ -11,6 +11,9 @@ import { motion } from 'framer-motion';
 import { Loader2, ArrowLeft, UserPlus } from 'lucide-react';
 import MingleHeader from '@/components/layout/MingleHeader';
 
+// Session storage key for pending venue check-in (for QR code deep link handling)
+const PENDING_VENUE_CHECKIN_KEY = 'pendingVenueCheckIn';
+
 export default function SignUp() {
   const { signUpUser } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +36,15 @@ export default function SignUp() {
 
     try {
       await signUpUser(email, password);
+      
+      // Check for pending venue check-in from QR code deep link
+      // Note: Store it so it survives the onboarding flow, then redirect after onboarding
+      const pendingVenueId = sessionStorage.getItem(PENDING_VENUE_CHECKIN_KEY);
+      if (pendingVenueId) {
+        // Keep the pending venue ID in session storage - it will be used after onboarding
+        // New users should still go through onboarding flow first
+      }
+      
       // New users should go through onboarding flow
       navigate('/create-profile');
     } catch (e: any) {

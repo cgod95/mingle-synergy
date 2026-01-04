@@ -47,7 +47,7 @@
 
 ### Core Features ✅
 - Match expiry: 3 hours (single source of truth: `MATCH_EXPIRY_MS`)
-- Message limit: 3 per user per match (configurable via feature flag)
+- Message limit: 10 per user per match (configurable via feature flag)
 - Photo required for check-in (configurable via feature flag)
 - Reconnect flow: Only for expired matches, creates fresh match
 - Onboarding resume: Redirects to next incomplete step

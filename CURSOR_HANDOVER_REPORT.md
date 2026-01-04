@@ -545,7 +545,7 @@ npm run dev:full          # Start emulators + dev server concurrently
 - [ ] Animations work on all interactive elements
 - [ ] Notifications display and dismiss correctly
 - [ ] Match expiry timer counts down accurately
-- [ ] Chat input sends messages (3-message limit enforced)
+- [ ] Chat input sends messages (10-message limit enforced)
 - [ ] Protected routes redirect correctly
 - [ ] Environment variables documented in `.env.example`
 - [ ] CI/CD pipeline configured and passing

@@ -488,15 +488,18 @@ export interface LastMessageInfo {
 export const getLastMessageForMatch = async (matchId: string): Promise<LastMessageInfo | null> => {
   // In demo mode, return null (use localStorage instead)
   if (config.DEMO_MODE) {
+    console.log('[messageService] getLastMessageForMatch: Demo mode, returning null');
     return null;
   }
   
   // Check if firestore is available
   if (!firestore) {
+    console.log('[messageService] getLastMessageForMatch: Firestore not available');
     return null;
   }
   
   try {
+    console.log('[messageService] getLastMessageForMatch: Querying messages for matchId:', matchId);
     const messagesRef = collection(firestore, "messages");
     const q = query(
       messagesRef,
@@ -506,18 +509,22 @@ export const getLastMessageForMatch = async (matchId: string): Promise<LastMessa
     );
     
     const snapshot = await getDocs(q);
+    console.log('[messageService] getLastMessageForMatch: Found', snapshot.size, 'messages');
+    
     if (snapshot.empty) {
       return null;
     }
     
     const doc = snapshot.docs[0];
     const data = doc.data();
+    console.log('[messageService] getLastMessageForMatch: Last message data:', { text: data.text, senderId: data.senderId, matchId: data.matchId });
     return {
       text: data.text || '',
       senderId: data.senderId || '',
       createdAt: data.createdAt?.toDate?.() ?? new Date(),
     };
   } catch (error) {
+    console.error('[messageService] getLastMessageForMatch: Error querying messages:', error);
     logError(error as Error, { source: 'messageService', action: 'getLastMessageForMatch', matchId });
     return null;
   }

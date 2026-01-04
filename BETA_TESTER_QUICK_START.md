@@ -19,7 +19,7 @@ This guide will help you get started quickly and provide feedback.
 3. **Check Into a Venue** (select from list or scan QR code)
 4. **See People** at your venue
 5. **Like Someone** - if they like you back, you match!
-6. **Chat** (3 messages) to make plans
+6. **Chat** (10 messages) to make plans
 7. **Meet Up** in person!
 
 ---
@@ -31,12 +31,12 @@ This guide will help you get started quickly and provide feedback.
 2. **See People** → View others checked in at the same venue
 3. **Like** → Show interest in someone
 4. **Match** → If they like you back, you match!
-5. **Chat** → Send 3 messages to make plans
+5. **Chat** → Send 10 messages to make plans
 6. **Meet** → Connect in person!
 
 ### Key Features:
 - **Matches expire in 24 hours** - encourages real conversation
-- **3 messages per match** - focus on meeting up, not endless chatting
+- **10 messages per match** - focus on meeting up, not endless chatting
 - **Location-based** - only see people at the same venue
 - **No swiping** - meaningful encounters in real places
 
@@ -52,7 +52,7 @@ This guide will help you get started quickly and provide feedback.
 - [ ] Can like people
 - [ ] Matches create correctly
 - [ ] Can send messages
-- [ ] Message limit works (3 messages)
+- [ ] Message limit works (10 messages)
 - [ ] Settings work
 - [ ] Profile editing works
 
@@ -94,8 +94,8 @@ This guide will help you get started quickly and provide feedback.
 ### Q: Why can't I check in?
 **A:** You must be within 500m of a venue. In demo mode, this requirement is relaxed.
 
-### Q: Why can I only send 3 messages?
-**A:** Mingle encourages meeting in person, not endless chatting. Use your 3 messages to make plans!
+### Q: Why can I only send 10 messages?
+**A:** Mingle encourages meeting in person, not endless chatting. Use your 10 messages to make plans!
 
 ### Q: What happens when a match expires?
 **A:** Matches expire after 24 hours. You can reconnect by checking into a venue again.

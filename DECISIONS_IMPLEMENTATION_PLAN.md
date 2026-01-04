@@ -41,7 +41,7 @@
 - **Action:** Implement expired match UI (faded), ensure old messages readable
 
 ### 8. Message Limits
-- ✅ 3 messages per match (per user)
+- ✅ 10 messages per match (per user)
 - ✅ Show message when limit reached
 - ✅ Disable send button when limit reached
 - ✅ Show upgrade prompt when limit reached

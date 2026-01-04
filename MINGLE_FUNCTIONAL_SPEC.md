@@ -16,7 +16,7 @@ Mingle is the anti–infinite swipe social app for real-world connection in venu
 
 Core values:
 
-	1.	Ephemeral proximity, not parasocial infinity. Matches form only when both people are checked in to the same venue. Matches auto-expire after 3 hours. Messaging is severely limited (≈ 3 sends per person) unless you're co-located again.
+	1.	Ephemeral proximity, not parasocial infinity. Matches form only when both people are checked in to the same venue. Matches auto-expire after 3 hours. Messaging is severely limited (≈ 10 sends per person) unless you're co-located again.
 
 	2.	Low social proof, high intent. Minimal photos, minimal bios, minimal preferences. No follows, no DMs outside of matches, no public popularity loops.
 
@@ -686,7 +686,7 @@ Acceptance:
 
 	•	STRICT_PHOTO_REQUIRED_FOR_CHECKIN (default: ON).
 
-	•	LIMIT_MESSAGES_PER_USER (default: 3).
+	•	LIMIT_MESSAGES_PER_USER (default: 10).
 
 All flags exposed via src/lib/flags.ts and read synchronously.
 
@@ -1164,7 +1164,7 @@ Rules (high level):
 
 	•	Read/write messages only if participant of match.
 
-	•	Enforce 3-message limit in security rules if feasible; otherwise verify in service.
+	•	Enforce 10-message limit in security rules if feasible; otherwise verify in service.
 
 ⸻
 

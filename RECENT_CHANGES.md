@@ -7,14 +7,14 @@
 **Status:** ✅ Complete
 
 **Changes Made:**
-- Updated default message limit from 3 to 5 messages per user per match
+- Updated default message limit from 3 to 10 messages per user per match
 - Updated feature flag default: `LIMIT_MESSAGES_PER_USER` now defaults to 5
 - Updated all UI components to reflect 5-message limit
 - Updated all user-facing text and placeholders
 - Updated backend validation logic
 
 **Files Modified:**
-- `src/lib/flags.ts` - Default changed from 3 to 5
+- `src/lib/flags.ts` - Default changed from 3 to 10
 - `src/services/messageService.ts` - Uses feature flag (defaults to 5)
 - `src/services/firebase/matchService.ts` - Updated validation logic
 - `src/pages/Chat.tsx` - Updated UI and logic

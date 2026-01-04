@@ -19,7 +19,7 @@ The Mingle application has been successfully restored and enhanced according to 
 **Requirements:**
 - ✅ Venue-based matching app
 - ✅ 3-hour match expiry
-- ✅ Message limit (3 per user per match)
+- ✅ Message limit (10 per user per match)
 - ✅ Photo requirement for check-in
 - ✅ Reconnect flow for expired matches
 
@@ -81,7 +81,7 @@ The Mingle application has been successfully restored and enhanced according to 
 ### 4. Feature Flags (10/10) ✅
 
 **Requirements:**
-- ✅ `LIMIT_MESSAGES_PER_USER` (default: 3)
+- ✅ `LIMIT_MESSAGES_PER_USER` (default: 10)
 - ✅ `STRICT_PHOTO_REQUIRED_FOR_CHECKIN` (default: ON)
 - ✅ `RECONNECT_FLOW_ENABLED` (default: OFF)
 - ✅ `ALLOW_REMOTE_RECONNECT_CHAT` (default: OFF)

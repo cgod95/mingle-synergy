@@ -43,7 +43,7 @@
 - **Result:** Users must be at a venue to reconnect
 
 ### 6. Helpful Information Across Pages ✅
-- **Landing Page:** "How it works: Check into venues → See people there → Like to match → Chat (3 messages) → Meet up!"
+- **Landing Page:** "How it works: Check into venues → See people there → Like to match → Chat (10 messages) → Meet up!"
 - **Check-In Page:** "You must be within 500m of a venue to check in. Once checked in, you can see and like people at that venue."
 - **Matches Page:** "Matches last 24 hours. You can send 3 messages per match. Focus on meeting up in person!"
 - **VenueDetails Page:** "Like someone to start a conversation. If they like you back, you'll match and can chat!"

@@ -1,10 +1,8 @@
 // QR Code Scanner Component
-// NOTE: Requires html5-qrcode library to be installed: npm install html5-qrcode
-// Currently disabled until library is installed. For now, users can scan QR codes
-// with their phone camera app, which will open the URL and auto-check them in.
+// Uses html5-qrcode library for in-app QR code scanning
 
 import { useEffect, useRef, useState } from 'react';
-// import { Html5Qrcode } from 'html5-qrcode'; // Uncomment when library is installed
+import { Html5Qrcode } from 'html5-qrcode';
 import { X, Camera, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -17,19 +15,13 @@ interface QRCodeScannerProps {
 }
 
 export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerProps) {
-  // const scannerRef = useRef<Html5Qrcode | null>(null); // Uncomment when library is installed
-  const scannerRef = useRef<any>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState<string | null>("QR scanner requires html5-qrcode library. Please scan QR code with your phone camera app instead.");
+  const [error, setError] = useState<string | null>(null);
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
   const scannerId = "qr-reader";
 
   useEffect(() => {
-    // Disabled until html5-qrcode is installed
-    setError("QR scanner not available. Please scan the QR code with your phone camera app - it will open the app and auto-check you in!");
-    return;
-    
-    /* Uncomment when html5-qrcode is installed:
     const startScanning = async () => {
       try {
         const html5QrCode = new Html5Qrcode(scannerId);
@@ -80,7 +72,6 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
         scannerRef.current.clear();
       }
     };
-    */ // End of commented code
   }, []);
 
   const handleQRCodeScanned = (decodedText: string) => {
@@ -150,14 +141,22 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
                 className="w-full rounded-lg overflow-hidden bg-neutral-900"
                 style={{ minHeight: '300px' }}
               />
-              <div className="text-center">
-                <p className="text-sm text-neutral-600 mb-1">
-                  Point camera at venue QR code
-                </p>
-                <p className="text-xs text-neutral-500">
-                  Make sure the QR code is well-lit and in focus
-                </p>
-              </div>
+              {scanning && (
+                <div className="text-center">
+                  <p className="text-sm text-neutral-600 mb-1">
+                    Point camera at venue QR code
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    Make sure the QR code is well-lit and in focus
+                  </p>
+                </div>
+              )}
+              {!scanning && !error && (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-2"></div>
+                  <p className="text-sm text-neutral-600">Starting camera...</p>
+                </div>
+              )}
               <Button 
                 variant="outline" 
                 onClick={onClose}
@@ -172,4 +171,3 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
     </div>
   );
 }
-

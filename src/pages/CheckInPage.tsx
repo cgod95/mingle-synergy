@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, CheckCircle2, ArrowLeft, QrCode } from "lucide-react";
 import { getVenues } from "../lib/api";
@@ -19,6 +19,12 @@ import { Clock, History } from "lucide-react";
 import venueService from "@/services/firebase/venueService";
 import { LocationStatusBanner } from "@/components/LocationStatusBanner";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
+
+// Lazy load QR scanner to avoid loading camera code until needed
+const QRCodeScanner = lazy(() => import("@/components/QRCodeScanner"));
+
+// Session storage key for pending venue check-in (for deep link handling)
+const PENDING_VENUE_CHECKIN_KEY = 'pendingVenueCheckIn';
 
 // Use the same key as checkinStore.ts for consistency
 import { getCheckedVenueId, checkInAt } from "@/lib/checkinStore";
@@ -48,6 +54,7 @@ export default function CheckInPage() {
   const [venueError, setVenueError] = useState<Error | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   
   // Pagination state
   const VENUES_PER_PAGE = 9;
@@ -206,8 +213,20 @@ export default function CheckInPage() {
       const venuesToShow = userLat !== null ? venuesWithDistance.slice(0, 3) : venuesWithDistance;
       setVenues(venuesToShow);
       
-      // Auto-check-in if coming from QR code URL
-      if (qrVenueId && source === "qr" && currentUser) {
+      // Handle QR code deep link
+      if (qrVenueId && source === "qr") {
+        // If user is NOT logged in, store venueId and redirect to login
+        if (!currentUser) {
+          sessionStorage.setItem(PENDING_VENUE_CHECKIN_KEY, qrVenueId);
+          toast({
+            title: "Sign in to check in",
+            description: "Please sign in to check in to this venue.",
+          });
+          navigate('/login');
+          return;
+        }
+        
+        // User is logged in - auto-check-in
         const venue = loadedVenues.find(v => v.id === qrVenueId);
         const alreadyChecked = !!getCheckedVenueId();
         
@@ -298,14 +317,7 @@ export default function CheckInPage() {
           <div className="w-full max-w-md">
             <Card 
               className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
-              onClick={() => {
-                // For now, show message about using phone camera
-                // Scanner component will be enabled when html5-qrcode is installed
-                toast({
-                  title: "Scan QR Code",
-                  description: "Use your phone camera to scan the venue QR code. It will open this app and auto-check you in!",
-                });
-              }}
+              onClick={() => setShowQRScanner(true)}
               aria-label="Scan QR code to check in"
             >
               <div className="px-6 py-6 text-center">
@@ -681,6 +693,24 @@ export default function CheckInPage() {
         )}
       </div>
       <BottomNav />
+      
+      {/* QR Code Scanner Modal */}
+      {showQRScanner && (
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+          </div>
+        }>
+          <QRCodeScanner
+            onScanSuccess={(venueId) => {
+              setShowQRScanner(false);
+              // Check in to the scanned venue
+              onCheckIn(venueId);
+            }}
+            onClose={() => setShowQRScanner(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
