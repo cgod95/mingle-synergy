@@ -83,7 +83,7 @@ export default function FeedbackPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-900 pb-20">
+    <div className="min-h-screen bg-[#0a0a0f] pb-20">
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Back Button */}
         <div className="mb-4">
@@ -136,7 +136,7 @@ export default function FeedbackPage() {
                 <div className="space-y-2">
                   <Label htmlFor="type" className="text-neutral-300">Type</Label>
                   <Select value={feedbackType} onValueChange={(v) => setFeedbackType(v as FeedbackType)}>
-                    <SelectTrigger className="bg-neutral-900 border-neutral-700 text-white">
+                    <SelectTrigger className="bg-[#0a0a0f] border-neutral-700 text-white">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent className="bg-neutral-800 border-neutral-700">
@@ -154,7 +154,7 @@ export default function FeedbackPage() {
                   <Textarea
                     id="feedback"
                     placeholder="Share your thoughts, report bugs, or suggest features..."
-                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 min-h-[120px]"
+                    className="bg-[#0a0a0f] border-neutral-700 text-white placeholder:text-neutral-500 min-h-[120px]"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     disabled={isSubmitting}
@@ -170,7 +170,7 @@ export default function FeedbackPage() {
                     id="email"
                     type="email"
                     placeholder="your@email.com"
-                    className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500"
+                    className="bg-[#0a0a0f] border-neutral-700 text-white placeholder:text-neutral-500"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isSubmitting}

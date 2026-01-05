@@ -210,7 +210,7 @@ export default function ProfileEdit() {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-neutral-900 pb-20 flex items-center justify-center">
+        <div className="min-h-screen bg-[#0a0a0f] pb-20 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
             <p className="text-neutral-300">Loading profile...</p>
@@ -222,7 +222,7 @@ export default function ProfileEdit() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-neutral-900 pb-20">
+      <div className="min-h-screen bg-[#0a0a0f] pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Back Button */}
           <div className="mb-4">

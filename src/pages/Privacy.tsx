@@ -13,7 +13,7 @@ export default function Privacy() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-neutral-900 pb-20">
+      <div className="min-h-screen bg-[#0a0a0f] pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center space-x-2 mb-6">
             <Button variant="ghost" size="icon" onClick={() => goBackSafely(navigate, '/settings')} className="hover:bg-indigo-900/30 text-indigo-400">

@@ -56,7 +56,7 @@ const About: React.FC = () => {
 
   return (
     <PublicLayout>
-      <div className="min-h-screen bg-neutral-900 pb-20">
+      <div className="min-h-screen bg-[#0a0a0f] pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-center space-x-2 mb-6">

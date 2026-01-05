@@ -43,7 +43,7 @@ const PageLoader = () => {
     return null;
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center">
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
       <StandardLoadingSpinner size="lg" message="Loading..." />
     </div>
   );

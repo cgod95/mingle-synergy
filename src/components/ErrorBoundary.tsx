@@ -59,7 +59,7 @@ class ErrorBoundaryClass extends Component<Props & { navigate: (path: string) =>
 
       // Default error UI - Dark mode
       return (
-        <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
           <Card className="w-full max-w-md bg-neutral-800 border-neutral-700 shadow-xl">
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center mb-4 ring-2 ring-red-500/30">
@@ -75,7 +75,7 @@ class ErrorBoundaryClass extends Component<Props & { navigate: (path: string) =>
               </p>
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="text-xs text-neutral-400 bg-neutral-900/50 p-3 rounded-lg border border-neutral-700">
+                <details className="text-xs text-neutral-400 bg-[#0a0a0f]/50 p-3 rounded-lg border border-neutral-700">
                   <summary className="cursor-pointer font-medium mb-2 text-neutral-300">
                     🔧 Developer Details
                   </summary>

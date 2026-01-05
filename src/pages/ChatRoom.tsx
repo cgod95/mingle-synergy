@@ -307,7 +307,7 @@ export default function ChatRoom() {
 
       return (
         <div 
-          className="fixed inset-0 flex flex-col bg-neutral-900 z-40 pb-16"
+          className="fixed inset-0 flex flex-col bg-[#0a0a0f] z-40 pb-16"
           style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}
         >
           <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl overflow-hidden">
@@ -381,7 +381,7 @@ export default function ChatRoom() {
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-[#0a0a0f]">
 
         <AnimatePresence>
           {msgs.map((m, i) => (

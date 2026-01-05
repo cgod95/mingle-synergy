@@ -217,7 +217,7 @@ export default function PhotoUpload() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-neutral-900 flex flex-col justify-center p-4">
+      <div className="min-h-screen bg-[#0a0a0f] flex flex-col justify-center p-4">
         <Card className="w-full max-w-md mx-auto border-2 border-neutral-700 bg-neutral-800 shadow-xl">
           <CardHeader className="text-center space-y-2 border-b border-neutral-700">
             {/* Progress Indicator */}
