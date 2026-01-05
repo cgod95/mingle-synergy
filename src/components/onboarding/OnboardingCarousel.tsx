@@ -176,7 +176,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
             className="w-full py-6 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white rounded-2xl font-semibold text-base shadow-lg shadow-[#7C3AED]/25 transition-all hover:shadow-[#7C3AED]/40 hover:scale-[1.02] active:scale-[0.98]"
           >
             <span className="flex items-center justify-center gap-2">
-              {currentSlide < slides.length - 1 ? 'Continue' : 'Get Started'}
+              {currentSlide < slides.length - 1 ? 'Continue' : "Let's Go"}
               <ChevronRight className="w-5 h-5" />
             </span>
           </Button>
