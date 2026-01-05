@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, MapPin, Users, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, MapPin, Users, MessageSquare, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useOnboarding } from '@/context/OnboardingContext';
 
 interface OnboardingCarouselProps {
@@ -12,28 +12,40 @@ interface OnboardingCarouselProps {
 const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
-  const { isOnboardingComplete, setOnboardingStepComplete } = useOnboarding();
+  const { setOnboardingStepComplete } = useOnboarding();
   
   const slides = [
     {
       title: "This isn't a dating app",
-      description: "It's an anti-dating app that helps you meet people in real life, not just chat endlessly online.",
-      icon: <MessageSquare className="h-16 w-16 text-brand-primary" />
+      subtitle: "It's better.",
+      description: "An anti-dating app that helps you meet people in real life, not just chat endlessly online.",
+      icon: MessageSquare,
+      gradient: "from-[#7C3AED] to-[#6D28D9]",
+      bgGlow: "bg-[#7C3AED]/20"
     },
     {
       title: "Seize the moment",
-      description: "When you match, introduce yourself! Matches expire, so don't wait - just real connections.",
-      icon: <Clock className="h-16 w-16 text-brand-primary" />
+      subtitle: "Matches expire.",
+      description: "When you match, introduce yourself! Don't wait — make real connections happen now.",
+      icon: Clock,
+      gradient: "from-[#8B5CF6] to-[#7C3AED]",
+      bgGlow: "bg-[#8B5CF6]/20"
     },
     {
-      title: "Be in the same place",
-      description: "We show you people who are at the same venue as you right now. No more guessing if they're really nearby.",
-      icon: <MapPin className="h-16 w-16 text-brand-primary" />
+      title: "Same place, same time",
+      subtitle: "Actually nearby.",
+      description: "See people at the same venue as you, right now. No more guessing if they're really there.",
+      icon: MapPin,
+      gradient: "from-[#A78BFA] to-[#8B5CF6]",
+      bgGlow: "bg-[#A78BFA]/20"
     },
     {
       title: "Say hi in person",
-      description: "The most powerful way to connect is face to face. We give you the courage to walk over and introduce yourself.",
-      icon: <Users className="h-16 w-16 text-brand-primary" />
+      subtitle: "The real connection.",
+      description: "The most powerful way to connect is face to face. Walk over and introduce yourself.",
+      icon: Users,
+      gradient: "from-[#7C3AED] to-[#6D28D9]",
+      bgGlow: "bg-[#7C3AED]/20"
     }
   ];
   
@@ -41,24 +53,19 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Last slide, complete onboarding and go to profile edit
       handleComplete();
     }
   };
   
   const handleSkip = () => {
-    // Skip onboarding, mark as seen and go to profile edit
     handleComplete();
   };
   
   const handleComplete = () => {
-    // Mark onboarding as complete and navigate to profile edit
     localStorage.setItem('onboardingSeen', 'true');
-    // Mark all onboarding steps as complete
     setOnboardingStepComplete('email');
     setOnboardingStepComplete('profile');
     setOnboardingStepComplete('photo');
-    setOnboardingStepComplete('preferences');
     
     if (onComplete) {
       onComplete();
@@ -66,56 +73,113 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
       navigate('/profile/edit');
     }
   };
+
+  const currentSlideData = slides[currentSlide];
+  const IconComponent = currentSlideData.icon;
   
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="flex-1 flex flex-col justify-center px-6 py-12">
-        <div className="max-w-md mx-auto text-center">
-          <div className="flex justify-center mb-6">
-            {slides[currentSlide].icon}
-          </div>
-          
-          <h1 className="text-2xl font-semibold text-foreground mb-3">
-            {slides[currentSlide].title}
-          </h1>
-          
-          <p className="text-muted-foreground mb-8 text-base leading-relaxed">
-            {slides[currentSlide].description}
-          </p>
-          
+    <div className="min-h-screen flex flex-col bg-[#0a0a0f] overflow-hidden relative">
+      {/* Background gradient glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.15)_0%,_transparent_50%)]" />
+      
+      {/* Skip button */}
+      <div className="absolute top-6 right-6 z-20">
+        <button
+          onClick={handleSkip}
+          className="text-[#6B7280] hover:text-white text-sm font-medium transition-colors"
+        >
+          Skip
+        </button>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col justify-center px-6 py-12 relative z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="max-w-md mx-auto text-center"
+          >
+            {/* Icon with glow */}
+            <motion.div 
+              className="relative mb-8"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+            >
+              {/* Glow background */}
+              <div className={`absolute inset-0 ${currentSlideData.bgGlow} blur-3xl rounded-full scale-150`} />
+              
+              {/* Icon container */}
+              <div className={`relative w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br ${currentSlideData.gradient} flex items-center justify-center shadow-2xl shadow-[#7C3AED]/30`}>
+                <IconComponent className="w-12 h-12 text-white" strokeWidth={1.5} />
+              </div>
+            </motion.div>
+            
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-[#A78BFA] text-sm font-semibold uppercase tracking-wider mb-3"
+            >
+              {currentSlideData.subtitle}
+            </motion.p>
+            
+            {/* Title */}
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight"
+            >
+              {currentSlideData.title}
+            </motion.h1>
+            
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-[#9CA3AF] text-lg leading-relaxed max-w-sm mx-auto"
+            >
+              {currentSlideData.description}
+            </motion.p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      
+      {/* Bottom section */}
+      <div className="p-6 pb-10 relative z-10">
+        <div className="max-w-md mx-auto">
           {/* Progress dots */}
-          <div className="flex justify-center space-x-2 mb-8">
+          <div className="flex justify-center gap-2 mb-8">
             {slides.map((_, index) => (
-              <div 
+              <button
                 key={index}
-                className={cn(
-                  "h-2 w-2 rounded-full",
-                  index === currentSlide ? "bg-brand-primary" : "bg-text-tertiary/30"
-                )}
+                onClick={() => setCurrentSlide(index)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === currentSlide 
+                    ? 'w-8 bg-[#7C3AED]' 
+                    : 'w-2 bg-[#2D2D3A] hover:bg-[#3D3D4A]'
+                }`}
               />
             ))}
           </div>
-        </div>
-      </div>
-      
-      <div className="p-6">
-        <div className="max-w-md mx-auto">
+          
+          {/* Next button */}
           <Button
             onClick={handleNext}
-            className="w-full py-6 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full font-medium text-base"
+            className="w-full py-6 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white rounded-2xl font-semibold text-base shadow-lg shadow-[#7C3AED]/25 transition-all hover:shadow-[#7C3AED]/40 hover:scale-[1.02] active:scale-[0.98]"
           >
-            {currentSlide < slides.length - 1 ? 'Next' : 'Complete Onboarding'}
+            <span className="flex items-center justify-center gap-2">
+              {currentSlide < slides.length - 1 ? 'Continue' : 'Get Started'}
+              <ChevronRight className="w-5 h-5" />
+            </span>
           </Button>
-          
-          {currentSlide < slides.length - 1 && (
-            <Button
-              onClick={handleSkip}
-              variant="ghost"
-              className="w-full py-6 text-muted-foreground font-medium text-base mt-4"
-            >
-              Skip
-            </Button>
-          )}
         </div>
       </div>
     </div>
