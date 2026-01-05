@@ -1,21 +1,20 @@
-// src/pages/CreateProfile.tsx
+// CreateProfile - Dark theme with brand purple
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOnboarding } from '@/context/OnboardingContext';
-import Layout from '@/components/Layout';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2, User, ChevronRight } from 'lucide-react';
 import analytics from '@/services/appAnalytics';
 import { motion, AnimatePresence } from 'framer-motion';
 import { retryWithMessage } from '@/utils/retry';
 import { logError } from '@/utils/errorHandler';
 
-const ageOptions = Array.from({ length: 83 }, (_, i) => i + 18); // ages 18–100
+const ageOptions = Array.from({ length: 83 }, (_, i) => i + 18);
 const genderOptions = [
   { value: 'man', label: 'Man' },
   { value: 'woman', label: 'Woman' },
@@ -38,7 +37,6 @@ export default function CreateProfile() {
   const navigate = useNavigate();
   const { setOnboardingStepComplete, onboardingProgress } = useOnboarding();
 
-  // Ensure Firebase is initialized before rendering
   useEffect(() => {
     if (!auth || !firestore) {
       setError('Firebase is not initialized. Please refresh the page.');
@@ -51,10 +49,8 @@ export default function CreateProfile() {
     setIsReady(true);
   }, [navigate]);
 
-  // Resume onboarding - load saved data if available
   useEffect(() => {
     if (onboardingProgress.profile) {
-      // Profile already completed, skip to next step
       try {
         navigate('/photo-upload');
       } catch (error) {
@@ -63,7 +59,6 @@ export default function CreateProfile() {
       return;
     }
 
-    // Try to load saved profile data from localStorage (for resume)
     try {
       const saved = localStorage.getItem('onboarding_profile_draft');
       if (saved) {
@@ -74,24 +69,19 @@ export default function CreateProfile() {
         setAge(draft.age || 25);
       }
     } catch (e) {
-      // Ignore errors loading draft
+      // Ignore
     }
   }, [onboardingProgress.profile, navigate]);
 
-  // Save draft to localStorage as user types (for resume capability)
   useEffect(() => {
     if (name) {
       localStorage.setItem('onboarding_profile_draft', JSON.stringify({
-        name,
-        gender,
-        interestedIn,
-        age,
+        name, gender, interestedIn, age,
       }));
     }
   }, [name, gender, interestedIn, age]);
 
   const handleSubmit = async () => {
-    // Pre-flight checks
     if (!auth.currentUser || !auth.currentUser.uid) {
       setError('User not authenticated. Please sign in again.');
       navigate('/signin');
@@ -103,32 +93,27 @@ export default function CreateProfile() {
       return;
     }
     
-    // interestedIn is now stored as a single value: 'men', 'women', or 'everyone'
-    // No conversion needed - store directly
-    
     setSaving(true);
     setError('');
     setRetryCount(0);
     
     try {
-        const profileData = {
-          id: auth.currentUser.uid,
-          name,
-          photos: [],
+      const profileData = {
+        id: auth.currentUser.uid,
+        name,
+        photos: [],
         isCheckedIn: false,
         isVisible: true,
         interests: [],
         gender,
         interestedIn,
         age,
-        ageRangePreference: { min: 18, max: 99 }, // Default, can be updated in preferences
+        ageRangePreference: { min: 18, max: 99 },
         matches: [],
         likedUsers: [],
         blockedUsers: []
       };
 
-      // Use retry utility for network resilience
-      // Verify auth state before operations
       if (!auth.currentUser || !auth.currentUser.uid) {
         throw new Error('User not authenticated. Please sign in again.');
       }
@@ -137,23 +122,19 @@ export default function CreateProfile() {
         async () => {
           const ref = doc(firestore, 'users', auth.currentUser!.uid);
           
-          // Check if document exists - handle permission errors gracefully
           let userDocExists = false;
           try {
             const userDoc = await getDoc(ref);
             userDocExists = userDoc.exists();
           } catch (error: any) {
-            // If getDoc fails with permission denied, assume document doesn't exist
             if (error?.code === 'permission-denied') {
               userDocExists = false;
             } else {
-              throw error; // Re-throw other errors
+              throw error;
             }
           }
           
           if (!userDocExists) {
-            // Document doesn't exist - create it WITHOUT merge (treats as CREATE operation)
-            // This handles the case where sign-up didn't create the document
             await setDoc(ref, {
               email: auth.currentUser!.email || '',
               id: auth.currentUser!.uid,
@@ -165,8 +146,6 @@ export default function CreateProfile() {
             });
           }
           
-          // Now update with profile data using merge: true
-          // This ensures we don't lose any existing data
           await setDoc(ref, profileData, { merge: true });
         },
         { 
@@ -176,30 +155,25 @@ export default function CreateProfile() {
         }
       );
       
-      // Clear draft after successful save
       localStorage.removeItem('onboarding_profile_draft');
       
-      // Track onboarding step completion
-        analytics.track('onboarding_step_completed', {
-          step: 'profile',
-          step_number: 1,
-          retry_count: retryCount,
-        });
+      analytics.track('onboarding_step_completed', {
+        step: 'profile',
+        step_number: 1,
+        retry_count: retryCount,
+      });
       
       setOnboardingStepComplete('profile');
       localStorage.setItem('profileComplete', 'true');
       localStorage.setItem('onboarding_last_step', 'profile');
       
-      // Navigate to next step with error handling
       try {
-        navigate('/photo-upload'); // Next step: photo upload
+        navigate('/photo-upload');
       } catch (navError) {
-        // If navigation fails, use window.location as fallback
         logError(navError as Error, { source: 'CreateProfile', action: 'navigate', target: '/photo-upload' });
         window.location.href = '/photo-upload';
       }
     } catch (err: unknown) {
-      // Enhanced error handling
       let errorMessage = 'Failed to save profile. Please try again.';
       
       if (err instanceof Error) {
@@ -222,58 +196,77 @@ export default function CreateProfile() {
     }
   };
 
-  // Show loading state while checking Firebase/auth
   if (!isReady) {
     return (
-      <Layout showBottomNav={false}>
-        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-neutral-300">Loading...</p>
-            {error && <p className="text-red-400 mt-2">{error}</p>}
-          </div>
-        </div>
-      </Layout>
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#7C3AED]" />
+      </div>
     );
   }
 
   return (
-    <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-2 border-neutral-700 bg-neutral-800 shadow-xl">
-          <CardHeader className="text-center space-y-2 border-b border-neutral-700 bg-gradient-to-r from-neutral-800/50 via-neutral-800/50 to-neutral-800/50">
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-neutral-700 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-neutral-700 text-neutral-400 flex items-center justify-center text-sm font-semibold">2</div>
-              </div>
-            </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent font-bold">
-              Create Profile
-            </CardTitle>
-            <p className="text-sm text-neutral-300">Step 1 of 2: Tell us about you</p>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
+    <div className="min-h-screen bg-[#0a0a0f] flex flex-col relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.15)_0%,_transparent_50%)]" />
+      
+      {/* Progress bar */}
+      <div className="w-full h-1 bg-[#1a1a24]">
+        <div className="h-full w-1/2 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9]" />
+      </div>
+
+      {/* Back button */}
+      <div className="px-6 py-4">
+        <button
+          onClick={() => navigate('/signup')}
+          className="flex items-center text-[#6B7280] hover:text-white text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col px-6 pb-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md mx-auto w-full"
+        >
+          {/* Icon */}
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30 mb-6">
+            <User className="w-8 h-8 text-white" />
+          </div>
+
+          {/* Header */}
+          <div className="text-center mb-8">
+            <p className="text-[#A78BFA] text-sm font-semibold uppercase tracking-wider mb-2">Step 1 of 2</p>
+            <h1 className="text-2xl font-bold text-white mb-2">Create your profile</h1>
+            <p className="text-[#6B7280]">Tell us a bit about yourself</p>
+          </div>
+
+          {/* Form */}
+          <div className="space-y-5">
+            {/* Name */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Your name</label>
+              <label className="block text-sm font-medium text-[#9CA3AF]">Your name</label>
               <Input 
                 placeholder="Enter your name" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                className="bg-[#0a0a0f] border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
+                className="bg-[#111118] border-[#2D2D3A] text-white placeholder:text-[#4B5563] focus:border-[#7C3AED] focus:ring-1 focus:ring-[#7C3AED] h-12 rounded-xl"
               />
             </div>
             
+            {/* Age */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Your age</label>
+              <label className="block text-sm font-medium text-[#9CA3AF]">Your age</label>
               <Select value={age.toString()} onValueChange={(v) => setAge(Number(v))}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-[#111118] border-[#2D2D3A] text-white h-12 rounded-xl focus:ring-[#7C3AED]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#111118] border-[#2D2D3A]">
                   {ageOptions.map((ageOption) => (
-                    <SelectItem key={ageOption} value={ageOption.toString()}>
+                    <SelectItem key={ageOption} value={ageOption.toString()} className="text-white hover:bg-[#7C3AED]/20">
                       {ageOption}
                     </SelectItem>
                   ))}
@@ -281,15 +274,16 @@ export default function CreateProfile() {
               </Select>
             </div>
             
+            {/* Gender */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">I am a</label>
+              <label className="block text-sm font-medium text-[#9CA3AF]">I am a</label>
               <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-[#111118] border-[#2D2D3A] text-white h-12 rounded-xl focus:ring-[#7C3AED]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#111118] border-[#2D2D3A]">
                   {genderOptions.map((g) => (
-                    <SelectItem key={g.value} value={g.value}>
+                    <SelectItem key={g.value} value={g.value} className="text-white hover:bg-[#7C3AED]/20">
                       {g.label}
                     </SelectItem>
                   ))}
@@ -297,72 +291,58 @@ export default function CreateProfile() {
               </Select>
             </div>
             
+            {/* Interested In */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Interested in</label>
-              <Select 
-                value={interestedIn} 
-                onValueChange={setInterestedIn}
-              >
-                <SelectTrigger>
+              <label className="block text-sm font-medium text-[#9CA3AF]">Interested in</label>
+              <Select value={interestedIn} onValueChange={setInterestedIn}>
+                <SelectTrigger className="bg-[#111118] border-[#2D2D3A] text-white h-12 rounded-xl focus:ring-[#7C3AED]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#111118] border-[#2D2D3A]">
                   {interestedInOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem key={option.value} value={option.value} className="text-white hover:bg-[#7C3AED]/20">
                       {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Error */}
             <AnimatePresence>
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg"
+                  className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl"
                 >
-                  <p className="text-sm text-red-400 mb-2">{error}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSubmit}
-                    className="w-full border-red-700/50 text-red-400 hover:bg-red-900/20"
-                  >
-                    Retry
-                  </Button>
+                  <p className="text-sm text-red-400">{error}</p>
                 </motion.div>
               )}
             </AnimatePresence>
             
-            <div className="flex space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/signup')}
-                className="flex-1 border-2 border-neutral-700 hover:bg-neutral-700 text-neutral-300 hover:text-white"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                loading={saving}
-                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-md"
-                disabled={!name.trim() || saving}
-              >
-                {saving ? (
-                  <span className="flex items-center justify-center">
-                    {retryCount > 0 ? `Retrying... (${retryCount})` : 'Saving...'}
-                  </span>
-                ) : (
-                  'Continue'
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Submit */}
+            <Button
+              onClick={handleSubmit}
+              disabled={!name.trim() || saving}
+              className="w-full h-14 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white font-semibold rounded-xl shadow-lg shadow-[#7C3AED]/25 transition-all disabled:opacity-50 mt-4"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  {retryCount > 0 ? `Retrying... (${retryCount})` : 'Saving...'}
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+        </motion.div>
       </div>
-    </Layout>
+    </div>
   );
 }

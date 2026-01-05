@@ -1,22 +1,18 @@
-// src/components/UserCard.tsx
+// UserCard - Dark theme with brand purple
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { Heart, Loader2 } from 'lucide-react';
 import { UserProfile } from '@/types/UserProfile';
-import { likeUserWithMutualDetection, createMatchIfMutual } from '@/services/firebase/matchService';
+import { likeUserWithMutualDetection } from '@/services/firebase/matchService';
 import { useUser } from '@/hooks/useUser';
 import { logError } from '@/utils/errorHandler';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { getCheckedVenueId } from '@/lib/checkinStore';
 
 type UserCardProps = {
   user: UserProfile;
-  venueId?: string; // Optional - will use checked-in venue if not provided
+  venueId?: string;
 };
 
 const UserCard: React.FC<UserCardProps> = ({ user, venueId: propVenueId }) => {
@@ -29,7 +25,6 @@ const UserCard: React.FC<UserCardProps> = ({ user, venueId: propVenueId }) => {
     
     setIsLiking(true);
     try {
-      // Get venueId from prop, or fallback to checked-in venue
       const venueId = propVenueId || getCheckedVenueId() || '';
       
       if (!venueId) {
@@ -47,85 +42,80 @@ const UserCard: React.FC<UserCardProps> = ({ user, venueId: propVenueId }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
+      className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#111118] border border-[#2D2D3A] group"
     >
-      <Card className="border border-neutral-200 hover:border-indigo-300 hover:shadow-md transition-all overflow-hidden bg-white">
-        {/* User Image */}
-        <div className="relative h-64 w-full overflow-hidden bg-neutral-200">
-          {user.photos && user.photos.length > 0 ? (
-            <img
-              src={user.photos[0]}
-              alt={user.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Avatar className="h-24 w-24">
-                <AvatarFallback className="bg-indigo-600 text-white text-2xl font-bold">
-                  {user.name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          )}
-          {user.age && (
-            <div className="absolute top-3 right-3">
-              <Badge className="bg-white/90 backdrop-blur-sm text-neutral-700 border border-neutral-200">
-                {user.age}
-              </Badge>
-            </div>
-          )}
-        </div>
-
-        {/* User Info */}
-        <div className="p-4">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-neutral-900 truncate">
-                {user.name}
-                {user.age && <span className="text-neutral-600 font-normal">, {user.age}</span>}
-              </h3>
-            </div>
+      {/* User Image */}
+      <div className="absolute inset-0">
+        {user.photos && user.photos.length > 0 ? (
+          <img
+            src={user.photos[0]}
+            alt={user.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center">
+            <span className="text-5xl font-bold text-white/80">
+              {user.name?.charAt(0) || 'U'}
+            </span>
           </div>
-          
-          {user.bio && (
-            <p className="text-sm text-neutral-600 mb-4 line-clamp-2">{user.bio}</p>
-          )}
+        )}
+      </div>
 
-          <Button
-            onClick={handleLikeToggle}
-            disabled={isLiked || isLiking}
-            className={cn(
-              "w-full",
-              isLiked
-                ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-indigo-600 hover:bg-indigo-700 text-white"
-            )}
-          >
-            {isLiking ? (
-              <span className="flex items-center justify-center">
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                Liking...
-              </span>
-            ) : isLiked ? (
-              <>
-                <Heart className="w-4 h-4 mr-2 fill-white" />
-                Liked
-              </>
-            ) : (
-              <>
-                <Heart className="w-4 h-4 mr-2" />
-                Like
-              </>
-            )}
-          </Button>
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+      {/* Age badge */}
+      {user.age && (
+        <div className="absolute top-3 right-3">
+          <span className="px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+            {user.age}
+          </span>
         </div>
-      </Card>
+      )}
+
+      {/* Bottom content */}
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        {/* Name */}
+        <h3 className="text-xl font-bold text-white mb-3">
+          {user.name}
+          {user.age && <span className="text-white/70 font-normal">, {user.age}</span>}
+        </h3>
+
+        {/* Like button */}
+        <Button
+          onClick={handleLikeToggle}
+          disabled={isLiked || isLiking}
+          className={`w-full h-11 font-semibold rounded-xl transition-all ${
+            isLiked
+              ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+              : 'bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white shadow-lg shadow-[#7C3AED]/25'
+          }`}
+        >
+          {isLiking ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Liking...
+            </>
+          ) : isLiked ? (
+            <>
+              <Heart className="w-4 h-4 mr-2 fill-green-400" />
+              Liked
+            </>
+          ) : (
+            <>
+              <Heart className="w-4 h-4 mr-2" />
+              Like
+            </>
+          )}
+        </Button>
+      </div>
     </motion.div>
   );
 };

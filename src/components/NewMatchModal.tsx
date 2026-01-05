@@ -1,13 +1,9 @@
-/**
- * NewMatchModal - In-app popup for new matches
- * 
- * Displays a celebratory modal when users get a new match
- */
+// NewMatchModal - Dark theme with brand purple
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MessageCircle, Heart, Sparkles } from 'lucide-react';
+import { X, MessageCircle, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NewMatchModalProps {
@@ -32,7 +28,6 @@ export function NewMatchModal({
 
   useEffect(() => {
     if (isOpen) {
-      // Show content with delay for animation
       setTimeout(() => setShowContent(true), 100);
     } else {
       setShowContent(false);
@@ -57,7 +52,7 @@ export function NewMatchModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50"
             onClick={onClose}
           />
           
@@ -69,19 +64,19 @@ export function NewMatchModal({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-neutral-700/50 relative overflow-hidden">
+            <div className="bg-[#111118] rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-[#2D2D3A] relative overflow-hidden">
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-2 rounded-full bg-neutral-800/80 hover:bg-neutral-700 transition-colors z-10"
+                className="absolute top-4 right-4 p-2 rounded-full bg-[#1a1a24] hover:bg-[#2D2D3A] transition-colors z-10"
               >
-                <X className="w-5 h-5 text-neutral-400" />
+                <X className="w-5 h-5 text-[#6B7280]" />
               </button>
 
-              {/* Decorative background elements */}
+              {/* Decorative background */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl" />
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#7C3AED]/20 rounded-full blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-[#6D28D9]/20 rounded-full blur-3xl" />
               </div>
 
               <AnimatePresence>
@@ -92,13 +87,13 @@ export function NewMatchModal({
                     transition={{ delay: 0.1 }}
                     className="relative z-10"
                   >
-                    {/* Match celebration header */}
+                    {/* Header */}
                     <div className="text-center mb-6">
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", delay: 0.2, damping: 15 }}
-                        className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 mb-4"
+                        className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] mb-4 shadow-lg shadow-[#7C3AED]/30"
                       >
                         <Heart className="w-8 h-8 text-white fill-white" />
                       </motion.div>
@@ -107,7 +102,7 @@ export function NewMatchModal({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="text-2xl font-bold bg-gradient-to-r from-pink-400 via-rose-400 to-pink-400 bg-clip-text text-transparent mb-2"
+                        className="text-2xl font-bold text-white mb-2"
                       >
                         It's a Match!
                       </motion.h2>
@@ -116,7 +111,7 @@ export function NewMatchModal({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="text-neutral-400 text-sm"
+                        className="text-[#9CA3AF] text-sm"
                       >
                         You and {partnerName} liked each other
                         {venueName && ` at ${venueName}`}
@@ -131,8 +126,8 @@ export function NewMatchModal({
                       className="flex justify-center mb-6"
                     >
                       <div className="relative">
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-indigo-500 p-1">
-                          <div className="w-full h-full rounded-full overflow-hidden bg-neutral-800">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] p-1">
+                          <div className="w-full h-full rounded-full overflow-hidden bg-[#1a1a24]">
                             {partnerPhoto ? (
                               <img
                                 src={partnerPhoto}
@@ -140,7 +135,7 @@ export function NewMatchModal({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-neutral-500">
+                              <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-[#6B7280]">
                                 {partnerName.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -158,7 +153,7 @@ export function NewMatchModal({
                             repeat: Infinity,
                             ease: "easeInOut"
                           }}
-                          className="absolute inset-0 rounded-full border-2 border-pink-400/50"
+                          className="absolute inset-0 rounded-full border-2 border-[#7C3AED]/50"
                         />
                       </div>
                     </motion.div>
@@ -182,7 +177,7 @@ export function NewMatchModal({
                     >
                       <Button
                         onClick={handleSendMessage}
-                        className="w-full py-6 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg shadow-pink-500/25"
+                        className="w-full h-14 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white font-semibold rounded-xl shadow-lg shadow-[#7C3AED]/25"
                       >
                         <MessageCircle className="w-5 h-5 mr-2" />
                         Send a Message
@@ -191,7 +186,7 @@ export function NewMatchModal({
                       <Button
                         onClick={handleKeepBrowsing}
                         variant="ghost"
-                        className="w-full py-6 text-neutral-400 hover:text-white hover:bg-neutral-800/50 rounded-xl"
+                        className="w-full h-12 text-[#9CA3AF] hover:text-white hover:bg-[#1a1a24] rounded-xl"
                       >
                         Keep Browsing
                       </Button>
@@ -208,4 +203,3 @@ export function NewMatchModal({
 }
 
 export default NewMatchModal;
-

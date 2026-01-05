@@ -1,3 +1,5 @@
+// EmptyState - Dark theme with brand purple
+
 import React from 'react';
 import { LucideIcon, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -40,7 +42,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       className={cn(
         'text-center',
         isCompact ? 'py-8 px-4' : 'py-12 px-6',
-        isCard && 'bg-neutral-800/50 rounded-2xl border border-neutral-700/50 shadow-lg backdrop-blur-sm',
+        isCard && 'bg-[#111118]/80 rounded-2xl border border-[#2D2D3A] shadow-lg backdrop-blur-sm',
         className
       )}
     >
@@ -50,14 +52,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3, type: 'spring', stiffness: 200 }}
           className={cn(
-            "mx-auto rounded-full flex items-center justify-center mb-5",
-            "bg-gradient-to-br from-indigo-900/60 to-purple-900/40",
-            "ring-2 ring-indigo-500/20 shadow-lg shadow-indigo-500/10",
+            "mx-auto rounded-2xl flex items-center justify-center mb-5",
+            "bg-gradient-to-br from-[#7C3AED]/20 to-[#6D28D9]/10",
+            "ring-1 ring-[#7C3AED]/30 shadow-lg shadow-[#7C3AED]/10",
             isCompact ? 'w-14 h-14' : 'w-20 h-20'
           )}
         >
           <Icon className={cn(
-            "text-indigo-400",
+            "text-[#A78BFA]",
             isCompact ? 'w-7 h-7' : 'w-10 h-10'
           )} />
         </motion.div>
@@ -81,7 +83,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className={cn(
-            "text-neutral-300 max-w-md mx-auto leading-relaxed",
+            "text-[#9CA3AF] max-w-md mx-auto leading-relaxed",
             isCompact ? 'text-sm mb-4' : 'text-base mb-6'
           )}
         >
@@ -100,11 +102,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             <Button
               onClick={action.onClick}
               className={cn(
-                "bg-gradient-to-r from-indigo-600 to-purple-600",
-                "hover:from-indigo-500 hover:to-purple-500",
-                "text-white font-semibold shadow-lg shadow-indigo-500/25",
-                "transition-all duration-200 hover:shadow-indigo-500/40 hover:scale-[1.02]",
-                "active:scale-[0.98]",
+                "bg-gradient-to-r from-[#7C3AED] to-[#6D28D9]",
+                "hover:from-[#8B5CF6] hover:to-[#7C3AED]",
+                "text-white font-semibold shadow-lg shadow-[#7C3AED]/25",
+                "transition-all duration-200 hover:shadow-[#7C3AED]/40 hover:scale-[1.02]",
+                "active:scale-[0.98] rounded-xl",
                 isCompact ? 'px-4 py-2 text-sm' : 'px-6 py-2.5'
               )}
             >
@@ -117,7 +119,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             <Button
               onClick={secondaryAction.onClick}
               variant="ghost"
-              className="text-neutral-400 hover:text-white hover:bg-neutral-700/50"
+              className="text-[#6B7280] hover:text-white hover:bg-[#1a1a24]"
             >
               {secondaryAction.label}
             </Button>
@@ -127,4 +129,3 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     </motion.div>
   );
 };
-

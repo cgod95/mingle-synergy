@@ -310,29 +310,29 @@ export default function ChatRoom() {
           className="fixed inset-0 flex flex-col bg-[#0a0a0f] z-40 pb-16"
           style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}
         >
-          <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl overflow-hidden">
+          <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-[#111118] shadow-xl overflow-hidden">
             <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
             {/* Mingle Branding */}
-            <div className="bg-neutral-800/80 backdrop-blur-md border-b border-neutral-700 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
+            <div className="bg-[#111118]/80 backdrop-blur-md border-b border-[#2D2D3A] px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
               <Link to="/matches" className="group">
                 <MingleMLogo size="sm" showText={true} className="text-white" />
               </Link>
             </div>
           {/* Header */}
-          <div className="bg-neutral-800 border-b border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center space-x-3 shadow-sm flex-shrink-0">
+          <div className="bg-[#111118] border-b border-[#2D2D3A] px-4 sm:px-6 py-3 sm:py-4 flex items-center space-x-3 shadow-sm flex-shrink-0">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => goBackSafely(navigate, '/matches')}
-          className="rounded-full"
+          className="rounded-full text-[#9CA3AF] hover:text-white hover:bg-[#1a1a24]"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <Avatar className="h-10 w-10 ring-2 ring-indigo-500/50 rounded-md">
+        <Avatar className="h-10 w-10 ring-2 ring-[#7C3AED]/50 rounded-xl">
           {matchAvatar ? (
-            <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
+            <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-xl" />
           ) : null}
-          <AvatarFallback className="bg-indigo-600 text-white rounded-md">
+          <AvatarFallback className="bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] text-white rounded-xl">
             {matchName.charAt(0)}
           </AvatarFallback>
         </Avatar>
@@ -340,7 +340,7 @@ export default function ChatRoom() {
           <h2 className="font-semibold text-white truncate">{matchName}</h2>
           <div className="flex items-center gap-2">
             {matchExpiresAt && getRemainingTime() && (
-              <p className="text-xs text-indigo-400 font-medium">
+              <p className="text-xs text-[#A78BFA] font-medium">
                 Active for {getRemainingTime()}
               </p>
             )}
@@ -350,15 +350,15 @@ export default function ChatRoom() {
         {otherUserId && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <Button variant="ghost" size="icon" className="rounded-full text-[#6B7280] hover:text-white hover:bg-[#1a1a24]">
                 <MoreVertical className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-neutral-800 border-neutral-700">
-              <DropdownMenuItem onClick={() => setShowBlockDialog(true)} className="hover:bg-neutral-700 focus:bg-neutral-700">
-                <span className="text-red-500">Block User</span>
+            <DropdownMenuContent align="end" className="bg-[#111118] border-[#2D2D3A]">
+              <DropdownMenuItem onClick={() => setShowBlockDialog(true)} className="hover:bg-[#1a1a24] focus:bg-[#1a1a24]">
+                <span className="text-red-400">Block User</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="hover:bg-neutral-700 focus:bg-neutral-700 text-neutral-200">
+              <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="hover:bg-[#1a1a24] focus:bg-[#1a1a24] text-[#9CA3AF]">
                 <span>Report User</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -368,12 +368,12 @@ export default function ChatRoom() {
 
       {/* Countdown Banner - Outside chat scroll area */}
       {matchExpiresAt && (
-        <div className="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-t border-b border-indigo-500/30 px-4 py-2 flex-shrink-0">
+        <div className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/10 border-t border-b border-[#7C3AED]/20 px-4 py-2 flex-shrink-0">
           <div className="flex items-center justify-between max-w-4xl mx-auto w-full">
-            <span className="text-sm text-neutral-200">
+            <span className="text-sm text-[#9CA3AF]">
               You have {remainingMessages} message{remainingMessages !== 1 ? 's' : ''} to make something happen
             </span>
-            <span className="text-sm font-medium text-indigo-400">
+            <span className="text-sm font-medium text-[#A78BFA]">
               {getRemainingTime()} left
             </span>
           </div>
@@ -396,8 +396,8 @@ export default function ChatRoom() {
               <div
                 className={`max-w-[75%] sm:max-w-[70%] rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 shadow-sm ${
                   m.sender === "you"
-                    ? "bg-indigo-600 text-white rounded-br-sm"
-                    : "bg-neutral-700 border-2 border-neutral-600 text-neutral-200 rounded-bl-sm"
+                    ? "bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-br-sm"
+                    : "bg-[#1a1a24] border border-[#2D2D3A] text-[#E5E5E5] rounded-bl-sm"
                 }`}
               >
                 <p className="text-sm sm:text-base leading-relaxed font-medium break-words">{m.text}</p>
@@ -417,15 +417,13 @@ export default function ChatRoom() {
 
       {/* Input - Fixed at bottom with safe area handling */}
       <div 
-        className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
+        className="bg-[#111118] border-t border-[#2D2D3A] px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
         style={{ 
           paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-          WebkitTransform: 'translateZ(0)', // Force GPU layer for iOS
+          WebkitTransform: 'translateZ(0)',
           transform: 'translateZ(0)'
         }}
       >
-        {/* Message limit indicator (hidden for premium users) */}
-        
         <form onSubmit={onSend} className="flex gap-2 sm:gap-3 items-end">
           <div className="flex-1 relative">
             <input
@@ -440,15 +438,15 @@ export default function ChatRoom() {
                   : "Type a message..."
               }
               disabled={!canSendMsg}
-              className={`w-full rounded-full border-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm ${
+              className={`w-full rounded-full border px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent shadow-sm ${
                 !canSendMsg 
-                  ? 'border-red-700 bg-red-900/30 text-neutral-400 cursor-not-allowed' 
-                  : 'border-neutral-600 bg-neutral-700 text-neutral-200'
+                  ? 'border-red-500/50 bg-red-900/20 text-[#6B7280] cursor-not-allowed' 
+                  : 'border-[#2D2D3A] bg-[#1a1a24] text-white placeholder:text-[#6B7280]'
               }`}
             />
             {!canSendMsg && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-xs text-red-400 font-medium bg-red-900/90 px-2 py-1 rounded">
+                <span className="text-xs text-red-400 font-medium bg-red-900/80 px-2 py-1 rounded">
                   Limit reached
                 </span>
               </div>
@@ -457,7 +455,7 @@ export default function ChatRoom() {
           <Button
             type="submit"
             disabled={!text.trim() || !canSendMsg || sending}
-            className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0"
+            className="rounded-full bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white shadow-lg shadow-[#7C3AED]/25 disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0"
             size="icon"
             title={!canSendMsg ? "Message limit reached. Reconnect at a venue to continue chatting." : sending ? "Sending..." : ""}
           >

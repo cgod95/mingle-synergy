@@ -5,9 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import config from '@/config';
 
-// BottomNav: Main navigation bar for user-facing pages with red notification badges
-// Routes match App.tsx: /checkin, /matches, /profile
-// Hidden during onboarding (except demo mode) - only shows after profile + photo complete
+// BottomNav: Main navigation bar - dark theme with brand purple
 const BottomNav: React.FC = () => {
   const { currentUser } = useAuth();
   const { onboardingProgress, isOnboardingComplete, isLoading } = useOnboarding();
@@ -15,7 +13,6 @@ const BottomNav: React.FC = () => {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Compute shouldShow BEFORE any useEffect (React hooks must be called unconditionally)
   const localStorageComplete = typeof window !== 'undefined' 
     ? localStorage.getItem('onboardingComplete') === 'true' 
     : false;
@@ -24,8 +21,6 @@ const BottomNav: React.FC = () => {
     allStepsComplete && isOnboardingComplete
   );
 
-  // Get unread count (works for both demo and production)
-  // IMPORTANT: This useEffect must be called unconditionally (before any early returns)
   useEffect(() => {
     if (!currentUser?.uid) return;
     
@@ -33,11 +28,8 @@ const BottomNav: React.FC = () => {
     
     const updateUnreadCount = async () => {
       if (config.DEMO_MODE) {
-        // Demo mode: In demo mode, we don't track read status, so show 0
-        // This prevents showing incorrect/stale badge numbers
         setUnreadCount(0);
       } else {
-        // Production: use Firebase service
         try {
           const { subscribeToUnreadCounts } = await import('@/features/messaging/UnreadMessageService');
           unsubscribe = subscribeToUnreadCounts(currentUser.uid, (counts: Record<string, number>) => {
@@ -45,16 +37,13 @@ const BottomNav: React.FC = () => {
             setUnreadCount(total);
           });
         } catch (error) {
-          // UnreadMessageService not available - non-critical, silently fail
           setUnreadCount(0);
         }
       }
     };
 
-    // Initial load
     updateUnreadCount();
 
-    // Re-update when window gains focus (user returns to app)
     const handleFocus = () => {
       if (!config.DEMO_MODE) {
         updateUnreadCount();
@@ -68,9 +57,8 @@ const BottomNav: React.FC = () => {
     };
   }, [currentUser?.uid]);
 
-  // Early returns AFTER all hooks (React requires hooks to be called unconditionally)
   if (isLoading && !config.DEMO_MODE) {
-    return null; // Don't show while loading onboarding state
+    return null;
   }
 
   if (!shouldShow) {
@@ -92,10 +80,9 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-neutral-800/95 backdrop-blur-md border-t border-neutral-700 shadow-lg px-4 py-3 z-[9999]"
+      className="fixed bottom-0 left-0 right-0 bg-[#111118]/95 backdrop-blur-xl border-t border-[#2D2D3A] px-4 py-3 z-[9999]"
       style={{ 
         paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-        // Force visibility on mobile by using transform to avoid iOS scroll issues
         transform: 'translateZ(0)',
         WebkitTransform: 'translateZ(0)',
       }}
@@ -112,30 +99,21 @@ const BottomNav: React.FC = () => {
               onClick={() => navigate(item.path)}
               aria-label={`Navigate to ${item.label}${showBadge ? ` (${unreadCount} unread)` : ''}`}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="relative flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:ring-offset-2 focus:ring-offset-[#0a0a0f]"
             >
-              <div
-                className={`relative ${active ? 'text-indigo-500 scale-110' : 'text-neutral-500'}`}
-              >
+              <div className={`relative transition-transform duration-200 ${active ? 'text-[#7C3AED] scale-110' : 'text-[#6B7280] hover:text-[#9CA3AF]'}`}>
                 <Icon size={24} strokeWidth={active ? 2.5 : 2} />
-                {/* Red notification badge - iOS/Android style */}
                 {showBadge && (
-                  <div
-                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-lg border-2 border-white"
-                  >
+                  <div className="absolute -top-1 -right-1 bg-[#7C3AED] text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-lg border-2 border-[#111118]">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </div>
                 )}
               </div>
-              <span
-                className={`text-xs ${active ? 'font-bold text-indigo-500' : 'font-medium text-neutral-500'}`}
-              >
+              <span className={`text-xs transition-colors ${active ? 'font-semibold text-[#7C3AED]' : 'font-medium text-[#6B7280]'}`}>
                 {item.label}
               </span>
               {active && (
-                <div
-                  className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-indigo-600 rounded-full"
-                />
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-[#7C3AED] rounded-full" />
               )}
             </button>
           );
