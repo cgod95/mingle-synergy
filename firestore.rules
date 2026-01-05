@@ -11,12 +11,8 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    function isMatchParticipant(matchData) {
-      return isSignedIn() && (
-        matchData.userId1 == request.auth.uid ||
-        matchData.userId2 == request.auth.uid
-      );
-    }
+    // Note: isMatchParticipant helper removed - inline checks used instead
+    // for better compatibility with Firestore rules compiler
 
     // User profiles - users can read/write their own document
     // Other users can read profiles of users at the same venue (for venue discovery)

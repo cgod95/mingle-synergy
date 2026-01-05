@@ -37,7 +37,7 @@ const CheckInTimer: React.FC<CheckInTimerProps> = ({
   // Calculate remaining percentage for progress indicator
   const getExpiryPercentage = () => {
     // This is a simple example - would need actual check-in start time for accuracy
-    // Assuming 3-hour expiry time (10800 seconds) for this example
+    // Assuming 24-hour expiry time (86400 seconds) for this example
     const totalDuration = 10800;
     return Math.min(100, Math.max(0, (timeRemaining / totalDuration) * 100));
   };

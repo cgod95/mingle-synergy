@@ -74,7 +74,7 @@ test.describe('Reconnect Flow E2E', () => {
     }
   });
 
-  test('Reconnect creates fresh match with new 3-hour expiry', async ({ page }) => {
+  test('Reconnect creates fresh match with new 24-hour expiry', async ({ page }) => {
     // Setup: Create reconnect scenario
     await page.goto('/matches');
     

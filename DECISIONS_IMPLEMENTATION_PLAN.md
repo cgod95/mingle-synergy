@@ -34,7 +34,7 @@
 - **Action:** Test zone selector functionality
 
 ### 7. Match Expiry Behavior
-- ✅ Match expires after 3 hours
+- ✅ Match expires after 24 hours
 - ✅ Can send like again (must reactivate when user re-checks in to venue)
 - ✅ Can read old messages
 - ✅ Expired matches shown in matches list (faded out)

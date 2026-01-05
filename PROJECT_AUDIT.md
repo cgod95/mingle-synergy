@@ -18,7 +18,7 @@ The Mingle application has been successfully restored and enhanced according to 
 
 **Requirements:**
 - ✅ Venue-based matching app
-- ✅ 3-hour match expiry
+- ✅ 24-hour match expiry
 - ✅ Message limit (10 per user per match)
 - ✅ Photo requirement for check-in
 - ✅ Reconnect flow for expired matches

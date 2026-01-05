@@ -8,7 +8,7 @@ Mingle is the anti-dating app dating app. No swiping. No endless chats. Just rea
 
 **Core Philosophy:**
 - Meet people at the same venue, at the same time
-- Matches expire after 3 hours (encourages real conversation)
+- Matches expire after 24 hours (encourages real conversation)
 - Limited messages (3 per person) unless you reconnect at the same venue
 - Minimal profiles - just enough to decide if you want to chat
 
@@ -41,7 +41,7 @@ Mingle is the anti-dating app dating app. No swiping. No endless chats. Just rea
 ### Matching
 1. Like people at your venue
 2. Get matched when they like you back
-3. See match expiry timer (3 hours)
+3. See match expiry timer (24 hours)
 4. Request reconnect if match expires
 
 ### Messaging

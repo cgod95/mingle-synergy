@@ -46,7 +46,7 @@
 ## 📊 Spec Compliance Summary
 
 ### Core Features ✅
-- Match expiry: 3 hours (single source of truth: `MATCH_EXPIRY_MS`)
+- Match expiry: 24 hours (single source of truth: `MATCH_EXPIRY_MS`)
 - Message limit: 10 per user per match (configurable via feature flag)
 - Photo required for check-in (configurable via feature flag)
 - Reconnect flow: Only for expired matches, creates fresh match

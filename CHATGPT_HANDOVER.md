@@ -229,7 +229,7 @@ See `BETA_LAUNCH_CHECKLIST.md` for complete checklist. Key items:
 - Free access window system implemented
 
 ### Match Expiry
-- Matches expire after 24 hours (3 hours in some legacy code - check `MATCH_EXPIRY_MS`)
+- Matches expire after 24 hours (single source of truth: `MATCH_EXPIRY_MS`)
 - Reconnect flow allows re-matching at same venue
 - Single source of truth: `src/lib/matchesCompat.ts`
 

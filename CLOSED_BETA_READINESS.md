@@ -20,7 +20,7 @@
 3. **Matching System**
    - Like system working
    - Match creation working
-   - Match expiry (3 hours) working
+   - Match expiry (24 hours) working
    - Reconnect flow implemented
 
 4. **Messaging**

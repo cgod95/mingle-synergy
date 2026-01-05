@@ -82,8 +82,8 @@ import { firestore } from '@/firebase/config';
 ```
 
 ### Match Expiry Logic
-- 3 hours TTL
-- Multiple implementations (consolidate later)
+- 24 hours TTL (updated from 3 hours)
+- Single source of truth: `MATCH_EXPIRY_MS` in `matchesCompat.ts`
 - `matchesCompat.ts` provides shim layer
 
 ### Message Limits

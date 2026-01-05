@@ -16,7 +16,7 @@ Mingle is the anti–infinite swipe social app for real-world connection in venu
 
 Core values:
 
-	1.	Ephemeral proximity, not parasocial infinity. Matches form only when both people are checked in to the same venue. Matches auto-expire after 3 hours. Messaging is severely limited (≈ 10 sends per person) unless you're co-located again.
+	1.	Ephemeral proximity, not parasocial infinity. Matches form only when both people are checked in to the same venue. Matches auto-expire after 24 hours. Messaging is severely limited (10 sends per person) unless you're co-located again.
 
 	2.	Low social proof, high intent. Minimal photos, minimal bios, minimal preferences. No follows, no DMs outside of matches, no public popularity loops.
 
@@ -88,17 +88,17 @@ P3: The Safety-First Explorer
 
 	•	Like cards for people at current venue.
 
-	•	Mutual like forms a match with 3-hour expiry.
+	•	Mutual like forms a match with 24-hour expiry.
 
 	•	UI shows countdown timer on each match card.
 
 	•	When expired, match is automatically removed (soft-deleted or archived).
 
-	•	Limited messages (3 per person per match) until both are co-located (full chat unlock).
+	•	Limited messages (10 per person per match) until both are co-located (full chat unlock).
 
 	•	Messaging (Limited)
 
-	•	In a match, each person can send up to 3 messages during the active 3-hour window.
+	•	In a match, each person can send up to 10 messages during the active 24-hour window.
 
 	•	If both users check back in at the same venue (or explicitly reconnect), unlock full messaging for that encounter session.
 
@@ -238,7 +238,7 @@ Messaging
 
 	•	UI displays counter ("2 of 3 left").
 
-	•	When both users check into the same venue again within the 3-hour window, temporarily unlock unlimited messages for the duration of that concurrent check-in (feature flag: UNLOCK_FULL_CHAT_ON_COLOCATION).
+	•	When both users check into the same venue again within the 24-hour window, temporarily unlock unlimited messages for the duration of that concurrent check-in (feature flag: UNLOCK_FULL_CHAT_ON_COLOCATION).
 
 	•	When match expires:
 
@@ -250,7 +250,7 @@ Messaging
 
 	•	Sends request; shows as pending to the sender.
 
-	•	If the other party taps "Accept Reconnect," create a fresh new match with a new 3-hour window. Prefer requiring co-location; if allowed remotely, cap messages at 5 each.
+	•	If the other party taps "Accept Reconnect," create a fresh new match with a new 24-hour window. Prefer requiring co-location; if allowed remotely, cap messages at 5 each.
 
 4.7 Safety & Control
 
@@ -584,7 +584,7 @@ Requirements:
 
 	•	Pending → Accept/Decline on receiver's side.
 
-	•	On accept, create fresh match with new 3-hour window; prefer requiring co-location (configurable).
+	•	On accept, create fresh match with new 24-hour window; prefer requiring co-location (configurable).
 
 Acceptance:
 
@@ -926,7 +926,7 @@ Phase 7 – QA Pass
 
 	•	Venue Unlock: Gaining access to see others at that venue.
 
-	•	Match Expiry: 3-hour window after mutual like.
+	•	Match Expiry: 24-hour window after mutual like.
 
 	•	Reconnect: Post-expiry re-interest handshake to form a fresh match.
 
