@@ -548,15 +548,15 @@ const SettingsPage: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate('/profile')}
-              className="hover:bg-indigo-900/30 text-indigo-400"
+              className="hover:bg-[#1a1a24] text-[#A78BFA]"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold text-white">
                 Settings
               </h1>
-              <p className="text-neutral-300 mt-2">Manage your account preferences and app settings</p>
+              <p className="text-[#9CA3AF] mt-2">Manage your account preferences and app settings</p>
             </div>
           </div>
 
@@ -564,11 +564,11 @@ const SettingsPage: React.FC = () => {
           <div className="space-y-4">
             {settingsSections.map((section, sectionIndex) => (
               <div key={sectionIndex}>
-                <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
+                <Card className="border border-[#2D2D3A] bg-[#111118] shadow-lg hover:shadow-xl transition-all">
+                  <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-[#2D2D3A]">
                     <CardTitle className="flex items-center text-heading-3">
-                      <section.icon className="w-5 h-5 mr-2 text-indigo-400" />
-                      <span className="text-indigo-400 font-semibold">
+                      <section.icon className="w-5 h-5 mr-2 text-[#A78BFA]" />
+                      <span className="text-white font-semibold">
                         {section.title}
                       </span>
                     </CardTitle>
@@ -577,12 +577,12 @@ const SettingsPage: React.FC = () => {
                     <div className="space-y-1">
                       {section.items.map((item, itemIndex) => (
                         <div key={itemIndex}>
-                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-indigo-900/30 transition-colors">
+                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-[#1a1a24] transition-colors">
                             <div className="flex items-center flex-1 min-w-0">
                               <div className={`p-2 rounded-lg mr-3 ${
                                 'danger' in item && item.danger
-                                  ? 'bg-red-900/50 text-red-400' 
-                                  : 'bg-indigo-900/50 text-indigo-400'
+                                  ? 'bg-red-900/30 text-red-400' 
+                                  : 'bg-[#7C3AED]/20 text-[#A78BFA]'
                               }`}>
                                 <item.icon className="w-4 h-4" />
                               </div>
@@ -598,15 +598,15 @@ const SettingsPage: React.FC = () => {
                                       variant={('badgeVariant' in item && item.badgeVariant) as 'default' | 'secondary' | 'destructive' | 'outline'} 
                                       className={
                                         'badgeVariant' in item && item.badgeVariant === 'default' 
-                                          ? 'bg-indigo-600 text-white border-0'
-                                          : ''
+                                          ? 'bg-[#7C3AED] text-white border-0'
+                                          : 'bg-[#1a1a24] text-[#9CA3AF] border-[#2D2D3A]'
                                       }
                                     >
                                       {item.badge}
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm text-neutral-300 mt-0.5">{item.description}</p>
+                                <p className="text-sm text-[#9CA3AF] mt-0.5">{item.description}</p>
                               </div>
                             </div>
                             
@@ -623,8 +623,8 @@ const SettingsPage: React.FC = () => {
                                   onClick={item.action}
                                   className={`${
                                     'danger' in item && item.danger
-                                      ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30' 
-                                      : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30'
+                                      ? 'text-red-400 hover:text-red-300 hover:bg-red-900/20' 
+                                      : 'text-[#6B7280] hover:text-white hover:bg-[#1a1a24]'
                                   }`}
                                 >
                                   <ChevronRight className="w-5 h-5" />
@@ -633,7 +633,7 @@ const SettingsPage: React.FC = () => {
                             </div>
                           </div>
                           {itemIndex < section.items.length - 1 && (
-                            <Separator className="my-1 bg-neutral-700" />
+                            <Separator className="my-1 bg-[#2D2D3A]" />
                           )}
                         </div>
                       ))}
@@ -646,7 +646,7 @@ const SettingsPage: React.FC = () => {
 
           {/* Logout Button */}
           <div className="mt-6">
-            <Card className="border border-red-700 bg-red-900/30">
+            <Card className="border border-red-500/30 bg-red-900/10">
               <CardContent className="pt-6">
                 <Button
                   variant="outline"
@@ -657,12 +657,11 @@ const SettingsPage: React.FC = () => {
                       }
                       navigate('/');
                     } catch (error) {
-                      // Failed to sign out - still navigate to home
                       logError(error instanceof Error ? error : new Error('Failed to sign out'), { source: 'SettingsPage', action: 'signOut' });
                       navigate('/');
                     }
                   }}
-                  className="w-full text-red-400 border-red-700 hover:bg-red-900/50 hover:border-red-600 font-semibold"
+                  className="w-full text-red-400 border-red-500/50 hover:bg-red-900/30 hover:border-red-400 font-semibold"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Log Out

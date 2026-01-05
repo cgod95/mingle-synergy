@@ -69,13 +69,13 @@ const Help: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => goBackSafely(navigate, '/settings')}
-              className="hover:bg-indigo-900/30 text-indigo-400"
+              className="hover:bg-[#1a1a24] text-[#A78BFA]"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Help Center</h1>
-              <p className="text-neutral-300 mt-2">Find answers to common questions and get support</p>
+              <h1 className="text-3xl font-bold text-white">Help Center</h1>
+              <p className="text-[#9CA3AF] mt-2">Find answers to common questions and get support</p>
             </div>
           </div>
 
@@ -86,7 +86,7 @@ const Help: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search for help articles..."
-                className="w-full pl-10 pr-4 py-3 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-[#2D2D3A] bg-[#111118] text-white rounded-lg focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent"
               />
             </div>
           </div>
@@ -94,18 +94,18 @@ const Help: React.FC = () => {
           {/* Help Categories */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {helpCategories.map((category, index) => (
-              <Card key={index} className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
-                <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-                  <CardTitle className="flex items-center text-indigo-400">
+              <Card key={index} className="border-2 border-[#2D2D3A] bg-[#111118] shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+                <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+                  <CardTitle className="flex items-center text-[#A78BFA]">
                     <category.icon className="w-5 h-5 mr-2" />
                     {category.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <p className="text-neutral-300 mb-4">{category.description}</p>
+                  <p className="text-[#9CA3AF] mb-4">{category.description}</p>
                   <ul className="space-y-2">
                     {category.items.map((item, itemIndex) => (
-                      <li key={itemIndex} className="text-sm text-neutral-300">• {item}</li>
+                      <li key={itemIndex} className="text-sm text-[#9CA3AF]">• {item}</li>
                     ))}
                   </ul>
                 </CardContent>
@@ -114,9 +114,9 @@ const Help: React.FC = () => {
           </div>
 
           {/* FAQ Section */}
-          <Card className="mb-8 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Frequently Asked Questions</CardTitle>
+          <Card className="mb-8 border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="text-[#A78BFA]">Frequently Asked Questions</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <Accordion type="single" collapsible className="w-full">
@@ -126,7 +126,7 @@ const Help: React.FC = () => {
                       {faq.question}
                     </AccordionTrigger>
                     <AccordionContent>
-                      <p className="text-neutral-300">{faq.answer}</p>
+                      <p className="text-[#9CA3AF]">{faq.answer}</p>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -135,32 +135,32 @@ const Help: React.FC = () => {
           </Card>
 
           {/* Contact Support */}
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Still Need Help?</CardTitle>
+          <Card className="border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="text-[#A78BFA]">Still Need Help?</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <Mail className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <Mail className="w-12 h-12 mx-auto mb-4 text-[#A78BFA]" />
                   <h3 className="font-semibold mb-2 text-white">Email Support</h3>
-                  <p className="text-neutral-300 mb-4">Get a response within 24 hours</p>
+                  <p className="text-[#9CA3AF] mb-4">Get a response within 24 hours</p>
                   <Button onClick={() => window.location.href = 'mailto:support@mingle.com'}>
                     Send Email
                   </Button>
                 </div>
                 <div className="text-center">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-[#A78BFA]" />
                   <h3 className="font-semibold mb-2 text-white">Send Feedback</h3>
-                  <p className="text-neutral-300 mb-4">Share your thoughts and suggestions</p>
+                  <p className="text-[#9CA3AF] mb-4">Share your thoughts and suggestions</p>
                   <Button variant="outline" onClick={() => navigate('/feedback')}>
                     Give Feedback
                   </Button>
                 </div>
                 <div className="text-center">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-[#A78BFA]" />
                   <h3 className="font-semibold mb-2 text-white">Contact Support</h3>
-                  <p className="text-neutral-300 mb-4">Reach out to our support team</p>
+                  <p className="text-[#9CA3AF] mb-4">Reach out to our support team</p>
                   <Button variant="outline" onClick={() => navigate('/contact')}>
                     Contact Us
                   </Button>

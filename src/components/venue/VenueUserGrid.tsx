@@ -97,13 +97,12 @@ const getZoneColor = (zone: string) => {
   }
 };
 
-// Waiting Room UI Component - shown when no other users are checked in
+// Waiting Room UI Component - Dark theme
 function WaitingRoomUI({ venueName }: { venueName: string }) {
   const [dots, setDots] = useState('');
   const [checkInCount, setCheckInCount] = useState(0);
   const [showPulse, setShowPulse] = useState(false);
 
-  // Animate the waiting dots
   useEffect(() => {
     const interval = setInterval(() => {
       setDots(prev => prev.length >= 3 ? '' : prev + '.');
@@ -111,89 +110,79 @@ function WaitingRoomUI({ venueName }: { venueName: string }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Simulate occasional "someone just checked in" moments (for demo only)
   useEffect(() => {
-    // Random pulse animation every 15-30 seconds to show activity
     const pulseInterval = setInterval(() => {
       setShowPulse(true);
       setTimeout(() => setShowPulse(false), 2000);
     }, Math.random() * 15000 + 15000);
-
     return () => clearInterval(pulseInterval);
   }, []);
 
   return (
     <div className="text-center py-12 px-6">
-      {/* Animated Icon */}
       <div className={`relative inline-block mb-6 ${showPulse ? 'animate-pulse' : ''}`}>
-        <div className="w-24 h-24 mx-auto bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center">
-          <Users className="w-12 h-12 text-indigo-500" />
+        <div className="w-24 h-24 mx-auto bg-gradient-to-br from-[#7C3AED]/20 to-[#6D28D9]/10 rounded-2xl flex items-center justify-center">
+          <Users className="w-12 h-12 text-[#A78BFA]" />
         </div>
-        {/* Sparkle decoration */}
         <Sparkles className="absolute -top-1 -right-1 w-6 h-6 text-amber-400 animate-pulse" />
         <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
       </div>
 
-      {/* Main Message */}
-      <h3 className="text-xl font-bold text-gray-800 mb-2">
+      <h3 className="text-xl font-bold text-white mb-2">
         You're the first one here! 🎉
       </h3>
-      <p className="text-gray-600 mb-4">
+      <p className="text-[#9CA3AF] mb-4">
         Be the trendsetter at {venueName}
       </p>
 
-      {/* Waiting Animation */}
-      <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full mb-6">
+      <div className="inline-flex items-center gap-2 bg-[#7C3AED]/20 text-[#A78BFA] px-4 py-2 rounded-full mb-6 border border-[#7C3AED]/30">
         <Bell className="w-4 h-4" />
         <span className="text-sm font-medium">
           Waiting for others to check in{dots}
         </span>
       </div>
 
-      {/* Live Counter Section */}
-      <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-xl p-6 mb-6 border border-indigo-100">
+      <div className="bg-[#1a1a24] rounded-xl p-6 mb-6 border border-[#2D2D3A]">
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
-            <div className="text-3xl font-bold text-indigo-600">
+            <div className="text-3xl font-bold text-[#A78BFA]">
               {checkInCount}
             </div>
-            <div className="text-xs text-gray-500 uppercase tracking-wide">
+            <div className="text-xs text-[#6B7280] uppercase tracking-wide">
               People Today
             </div>
           </div>
-          <div className="h-12 w-px bg-gray-200" />
+          <div className="h-12 w-px bg-[#2D2D3A]" />
           <div className="text-center">
-            <div className="text-3xl font-bold text-purple-600">
+            <div className="text-3xl font-bold text-[#7C3AED]">
               1
             </div>
-            <div className="text-xs text-gray-500 uppercase tracking-wide">
+            <div className="text-xs text-[#6B7280] uppercase tracking-wide">
               That's You!
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tips */}
-      <div className="space-y-3 text-left bg-gray-50 rounded-lg p-4">
-        <p className="text-sm font-medium text-gray-700">While you wait:</p>
-        <ul className="text-sm text-gray-600 space-y-2">
+      <div className="space-y-3 text-left bg-[#111118] rounded-lg p-4 border border-[#2D2D3A]">
+        <p className="text-sm font-medium text-white">While you wait:</p>
+        <ul className="text-sm text-[#9CA3AF] space-y-2">
           <li className="flex items-center gap-2">
-            <span className="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center text-xs">✨</span>
+            <span className="w-5 h-5 bg-[#7C3AED]/20 rounded-full flex items-center justify-center text-xs">✨</span>
             Make sure your profile is complete
           </li>
           <li className="flex items-center gap-2">
-            <span className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center text-xs">📸</span>
+            <span className="w-5 h-5 bg-[#7C3AED]/20 rounded-full flex items-center justify-center text-xs">📸</span>
             Add a great photo if you haven't
           </li>
           <li className="flex items-center gap-2">
-            <span className="w-5 h-5 bg-pink-100 rounded-full flex items-center justify-center text-xs">💬</span>
+            <span className="w-5 h-5 bg-[#7C3AED]/20 rounded-full flex items-center justify-center text-xs">💬</span>
             We'll notify you when someone arrives
           </li>
         </ul>
       </div>
 
-      {/* Encouragement */}
-      <p className="text-xs text-gray-400 mt-6">
+      <p className="text-xs text-[#6B7280] mt-6">
         Venues get busier throughout the evening — stick around! 
       </p>
     </div>

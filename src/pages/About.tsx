@@ -64,20 +64,20 @@ const About: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => goBackSafely(navigate, '/settings')}
-              className="hover:bg-indigo-900/30 text-indigo-400"
+              className="hover:bg-[#1a1a24] text-[#A78BFA]"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">About Mingle</h1>
-              <p className="text-neutral-300 mt-2">Connecting people through shared experiences</p>
+              <h1 className="text-3xl font-bold text-white">About Mingle</h1>
+              <p className="text-[#9CA3AF] mt-2">Connecting people through shared experiences</p>
             </div>
           </div>
 
           {/* App Info */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="flex items-center text-indigo-400">
+          <Card className="mb-6 border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="flex items-center text-[#A78BFA]">
                 <Star className="w-5 h-5 mr-2" />
                 App Information
               </CardTitle>
@@ -86,19 +86,19 @@ const About: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold text-white">Version</h3>
-                  <p className="text-neutral-300">{appVersion}</p>
+                  <p className="text-[#9CA3AF]">{appVersion}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-white">Build Date</h3>
-                  <p className="text-neutral-300">{buildDate}</p>
+                  <p className="text-[#9CA3AF]">{buildDate}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-white">Platform</h3>
-                  <p className="text-neutral-300">Web App (PWA)</p>
+                  <p className="text-[#9CA3AF]">Web App (PWA)</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-white">Status</h3>
-                  <Badge variant="default" className="bg-indigo-900/50 text-indigo-300 border-indigo-700">
+                  <Badge variant="default" className="bg-[#7C3AED]/20 text-[#A78BFA] border-[#7C3AED]/30">
                     Production Ready
                   </Badge>
                 </div>
@@ -107,15 +107,15 @@ const About: React.FC = () => {
           </Card>
 
           {/* Mission */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Our Mission</CardTitle>
-              <CardDescription className="text-neutral-300">
+          <Card className="mb-6 border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="text-[#A78BFA]">Our Mission</CardTitle>
+              <CardDescription className="text-[#9CA3AF]">
                 Building meaningful connections in the real world
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
-              <p className="text-neutral-300 leading-relaxed">
+              <p className="text-[#9CA3AF] leading-relaxed">
                 Mingle is revolutionizing how people connect by bringing dating back to the real world. 
                 Instead of endless swiping, we help you discover and connect with people at venues you 
                 actually visit. Our venue-based matching system creates more authentic connections 
@@ -125,10 +125,10 @@ const About: React.FC = () => {
           </Card>
 
           {/* Features */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Key Features</CardTitle>
-              <CardDescription className="text-neutral-300">
+          <Card className="mb-6 border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="text-[#A78BFA]">Key Features</CardTitle>
+              <CardDescription className="text-[#9CA3AF]">
                 What makes Mingle unique
               </CardDescription>
             </CardHeader>
@@ -137,11 +137,11 @@ const About: React.FC = () => {
                 {features.map((feature, index) => {
                   const Icon = feature.icon;
                   return (
-                    <div key={index} className="flex items-start space-x-3 p-4 bg-neutral-700/50 rounded-lg">
-                      <Icon className="w-6 h-6 text-indigo-400 mt-1" />
+                    <div key={index} className="flex items-start space-x-3 p-4 bg-[#1a1a24] rounded-lg">
+                      <Icon className="w-6 h-6 text-[#A78BFA] mt-1" />
                       <div>
                         <h3 className="font-semibold text-white">{feature.title}</h3>
-                        <p className="text-sm text-neutral-300">{feature.description}</p>
+                        <p className="text-sm text-[#9CA3AF]">{feature.description}</p>
                       </div>
                     </div>
                   );
@@ -151,22 +151,22 @@ const About: React.FC = () => {
           </Card>
 
           {/* Team */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Our Team</CardTitle>
-              <CardDescription className="text-neutral-300">
+          <Card className="mb-6 border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="text-[#A78BFA]">Our Team</CardTitle>
+              <CardDescription className="text-[#9CA3AF]">
                 The people behind Mingle
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="space-y-4">
                 {team.map((member, index) => (
-                  <div key={index} className="flex items-start space-x-3 p-4 bg-neutral-700/50 rounded-lg">
-                    <Users className="w-6 h-6 text-indigo-400 mt-1" />
+                  <div key={index} className="flex items-start space-x-3 p-4 bg-[#1a1a24] rounded-lg">
+                    <Users className="w-6 h-6 text-[#A78BFA] mt-1" />
                     <div>
                       <h3 className="font-semibold text-white">{member.name}</h3>
-                      <p className="text-sm font-medium text-indigo-400">{member.role}</p>
-                      <p className="text-sm text-neutral-300 mt-1">{member.description}</p>
+                      <p className="text-sm font-medium text-[#A78BFA]">{member.role}</p>
+                      <p className="text-sm text-[#9CA3AF] mt-1">{member.description}</p>
                     </div>
                   </div>
                 ))}
@@ -175,10 +175,10 @@ const About: React.FC = () => {
           </Card>
 
           {/* Contact */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Get in Touch</CardTitle>
-              <CardDescription className="text-neutral-300">
+          <Card className="mb-6 border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="text-[#A78BFA]">Get in Touch</CardTitle>
+              <CardDescription className="text-[#9CA3AF]">
                 We'd love to hear from you
               </CardDescription>
             </CardHeader>
@@ -201,8 +201,8 @@ const About: React.FC = () => {
                   </Button>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-neutral-300">
-                    Email us at: <a href="mailto:support@mingle.com" className="text-indigo-400 hover:underline">support@mingle.com</a>
+                  <p className="text-sm text-[#9CA3AF]">
+                    Email us at: <a href="mailto:support@mingle.com" className="text-[#A78BFA] hover:underline">support@mingle.com</a>
                   </p>
                 </div>
               </div>
@@ -210,9 +210,9 @@ const About: React.FC = () => {
           </Card>
 
           {/* Legal Links */}
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Legal</CardTitle>
+          <Card className="border-2 border-[#2D2D3A] bg-[#111118] shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-neutral-700">
+              <CardTitle className="text-[#A78BFA]">Legal</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
