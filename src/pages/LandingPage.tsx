@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { MapPin } from 'lucide-react';
-import MingleMLogo from '@/components/ui/MingleMLogo';
 import { getVenues } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { DEMO_PEOPLE } from '@/lib/demoPeople';
@@ -25,7 +24,6 @@ export default function LandingPage() {
     const loadVenues = async () => {
       try {
         const loadedVenues = await getVenues();
-        // Show more venues for dynamic grid (8-10 venues to fill the page)
         const sortedVenues = loadedVenues
           .sort((a: Venue, b: Venue) => (b.checkInCount || 0) - (a.checkInCount || 0))
           .slice(0, 10);
@@ -41,7 +39,6 @@ export default function LandingPage() {
     navigate('/demo-welcome');
   };
 
-  // Generate random rotations for venue cards (Tinder-style staggered effect)
   const getRandomRotation = (index: number) => {
     const rotations = [-8, -5, -3, 3, 5, 8, -6, 4];
     return rotations[index % rotations.length];
@@ -49,13 +46,13 @@ export default function LandingPage() {
 
   return (
     <Layout showBottomNav={false}>
-      {/* Dynamic Hero Section - Dark background with venue cards */}
-      <div className="relative min-h-screen bg-neutral-900 overflow-hidden">
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900" />
+      {/* Dynamic Hero Section - Brand dark background */}
+      <div className="relative min-h-screen bg-[#0a0a0f] overflow-hidden">
+        {/* Animated gradient background - matches brand */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.12)_0%,_transparent_50%)]" />
         
-        {/* Background Cards Grid - Mix of venues and people - images visible all around */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-80">
+        {/* Background Cards Grid */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-70">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-8 h-full">
             {/* Venue cards */}
             {venues.slice(0, 10).map((venue, index) => (
@@ -83,8 +80,8 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index)}deg)`,
                 }}
               >
-                <Card className="overflow-hidden bg-neutral-800 shadow-xl border-2 border-neutral-700">
-                  <div className="relative h-48 w-full overflow-hidden bg-neutral-800">
+                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
+                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
                     {venue.image ? (
                       <img
                         src={venue.image}
@@ -93,8 +90,8 @@ export default function LandingPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600">
-                        <MapPin className="w-12 h-12 text-white/50" />
+                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#7C3AED]/30 to-[#6D28D9]/20">
+                        <MapPin className="w-12 h-12 text-[#A78BFA]/50" />
                       </div>
                     )}
                   </div>
@@ -127,8 +124,8 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index + 6)}deg)`,
                 }}
               >
-                <Card className="overflow-hidden bg-neutral-800 shadow-xl border-2 border-neutral-700">
-                  <div className="relative h-48 w-full overflow-hidden bg-neutral-800">
+                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
+                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
                     <img
                       src={person.photo}
                       alt={person.name}
@@ -139,7 +136,7 @@ export default function LandingPage() {
                 </Card>
               </motion.div>
             ))}
-            {/* Additional 2 images for bottom right - repeating from existing */}
+            {/* Extra images for bottom */}
             {DEMO_PEOPLE.slice(0, 2).map((person, index) => (
               <motion.div
                 key={`person-extra-${index}`}
@@ -165,8 +162,8 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index + 16)}deg)`,
                 }}
               >
-                <Card className="overflow-hidden bg-neutral-800 shadow-xl border-2 border-neutral-700">
-                  <div className="relative h-48 w-full overflow-hidden bg-neutral-800">
+                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
+                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
                     <img
                       src={person.photo}
                       alt={person.name}
@@ -180,93 +177,94 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Hero Content - Centered with tight background block */}
+        {/* Hero Content */}
         <div className="relative z-20 min-h-screen flex flex-col items-center justify-center text-center px-4 py-12">
-          {/* Tight background block - minimal padding, images visible around */}
           <div className="relative z-30 inline-block">
-            <div className="bg-neutral-900/95 backdrop-blur-2xl rounded-2xl px-8 py-12 md:px-12 md:py-16 border-2 border-neutral-800 shadow-2xl">
-            {/* Logo and Large Hero Text */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="mb-8"
-            >
-              {/* Logo */}
-              <div className="mb-6 flex justify-center">
-                <MingleMLogo size="lg" showText={false} className="text-white" />
-              </div>
-              <h1 className="text-5xl md:text-7xl lg:text-9xl font-bold text-white mb-6">
-                Mingle
-              </h1>
-              <div className="space-y-3">
-                <p className="text-lg text-neutral-300 max-w-xl mx-auto">
-                  No more swiping. No more noise. Just meet people.
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Primary CTA Button */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="mb-8"
-            >
-              <Button
-                onClick={handleJoinClosedBeta}
-                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all mb-8 backdrop-blur-sm"
-                size="lg"
+            <div className="bg-[#0a0a0f]/95 backdrop-blur-2xl rounded-3xl px-8 py-12 md:px-12 md:py-16 border border-[#2D2D3A] shadow-2xl shadow-[#7C3AED]/10">
+              {/* Logo with gradient */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="mb-8"
               >
-                Join Closed Beta
-              </Button>
-            </motion.div>
+                {/* Logo Icon */}
+                <div className="mb-6 flex justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30">
+                    <span className="text-white font-bold text-3xl">M</span>
+                  </div>
+                </div>
+                {/* Gradient Text Logo */}
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-gradient mb-6">
+                  Mingle
+                </h1>
+                <div className="space-y-3">
+                  <p className="text-lg text-[#9CA3AF] max-w-xl mx-auto">
+                    No more swiping. No more noise. Just meet people.
+                  </p>
+                </div>
+              </motion.div>
 
-            {/* Primary Actions - Show as primary CTA when not in demo mode */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: config.DEMO_MODE ? 0.6 : 0.4 }}
-              className={`flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto ${config.DEMO_MODE ? '' : 'mb-8'}`}
-            >
-              {!config.DEMO_MODE && (
-                <Button 
-                  asChild 
-                  className="flex-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 border-2 border-indigo-500/50 hover:border-indigo-400 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-xl px-16 py-7 rounded-full shadow-xl font-bold transform hover:scale-105 transition-all backdrop-blur-sm"
+              {/* Primary CTA */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="mb-8"
+              >
+                <Button
+                  onClick={handleJoinClosedBeta}
+                  className="bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white text-xl px-12 py-6 rounded-full shadow-xl shadow-[#7C3AED]/30 font-bold transform hover:scale-105 transition-all"
                   size="lg"
                 >
-                  <Link to="/signup">
-                    Get Started
-                  </Link>
+                  Join Closed Beta
                 </Button>
-              )}
-              {config.DEMO_MODE && (
-                <>
+              </motion.div>
+
+              {/* Auth Actions */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: config.DEMO_MODE ? 0.6 : 0.4 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
+              >
+                {!config.DEMO_MODE && (
                   <Button 
                     asChild 
-                    className="flex-1 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 font-semibold text-base"
+                    className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white text-lg px-8 py-5 rounded-full shadow-lg shadow-[#7C3AED]/25 font-semibold"
+                    size="lg"
                   >
                     <Link to="/signup">
-                      Create Account
+                      Get Started
                     </Link>
                   </Button>
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    className="flex-1 border-2 border-white/20 text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
-                  >
-                    <Link to="/signin">
-                      Sign In
-                    </Link>
-                  </Button>
-                </>
-              )}
-            </motion.div>
+                )}
+                {config.DEMO_MODE && (
+                  <>
+                    <Button 
+                      asChild 
+                      className="flex-1 bg-white/10 backdrop-blur-sm border border-[#2D2D3A] text-white hover:bg-white/20 font-semibold text-base"
+                    >
+                      <Link to="/signup">
+                        Create Account
+                      </Link>
+                    </Button>
+                    <Button 
+                      asChild 
+                      variant="outline" 
+                      className="flex-1 border border-[#2D2D3A] text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
+                    >
+                      <Link to="/signin">
+                        Sign In
+                      </Link>
+                    </Button>
+                  </>
+                )}
+              </motion.div>
             </div>
           </div>
         </div>
       </div>
-
     </Layout>
   );
-} 
+}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, QrCode, Users } from "lucide-react";
+import { MapPin, QrCode, Users, ChevronDown, Sparkles } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { useAuth } from "@/context/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -44,12 +44,16 @@ export default function CheckInPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [locationAvailable, setLocationAvailable] = useState<boolean | null>(null);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   
   const loadingRef = useRef(false);
   const lastLoadKeyRef = useRef<string>("");
 
   const qrVenueId = params.get("venueId");
   const source = params.get("source");
+
+  // Calculate total people at venues
+  const totalPeopleNearby = venues.reduce((sum, v) => sum + (v.checkInCount || 0), 0);
 
   const onCheckIn = async (id: string) => {
     if (isCheckingIn) return;
@@ -94,7 +98,6 @@ export default function CheckInPage() {
           });
         });
         
-        // Find closest venue with proper distance calculation
         let closestVenue: VenueWithDistance | null = null;
         let minDistance = Infinity;
         
@@ -111,7 +114,7 @@ export default function CheckInPage() {
           }
         }
         
-        if (closestVenue && minDistance < 0.5) { // Within 500m
+        if (closestVenue && minDistance < 0.5) {
           await onCheckIn(closestVenue.id);
           toast({
             title: "Checked in!",
@@ -257,46 +260,47 @@ export default function CheckInPage() {
     <div className="min-h-screen bg-[#0a0a0f] pb-24">
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
       
-      {/* Hero Section - QR Code Focus */}
+      {/* Hero Section - QR Code Focus with gradient background */}
       <div className="relative overflow-hidden">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-600/20 via-violet-900/10 to-transparent" />
+        {/* Gradient background - matches website */}
+        <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.15)_0%,_transparent_50%)]" />
         
-        <div className="relative px-6 pt-12 pb-8">
-          {/* Logo/Brand */}
-          <div className="flex items-center justify-center mb-8">
+        <div className="relative px-6 pt-10 pb-6">
+          {/* Logo with gradient text */}
+          <div className="flex items-center justify-center mb-6">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">M</span>
+              <div className="w-9 h-9 rounded-xl bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30">
+                <span className="text-white font-bold text-base">M</span>
               </div>
-              <span className="text-white font-semibold text-xl">Mingle</span>
+              <span className="text-gradient font-bold text-xl">Mingle</span>
             </div>
           </div>
           
           {/* Main QR Action */}
           <button
             onClick={() => setShowQRScanner(true)}
-            className="w-full max-w-sm mx-auto block"
+            className="w-full max-w-sm mx-auto block group"
           >
-            <div className="bg-gradient-to-br from-violet-600 to-violet-700 rounded-3xl p-8 shadow-2xl shadow-violet-500/20 hover:shadow-violet-500/30 hover:scale-[1.02] transition-all duration-300">
-              <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
-                <QrCode className="w-10 h-10 text-white" />
+            <div className="bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] rounded-3xl p-7 shadow-2xl shadow-[#7C3AED]/25 group-hover:shadow-[#7C3AED]/40 group-hover:scale-[1.02] transition-all duration-300">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center">
+                <QrCode className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-white text-center mb-2">
+              <h1 className="text-xl font-bold text-white text-center mb-1.5">
                 Scan QR to Check In
               </h1>
-              <p className="text-violet-200 text-center text-sm">
+              <p className="text-[#C4B5FD] text-center text-sm">
                 Find the QR code at your venue
               </p>
             </div>
           </button>
           
           {/* Secondary: I'm Here */}
-          <div className="text-center mt-6">
+          <div className="text-center mt-5">
             <button
               onClick={handleImHere}
               disabled={isCheckingIn}
-              className="inline-flex items-center gap-2 text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-[#A78BFA] hover:text-[#C4B5FD] transition-colors disabled:opacity-50"
             >
               <MapPin className="w-4 h-4" />
               <span className="text-sm font-medium">
@@ -304,17 +308,74 @@ export default function CheckInPage() {
               </span>
             </button>
           </div>
+
+          {/* Social Proof / Urgency */}
+          {totalPeopleNearby > 0 && (
+            <div className="mt-5 text-center">
+              <div className="inline-flex items-center gap-2 bg-[#7C3AED]/20 border border-[#7C3AED]/30 rounded-full px-4 py-2">
+                <Sparkles className="w-4 h-4 text-[#A78BFA]" />
+                <span className="text-sm text-[#C4B5FD]">
+                  <strong className="text-white">{totalPeopleNearby}</strong> people at venues nearby
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* How It Works - Expandable */}
+      <div className="px-4 mt-2">
+        <button
+          onClick={() => setShowHowItWorks(!showHowItWorks)}
+          className="w-full flex items-center justify-between py-3 text-left"
+        >
+          <span className="text-sm font-medium text-[#9CA3AF]">How does it work?</span>
+          <ChevronDown className={`w-4 h-4 text-[#9CA3AF] transition-transform ${showHowItWorks ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {showHowItWorks && (
+          <div className="bg-[#1A1A24] rounded-2xl p-4 mb-4 border border-[#2D2D3A]">
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#7C3AED]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-[#A78BFA]">1</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">Check in at a venue</p>
+                  <p className="text-xs text-[#6B7280]">Scan QR or tap "I'm here"</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#7C3AED]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-[#A78BFA]">2</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">See who else is there</p>
+                  <p className="text-xs text-[#6B7280]">Browse profiles of people at the same venue</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#7C3AED]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-[#A78BFA]">3</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">Match & meet in person</p>
+                  <p className="text-xs text-[#6B7280]">If you both like each other, say hi!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Venues Section */}
-      <div className="px-4 mt-4">
+      <div className="px-4 mt-2">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-base font-semibold text-white">
             {locationAvailable ? "Nearby Venues" : "All Venues"}
           </h2>
           {!locationAvailable && (
-            <span className="text-xs text-neutral-500">A-Z</span>
+            <span className="text-xs text-[#6B7280]">A-Z</span>
           )}
         </div>
 
@@ -322,11 +383,11 @@ export default function CheckInPage() {
         {loadingVenues && venues.length === 0 && !venueError && (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-neutral-900 rounded-2xl overflow-hidden animate-pulse">
-                <div className="aspect-[4/3] bg-neutral-800" />
+              <div key={i} className="bg-[#1A1A24] rounded-2xl overflow-hidden animate-pulse border border-[#2D2D3A]">
+                <div className="aspect-[4/3] bg-[#2D2D3A]" />
                 <div className="p-3">
-                  <div className="h-4 bg-neutral-800 rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-neutral-800 rounded w-1/2" />
+                  <div className="h-4 bg-[#2D2D3A] rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-[#2D2D3A] rounded w-1/2" />
                 </div>
               </div>
             ))}
@@ -335,17 +396,17 @@ export default function CheckInPage() {
 
         {/* Error State */}
         {venueError && venues.length === 0 && (
-          <div className="bg-neutral-900 rounded-2xl p-8 text-center">
+          <div className="bg-[#1A1A24] rounded-2xl p-8 text-center border border-[#2D2D3A]">
             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-red-900/30 flex items-center justify-center">
               <MapPin className="w-7 h-7 text-red-400" />
             </div>
             <h3 className="text-white font-semibold mb-2">Couldn't load venues</h3>
-            <p className="text-neutral-400 text-sm mb-4">
+            <p className="text-[#9CA3AF] text-sm mb-4">
               {isNetworkError(venueError) ? 'Check your connection' : 'Something went wrong'}
             </p>
             <button
               onClick={() => loadVenues()}
-              className="text-violet-400 hover:text-violet-300 text-sm font-medium"
+              className="text-[#A78BFA] hover:text-[#C4B5FD] text-sm font-medium"
             >
               Try again
             </button>
@@ -354,12 +415,12 @@ export default function CheckInPage() {
 
         {/* Empty State */}
         {!loadingVenues && !venueError && venues.length === 0 && (
-          <div className="bg-neutral-900 rounded-2xl p-8 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-violet-900/30 flex items-center justify-center">
-              <MapPin className="w-7 h-7 text-violet-400" />
+          <div className="bg-[#1A1A24] rounded-2xl p-8 text-center border border-[#2D2D3A]">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#7C3AED]/20 flex items-center justify-center">
+              <MapPin className="w-7 h-7 text-[#A78BFA]" />
             </div>
             <h3 className="text-white font-semibold mb-2">No venues found</h3>
-            <p className="text-neutral-400 text-sm">
+            <p className="text-[#9CA3AF] text-sm">
               Try scanning a QR code at a venue
             </p>
           </div>
@@ -372,10 +433,10 @@ export default function CheckInPage() {
               <button
                 key={venue.id}
                 onClick={() => onCheckIn(venue.id)}
-                className="bg-neutral-900 rounded-2xl overflow-hidden text-left hover:bg-neutral-800 hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-[#0a0a0f]"
+                className="bg-[#1A1A24] rounded-2xl overflow-hidden text-left hover:bg-[#22222e] hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:ring-offset-2 focus:ring-offset-[#0a0a0f] border border-[#2D2D3A] hover:border-[#7C3AED]/50"
               >
                 {/* Venue Image */}
-                <div className="aspect-[4/3] relative bg-neutral-800">
+                <div className="aspect-[4/3] relative bg-[#2D2D3A]">
                   {venue.image ? (
                     <img
                       src={venue.image}
@@ -387,8 +448,8 @@ export default function CheckInPage() {
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-900/50 to-violet-800/30">
-                      <MapPin className="w-8 h-8 text-violet-400/50" />
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#7C3AED]/30 to-[#6D28D9]/20">
+                      <MapPin className="w-8 h-8 text-[#A78BFA]/50" />
                     </div>
                   )}
                   
@@ -404,7 +465,7 @@ export default function CheckInPage() {
                   {/* People Count */}
                   {venue.checkInCount !== undefined && venue.checkInCount > 0 && (
                     <div className="absolute bottom-2 left-2">
-                      <span className="bg-violet-600/90 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1">
+                      <span className="bg-[#7C3AED]/90 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {venue.checkInCount}
                       </span>
@@ -418,7 +479,7 @@ export default function CheckInPage() {
                     {venue.name}
                   </h3>
                   {venue.address && (
-                    <p className="text-neutral-500 text-xs truncate mt-0.5">
+                    <p className="text-[#6B7280] text-xs truncate mt-0.5">
                       {venue.address}
                     </p>
                   )}
@@ -435,7 +496,7 @@ export default function CheckInPage() {
       {showQRScanner && (
         <Suspense fallback={
           <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-violet-500 border-t-transparent" />
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#7C3AED] border-t-transparent" />
           </div>
         }>
           <QRCodeScanner
