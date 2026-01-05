@@ -1,10 +1,10 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
-  <path d="M16 25.8L14.07 24.04C8.72 19.15 5 15.77 5 11.67C5 8.27 7.56 5.67 10.83 5.67C12.65 5.67 14.41 6.48 16 7.88C17.59 6.48 19.35 5.67 21.17 5.67C24.44 5.67 27 8.27 27 11.67C27 15.77 23.28 19.15 17.93 24.05L16 25.8Z" fill="white"/>
+  <text x="16" y="22" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="18" fill="white">M</text>
   <defs>
     <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F3643E"/>
-      <stop offset="1" stop-color="#E5532D"/>
+      <stop stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#6D28D9"/>
     </linearGradient>
   </defs>
 </svg>

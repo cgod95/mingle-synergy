@@ -1,8 +1,8 @@
 ---
-// Waitlist signup section
+// Waitlist signup section - Mingle brand style
 ---
 
-<section id="waitlist" class="py-24 bg-[var(--color-cream)] relative overflow-hidden">
+<section id="waitlist" class="py-24 bg-[var(--color-dark-secondary)] relative overflow-hidden">
   <!-- Background decoration -->
   <div class="absolute inset-0 pointer-events-none">
     <div class="absolute top-0 left-1/4 w-96 h-96 bg-[var(--color-primary)]/10 rounded-full blur-3xl"></div>
@@ -10,20 +10,20 @@
   </div>
   
   <div class="max-w-4xl mx-auto px-6 relative z-10">
-    <div class="bg-white rounded-[2.5rem] p-8 md:p-16 shadow-xl shadow-black/5 reveal">
+    <div class="card-gradient p-8 md:p-16 reveal">
       <div class="text-center">
         <!-- Icon -->
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-primary text-white mb-8 shadow-lg shadow-[var(--color-primary)]/30">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white mb-8 shadow-lg shadow-[var(--color-primary)]/30 animate-pulse-glow">
           <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
         </div>
         
-        <h2 class="text-4xl md:text-5xl font-bold mb-4" style="font-family: var(--font-display);">
-          Be the first to know
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
+          Join the Closed Beta
         </h2>
         <p class="text-xl text-[var(--color-text-muted)] mb-8 max-w-xl mx-auto">
-          Join the waitlist and we'll notify you when Mingle launches in your city. Early supporters get exclusive access.
+          Be among the first to experience Mingle. Sign up and we'll notify you when we launch in your city.
         </p>
         
         <!-- Signup form -->
@@ -34,47 +34,47 @@
               name="email"
               placeholder="Enter your email"
               required
-              class="flex-1 px-6 py-4 rounded-full border-2 border-gray-200 focus:border-[var(--color-primary)] transition-colors text-lg"
+              class="flex-1 px-6 py-4 rounded-xl border border-[var(--color-dark-border)] focus:border-[var(--color-primary)] transition-colors text-white placeholder:text-[var(--color-text-subtle)] bg-[var(--color-dark-card)]"
             />
             <button 
               type="submit"
               class="btn-primary whitespace-nowrap"
             >
-              Join Waitlist
+              Join Beta
             </button>
           </div>
           
           <!-- Success message (hidden by default) -->
-          <div id="success-message" class="hidden mt-6 p-4 bg-emerald-50 text-emerald-700 rounded-2xl">
+          <div id="success-message" class="hidden mt-6 p-4 bg-emerald-500/20 text-emerald-300 rounded-xl border border-emerald-500/30">
             <p class="font-medium">🎉 You're on the list!</p>
-            <p class="text-sm mt-1">We'll email you when Mingle is ready.</p>
+            <p class="text-sm mt-1 text-emerald-300/80">We'll email you when Mingle is ready.</p>
           </div>
           
           <!-- Error message (hidden by default) -->
-          <div id="error-message" class="hidden mt-6 p-4 bg-red-50 text-red-700 rounded-2xl">
+          <div id="error-message" class="hidden mt-6 p-4 bg-red-500/20 text-red-300 rounded-xl border border-red-500/30">
             <p class="font-medium">Oops! Something went wrong.</p>
-            <p class="text-sm mt-1">Please try again later.</p>
+            <p class="text-sm mt-1 text-red-300/80">Please try again later.</p>
           </div>
         </form>
         
-        <p class="text-sm text-[var(--color-text-muted)] mt-6">
+        <p class="text-sm text-[var(--color-text-subtle)] mt-6">
           No spam, ever. Unsubscribe anytime.
         </p>
         
         <!-- Stats -->
-        <div class="flex items-center justify-center gap-8 mt-10 pt-10 border-t border-gray-100">
+        <div class="flex items-center justify-center gap-8 mt-10 pt-10 border-t border-[var(--color-dark-border)]">
           <div class="text-center">
-            <p class="text-3xl font-bold text-[var(--color-dark)]" style="font-family: var(--font-display);">500+</p>
+            <p class="text-3xl font-bold text-white">500+</p>
             <p class="text-sm text-[var(--color-text-muted)]">On the waitlist</p>
           </div>
-          <div class="w-px h-12 bg-gray-200"></div>
+          <div class="w-px h-12 bg-[var(--color-dark-border)]"></div>
           <div class="text-center">
-            <p class="text-3xl font-bold text-[var(--color-dark)]" style="font-family: var(--font-display);">8</p>
+            <p class="text-3xl font-bold text-white">8</p>
             <p class="text-sm text-[var(--color-text-muted)]">Launch venues</p>
           </div>
-          <div class="w-px h-12 bg-gray-200"></div>
+          <div class="w-px h-12 bg-[var(--color-dark-border)]"></div>
           <div class="text-center">
-            <p class="text-3xl font-bold text-[var(--color-dark)]" style="font-family: var(--font-display);">Sydney</p>
+            <p class="text-3xl font-bold text-white">Sydney</p>
             <p class="text-sm text-[var(--color-text-muted)]">First city</p>
           </div>
         </div>
@@ -99,9 +99,6 @@
     errorMessage?.classList.add('hidden');
     
     try {
-      // For now, just show success - integrate with your email service later
-      // Example: await fetch('/api/waitlist', { method: 'POST', body: JSON.stringify({ email }) });
-      
       // Store in localStorage as backup
       const waitlist = JSON.parse(localStorage.getItem('mingle_waitlist') || '[]');
       waitlist.push({ email, timestamp: new Date().toISOString() });

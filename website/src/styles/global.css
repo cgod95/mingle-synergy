@@ -1,19 +1,21 @@
 /* Import Google Fonts - must be first */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
-/* Custom CSS Variables */
+/* Custom CSS Variables - Mingle Brand */
 :root {
-  --color-primary: #F3643E;
-  --color-primary-dark: #E5532D;
-  --color-primary-light: #FF7A5A;
-  --color-dark: #1A1A2E;
-  --color-dark-secondary: #16213E;
-  --color-cream: #FFF8F5;
-  --color-text: #2D2D2D;
-  --color-text-muted: #6B7280;
-  --font-display: 'DM Sans', system-ui, sans-serif;
+  --color-primary: #7C3AED;
+  --color-primary-dark: #6D28D9;
+  --color-primary-light: #A78BFA;
+  --color-accent: #8B5CF6;
+  --color-dark: #0A0A0F;
+  --color-dark-secondary: #111118;
+  --color-dark-card: #1A1A24;
+  --color-dark-border: #2D2D3A;
+  --color-text: #FFFFFF;
+  --color-text-muted: #9CA3AF;
+  --color-text-subtle: #6B7280;
   --font-body: 'Inter', system-ui, sans-serif;
 }
 
@@ -25,16 +27,16 @@ html {
 body {
   font-family: var(--font-body);
   color: var(--color-text);
-  background: var(--color-cream);
+  background: var(--color-dark);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Heading styles */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 700;
-  color: var(--color-dark);
+  color: var(--color-text);
 }
 
 /* Custom utilities */
@@ -50,26 +52,41 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .bg-gradient-hero {
-  background: linear-gradient(180deg, var(--color-cream) 0%, #FFFFFF 100%);
+  background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.15) 0%, transparent 70%),
+              var(--color-dark);
 }
 
 .bg-gradient-dark {
   background: linear-gradient(180deg, var(--color-dark) 0%, var(--color-dark-secondary) 100%);
 }
 
+/* Card styles */
+.card-dark {
+  background: var(--color-dark-card);
+  border: 1px solid var(--color-dark-border);
+  border-radius: 20px;
+}
+
+.card-gradient {
+  background: linear-gradient(145deg, rgba(124, 58, 237, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 20px;
+}
+
 /* Phone mockup styles */
 .phone-mockup {
-  background: linear-gradient(145deg, #2D2D2D 0%, #1A1A1A 100%);
+  background: linear-gradient(145deg, #1F1F2E 0%, #0F0F1A 100%);
   border-radius: 40px;
-  padding: 12px;
+  padding: 8px;
   box-shadow: 
-    0 50px 100px -20px rgba(0, 0, 0, 0.25),
-    0 30px 60px -30px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 50px 100px -20px rgba(124, 58, 237, 0.2),
+    0 30px 60px -30px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .phone-screen {
-  background: #000;
+  background: var(--color-dark);
   border-radius: 32px;
   overflow: hidden;
   aspect-ratio: 9/19.5;
@@ -80,36 +97,38 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-primary);
   color: white;
   padding: 16px 32px;
-  border-radius: 50px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(243, 100, 62, 0.4);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
 }
 
 .btn-primary:hover {
   background: var(--color-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(243, 100, 62, 0.5);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
 }
 
 .btn-secondary {
-  background: white;
-  color: var(--color-dark);
+  background: transparent;
+  color: white;
   padding: 16px 32px;
-  border-radius: 50px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
-  border: 2px solid var(--color-dark);
+  border: 2px solid var(--color-primary);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
 }
 
 .btn-secondary:hover {
-  background: var(--color-dark);
-  color: white;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 /* Animation utilities */
@@ -129,9 +148,14 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.5); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .animate-float {
@@ -142,8 +166,8 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeInUp 0.8s ease-out forwards;
 }
 
-.animate-pulse-soft {
-  animation: pulse-soft 2s ease-in-out infinite;
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
 }
 
 /* Scroll animations - start visible, animate on scroll */
@@ -168,15 +192,65 @@ h1, h2, h3, h4, h5, h6 {
 /* Input styles */
 input[type="email"] {
   font-family: var(--font-body);
+  background: var(--color-dark-card);
+  border: 1px solid var(--color-dark-border);
+  color: white;
+}
+
+input[type="email"]::placeholder {
+  color: var(--color-text-subtle);
 }
 
 input[type="email"]:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(243, 100, 62, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
 /* Selection */
 ::selection {
   background: var(--color-primary);
+  color: white;
+}
+
+/* Photo grid animation */
+@keyframes scroll-photos {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.photo-scroll {
+  animation: scroll-photos 30s linear infinite;
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+  background: var(--color-dark-card);
+  border-radius: 20px;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 21px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Logo styles */
+.logo-icon {
+  background: var(--color-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
   color: white;
 }

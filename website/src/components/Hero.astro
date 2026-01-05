@@ -1,129 +1,120 @@
 ---
-// Hero section
+// Hero section - Mingle brand style with photo grid
 ---
 
-<section class="relative min-h-screen bg-gradient-hero pt-24 pb-16 overflow-hidden">
-  <!-- Background decoration -->
-  <div class="absolute inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 bg-[var(--color-primary)]/10 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-[var(--color-primary)]/5 rounded-full blur-3xl"></div>
+<section class="relative min-h-screen bg-[var(--color-dark)] overflow-hidden flex items-center justify-center pt-20">
+  <!-- Photo grid background -->
+  <div class="absolute inset-0 grid grid-cols-4 md:grid-cols-6 gap-2 opacity-40 blur-[1px]">
+    <!-- Row 1 -->
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    
+    <!-- Row 2 -->
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    
+    <!-- Row 3 -->
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
+    <div class="aspect-[3/4] bg-gradient-to-br from-purple-900/50 to-gray-900 rounded-lg overflow-hidden hidden md:block">
+      <div class="w-full h-full bg-[url('https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=300&q=80')] bg-cover bg-center"></div>
+    </div>
   </div>
   
-  <div class="max-w-6xl mx-auto px-6 relative z-10">
-    <div class="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-120px)]">
-      
-      <!-- Left content -->
-      <div class="text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
-          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-          <span class="text-sm font-medium text-[var(--color-text-muted)]">Coming soon to iOS</span>
-        </div>
-        
-        <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-in-up" style="animation-delay: 0.2s; font-family: var(--font-display);">
-          Meet people<br/>
-          <span class="text-gradient">in real life</span>
-        </h1>
-        
-        <p class="text-xl text-[var(--color-text-muted)] mb-8 max-w-lg mx-auto lg:mx-0 animate-fade-in-up" style="animation-delay: 0.3s;">
-          The dating app that gets you off the app. Check in at venues, match with people nearby, and actually meet in person.
-        </p>
-        
-        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up" style="animation-delay: 0.4s;">
-          <a href="#waitlist" class="btn-primary">
-            Join the Waitlist
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
-            </svg>
-          </a>
-          <a href="#how-it-works" class="btn-secondary">
-            How it works
-          </a>
-        </div>
-        
-        <!-- Social proof -->
-        <div class="mt-12 flex items-center gap-6 justify-center lg:justify-start animate-fade-in-up" style="animation-delay: 0.5s;">
-          <div class="flex -space-x-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white"></div>
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white"></div>
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-white"></div>
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 border-2 border-white"></div>
-          </div>
-          <p class="text-sm text-[var(--color-text-muted)]">
-            <span class="font-semibold text-[var(--color-dark)]">500+</span> people on the waitlist
-          </p>
-        </div>
+  <!-- Gradient overlays -->
+  <div class="absolute inset-0 bg-gradient-to-b from-[var(--color-dark)] via-transparent to-[var(--color-dark)]"></div>
+  <div class="absolute inset-0 bg-gradient-to-r from-[var(--color-dark)] via-transparent to-[var(--color-dark)]"></div>
+  <div class="absolute inset-0 bg-[var(--color-dark)]/50"></div>
+  
+  <!-- Central card -->
+  <div class="relative z-10 max-w-lg mx-4">
+    <div class="bg-[#111118]/95 backdrop-blur-xl rounded-3xl p-10 md:p-12 text-center shadow-2xl border border-white/5">
+      <!-- Logo -->
+      <div class="flex justify-center mb-8">
+        <div class="logo-icon w-16 h-16 text-2xl animate-pulse-glow">M</div>
       </div>
       
-      <!-- Right content - Phone mockup -->
-      <div class="flex justify-center lg:justify-end animate-fade-in-up" style="animation-delay: 0.4s;">
-        <div class="phone-mockup animate-float w-[280px] md:w-[320px]">
-          <div class="phone-screen">
-            <!-- App preview content -->
-            <div class="h-full bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1a] p-4 flex flex-col">
-              <!-- Status bar -->
-              <div class="flex justify-between items-center text-white/60 text-xs mb-4">
-                <span>9:41</span>
-                <div class="flex gap-1">
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                  </svg>
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
-                  </svg>
-                </div>
-              </div>
-              
-              <!-- App header -->
-              <div class="text-center mb-6">
-                <h3 class="text-white font-bold text-lg" style="font-family: var(--font-display);">The Rooftop Bar</h3>
-                <p class="text-white/60 text-sm">12 people here now</p>
-              </div>
-              
-              <!-- Profile cards preview -->
-              <div class="flex-1 space-y-3 overflow-hidden">
-                <div class="bg-white/10 backdrop-blur rounded-2xl p-3 flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-500"></div>
-                  <div class="flex-1">
-                    <p class="text-white font-medium text-sm">Sarah, 27</p>
-                    <p class="text-white/60 text-xs">Looking for good conversation</p>
-                  </div>
-                  <div class="w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                    </svg>
-                  </div>
-                </div>
-                
-                <div class="bg-white/10 backdrop-blur rounded-2xl p-3 flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500"></div>
-                  <div class="flex-1">
-                    <p class="text-white font-medium text-sm">James, 29</p>
-                    <p class="text-white/60 text-xs">Here for the live music</p>
-                  </div>
-                  <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                    </svg>
-                  </div>
-                </div>
-                
-                <div class="bg-white/10 backdrop-blur rounded-2xl p-3 flex items-center gap-3 opacity-70">
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500"></div>
-                  <div class="flex-1">
-                    <p class="text-white font-medium text-sm">Emma, 25</p>
-                    <p class="text-white/60 text-xs">Coffee enthusiast ☕</p>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Match notification -->
-              <div class="mt-4 bg-[var(--color-primary)] rounded-2xl p-4 text-center">
-                <p class="text-white font-bold text-sm">🎉 It's a match!</p>
-                <p class="text-white/80 text-xs">You and Sarah liked each other</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Title -->
+      <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight animate-fade-in-up">
+        Mingle
+      </h1>
+      
+      <!-- Tagline -->
+      <p class="text-lg text-[var(--color-text-muted)] mb-10 animate-fade-in-up" style="animation-delay: 0.1s;">
+        No more swiping. No more noise. Just meet people.
+      </p>
+      
+      <!-- CTAs -->
+      <div class="flex flex-col gap-4 animate-fade-in-up" style="animation-delay: 0.2s;">
+        <a href="#waitlist" class="btn-primary w-full py-4">
+          Join Closed Beta
+        </a>
+        <a href="#how-it-works" class="btn-secondary w-full py-4">
+          Get Started
+        </a>
+      </div>
+    </div>
+    
+    <!-- Stats below card -->
+    <div class="flex justify-center gap-8 mt-8 animate-fade-in-up" style="animation-delay: 0.3s;">
+      <div class="text-center">
+        <p class="text-2xl font-bold text-white">500+</p>
+        <p class="text-sm text-[var(--color-text-muted)]">Beta signups</p>
+      </div>
+      <div class="w-px bg-white/20"></div>
+      <div class="text-center">
+        <p class="text-2xl font-bold text-white">8</p>
+        <p class="text-sm text-[var(--color-text-muted)]">Launch venues</p>
+      </div>
+      <div class="w-px bg-white/20"></div>
+      <div class="text-center">
+        <p class="text-2xl font-bold text-white">Sydney</p>
+        <p class="text-sm text-[var(--color-text-muted)]">First city</p>
       </div>
     </div>
   </div>
