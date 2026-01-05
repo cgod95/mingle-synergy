@@ -1,0 +1,68 @@
+---
+// FAQ section
+const faqs = [
+  {
+    question: "How does Mingle verify I'm at a venue?",
+    answer: "We use a combination of location services and QR code scanning at participating venues. You'll need to be physically present to check in and see other users."
+  },
+  {
+    question: "Why do matches expire after 24 hours?",
+    answer: "We believe great connections happen in the moment. The expiry encourages you to actually meet and chat while you're both at the venue, rather than letting conversations go stale."
+  },
+  {
+    question: "What happens when I run out of messages?",
+    answer: "After 10 messages each, the conversation pauses. You can request a reconnect when you're both at the same venue again, which gives you a fresh set of messages."
+  },
+  {
+    question: "Is Mingle free?",
+    answer: "Yes! Mingle is completely free to use. We believe everyone should have access to meaningful connections without paywalls."
+  },
+  {
+    question: "What venues work with Mingle?",
+    answer: "We're partnering with bars, cafes, clubs, and event spaces in major cities. During our beta, we're focused on Sydney, Australia with plans to expand."
+  },
+  {
+    question: "How is my data protected?",
+    answer: "We only collect what's necessary and never sell your data. Your exact location is never shared - only your presence at a venue is visible to other users."
+  }
+];
+---
+
+<section id="faq" class="py-24 bg-white">
+  <div class="max-w-3xl mx-auto px-6">
+    <!-- Section header -->
+    <div class="text-center mb-16 reveal">
+      <span class="inline-block px-4 py-2 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full text-sm font-semibold mb-4">
+        FAQ
+      </span>
+      <h2 class="text-4xl md:text-5xl font-bold mb-4" style="font-family: var(--font-display);">
+        Questions & Answers
+      </h2>
+      <p class="text-xl text-[var(--color-text-muted)]">
+        Everything you need to know about Mingle
+      </p>
+    </div>
+    
+    <!-- FAQ list -->
+    <div class="space-y-4">
+      {faqs.map((faq, index) => (
+        <details 
+          class="reveal group bg-[var(--color-cream)] rounded-2xl overflow-hidden"
+          style={`transition-delay: ${index * 0.05}s`}
+        >
+          <summary class="flex items-center justify-between p-6 cursor-pointer list-none">
+            <h3 class="font-bold text-lg pr-4" style="font-family: var(--font-display);">{faq.question}</h3>
+            <span class="flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm group-open:rotate-45 transition-transform">
+              <svg class="w-5 h-5 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+            </span>
+          </summary>
+          <div class="px-6 pb-6">
+            <p class="text-[var(--color-text-muted)] leading-relaxed">{faq.answer}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

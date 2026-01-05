@@ -1,0 +1,137 @@
+---
+// Hero section
+---
+
+<section class="relative min-h-screen bg-gradient-hero pt-24 pb-16 overflow-hidden">
+  <!-- Background decoration -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-[var(--color-primary)]/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-[var(--color-primary)]/5 rounded-full blur-3xl"></div>
+  </div>
+  
+  <div class="max-w-6xl mx-auto px-6 relative z-10">
+    <div class="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-120px)]">
+      
+      <!-- Left content -->
+      <div class="text-center lg:text-left">
+        <div class="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
+          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          <span class="text-sm font-medium text-[var(--color-text-muted)]">Coming soon to iOS</span>
+        </div>
+        
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-in-up" style="animation-delay: 0.2s; font-family: var(--font-display);">
+          Meet people<br/>
+          <span class="text-gradient">in real life</span>
+        </h1>
+        
+        <p class="text-xl text-[var(--color-text-muted)] mb-8 max-w-lg mx-auto lg:mx-0 animate-fade-in-up" style="animation-delay: 0.3s;">
+          The dating app that gets you off the app. Check in at venues, match with people nearby, and actually meet in person.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up" style="animation-delay: 0.4s;">
+          <a href="#waitlist" class="btn-primary">
+            Join the Waitlist
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </a>
+          <a href="#how-it-works" class="btn-secondary">
+            How it works
+          </a>
+        </div>
+        
+        <!-- Social proof -->
+        <div class="mt-12 flex items-center gap-6 justify-center lg:justify-start animate-fade-in-up" style="animation-delay: 0.5s;">
+          <div class="flex -space-x-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white"></div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white"></div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-white"></div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 border-2 border-white"></div>
+          </div>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            <span class="font-semibold text-[var(--color-dark)]">500+</span> people on the waitlist
+          </p>
+        </div>
+      </div>
+      
+      <!-- Right content - Phone mockup -->
+      <div class="flex justify-center lg:justify-end animate-fade-in-up" style="animation-delay: 0.4s;">
+        <div class="phone-mockup animate-float w-[280px] md:w-[320px]">
+          <div class="phone-screen">
+            <!-- App preview content -->
+            <div class="h-full bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1a] p-4 flex flex-col">
+              <!-- Status bar -->
+              <div class="flex justify-between items-center text-white/60 text-xs mb-4">
+                <span>9:41</span>
+                <div class="flex gap-1">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                  </svg>
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                  </svg>
+                </div>
+              </div>
+              
+              <!-- App header -->
+              <div class="text-center mb-6">
+                <h3 class="text-white font-bold text-lg" style="font-family: var(--font-display);">The Rooftop Bar</h3>
+                <p class="text-white/60 text-sm">12 people here now</p>
+              </div>
+              
+              <!-- Profile cards preview -->
+              <div class="flex-1 space-y-3 overflow-hidden">
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-3 flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-500"></div>
+                  <div class="flex-1">
+                    <p class="text-white font-medium text-sm">Sarah, 27</p>
+                    <p class="text-white/60 text-xs">Looking for good conversation</p>
+                  </div>
+                  <div class="w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-3 flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500"></div>
+                  <div class="flex-1">
+                    <p class="text-white font-medium text-sm">James, 29</p>
+                    <p class="text-white/60 text-xs">Here for the live music</p>
+                  </div>
+                  <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-3 flex items-center gap-3 opacity-70">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500"></div>
+                  <div class="flex-1">
+                    <p class="text-white font-medium text-sm">Emma, 25</p>
+                    <p class="text-white/60 text-xs">Coffee enthusiast ☕</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Match notification -->
+              <div class="mt-4 bg-[var(--color-primary)] rounded-2xl p-4 text-center">
+                <p class="text-white font-bold text-sm">🎉 It's a match!</p>
+                <p class="text-white/80 text-xs">You and Sarah liked each other</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+    <svg class="w-6 h-6 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+    </svg>
+  </div>
+</section>

@@ -1,0 +1,98 @@
+---
+// Safety section
+const safetyFeatures = [
+  {
+    title: "Block & Report",
+    description: "Instantly block anyone and report inappropriate behavior. We take every report seriously."
+  },
+  {
+    title: "Hide Mode",
+    description: "Toggle your visibility off at any time. You stay checked in but hidden from others."
+  },
+  {
+    title: "Venue Verification",
+    description: "We verify you're actually at the venue before you can see or be seen by others."
+  },
+  {
+    title: "Limited Information",
+    description: "Your exact location is never shared. Only your presence at a venue is visible."
+  }
+];
+---
+
+<section id="safety" class="py-24 bg-gradient-dark text-white">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      
+      <!-- Left content -->
+      <div class="reveal">
+        <span class="inline-block px-4 py-2 bg-white/10 text-white/90 rounded-full text-sm font-semibold mb-4">
+          Safety first
+        </span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-6" style="font-family: var(--font-display);">
+          Your safety is<br/>
+          <span class="text-[var(--color-primary)]">non-negotiable</span>
+        </h2>
+        <p class="text-xl text-white/70 mb-8">
+          We've built comprehensive safety features into every part of the app. Because meeting new people should feel exciting, not scary.
+        </p>
+        
+        <!-- Safety features list -->
+        <div class="space-y-6">
+          {safetyFeatures.map((feature, index) => (
+            <div class="flex gap-4 reveal" style={`transition-delay: ${index * 0.1}s`}>
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-lg mb-1">{feature.title}</h4>
+                <p class="text-white/60">{feature.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      <!-- Right content - Illustration -->
+      <div class="reveal flex justify-center">
+        <div class="relative">
+          <!-- Shield graphic -->
+          <div class="w-64 h-80 relative">
+            <svg class="w-full h-full" viewBox="0 0 200 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Shield shape -->
+              <path d="M100 10L180 45V120C180 170 140 210 100 240C60 210 20 170 20 120V45L100 10Z" fill="url(#shield-gradient)" fill-opacity="0.2" stroke="url(#shield-gradient)" stroke-width="2"/>
+              
+              <!-- Inner shield -->
+              <path d="M100 30L160 55V115C160 155 130 185 100 210C70 185 40 155 40 115V55L100 30Z" fill="url(#shield-gradient)" fill-opacity="0.1"/>
+              
+              <!-- Checkmark -->
+              <path d="M70 120L90 140L130 100" stroke="#F3643E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+              
+              <defs>
+                <linearGradient id="shield-gradient" x1="100" y1="10" x2="100" y2="240" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F3643E"/>
+                  <stop offset="1" stop-color="#FF7A5A"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            
+            <!-- Floating elements -->
+            <div class="absolute -top-4 -right-4 w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center animate-float" style="animation-delay: 0.5s;">
+              <svg class="w-8 h-8 text-[var(--color-primary)]" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            
+            <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center animate-float" style="animation-delay: 1s;">
+              <svg class="w-8 h-8 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
