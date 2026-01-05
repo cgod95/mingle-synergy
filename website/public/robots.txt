@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://mingle.app/sitemap.xml
-
