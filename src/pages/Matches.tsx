@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, MessageCircle, Clock, ChevronRight, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, Clock, ChevronRight, Sparkles, Archive, Crown, MapPin, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAllMatches as getLocalMatches, getRemainingSeconds, isExpired, type Match, MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { getLastMessage } from "@/lib/chatStore";
@@ -36,6 +36,7 @@ export default function Matches() {
   const [matches, setMatches] = useState<MatchWithPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('matches');
+  const [showExpired, setShowExpired] = useState(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -163,6 +164,18 @@ export default function Matches() {
     [activeMatches]
   );
 
+  // Expired matches (for archive section)
+  const expiredMatches = useMemo(() => 
+    matches.filter(m => isExpired(m)),
+    [matches]
+  );
+
+  // Count unread messages (messages where last sender isn't current user)
+  const unreadCount = useMemo(() => 
+    matchesWithMessages.filter(m => m.lastMessageSenderId !== currentUser?.uid).length,
+    [matchesWithMessages, currentUser?.uid]
+  );
+
   const handleMatchClick = (matchId: string) => {
     navigate(`/chat/${matchId}`);
   };
@@ -217,6 +230,12 @@ export default function Matches() {
                 {matchesWithMessages.length > 0 && (
                   <span className="ml-2 text-sm text-[#7C3AED]">
                     {matchesWithMessages.length}
+                  </span>
+                )}
+                {/* Unread badge */}
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 right-1/4 min-w-[18px] h-[18px] px-1 bg-[#7C3AED] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
                 {activeTab === 'messages' && (
@@ -339,6 +358,108 @@ export default function Matches() {
                       ))}
                     </div>
                   )}
+
+                  {/* Expired Matches Section */}
+                  {expiredMatches.length > 0 && (
+                    <div className="mt-6">
+                      <button
+                        onClick={() => setShowExpired(!showExpired)}
+                        className="w-full flex items-center justify-between px-1 py-2 text-left"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Archive className="w-4 h-4 text-neutral-500" />
+                          <span className="text-sm font-medium text-neutral-500">
+                            Expired ({expiredMatches.length})
+                          </span>
+                        </div>
+                        <ChevronRight className={`w-4 h-4 text-neutral-500 transition-transform ${showExpired ? 'rotate-90' : ''}`} />
+                      </button>
+                      
+                      {showExpired && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-2"
+                        >
+                          {/* Premium/Rematch Banner */}
+                          <div className="bg-gradient-to-r from-amber-900/30 to-orange-900/20 border border-amber-500/30 rounded-xl p-4 mb-3">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+                                <Crown className="w-5 h-5 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-white mb-1">
+                                  Want to continue these conversations?
+                                </p>
+                                <p className="text-xs text-neutral-400 mb-3">
+                                  Go Premium for unlimited time, or rematch at the same venue!
+                                </p>
+                                <div className="flex gap-2">
+                                  <button 
+                                    onClick={() => navigate('/settings')}
+                                    className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold rounded-full hover:from-amber-600 hover:to-orange-600 transition-all"
+                                  >
+                                    <Crown className="w-3 h-3 inline mr-1" />
+                                    Go Premium
+                                  </button>
+                                  <button 
+                                    onClick={() => navigate('/checkin')}
+                                    className="px-3 py-1.5 bg-white/10 text-white text-xs font-medium rounded-full hover:bg-white/20 transition-all"
+                                  >
+                                    <MapPin className="w-3 h-3 inline mr-1" />
+                                    Find Venue
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Expired Matches Grid */}
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 opacity-60">
+                            {expiredMatches.slice(0, 8).map((match) => (
+                              <div
+                                key={match.id}
+                                className="relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer group"
+                                onClick={() => handleMatchClick(match.id)}
+                              >
+                                {/* Photo */}
+                                {match.avatarUrl ? (
+                                  <img 
+                                    src={match.avatarUrl} 
+                                    alt={match.displayName || 'Match'}
+                                    className="w-full h-full object-cover grayscale"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-neutral-700 to-neutral-800 flex items-center justify-center">
+                                    <span className="text-4xl font-bold text-neutral-500">
+                                      {(match.displayName || 'M').charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+                                
+                                {/* Lock Icon */}
+                                <div className="absolute top-2 right-2">
+                                  <Lock className="w-4 h-4 text-neutral-400" />
+                                </div>
+                                
+                                {/* Name */}
+                                <div className="absolute bottom-0 left-0 right-0 p-2">
+                                  <p className="text-neutral-400 font-medium text-sm truncate">
+                                    {match.displayName?.split(' ')[0] || 'Match'}
+                                  </p>
+                                  <span className="text-xs text-neutral-500">Expired</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               ) : (
                 <motion.div
@@ -413,8 +534,12 @@ export default function Matches() {
                             </p>
                           </div>
 
-                          {/* Arrow */}
-                          <ChevronRight className="w-5 h-5 text-neutral-600 flex-shrink-0" />
+                          {/* Unread dot or Arrow */}
+                          {match.lastMessageSenderId !== currentUser?.uid ? (
+                            <div className="w-3 h-3 bg-[#7C3AED] rounded-full flex-shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5 text-neutral-600 flex-shrink-0" />
+                          )}
                         </motion.div>
                       ))}
                     </div>

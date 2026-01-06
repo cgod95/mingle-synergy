@@ -1,11 +1,11 @@
 // Profile page - Modern hero photo layout, no bio
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Settings, LogOut, Edit, Camera, ChevronRight } from 'lucide-react';
+import { Settings, LogOut, Edit, Camera, ChevronRight, Sparkles, CheckCircle } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { logError } from '@/utils/errorHandler';
 
@@ -43,11 +43,28 @@ export default function Profile() {
     loadProfile();
   }, [currentUser]);
 
-  if (!currentUser) return null;
-
-  const displayName = profileData?.displayName || profileData?.name || currentUser.name || 'User';
+  const displayName = profileData?.displayName || profileData?.name || currentUser?.name || 'User';
   const mainPhoto = profileData?.photos?.[0];
   const additionalPhotos = profileData?.photos?.slice(1) || [];
+
+  // Calculate profile completeness
+  const profileCompleteness = useMemo(() => {
+    let score = 0;
+    const checks = {
+      hasName: !!displayName && displayName !== 'User',
+      hasMainPhoto: !!mainPhoto,
+      hasMultiplePhotos: (profileData?.photos?.length || 0) >= 2,
+      // Bio removed - don't check it
+    };
+    
+    if (checks.hasName) score += 40;
+    if (checks.hasMainPhoto) score += 40;
+    if (checks.hasMultiplePhotos) score += 20;
+    
+    return { score, checks };
+  }, [displayName, mainPhoto, profileData?.photos?.length]);
+
+  if (!currentUser) return null;
 
   if (loading) {
     return (
@@ -105,6 +122,79 @@ export default function Profile() {
           <Camera className="w-5 h-5" />
         </button>
       </motion.div>
+
+      {/* Profile Completeness Banner */}
+      {profileCompleteness.score < 100 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 -mt-4 relative z-10"
+        >
+          <div className="bg-gradient-to-r from-[#7C3AED]/20 to-[#6D28D9]/10 border border-[#7C3AED]/30 rounded-2xl p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#7C3AED]/20 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-[#A78BFA]" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-white">Profile {profileCompleteness.score}% complete</span>
+                  <span className="text-xs text-[#A78BFA]">Get more matches!</span>
+                </div>
+                {/* Progress bar */}
+                <div className="h-2 bg-[#1a1a24] rounded-full overflow-hidden mb-2">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${profileCompleteness.score}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] rounded-full"
+                  />
+                </div>
+                {/* Tips */}
+                <div className="space-y-1">
+                  {!profileCompleteness.checks.hasMainPhoto && (
+                    <button 
+                      onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
+                      className="flex items-center gap-2 text-xs text-[#9CA3AF] hover:text-[#A78BFA] transition-colors"
+                    >
+                      <div className="w-4 h-4 rounded-full border border-[#6B7280] flex items-center justify-center">
+                        <span className="text-[8px]">+</span>
+                      </div>
+                      Add a profile photo
+                    </button>
+                  )}
+                  {profileCompleteness.checks.hasMainPhoto && !profileCompleteness.checks.hasMultiplePhotos && (
+                    <button 
+                      onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
+                      className="flex items-center gap-2 text-xs text-[#9CA3AF] hover:text-[#A78BFA] transition-colors"
+                    >
+                      <div className="w-4 h-4 rounded-full border border-[#6B7280] flex items-center justify-center">
+                        <span className="text-[8px]">+</span>
+                      </div>
+                      Add more photos (2+ recommended)
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Complete Profile Badge */}
+      {profileCompleteness.score === 100 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mx-4 -mt-4 relative z-10"
+        >
+          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/10 border border-green-500/30 rounded-2xl p-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+            </div>
+            <span className="text-sm font-medium text-green-400">Profile complete! You're all set.</span>
+          </div>
+        </motion.div>
+      )}
 
       {/* Additional Photos */}
       {additionalPhotos.length > 0 && (

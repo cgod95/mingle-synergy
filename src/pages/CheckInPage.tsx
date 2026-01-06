@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef, useCallback, lazy, Suspense } from "react";
+import React, { useEffect, useState, useRef, useCallback, lazy, Suspense, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, QrCode, Users, ChevronDown, Sparkles } from "lucide-react";
+import { MapPin, QrCode, Users, ChevronDown, Sparkles, Search, X } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { useAuth } from "@/context/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -44,7 +44,8 @@ export default function CheckInPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [locationAvailable, setLocationAvailable] = useState<boolean | null>(null);
-  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(true); // Show by default
+  const [searchQuery, setSearchQuery] = useState('');
   
   const loadingRef = useRef(false);
   const lastLoadKeyRef = useRef<string>("");
@@ -256,6 +257,16 @@ export default function CheckInPage() {
     return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
   };
 
+  // Filter venues by search query
+  const filteredVenues = useMemo(() => {
+    if (!searchQuery.trim()) return venues;
+    const query = searchQuery.toLowerCase();
+    return venues.filter(v => 
+      v.name.toLowerCase().includes(query) ||
+      v.address?.toLowerCase().includes(query)
+    );
+  }, [venues, searchQuery]);
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] pb-24">
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
@@ -363,6 +374,12 @@ export default function CheckInPage() {
                   <p className="text-xs text-[#6B7280]">If you both like each other, say hi!</p>
                 </div>
               </div>
+              {/* Restrictions note */}
+              <div className="mt-4 pt-3 border-t border-[#2D2D3A]">
+                <p className="text-xs text-[#6B7280]">
+                  <span className="text-[#A78BFA]">💡</span> Matches last 24 hours with 10 messages — designed to encourage meeting in person!
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -370,11 +387,36 @@ export default function CheckInPage() {
 
       {/* Venues Section */}
       <div className="px-4 mt-2">
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+          <input
+            type="text"
+            placeholder="Search venues..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#1A1A24] border border-[#2D2D3A] rounded-xl py-2.5 pl-10 pr-10 text-white placeholder:text-[#6B7280] text-sm focus:outline-none focus:border-[#7C3AED] transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-white">
-            {locationAvailable ? "Nearby Venues" : "All Venues"}
+            {searchQuery 
+              ? `Results (${filteredVenues.length})`
+              : locationAvailable 
+                ? "Nearby Venues" 
+                : "All Venues"
+            }
           </h2>
-          {!locationAvailable && (
+          {!locationAvailable && !searchQuery && (
             <span className="text-xs text-[#6B7280]">A-Z</span>
           )}
         </div>
@@ -426,10 +468,23 @@ export default function CheckInPage() {
           </div>
         )}
 
+        {/* No Search Results */}
+        {!loadingVenues && venues.length > 0 && filteredVenues.length === 0 && searchQuery && (
+          <div className="bg-[#1A1A24] rounded-2xl p-8 text-center border border-[#2D2D3A]">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#7C3AED]/20 flex items-center justify-center">
+              <Search className="w-7 h-7 text-[#A78BFA]" />
+            </div>
+            <h3 className="text-white font-semibold mb-2">No venues found</h3>
+            <p className="text-[#9CA3AF] text-sm">
+              Try a different search or scan a QR code
+            </p>
+          </div>
+        )}
+
         {/* Venue Cards Grid */}
-        {!loadingVenues && venues.length > 0 && (
+        {!loadingVenues && filteredVenues.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
-            {venues.map((venue) => (
+            {filteredVenues.map((venue) => (
               <button
                 key={venue.id}
                 onClick={() => onCheckIn(venue.id)}
@@ -462,12 +517,12 @@ export default function CheckInPage() {
                     </div>
                   )}
                   
-                  {/* People Count */}
+                  {/* People Count - Enhanced */}
                   {venue.checkInCount !== undefined && venue.checkInCount > 0 && (
                     <div className="absolute bottom-2 left-2">
-                      <span className="bg-[#7C3AED]/90 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {venue.checkInCount}
+                      <span className="bg-[#7C3AED] backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
+                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        {venue.checkInCount} here
                       </span>
                     </div>
                   )}
