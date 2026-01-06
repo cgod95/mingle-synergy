@@ -32,6 +32,9 @@ export interface UserProfile {
     };
     activityLevel?: 'low' | 'medium' | 'high';
     recentVenues?: string[];
+    lastActive?: number;
+    checkInTime?: number;
+    checkInExpiry?: number;
 }
 
 export interface User {

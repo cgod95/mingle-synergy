@@ -31,9 +31,10 @@ export const logError = (
   
   // Add onboarding context if available
   const onboardingContext: Record<string, string | number | boolean> = {};
-  if (context.stepName || context.context?.includes('onboarding') || context.context?.includes('CreateProfile') || context.context?.includes('PhotoUpload') || context.context?.includes('Preferences')) {
+  const contextStr = typeof context.context === 'string' ? context.context : '';
+  if (context.stepName || contextStr.includes('onboarding') || contextStr.includes('CreateProfile') || contextStr.includes('PhotoUpload') || contextStr.includes('Preferences')) {
     onboardingContext.isOnboarding = true;
-    onboardingContext.stepName = context.stepName as string || context.context as string || 'unknown';
+    onboardingContext.stepName = context.stepName as string || contextStr || 'unknown';
     onboardingContext.onboardingPath = window.location.pathname;
   }
   

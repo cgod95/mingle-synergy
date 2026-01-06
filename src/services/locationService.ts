@@ -87,7 +87,7 @@ export class LocationService {
     // Check Permissions-Policy before attempting
     if (typeof document !== 'undefined' && 'featurePolicy' in document) {
       try {
-        // @ts-ignore - featurePolicy may not be in TypeScript types
+        // @ts-expect-error - featurePolicy may not be in TypeScript types
         const allowed = document.featurePolicy.allowsFeature('geolocation');
         if (!allowed) {
           console.error('Geolocation is blocked by Permissions-Policy. Please check server configuration.');

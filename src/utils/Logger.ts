@@ -1,4 +1,5 @@
 // 🧠 Purpose: Centralized logging utility with environment-aware behavior and security
+import config from '@/config';
 
 interface LogLevel {
   DEBUG: 0;

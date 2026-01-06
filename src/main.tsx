@@ -6,22 +6,22 @@ import "./index.css";
 // Additional safeguard: Ensure React DevTools is disabled and check for multiple React instances
 if (typeof window !== 'undefined') {
   try {
-    // @ts-ignore - React DevTools global hook
+    // @ts-expect-error - React DevTools global hook
     const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
     if (hook) {
       // Check if DevTools tried to inject (renderers size > 0 means it did)
       try {
-        // @ts-ignore
+        // @ts-expect-error
         const rendererCount = hook.renderers?.size || 0;
         if (rendererCount > 0) {
           // DevTools detected React - clear renderers to prevent error #300
           try {
-            // @ts-ignore
+            // @ts-expect-error
             hook.renderers.clear();
           } catch (e) {
             // Renderers might be frozen, try to disable the hook entirely
             try {
-              // @ts-ignore
+              // @ts-expect-error
               hook.isDisabled = true;
             } catch (e2) {}
           }
@@ -32,14 +32,14 @@ if (typeof window !== 'undefined') {
       
       // Ensure critical methods are no-ops
       try {
-        // @ts-ignore
+        // @ts-expect-error
         if (typeof hook.inject === 'function') {
-          // @ts-ignore
+          // @ts-expect-error
           hook.inject = function() { return false; };
         }
-        // @ts-ignore
+        // @ts-expect-error
         if (typeof hook.registerRenderer === 'function') {
-          // @ts-ignore
+          // @ts-expect-error
           hook.registerRenderer = function() { return -1; };
         }
       } catch (e) {
@@ -50,7 +50,7 @@ if (typeof window !== 'undefined') {
     // Check for multiple React instances (React error #300 detection)
     // Only log warnings in development - suppress in production
     try {
-      // @ts-ignore
+      // @ts-expect-error
       const rendererCount = hook?.renderers?.size || 0;
       if (rendererCount > 1) {
         if (!import.meta.env.PROD) {
@@ -58,9 +58,9 @@ if (typeof window !== 'undefined') {
         }
         // Try to clear extra renderers to prevent error #300
         try {
-          // @ts-ignore
+          // @ts-expect-error
           const renderers = Array.from(hook.renderers.keys());
-          // @ts-ignore
+          // @ts-expect-error
           hook.renderers.clear();
           if (!import.meta.env.PROD) {
             console.warn('Cleared renderers to prevent error #300:', renderers);
@@ -75,11 +75,11 @@ if (typeof window !== 'undefined') {
     
     // Prevent registerRenderer from being called (blocks DevTools registration)
     try {
-      // @ts-ignore
+      // @ts-expect-error
       if (typeof hook.registerRenderer === 'function') {
-        // @ts-ignore
+        // @ts-expect-error
         const originalRegisterRenderer = hook.registerRenderer;
-        // @ts-ignore
+        // @ts-expect-error
         hook.registerRenderer = function() {
           // Prevent DevTools from registering renderers
           return -1; // Return invalid renderer ID

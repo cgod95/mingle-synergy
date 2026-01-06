@@ -79,7 +79,7 @@ function checkPermissionsPolicy(): boolean {
   // Check if Permissions-Policy API is available
   if (typeof document !== 'undefined' && 'featurePolicy' in document) {
     try {
-      // @ts-ignore - featurePolicy may not be in TypeScript types
+      // @ts-expect-error - featurePolicy may not be in TypeScript types
       return document.featurePolicy.allowsFeature('geolocation');
     } catch (e) {
       // Feature Policy API not available, assume allowed
