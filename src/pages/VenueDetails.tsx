@@ -238,30 +238,9 @@ export default function VenueDetails() {
   }
 
   const handleCheckIn = async () => {
-    const { canCheckInToVenues, getLocationExplanationMessage, requestLocationPermission } = await import("@/utils/locationPermission");
-    const { isWithinCheckInDistance, getCheckInErrorMessage } = await import("@/utils/distanceCheck");
-    
-    if (!canCheckInToVenues()) {
-      const permissionGranted = await requestLocationPermission();
-      if (!permissionGranted) {
-        setToast("Location access required to check in. " + getLocationExplanationMessage());
-        setTimeout(() => setToast(null), 3000);
-        return;
-      }
-    }
-    
-    if (venue.latitude && venue.longitude) {
-      const distanceCheck = await isWithinCheckInDistance(venue.latitude, venue.longitude);
-      
-      if (!distanceCheck.withinDistance) {
-        const errorMsg = distanceCheck.distanceMeters 
-          ? getCheckInErrorMessage(distanceCheck.distanceMeters)
-          : "Unable to verify location. Please ensure location access is enabled.";
-        setToast(errorMsg);
-        setTimeout(() => setToast(null), 3000);
-        return;
-      }
-    }
+    // Location enforcement removed - users can check in from anywhere
+    // This supports "passport mode" style usage and reduces friction
+    // Premium location verification can be added later if needed
     
     checkInAt(venue.id);
     setCheckedIn(venue.id);
