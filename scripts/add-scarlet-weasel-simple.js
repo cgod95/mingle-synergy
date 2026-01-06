@@ -34,20 +34,20 @@ async function addScarletWeaselVenue() {
     console.log('🍺 Adding Scarlet Weasel Redfern to Firestore...');
 
     // Scarlet Weasel Redfern details
-    // Address: 88 Regent St, Redfern NSW 2016, Australia
+    // Address: 169 Regent St, Redfern NSW 2016, Australia
     // Coordinates: Redfern area (approximate: -33.8925, 151.2044)
     const venue = {
       id: 'scarlet-weasel-redfern',
       name: 'Scarlet Weasel',
       type: 'bar',
-      address: '88 Regent St',
+      address: '169 Regent St',
       city: 'Redfern',
       state: 'NSW',
       postcode: '2016',
       country: 'Australia',
       latitude: -33.8925, // Redfern coordinates
       longitude: 151.2044,
-      image: 'https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800&h=600&fit=crop',
+      image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&h=800&fit=crop&q=80',
       checkInCount: 0,
       expiryTime: 120, // 2 hours
       zones: ['main', 'outdoor', 'back'],

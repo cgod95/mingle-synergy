@@ -1,0 +1,23 @@
+{
+  "id": "scarlet-weasel-redfern",
+  "name": "Scarlet Weasel",
+  "type": "bar",
+  "address": "169 Regent St",
+  "city": "Redfern",
+  "state": "NSW",
+  "postcode": "2016",
+  "country": "Australia",
+  "latitude": -33.8925,
+  "longitude": 151.2044,
+  "image": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&h=800&fit=crop&q=80",
+  "checkInCount": 0,
+  "expiryTime": 120,
+  "zones": ["main", "outdoor", "back"],
+  "checkedInUsers": [],
+  "specials": [
+    {"title": "Happy Hour", "description": "5-7pm Daily"},
+    {"title": "Live Music", "description": "Fridays & Saturdays"}
+  ],
+  "description": "A cozy bar in the heart of Redfern"
+}
+

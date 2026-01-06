@@ -20,14 +20,14 @@ If you prefer to add the venue manually via Firebase Console, follow these steps
 | `id` | string | `scarlet-weasel-redfern` |
 | `name` | string | `Scarlet Weasel` |
 | `type` | string | `bar` |
-| `address` | string | `88 Regent St` |
+| `address` | string | `169 Regent St` |
 | `city` | string | `Redfern` |
 | `state` | string | `NSW` |
 | `postcode` | string | `2016` |
 | `country` | string | `Australia` |
 | `latitude` | number | `-33.8925` |
 | `longitude` | number | `151.2044` |
-| `image` | string | `https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800&h=600&fit=crop` |
+| `image` | string | `https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&h=800&fit=crop&q=80` |
 | `checkInCount` | number | `0` |
 | `expiryTime` | number | `120` |
 | `zones` | array | `["main", "outdoor", "back"]` |
