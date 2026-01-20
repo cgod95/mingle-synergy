@@ -15,6 +15,7 @@ import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { canSeePeopleAtVenues } from "@/utils/locationPermission";
 import { logError } from "@/utils/errorHandler";
+import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -423,7 +424,7 @@ export default function VenueDetails() {
                       >
                         <motion.div
                           animate={isLiking === p.id ? { rotate: 360 } : {}}
-                          transition={{ duration: 0.5, repeat: isLiking === p.id ? Infinity : 0 }}
+                          transition={{ duration: 0.2, repeat: isLiking === p.id ? Infinity : 0 }}
                           className="inline-flex items-center"
                         >
                           <Heart className={`w-3.5 h-3.5 mr-1.5 ${isLiked(p.id) || isMatched(p.id) ? "fill-current" : ""}`} />

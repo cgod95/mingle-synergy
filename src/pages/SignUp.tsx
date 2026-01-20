@@ -89,7 +89,7 @@ export default function SignUp() {
                   <label className="block text-sm font-medium text-neutral-300">Email</label>
                   <Input 
                     placeholder="Enter your email" 
-          type="email"
+          type="email" autoComplete="email" autoCapitalize="none" autoCorrect="off"
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -102,7 +102,7 @@ export default function SignUp() {
                   <label className="block text-sm font-medium text-neutral-300">Password</label>
                   <Input 
                     placeholder="Password (min 6 characters)" 
-          type="password"
+          type="password" autoComplete="new-password"
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

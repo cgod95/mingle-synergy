@@ -12,6 +12,7 @@ import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { RetryButton } from "@/components/ui/RetryButton";
 import { retryWithMessage, isNetworkError } from "@/utils/retry";
 import { logError } from "@/utils/errorHandler";
+import { hapticSuccess } from "@/lib/haptics";
 import { VenueCardSkeleton } from "@/components/ui/LoadingStates";
 import { calculateDistance } from "@/utils/locationUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -66,6 +67,7 @@ export default function CheckInPage() {
     // DEMO MODE: Photo requirement disabled
     // Photo check removed for easier demo/testing
     
+    hapticSuccess();
     localStorage.setItem(ACTIVE_KEY, id);
     setChecked(true);
     

@@ -4,32 +4,42 @@ const config: CapacitorConfig = {
   appId: 'com.mingleapp.app',
   appName: 'Mingle',
   webDir: 'dist',
+  
+  // iOS-specific configuration
   ios: {
     contentInset: 'automatic',
-    backgroundColor: '#0f0a1a', // Dark theme background
-    preferredContentMode: 'mobile',
+    allowsLinkPreview: true,
     scrollEnabled: true,
   },
-  server: {
-    // Allow loading from localhost in development
-    allowNavigation: ['*.firebaseapp.com', '*.googleapis.com', '*.firebaseio.com'],
-  },
+  
+  // Plugin configuration
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,
-      backgroundColor: '#0f0a1a',
+      backgroundColor: '#171717',
       showSpinner: false,
+      androidScaleType: 'CENTER_CROP',
+      splashFullScreen: true,
+      splashImmersive: true,
     },
     Keyboard: {
       resize: 'body',
-      style: 'dark',
       resizeOnFullScreen: true,
     },
     StatusBar: {
       style: 'dark',
-      backgroundColor: '#0f0a1a',
+      backgroundColor: '#171717',
     },
+    Haptics: {
+      // Haptics enabled by default
+    },
+  },
+  
+  // Server configuration (for development)
+  server: {
+    // Enable cleartext for local development
+    cleartext: true,
   },
 };
 

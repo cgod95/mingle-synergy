@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Send, MoreVertical, Sparkles } from "lucide-react";
@@ -339,7 +340,7 @@ export default function ChatRoom() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
+      <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
         {/* How Mingle Works Info Banner */}
         {msgs.length <= 1 && (
           <motion.div
@@ -479,7 +480,7 @@ export default function ChatRoom() {
       {/* Input - Fixed at bottom */}
       <div 
         className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
-        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        style={{ bottom: "var(--keyboard-height, 0px)", paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
         {/* Message limit indicator (hidden for premium users) */}
         {remainingMessages < 5 && remainingMessages < 999 && (

@@ -62,7 +62,7 @@ export default function LandingPage() {
                   y: [0, -10, 0]
                 }}
                 transition={{ 
-                  duration: 0.6,
+                  duration: 0.25,
                   delay: index * 0.1,
                   y: {
                     duration: 4 + (index % 3) * 0.5,
@@ -104,7 +104,7 @@ export default function LandingPage() {
                   y: [0, -10, 0]
                 }}
                 transition={{ 
-                  duration: 0.6,
+                  duration: 0.25,
                   delay: (index + 6) * 0.1,
                   y: {
                     duration: 4.5 + (index % 3) * 0.5,
@@ -141,7 +141,7 @@ export default function LandingPage() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.2 }}
                 className="flex justify-center mb-6"
               >
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 flex items-center justify-center shadow-xl">
@@ -153,7 +153,7 @@ export default function LandingPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
+                transition={{ duration: 0.25, delay: 0.1 }}
               >
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
                   Mingle
@@ -167,7 +167,7 @@ export default function LandingPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={{ duration: 0.2, delay: 0.2 }}
                 className="space-y-4"
               >
                 <Button 

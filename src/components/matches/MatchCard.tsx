@@ -204,7 +204,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
   };
   
   return (
-    <Card className="overflow-hidden animate-scale-in">
+    <Card className="overflow-hidden press-card animate-scale-in">
       <CardHeader className="p-0">
         <div className="relative">
           <div className="aspect-square w-full overflow-hidden">

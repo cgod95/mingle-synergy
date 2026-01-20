@@ -85,7 +85,7 @@ export default function SignIn() {
                   <label className="block text-sm font-medium text-neutral-300">Email</label>
               <Input 
                 placeholder="Enter your email" 
-                    type="email"
+                    type="email" autoComplete="email" autoCapitalize="none" autoCorrect="off"
                     autoComplete="email"
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
@@ -97,7 +97,7 @@ export default function SignIn() {
             <div className="space-y-2">
                   <label className="block text-sm font-medium text-neutral-300">Password</label>
               <Input 
-                type="password" 
+                type="password" autoComplete="current-password" 
                     autoComplete="current-password"
                 placeholder="Enter your password" 
                 value={password} 

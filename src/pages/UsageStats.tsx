@@ -118,7 +118,7 @@ const UsageStats: React.FC = () => {
   if (isLoading) {
     return (
       <PrivateLayout>
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-neutral-900 pb-20">
           <div className="max-w-6xl mx-auto p-4">
             <div className="animate-pulse">
               <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -138,11 +138,11 @@ const UsageStats: React.FC = () => {
   if (!stats) {
     return (
       <PrivateLayout>
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-neutral-900 pb-20">
           <div className="max-w-6xl mx-auto p-4">
             <div className="text-center py-12">
               <h2 className="text-xl font-semibold mb-2">No Data Available</h2>
-              <p className="text-gray-600">Start using the app to see your usage statistics</p>
+              <p className="text-neutral-300">Start using the app to see your usage statistics</p>
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@ const UsageStats: React.FC = () => {
 
   return (
     <PrivateLayout>
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-6xl mx-auto p-4">
           {/* Header */}
           <div className="mb-6">
@@ -164,8 +164,8 @@ const UsageStats: React.FC = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Usage Statistics</h1>
-            <p className="text-gray-600">Track your activity and engagement on Mingle</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Usage Statistics</h1>
+            <p className="text-neutral-300">Track your activity and engagement on Mingle</p>
           </div>
 
           {/* Time Range Selector */}
@@ -185,14 +185,14 @@ const UsageStats: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Matches</p>
+                    <p className="text-sm font-medium text-neutral-300">Total Matches</p>
                     <p className="text-2xl font-bold">{stats.totalMatches}</p>
                   </div>
                   <Users className="w-8 h-8 text-blue-500" />
                 </div>
                 <div className="mt-2 flex items-center">
                   {getTrendIcon(stats.totalMatches, 42)}
-                  <span className="text-sm text-gray-600 ml-1">+12% from last period</span>
+                  <span className="text-sm text-neutral-300 ml-1">+12% from last period</span>
                 </div>
               </CardContent>
             </Card>
@@ -201,14 +201,14 @@ const UsageStats: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Messages Sent</p>
+                    <p className="text-sm font-medium text-neutral-300">Messages Sent</p>
                     <p className="text-2xl font-bold">{stats.totalMessages}</p>
                   </div>
                   <MessageCircle className="w-8 h-8 text-green-500" />
                 </div>
                 <div className="mt-2 flex items-center">
                   {getTrendIcon(stats.totalMessages, 198)}
-                  <span className="text-sm text-gray-600 ml-1">+18% from last period</span>
+                  <span className="text-sm text-neutral-300 ml-1">+18% from last period</span>
                 </div>
               </CardContent>
             </Card>
@@ -217,14 +217,14 @@ const UsageStats: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Likes Given</p>
+                    <p className="text-sm font-medium text-neutral-300">Likes Given</p>
                     <p className="text-2xl font-bold">{stats.totalLikes}</p>
                   </div>
                   <Heart className="w-8 h-8 text-red-500" />
                 </div>
                 <div className="mt-2 flex items-center">
                   {getTrendIcon(stats.totalLikes, 134)}
-                  <span className="text-sm text-gray-600 ml-1">+16% from last period</span>
+                  <span className="text-sm text-neutral-300 ml-1">+16% from last period</span>
                 </div>
               </CardContent>
             </Card>
@@ -233,14 +233,14 @@ const UsageStats: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Venue Check-ins</p>
+                    <p className="text-sm font-medium text-neutral-300">Venue Check-ins</p>
                     <p className="text-2xl font-bold">{stats.totalCheckins}</p>
                   </div>
                   <MapPin className="w-8 h-8 text-purple-500" />
                 </div>
                 <div className="mt-2 flex items-center">
                   {getTrendIcon(stats.totalCheckins, 19)}
-                  <span className="text-sm text-gray-600 ml-1">+21% from last period</span>
+                  <span className="text-sm text-neutral-300 ml-1">+21% from last period</span>
                 </div>
               </CardContent>
             </Card>
@@ -268,7 +268,7 @@ const UsageStats: React.FC = () => {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Match Rate</span>
-                        <span className="text-sm text-gray-600">{formatPercentage(stats.matchRate)}</span>
+                        <span className="text-sm text-neutral-300">{formatPercentage(stats.matchRate)}</span>
                       </div>
                       <Progress value={stats.matchRate * 100} className="h-2" />
                     </div>
@@ -276,7 +276,7 @@ const UsageStats: React.FC = () => {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Message Response Rate</span>
-                        <span className="text-sm text-gray-600">{formatPercentage(stats.messageResponseRate)}</span>
+                        <span className="text-sm text-neutral-300">{formatPercentage(stats.messageResponseRate)}</span>
                       </div>
                       <Progress value={stats.messageResponseRate * 100} className="h-2" />
                     </div>
@@ -284,7 +284,7 @@ const UsageStats: React.FC = () => {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Active Days</span>
-                        <span className="text-sm text-gray-600">{stats.activeDays} days</span>
+                        <span className="text-sm text-neutral-300">{stats.activeDays} days</span>
                       </div>
                       <Progress value={(stats.activeDays / 30) * 100} className="h-2" />
                     </div>
@@ -303,17 +303,17 @@ const UsageStats: React.FC = () => {
                     <div className="space-y-4">
                       <div className="text-center">
                         <p className="text-3xl font-bold text-blue-600">{formatTime(stats.averageResponseTime)}</p>
-                        <p className="text-sm text-gray-600">Average Response Time</p>
+                        <p className="text-sm text-neutral-300">Average Response Time</p>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 text-center">
                         <div>
                           <p className="text-lg font-semibold">1.2m</p>
-                          <p className="text-xs text-gray-600">Fastest Response</p>
+                          <p className="text-xs text-neutral-300">Fastest Response</p>
                         </div>
                         <div>
                           <p className="text-lg font-semibold">4.8m</p>
-                          <p className="text-xs text-gray-600">Slowest Response</p>
+                          <p className="text-xs text-neutral-300">Slowest Response</p>
                         </div>
                       </div>
                     </div>
@@ -334,10 +334,10 @@ const UsageStats: React.FC = () => {
                         <div className="flex items-center space-x-4">
                           <span className="text-sm font-medium w-20">{day.date}</span>
                           <div className="flex space-x-4">
-                            <span className="text-xs text-gray-600">Matches: {day.matches}</span>
-                            <span className="text-xs text-gray-600">Messages: {day.messages}</span>
-                            <span className="text-xs text-gray-600">Likes: {day.likes}</span>
-                            <span className="text-xs text-gray-600">Check-ins: {day.checkins}</span>
+                            <span className="text-xs text-neutral-300">Matches: {day.matches}</span>
+                            <span className="text-xs text-neutral-300">Messages: {day.messages}</span>
+                            <span className="text-xs text-neutral-300">Likes: {day.likes}</span>
+                            <span className="text-xs text-neutral-300">Check-ins: {day.checkins}</span>
                           </div>
                         </div>
                         <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -365,13 +365,13 @@ const UsageStats: React.FC = () => {
                         <div className="flex-1">
                           <h3 className="font-medium">{venue.venueName}</h3>
                           <div className="flex space-x-4 mt-1">
-                            <span className="text-sm text-gray-600">Check-ins: {venue.checkins}</span>
-                            <span className="text-sm text-gray-600">Matches: {venue.matches}</span>
+                            <span className="text-sm text-neutral-300">Check-ins: {venue.checkins}</span>
+                            <span className="text-sm text-neutral-300">Matches: {venue.matches}</span>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-semibold">{formatPercentage(venue.successRate)}</p>
-                          <p className="text-sm text-gray-600">Success Rate</p>
+                          <p className="text-sm text-neutral-300">Success Rate</p>
                         </div>
                       </div>
                     ))}

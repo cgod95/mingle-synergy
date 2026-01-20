@@ -1,14 +1,9 @@
 /**
- * Capacitor iOS initialization
- * Handles status bar, keyboard, and platform-specific setup
+ * Capacitor iOS/Android initialization
+ * Handles status bar, keyboard, splash screen, and platform-specific setup
  */
 
 import { Capacitor } from '@capacitor/core';
-
-// Only import Capacitor plugins when running natively
-let StatusBar: any = null;
-let Keyboard: any = null;
-let SplashScreen: any = null;
 
 export const isNativePlatform = Capacitor.isNativePlatform();
 export const isIOS = Capacitor.getPlatform() === 'ios';
@@ -21,71 +16,57 @@ export async function initCapacitor() {
   if (!isNativePlatform) return;
 
   try {
-    // Dynamic imports for native-only plugins
+    // Configure status bar
     if (isIOS || isAndroid) {
-      const statusBarModule = await import('@capacitor/status-bar');
-      StatusBar = statusBarModule.StatusBar;
-      
-      const keyboardModule = await import('@capacitor/keyboard');
-      Keyboard = keyboardModule.Keyboard;
-      
-      const splashModule = await import('@capacitor/splash-screen');
-      SplashScreen = splashModule.SplashScreen;
-    }
-
-    // Configure status bar for iOS
-    if (StatusBar && isIOS) {
-      await StatusBar.setStyle({ style: 'DARK' }); // Light text on dark background
-      await StatusBar.setBackgroundColor({ color: '#171717' }); // neutral-900
-    }
-
-    // Configure keyboard behavior
-    if (Keyboard) {
-      // iOS: Adjust scroll when keyboard appears
-      Keyboard.addListener('keyboardWillShow', (info: { keyboardHeight: number }) => {
-        document.documentElement.style.setProperty('--keyboard-height', `${info.keyboardHeight}px`);
-        document.body.classList.add('keyboard-visible');
-      });
-
-      Keyboard.addListener('keyboardWillHide', () => {
-        document.documentElement.style.setProperty('--keyboard-height', '0px');
-        document.body.classList.remove('keyboard-visible');
-      });
-
-      // Set keyboard accessory bar to auto
-      if (isIOS) {
-        Keyboard.setAccessoryBarVisible({ isVisible: true });
-        Keyboard.setScroll({ isDisabled: false });
+      const { StatusBar, Style } = await import('@capacitor/status-bar');
+      await StatusBar.setStyle({ style: Style.Dark });
+      if (isAndroid) {
+        await StatusBar.setBackgroundColor({ color: '#171717' });
       }
     }
 
-    // Hide splash screen after app is ready
-    if (SplashScreen) {
-      await SplashScreen.hide({ fadeOutDuration: 300 });
+    // Configure keyboard behavior
+    const { Keyboard } = await import('@capacitor/keyboard');
+    
+    // Handle keyboard show/hide
+    Keyboard.addListener('keyboardWillShow', (info) => {
+      document.documentElement.style.setProperty('--keyboard-height', `${info.keyboardHeight}px`);
+      document.body.classList.add('keyboard-visible');
+    });
+
+    Keyboard.addListener('keyboardWillHide', () => {
+      document.documentElement.style.setProperty('--keyboard-height', '0px');
+      document.body.classList.remove('keyboard-visible');
+    });
+
+    // iOS-specific keyboard settings
+    if (isIOS) {
+      await Keyboard.setAccessoryBarVisible({ isVisible: true });
+      await Keyboard.setScroll({ isDisabled: false });
     }
+
+    // Hide splash screen with fade
+    const { SplashScreen } = await import('@capacitor/splash-screen');
+    await SplashScreen.hide({ fadeOutDuration: 300 });
 
     console.log('✅ Capacitor initialized for', Capacitor.getPlatform());
   } catch (error) {
-    console.warn('Capacitor initialization error:', error);
+    console.warn('Capacitor initialization warning:', error);
   }
 }
 
 /**
- * Check if running in Capacitor native context
+ * Check if app is running in Capacitor
  */
 export function isCapacitor(): boolean {
   return isNativePlatform;
 }
 
 /**
- * Get safe area insets (useful for programmatic positioning)
+ * Get current platform
  */
-export function getSafeAreaInsets(): { top: number; bottom: number; left: number; right: number } {
-  const style = getComputedStyle(document.documentElement);
-  return {
-    top: parseInt(style.getPropertyValue('--sat') || '0', 10),
-    bottom: parseInt(style.getPropertyValue('--sab') || '0', 10),
-    left: parseInt(style.getPropertyValue('--sal') || '0', 10),
-    right: parseInt(style.getPropertyValue('--sar') || '0', 10),
-  };
+export function getPlatform(): 'ios' | 'android' | 'web' {
+  if (isIOS) return 'ios';
+  if (isAndroid) return 'android';
+  return 'web';
 }

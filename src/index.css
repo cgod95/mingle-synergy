@@ -267,3 +267,96 @@
       padding-left: env(safe-area-inset-left);
     }
   }
+
+/* ---- iOS Touch & Animation Optimizations ---- */
+
+/* Improved touch targets for all interactive elements */
+.touch-target-lg {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Press feedback for cards */
+.press-card {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.press-card:active {
+  transform: scale(0.98);
+}
+
+/* iOS-style button press */
+.press-button:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* Faster animations for native feel (iOS uses ~250ms) */
+.transition-fast {
+  transition-duration: 150ms !important;
+}
+
+.transition-ios {
+  transition-duration: 250ms !important;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1) !important;
+}
+
+/* iOS-style momentum scrolling */
+.scroll-ios {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+/* Prevent scroll chaining */
+.scroll-contain {
+  overscroll-behavior: contain;
+}
+
+/* iOS-style list item */
+.list-item-ios {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+/* iOS-style separator */
+.separator-ios {
+  height: 0.5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin-left: 16px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* iOS navigation bar blur */
+.nav-blur-ios {
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background-color: rgba(23, 23, 23, 0.72);
+}
+
+/* iOS card shadow */
+.shadow-ios {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.shadow-ios-lg {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+}
+
+/* Fix for iOS notch on landscape */
+@supports (padding-left: env(safe-area-inset-left)) {
+  .safe-landscape {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}

@@ -1,114 +1,98 @@
+/**
+ * iOS-style Pull to Refresh Hook
+ * Provides native-feel pull-to-refresh behavior
+ */
 
-import { useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { hapticMedium } from '@/lib/haptics';
 
-interface PullToRefreshOptions {
+interface UsePullToRefreshOptions {
   onRefresh: () => Promise<void>;
-  pullDistance?: number;
-  containerSelector?: string;
+  threshold?: number; // Pull distance to trigger refresh (default 80px)
 }
 
-export const usePullToRefresh = ({ 
-  onRefresh, 
-  pullDistance = 100,
-  containerSelector = '#app-container' 
-}: PullToRefreshOptions) => {
-  useEffect(() => {
-    let startY = 0;
-    let pullStarted = false;
-    const container = document.querySelector(containerSelector);
-    
-    if (!container) return;
-    
-    const handleTouchStart = (e: TouchEvent) => {
-      // Only allow pull to refresh at the top of the page
-      if (window.scrollY > 5) return;
-      
-      startY = e.touches[0].clientY;
-      pullStarted = true;
-    };
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!pullStarted) return;
-      
-      const currentY = e.touches[0].clientY;
-      const pullLength = currentY - startY;
-      
-      if (pullLength > 10) {
-        // Prevent default scrolling behavior
-        e.preventDefault();
-      }
-      
-      if (pullLength > pullDistance) {
-        showRefreshIndicator();
-      }
-    };
-    
-    const handleTouchEnd = async (e: TouchEvent) => {
-      if (!pullStarted) return;
-      
-      const currentY = e.changedTouches[0].clientY;
-      const pullLength = currentY - startY;
-      
-      if (pullLength > pullDistance) {
-        try {
-          showRefreshingIndicator();
-          await onRefresh();
-        } catch (error) {
-          console.error('Refresh failed:', error);
-        } finally {
-          hideRefreshIndicator();
-        }
-      }
-      
-      pullStarted = false;
-    };
-    
-    // Add refresh indicator element
-    const indicatorEl = document.createElement('div');
-    indicatorEl.id = 'pull-to-refresh-indicator';
-    indicatorEl.style.position = 'fixed';
-    indicatorEl.style.top = '0';
-    indicatorEl.style.left = '0';
-    indicatorEl.style.right = '0';
-    indicatorEl.style.height = '0';
-    indicatorEl.style.backgroundColor = '#F0957D';
-    indicatorEl.style.zIndex = '9999';
-    indicatorEl.style.transition = 'height 0.2s ease-out';
-    indicatorEl.style.textAlign = 'center';
-    indicatorEl.style.color = 'white';
-    indicatorEl.style.overflow = 'hidden';
-    indicatorEl.style.display = 'flex';
-    indicatorEl.style.alignItems = 'center';
-    indicatorEl.style.justifyContent = 'center';
-    document.body.appendChild(indicatorEl);
-    
-    function showRefreshIndicator() {
-      indicatorEl.style.height = '60px';
-      indicatorEl.innerHTML = '<div>Release to refresh</div>';
-    }
-    
-    function showRefreshingIndicator() {
-      indicatorEl.innerHTML = '<div>Refreshing...</div>';
-    }
-    
-    function hideRefreshIndicator() {
-      indicatorEl.style.height = '0';
-    }
-    
-    container.addEventListener('touchstart', handleTouchStart as EventListener);
-    container.addEventListener('touchmove', handleTouchMove as EventListener, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd as unknown as EventListener);
-    
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart as EventListener);
-      container.removeEventListener('touchmove', handleTouchMove as EventListener);
-      container.removeEventListener('touchend', handleTouchEnd as unknown as EventListener);
-      
-      if (document.body.contains(indicatorEl)) {
-        document.body.removeChild(indicatorEl);
-      }
-    };
-  }, [onRefresh, pullDistance, containerSelector]);
-};
+export function usePullToRefresh({ onRefresh, threshold = 80 }: UsePullToRefreshOptions) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const startY = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-export default usePullToRefresh;
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (containerRef.current?.scrollTop === 0) {
+      startY.current = e.touches[0].clientY;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (isRefreshing) return;
+    if (containerRef.current?.scrollTop !== 0) return;
+    
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - startY.current;
+    
+    if (diff > 0) {
+      // Apply resistance to pull (feels more native)
+      const resistance = 0.5;
+      setPullDistance(Math.min(diff * resistance, threshold * 1.5));
+    }
+  }, [isRefreshing, threshold]);
+
+  const handleTouchEnd = useCallback(async () => {
+    if (pullDistance >= threshold && !isRefreshing) {
+      setIsRefreshing(true);
+      hapticMedium();
+      
+      try {
+        await onRefresh();
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+    setPullDistance(0);
+    startY.current = 0;
+  }, [pullDistance, threshold, isRefreshing, onRefresh]);
+
+  return {
+    containerRef,
+    isRefreshing,
+    pullDistance,
+    pullProgress: Math.min(pullDistance / threshold, 1),
+    handlers: {
+      onTouchStart: handleTouchStart,
+      onTouchMove: handleTouchMove,
+      onTouchEnd: handleTouchEnd,
+    },
+  };
+}
+
+/**
+ * Pull to Refresh Indicator Component
+ */
+export function PullToRefreshIndicator({ 
+  pullProgress, 
+  isRefreshing 
+}: { 
+  pullProgress: number; 
+  isRefreshing: boolean;
+}) {
+  if (pullProgress === 0 && !isRefreshing) return null;
+
+  return (
+    <div 
+      className="flex justify-center items-center py-4 transition-opacity"
+      style={{ 
+        opacity: isRefreshing ? 1 : pullProgress,
+        transform: `translateY(${isRefreshing ? 0 : (pullProgress - 1) * 40}px)`
+      }}
+    >
+      <div 
+        className={`w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full ${
+          isRefreshing ? 'animate-spin' : ''
+        }`}
+        style={{
+          transform: isRefreshing ? 'none' : `rotate(${pullProgress * 360}deg)`
+        }}
+      />
+    </div>
+  );
+}

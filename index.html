@@ -36,11 +36,25 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     
-    <!-- Permissions & Security -->
+    <!-- Permissions Policy -->
     <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=()" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.sentry.io https://vercel.live https://*.vercel.live wss://*.firebaseio.com; frame-src 'self'; object-src 'none';" />
     
-    <!-- Disable text selection and tap highlights for native feel -->
+    <!-- 
+      Content Security Policy - Capacitor Compatible
+      Note: capacitor: and capacitor://localhost are required for iOS native app
+    -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self' capacitor: capacitor://localhost;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' capacitor: capacitor://localhost https://cdn.gpteng.co https://vercel.live https://*.vercel.live;
+      style-src 'self' 'unsafe-inline' capacitor: capacitor://localhost;
+      img-src 'self' data: https: blob: capacitor: capacitor://localhost;
+      font-src 'self' data: capacitor: capacitor://localhost;
+      connect-src 'self' capacitor: capacitor://localhost https://*.firebaseio.com https://*.googleapis.com https://*.sentry.io https://vercel.live https://*.vercel.live wss://*.firebaseio.com wss://*.googleapis.com;
+      frame-src 'self' capacitor: capacitor://localhost;
+      object-src 'none';
+    " />
+    
+    <!-- iOS Native Styles -->
     <style>
       /* iOS Safe Areas */
       :root {
