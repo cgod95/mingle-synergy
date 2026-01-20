@@ -42,13 +42,26 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
   }, [profileExists, navigate]);
 
   useEffect(() => {
+    // Debug user fields to verify correct field names
+    const debugUserFields = async () => {
+      try {
+        // Get a sample user to check field names
+        const sampleUserSnapshot = await getDocs(collection(firestore, 'users'));
+        if (!sampleUserSnapshot.empty) {
+          console.log('Sample user fields:', Object.keys(sampleUserSnapshot.docs[0].data()));
+        }
+      } catch (error) {
+        console.error('Debug error:', error);
+      }
+    };
+    
     // Load users at venue
     const loadUsersAtVenue = async (venueId: string) => {
       try {
         const usersQuery = query(
           collection(firestore, 'users'),
           where('currentVenue', '==', venueId),
-          where('isCheckedIn', '==', true)
+          where('isVisible', '==', true)
         );
 
         const usersSnapshot = await getDocs(usersQuery);
@@ -64,6 +77,7 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
       }
     };
 
+    debugUserFields();
     if (venue.id) {
       loadUsersAtVenue(venue.id);
     }

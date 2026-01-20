@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { goBackSafely } from '@/utils/navigation';
 import Layout from '@/components/Layout';
 
 export default function Privacy() {
@@ -13,10 +12,10 @@ export default function Privacy() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#0a0a0f] pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center space-x-2 mb-6">
-            <Button variant="ghost" size="icon" onClick={() => goBackSafely(navigate, '/settings')} className="hover:bg-indigo-900/30 text-indigo-400">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-indigo-900/30 text-indigo-400">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -71,7 +70,7 @@ export default function Privacy() {
 
             <div className="text-center pt-4">
               <Button 
-                onClick={() => goBackSafely(navigate, '/settings')}
+                onClick={() => navigate(-1)}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
               >
                 Got it

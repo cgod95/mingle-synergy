@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import config from '@/config';
 
-// BottomNav: Main navigation bar - dark theme with brand purple
 const BottomNav: React.FC = () => {
   const { currentUser } = useAuth();
   const { onboardingProgress, isOnboardingComplete, isLoading } = useOnboarding();
@@ -13,14 +12,16 @@ const BottomNav: React.FC = () => {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const localStorageComplete = typeof window !== 'undefined' 
-    ? localStorage.getItem('onboardingComplete') === 'true' 
-    : false;
+  // Always show bottom nav if explicitly requested or after onboarding
+  const localStorageComplete = localStorage.getItem('onboardingComplete') === 'true';
   const allStepsComplete = onboardingProgress.profile && onboardingProgress.photo;
+  
+  // Show immediately if onboarding complete, don't wait for loading
   const shouldShow = config.DEMO_MODE || localStorageComplete || (
     allStepsComplete && isOnboardingComplete
   );
 
+  // Get unread count
   useEffect(() => {
     if (!currentUser?.uid) return;
     
@@ -28,7 +29,14 @@ const BottomNav: React.FC = () => {
     
     const updateUnreadCount = async () => {
       if (config.DEMO_MODE) {
-        setUnreadCount(0);
+        try {
+          const { getAllMatches } = await import('@/lib/matchesCompat');
+          const matches = await getAllMatches(currentUser.uid);
+          const total = matches.reduce((sum, m) => sum + (m.unreadCount || 0), 0);
+          setUnreadCount(total);
+        } catch (error) {
+          // Non-critical
+        }
       } else {
         try {
           const { subscribeToUnreadCounts } = await import('@/features/messaging/UnreadMessageService');
@@ -37,31 +45,20 @@ const BottomNav: React.FC = () => {
             setUnreadCount(total);
           });
         } catch (error) {
-          setUnreadCount(0);
+          // Non-critical
         }
       }
     };
 
     updateUnreadCount();
-
-    const handleFocus = () => {
-      if (!config.DEMO_MODE) {
-        updateUnreadCount();
-      }
-    };
-    window.addEventListener('focus', handleFocus);
     
     return () => {
       if (unsubscribe) unsubscribe();
-      window.removeEventListener('focus', handleFocus);
     };
   }, [currentUser?.uid]);
 
-  if (isLoading && !config.DEMO_MODE) {
-    return null;
-  }
-
-  if (!shouldShow) {
+  // Don't render if onboarding not complete (but don't hide while loading)
+  if (!shouldShow && !isLoading) {
     return null;
   }
 
@@ -80,14 +77,14 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-[#111118]/95 backdrop-blur-xl border-t border-[#2D2D3A] px-4 py-3 z-[9999]"
+      className="fixed bottom-0 left-0 right-0 bg-neutral-800/98 backdrop-blur-xl border-t border-neutral-700/50 shadow-2xl z-50"
       style={{ 
-        paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
-        transform: 'translateZ(0)',
-        WebkitTransform: 'translateZ(0)',
+        paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
-      <div className="flex justify-around items-center max-w-md mx-auto">
+      <div className="flex justify-around items-center max-w-md mx-auto px-2 pt-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -99,21 +96,21 @@ const BottomNav: React.FC = () => {
               onClick={() => navigate(item.path)}
               aria-label={`Navigate to ${item.label}${showBadge ? ` (${unreadCount} unread)` : ''}`}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:ring-offset-2 focus:ring-offset-[#0a0a0f]"
+              className="relative flex flex-col items-center justify-center py-2 px-4 min-w-[72px] min-h-[56px] rounded-xl transition-all duration-200 active:scale-95 touch-target"
             >
-              <div className={`relative transition-transform duration-200 ${active ? 'text-[#7C3AED] scale-110' : 'text-[#6B7280] hover:text-[#9CA3AF]'}`}>
-                <Icon size={24} strokeWidth={active ? 2.5 : 2} />
+              <div className={`relative ${active ? 'text-indigo-400' : 'text-neutral-400'}`}>
+                <Icon size={26} strokeWidth={active ? 2.5 : 2} />
                 {showBadge && (
-                  <div className="absolute -top-1 -right-1 bg-[#7C3AED] text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-lg border-2 border-[#111118]">
+                  <div className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-lg border-2 border-neutral-800">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </div>
                 )}
               </div>
-              <span className={`text-xs transition-colors ${active ? 'font-semibold text-[#7C3AED]' : 'font-medium text-[#6B7280]'}`}>
+              <span className={`text-[11px] mt-1 ${active ? 'font-semibold text-indigo-400' : 'font-medium text-neutral-500'}`}>
                 {item.label}
               </span>
               {active && (
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-[#7C3AED] rounded-full" />
+                <div className="absolute bottom-1 w-6 h-1 bg-indigo-500 rounded-full" />
               )}
             </button>
           );

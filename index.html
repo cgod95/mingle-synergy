@@ -1,241 +1,82 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- CRITICAL: Ultra-early DevTools blocking - MUST be first script to prevent extension injection -->
-    <script>
-      (function() {
-        'use strict';
-        if (typeof window === 'undefined') return;
-        
-        // Delete any existing hook immediately
-        try {
-          delete window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
-        } catch (e) {}
-        
-        // Create base hook object (NOT frozen - extensible target required for Proxy ownKeys)
-        const baseHook = {
-          isDisabled: true,
-          renderers: new Map(),
-          supportsFiber: false,
-          _listeners: [],
-        };
-        
-        // Create ultra-aggressive Proxy that completely blocks DevTools
-        const disabledHook = new Proxy(baseHook, {
-          get: function(target, prop) {
-            // Return no-op functions for all DevTools methods
-            if (typeof prop === 'string' && (
-              prop === 'inject' ||
-              prop === 'onCommitFiberRoot' ||
-              prop === 'onCommitFiberUnmount' ||
-              prop === 'checkDCE' ||
-              prop === 'registerRenderer' ||
-              prop === 'onHook' ||
-              prop === 'offHook' ||
-              prop === 'emit' ||
-              prop === 'on' ||
-              prop === 'off' ||
-              prop === 'reactDevtoolsAgent'
-            )) {
-              return function() { return false; };
-            }
-            if (prop === 'reactDevtoolsAgent') {
-              return null;
-            }
-            return target[prop];
-          },
-          set: function() {
-            return true; // Silently accept but don't store
-          },
-          defineProperty: function() {
-            return true; // Silently accept but don't define
-          },
-          deleteProperty: function() {
-            return false; // Prevent deletion
-          },
-          has(target, prop, descriptor) {
-            return true; // Prevent property definition
-          },
-          has: function(target, prop) {
-            return prop in target || prop === 'reactDevtoolsAgent' || prop === 'inject' || 
-                   prop === 'onCommitFiberRoot' || prop === 'onCommitFiberUnmount' ||
-                   prop === 'registerRenderer' || prop === 'onHook' || prop === 'offHook' ||
-                   prop === 'emit' || prop === 'on' || prop === 'off';
-          },
-          ownKeys: function(target) {
-            return Object.keys(target).concat([
-              'reactDevtoolsAgent', 'inject', 'onCommitFiberRoot', 'onCommitFiberUnmount',
-              'registerRenderer', 'onHook', 'offHook', 'emit', 'on', 'off', 'checkDCE'
-            ]);
-          },
-          getOwnPropertyDescriptor: function(target, prop) {
-            if (prop in target) {
-              return Object.getOwnPropertyDescriptor(target, prop);
-            }
-            return {
-              enumerable: true,
-              configurable: false,
-              writable: false,
-              value: prop === 'reactDevtoolsAgent' ? null : function() { return false; }
-            };
-          }
-        });
-        
-        // Freeze the Proxy itself to make it completely immutable
-        // Safe because target was extensible when Proxy was created
-        let frozenHook;
-        try {
-          frozenHook = Object.freeze(disabledHook);
-        } catch (e) {
-          // If freeze fails, use the Proxy as-is (still protected by Proxy traps)
-          frozenHook = disabledHook;
-        }
-        
-        // Set hook using defineProperty with maximum protection
-        try {
-          Object.defineProperty(window, '__REACT_DEVTOOLS_GLOBAL_HOOK__', {
-            value: frozenHook,
-            writable: false,
-            configurable: false,
-            enumerable: true
-          });
-        } catch (e) {
-          // Fallback: set and freeze
-          try {
-            window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = frozenHook;
-            Object.freeze(window.__REACT_DEVTOOLS_GLOBAL_HOOK__);
-          } catch (e2) {}
-        }
-        
-        // Block extension injection
-        if (window.chrome && window.chrome.runtime) {
-          try {
-            Object.defineProperty(window, '__REACT_DEVTOOLS_EXTENSION__', {
-              value: undefined,
-              writable: false,
-              configurable: false
-            });
-          } catch (e) {}
-        }
-        
-        // Use MutationObserver to detect and prevent hook modifications
-        if (typeof MutationObserver !== 'undefined') {
-          const observer = new MutationObserver(function(mutations) {
-            try {
-              const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
-              if (hook && hook !== frozenHook) {
-                // Hook was modified - restore our disabled version
-                try {
-                  Object.defineProperty(window, '__REACT_DEVTOOLS_GLOBAL_HOOK__', {
-                    value: frozenHook,
-                    writable: false,
-                    configurable: false,
-                    enumerable: true
-                  });
-                } catch (e) {
-                  // If we can't restore, try to disable the injected hook
-                  try {
-                    if (hook.renderers) hook.renderers.clear();
-                    hook.isDisabled = true;
-                    if (typeof hook.inject === 'function') hook.inject = function() { return false; };
-                    if (typeof hook.registerRenderer === 'function') hook.registerRenderer = function() { return -1; };
-                  } catch (e2) {}
-                }
-              }
-            } catch (e) {}
-          });
-          
-          // Observe window object for property changes
-          observer.observe(document.documentElement, {
-            childList: true,  // Required: must have at least one true option
-            subtree: true,    // Watch all descendants
-            attributes: false,
-            attributeOldValue: false,
-            characterData: false
-          });
-          
-          // Also observe using Object.defineProperty proxy
-          const originalDefineProperty = Object.defineProperty;
-          Object.defineProperty = function(obj, prop, descriptor) {
-            if (obj === window && prop === '__REACT_DEVTOOLS_GLOBAL_HOOK__') {
-              // Prevent DevTools from redefining the hook
-              return obj;
-            }
-            return originalDefineProperty.call(this, obj, prop, descriptor);
-          };
-        }
-        
-        // Periodic check and re-disable (browser extensions run async)
-        let checkCount = 0;
-        const maxChecks = 100; // Check for 10 seconds
-        const checkInterval = setInterval(function() {
-          checkCount++;
-          try {
-            const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
-            if (hook && hook !== frozenHook) {
-              // DevTools tried to inject - re-disable it
-              try {
-                Object.defineProperty(window, '__REACT_DEVTOOLS_GLOBAL_HOOK__', {
-                  value: frozenHook,
-                  writable: false,
-                  configurable: false,
-                  enumerable: true
-                });
-              } catch (e) {
-                // If we can't redefine, try to disable the injected hook
-                try {
-                  if (hook.renderers) hook.renderers.clear();
-                  hook.isDisabled = true;
-                  if (typeof hook.inject === 'function') hook.inject = function() { return false; };
-                  if (typeof hook.registerRenderer === 'function') hook.registerRenderer = function() { return -1; };
-                } catch (e2) {}
-              }
-            }
-          } catch (e) {}
-          if (checkCount >= maxChecks) {
-            clearInterval(checkInterval);
-          }
-        }, 100);
-      })();
-    </script>
-  <script>window.tailwind = { corePlugins: { preflight: false } };</script>
-      <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta charset="UTF-8" />
+    <!-- iOS Safe Area & Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- iOS Status Bar -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mingle" />
+    
+    <!-- Theme & PWA -->
+    <meta name="theme-color" content="#171717" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
     <title>Mingle - Meet people nearby</title>
     <meta name="description" content="Connect with people in real world venues with Mingle - the app that helps you meet people nearby in real time" />
-    <meta name="author" content="Lovable" />
+    
+    <!-- Open Graph -->
     <meta property="og:title" content="Mingle - Connect in Real Life" />
     <meta property="og:description" content="Meet people at the places you already love." />
     <meta property="og:image" content="/og-image.png" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://mingle-app.com" />
+    
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Mingle - Connect in Real Life" />
     <meta name="twitter:description" content="Meet people at the places you already love." />
     <meta name="twitter:image" content="/og-image.png" />
+    
+    <!-- Icons & Manifest -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="/logo192.png" />
-    <meta name="theme-color" content="#9333EA" />
-    <!-- Permissions Policy: Allow geolocation for location-based features -->
-    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(), microphone=(), payment=()" />
-    <!-- Content Security Policy for XSS protection and to prevent extension injection -->
-    <!-- Note: script-src 'self' prevents browser extension scripts, which may break some extensions -->
-    <!-- but prevents React DevTools conflicts. object-src 'none' prevents plugin injection. -->
+    
+    <!-- Permissions & Security -->
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=()" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.sentry.io https://vercel.live https://*.vercel.live wss://*.firebaseio.com; frame-src 'self'; object-src 'none';" />
-    <!-- Mobile Web App Meta Tags -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <!-- Apple Mobile Web App Meta Tags (for iOS compatibility) -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Mingle" />
+    
+    <!-- Disable text selection and tap highlights for native feel -->
+    <style>
+      /* iOS Safe Areas */
+      :root {
+        --sat: env(safe-area-inset-top);
+        --sar: env(safe-area-inset-right);
+        --sab: env(safe-area-inset-bottom);
+        --sal: env(safe-area-inset-left);
+      }
+      
+      /* Prevent rubber-banding on iOS */
+      html, body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Native-like touch behavior */
+      * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+      
+      /* Prevent text selection on buttons */
+      button, a {
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      
+      /* Fix iOS input zoom */
+      input, textarea, select {
+        font-size: 16px !important;
+      }
+    </style>
   </head>
 
-  <body class="bg-stone-50 text-stone-900">
+  <body class="bg-neutral-900 text-white">
     <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

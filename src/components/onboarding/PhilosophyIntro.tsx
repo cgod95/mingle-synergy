@@ -28,7 +28,7 @@ const PhilosophyIntro = () => {
             </div>
             <div>
               <h3 className="font-medium mb-1 text-foreground">Say hi now, not later</h3>
-              <p className="text-muted-foreground">Matches expire to encourage you to meet in person. Don't wait - say hi!</p>
+              <p className="text-muted-foreground">Matches expire in 3 hours to encourage you to meet in person right away.</p>
             </div>
           </div>
           

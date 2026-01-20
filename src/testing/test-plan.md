@@ -9,7 +9,7 @@
 - [x] Expressing Interest / Sending Likes (including 3-like limit)
 - [x] Matching with Another User
 - [x] Contact Information Sharing
-- [x] Match Expiry (24-hour window)
+- [x] Match Expiry (3-hour window)
 - [x] User Verification Flow
 
 ## Device Testing Matrix

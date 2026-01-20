@@ -5,11 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CreditCard, Calendar, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { goBackSafely } from '@/utils/navigation';
 import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
 import SubscriptionService from '@/services/subscriptionService';
-import { logError } from '@/utils/errorHandler';
 
 const subscriptionService = new SubscriptionService();
 
@@ -88,7 +86,7 @@ const Billing: React.FC = () => {
       ]);
 
     } catch (error) {
-      logError(error instanceof Error ? error : new Error('Failed to load billing data'), { source: 'Billing' });
+      console.error('Failed to load billing data:', error);
       toast({
         title: "Error",
         description: "Failed to load billing information",
@@ -185,7 +183,7 @@ const Billing: React.FC = () => {
           <div className="mb-6">
             <Button
               variant="ghost"
-              onClick={() => goBackSafely(navigate, '/settings')}
+              onClick={() => navigate(-1)}
               className="mb-4"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

@@ -11,22 +11,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Note: isMatchParticipant helper removed - inline checks used instead
-    // for better compatibility with Firestore rules compiler
+    function isMatchParticipant(matchData) {
+      return isSignedIn() && (
+        matchData.userId1 == request.auth.uid ||
+        matchData.userId2 == request.auth.uid
+      );
+    }
 
     // User profiles - users can read/write their own document
-    // Other users can read profiles of users at the same venue (for venue discovery)
+    // Enforce bio (min 10 chars) and photos (at least 1) for profile updates
     match /users/{uid} {
-      // Users can always read their own profile
-      // Users can read OTHER profiles if both are checked into a venue (for discovery)
-      // This enables seeing other users at a venue
-      allow read: if isSignedIn() && (
-        isSelf(uid) ||
-        // Allow reading other users who are checked in
-        // isVisible defaults to true if field is missing (for backwards compatibility)
-        (resource.data.isCheckedIn == true && 
-         (resource.data.isVisible == true || !('isVisible' in resource.data)))
-      );
+      allow read: if isSelf(uid);
       allow create: if isSelf(uid);
       
       // Update: validate bio and photos if they're being updated
@@ -53,25 +48,6 @@ service cloud.firestore {
            resource.data.photos.size() == 0)
         )
       );
-      
-      // MUTUAL BLOCKING: Allow users to add their own ID to another user's blockedUsers array
-      // This enables blocking to be bidirectional without a Cloud Function
-      // Security: Only the blockedUsers field can be modified, and only to ADD the current user's ID
-      allow update: if isSignedIn() && 
-        // Only blockedUsers field is being modified
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['blockedUsers']) &&
-        // The new blockedUsers array must contain the current user's ID
-        request.resource.data.blockedUsers.hasAll([request.auth.uid]) &&
-        (
-          // Case 1: blockedUsers array didn't exist before - new array should only have current user's ID
-          (!('blockedUsers' in resource.data) && request.resource.data.blockedUsers.size() == 1) ||
-          // Case 2: blockedUsers array existed - must keep all existing entries and add exactly one (current user)
-          (
-            'blockedUsers' in resource.data &&
-            request.resource.data.blockedUsers.hasAll(resource.data.blockedUsers) &&
-            request.resource.data.blockedUsers.size() == resource.data.blockedUsers.size() + 1
-          )
-        );
     }
 
     // Onboarding progress - users can read/write their own onboarding progress
@@ -90,11 +66,12 @@ service cloud.firestore {
 
     // Matches - only participants can read/write
     match /matches/{matchId} {
-      // Read: user must be participant
-      // Note: request.resource is only for writes, resource is for existing docs
+      // Read: user must be participant (check existing resource or request data)
       allow read: if isSignedIn() && (
         resource.data.userId1 == request.auth.uid ||
-        resource.data.userId2 == request.auth.uid
+        resource.data.userId2 == request.auth.uid ||
+        request.resource.data.userId1 == request.auth.uid ||
+        request.resource.data.userId2 == request.auth.uid
       );
       
       // Create: user must be one of the participants
@@ -109,19 +86,20 @@ service cloud.firestore {
         resource.data.userId2 == request.auth.uid
       );
       
-      // Delete: participants can delete their expired matches
-      allow delete: if isSignedIn() && (
-        resource.data.userId1 == request.auth.uid ||
-        resource.data.userId2 == request.auth.uid
-      );
+      // Delete: not allowed (matches are soft-deleted or archived)
+      allow delete: if false;
     }
 
-    // Messages - participants of a match can read/write
+    // Messages - only participants of the match can read/write
     match /messages/{messageId} {
-      // Read: any signed-in user can read messages
-      // Security: matchId is only known to match participants
-      // Note: get() cross-document lookups don't work with onSnapshot queries
-      allow read: if isSignedIn();
+      // Read: user must be participant of the match
+      allow read: if isSignedIn() && (
+        exists(/databases/$(database)/documents/matches/$(resource.data.matchId)) &&
+        (
+          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId1 == request.auth.uid ||
+          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId2 == request.auth.uid
+        )
+      );
       
       // Create: user must be sender and participant of the match
       allow create: if isSignedIn() &&
@@ -132,11 +110,8 @@ service cloud.firestore {
           get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.userId2 == request.auth.uid
         );
       
-      // Update: allow marking messages as read
-      allow update: if isSignedIn();
-      
-      // Delete: not allowed (messages are immutable)
-      allow delete: if false;
+      // Update/Delete: not allowed (messages are immutable)
+      allow update, delete: if false;
     }
 
     // Reconnect requests - users can only read/write their own requests
@@ -159,65 +134,26 @@ service cloud.firestore {
       allow read: if false; // Private to admins - enable when admin system is implemented
     }
 
-    // Likes collection - stores arrays of liked user IDs per user
-    // Used by matchService.likeUser - document ID is the user's ID
-    // NOTE: For mutual like detection, users need to read other users' likes.
-    // In production, this should be moved to Cloud Functions for better privacy.
-    // For beta, we allow reads if signed in since the data only contains user IDs.
-    match /likes/{userId} {
-      // Allow read for signed-in users (required for mutual like detection)
-      // TODO: Move mutual detection to Cloud Functions for better privacy
-      allow read: if isSignedIn();
-      // Users can only create/update their own likes document
-      allow create: if isSelf(userId);
-      allow update: if isSelf(userId);
-      allow delete: if false;
+    // Likes/Interests - users can read their own likes, create likes where they are the sender
+    match /likes/{likeId} {
+      allow read: if isSignedIn() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow create: if isSignedIn() &&
+        request.resource.data.fromUserId == request.auth.uid;
+      allow update, delete: if false; // Likes are immutable
     }
 
-    // Interests collection - stores individual interest documents
-    // Used by interestService.expressInterest
-    // Fields: userId (sender), targetUserId (receiver), venueId, createdAt
+    // Interests collection (if used separately from likes)
     match /interests/{interestId} {
       allow read: if isSignedIn() && (
-        resource.data.userId == request.auth.uid ||
-        resource.data.targetUserId == request.auth.uid
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
       );
-      // Users can only create interests where they are the sender (userId field)
       allow create: if isSignedIn() &&
-        request.resource.data.userId == request.auth.uid;
+        request.resource.data.fromUserId == request.auth.uid;
       allow update, delete: if false;
-    }
-
-    // UsersLikesCount collection - tracks like counts per user per venue
-    match /usersLikesCount/{docId} {
-      allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
-      allow delete: if false;
-    }
-
-    // Venue-specific likes - used for mutual like detection within venues
-    // Document ID format: {venueId}_{userId}
-    // Used by matchService.likeUser for tracking who a user has liked at a specific venue
-    match /venueLikes/{docId} {
-      // Allow read for signed-in users (needed for mutual like detection)
-      allow read: if isSignedIn();
-      
-      // Users can only create/update documents where they are the owner
-      // Document ID must end with their user ID (format: venueId_userId)
-      allow create, update: if isSignedIn() && 
-        docId.matches('.*_' + request.auth.uid);
-      
-      // Allow delete for cleanup on checkout
-      allow delete: if isSignedIn() && 
-        docId.matches('.*_' + request.auth.uid);
-    }
-
-    // Notifications collection - users can read their own, any signed-in user can write
-    // This allows User A to notify User B about a match
-    match /notifications/{userId} {
-      allow read: if isSelf(userId);
-      allow create, update: if isSignedIn();  // Any signed-in user can notify others
-      allow delete: if isSelf(userId);
     }
   }
 }

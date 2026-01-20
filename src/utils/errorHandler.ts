@@ -31,10 +31,9 @@ export const logError = (
   
   // Add onboarding context if available
   const onboardingContext: Record<string, string | number | boolean> = {};
-  const contextStr = typeof context.context === 'string' ? context.context : '';
-  if (context.stepName || contextStr.includes('onboarding') || contextStr.includes('CreateProfile') || contextStr.includes('PhotoUpload') || contextStr.includes('Preferences')) {
+  if (context.stepName || context.context?.includes('onboarding') || context.context?.includes('CreateProfile') || context.context?.includes('PhotoUpload') || context.context?.includes('Preferences')) {
     onboardingContext.isOnboarding = true;
-    onboardingContext.stepName = context.stepName as string || contextStr || 'unknown';
+    onboardingContext.stepName = context.stepName as string || context.context as string || 'unknown';
     onboardingContext.onboardingPath = window.location.pathname;
   }
   
@@ -195,8 +194,7 @@ export const getUserFriendlyErrorMessage = (error: Error | unknown): string => {
 export const initErrorTracking = (): void => {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
-  // BETA FIX: Only check VITE_DEMO_MODE, not development mode
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
   
   if (!dsn) {
     if (isProduction && !isDemoMode) {

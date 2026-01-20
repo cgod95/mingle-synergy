@@ -13,17 +13,20 @@ const Layout: React.FC<LayoutProps> = ({
   className = ""
 }) => {
   return (
-    <div className={`min-h-screen bg-background ${className}`}>
-      {/* Remove PageTransition and motion animations to prevent flickering */}
-      <main className={`pb-20 ${showBottomNav ? 'pb-20' : ''}`}>
+    <div className={`min-h-screen min-h-[100dvh] bg-neutral-900 ${className}`}>
+      {/* Main content with safe area padding */}
+      <main 
+        className={`${showBottomNav ? 'pb-nav-safe' : 'safe-bottom'}`}
+        style={{
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+        }}
+      >
         {children}
       </main>
       
-      {showBottomNav && (
-        <BottomNav />
-      )}
+      {showBottomNav && <BottomNav />}
     </div>
   );
 };
 
-export default Layout; 
+export default Layout;

@@ -7,7 +7,7 @@ export const expireOldMessages = functions.pubsub
   .schedule("every 1 hours")
   .onRun(async () => {
     const now = Date.now();
-    const expirationTime = now - 24 * 60 * 60 * 1000; // 24 hours ago
+    const expirationTime = now - 3 * 60 * 60 * 1000; // 3 hours ago
 
     const messagesRef = db.collection("messages");
     const snapshot = await messagesRef.where("timestamp", "<", expirationTime).get();

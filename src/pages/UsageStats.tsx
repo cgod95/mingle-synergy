@@ -6,9 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, TrendingUp, TrendingDown, Users, MessageCircle, Heart, MapPin, Calendar, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { goBackSafely } from '@/utils/navigation';
 import PrivateLayout from '@/components/PrivateLayout';
-import { logError } from '@/utils/errorHandler';
 
 interface UsageStats {
   totalMatches: number;
@@ -89,7 +87,7 @@ const UsageStats: React.FC = () => {
       setVenueStats(mockVenueStats);
 
     } catch (error) {
-      logError(error instanceof Error ? error : new Error('Failed to load usage stats'), { source: 'UsageStats' });
+      console.error('Failed to load usage stats:', error);
     } finally {
       setIsLoading(false);
     }
@@ -160,7 +158,7 @@ const UsageStats: React.FC = () => {
           <div className="mb-6">
             <Button
               variant="ghost"
-              onClick={() => goBackSafely(navigate, '/settings')}
+              onClick={() => navigate(-1)}
               className="mb-4"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

@@ -39,7 +39,6 @@ import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { logError } from '@/utils/errorHandler';
 
 const SettingsPage: React.FC = () => {
   const { currentUser, signOut } = useAuth();
@@ -259,7 +258,7 @@ const SettingsPage: React.FC = () => {
         analytics.track('data_exported');
       }
     } catch (error) {
-      logError(error instanceof Error ? error : new Error('Failed to export data'), { source: 'SettingsPage', action: 'exportData' });
+      console.error('Failed to export data:', error);
       toast({
         title: "Failed to export data",
         description: "Please try again.",
@@ -278,7 +277,7 @@ const SettingsPage: React.FC = () => {
         localStorage.clear();
         navigate('/');
       } catch (error) {
-        logError(error instanceof Error ? error : new Error('Failed to delete account'), { source: 'SettingsPage', action: 'deleteAccount' });
+        console.error('Failed to delete account:', error);
         toast({
           title: "Failed to delete account",
           description: "Please try again.",
@@ -540,7 +539,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#0a0a0f] pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-20">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-center space-x-2 mb-6">
@@ -548,15 +547,15 @@ const SettingsPage: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate('/profile')}
-              className="hover:bg-[#1a1a24] text-[#A78BFA]"
+              className="hover:bg-indigo-900/30 text-indigo-400"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 Settings
               </h1>
-              <p className="text-[#9CA3AF] mt-2">Manage your account preferences and app settings</p>
+              <p className="text-neutral-300 mt-2">Manage your account preferences and app settings</p>
             </div>
           </div>
 
@@ -564,11 +563,11 @@ const SettingsPage: React.FC = () => {
           <div className="space-y-4">
             {settingsSections.map((section, sectionIndex) => (
               <div key={sectionIndex}>
-                <Card className="border border-[#2D2D3A] bg-[#111118] shadow-lg hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/5 border-b border-[#2D2D3A]">
+                <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
+                  <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                     <CardTitle className="flex items-center text-heading-3">
-                      <section.icon className="w-5 h-5 mr-2 text-[#A78BFA]" />
-                      <span className="text-white font-semibold">
+                      <section.icon className="w-5 h-5 mr-2 text-indigo-400" />
+                      <span className="text-indigo-400 font-semibold">
                         {section.title}
                       </span>
                     </CardTitle>
@@ -577,12 +576,12 @@ const SettingsPage: React.FC = () => {
                     <div className="space-y-1">
                       {section.items.map((item, itemIndex) => (
                         <div key={itemIndex}>
-                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-[#1a1a24] transition-colors">
+                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-indigo-900/30 transition-colors">
                             <div className="flex items-center flex-1 min-w-0">
                               <div className={`p-2 rounded-lg mr-3 ${
                                 'danger' in item && item.danger
-                                  ? 'bg-red-900/30 text-red-400' 
-                                  : 'bg-[#7C3AED]/20 text-[#A78BFA]'
+                                  ? 'bg-red-900/50 text-red-400' 
+                                  : 'bg-indigo-900/50 text-indigo-400'
                               }`}>
                                 <item.icon className="w-4 h-4" />
                               </div>
@@ -598,15 +597,15 @@ const SettingsPage: React.FC = () => {
                                       variant={('badgeVariant' in item && item.badgeVariant) as 'default' | 'secondary' | 'destructive' | 'outline'} 
                                       className={
                                         'badgeVariant' in item && item.badgeVariant === 'default' 
-                                          ? 'bg-[#7C3AED] text-white border-0'
-                                          : 'bg-[#1a1a24] text-[#9CA3AF] border-[#2D2D3A]'
+                                          ? 'bg-indigo-600 text-white border-0'
+                                          : ''
                                       }
                                     >
                                       {item.badge}
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm text-[#9CA3AF] mt-0.5">{item.description}</p>
+                                <p className="text-sm text-neutral-300 mt-0.5">{item.description}</p>
                               </div>
                             </div>
                             
@@ -623,8 +622,8 @@ const SettingsPage: React.FC = () => {
                                   onClick={item.action}
                                   className={`${
                                     'danger' in item && item.danger
-                                      ? 'text-red-400 hover:text-red-300 hover:bg-red-900/20' 
-                                      : 'text-[#6B7280] hover:text-white hover:bg-[#1a1a24]'
+                                      ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30' 
+                                      : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30'
                                   }`}
                                 >
                                   <ChevronRight className="w-5 h-5" />
@@ -633,7 +632,7 @@ const SettingsPage: React.FC = () => {
                             </div>
                           </div>
                           {itemIndex < section.items.length - 1 && (
-                            <Separator className="my-1 bg-[#2D2D3A]" />
+                            <Separator className="my-1 bg-neutral-700" />
                           )}
                         </div>
                       ))}
@@ -646,7 +645,7 @@ const SettingsPage: React.FC = () => {
 
           {/* Logout Button */}
           <div className="mt-6">
-            <Card className="border border-red-500/30 bg-red-900/10">
+            <Card className="border border-red-700 bg-red-900/30">
               <CardContent className="pt-6">
                 <Button
                   variant="outline"
@@ -657,11 +656,12 @@ const SettingsPage: React.FC = () => {
                       }
                       navigate('/');
                     } catch (error) {
-                      logError(error instanceof Error ? error : new Error('Failed to sign out'), { source: 'SettingsPage', action: 'signOut' });
+                      // Failed to sign out - still navigate to home
+                      console.error('Failed to sign out:', error);
                       navigate('/');
                     }
                   }}
-                  className="w-full text-red-400 border-red-500/50 hover:bg-red-900/30 hover:border-red-400 font-semibold"
+                  className="w-full text-red-400 border-red-700 hover:bg-red-900/50 hover:border-red-600 font-semibold"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Log Out

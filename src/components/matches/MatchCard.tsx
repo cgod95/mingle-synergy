@@ -8,8 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { FirestoreMatch } from '@/types/match';
 import { logError } from '@/utils/errorHandler';
-import { APP_CONSTANTS } from '@/constants/app';
-import { hasRematched } from '@/utils/rematchTracking';
 
 // Define ContactInfo type
 export type ContactInfo = {
@@ -43,7 +41,7 @@ export type MatchCardProps = {
 // Helper function to calculate time remaining
 const getTimeRemaining = (timestamp: number) => {
   const now = Date.now();
-  const expiresAt = timestamp + APP_CONSTANTS.MATCH_EXPIRY_MS;
+  const expiresAt = timestamp + 3 * 60 * 60 * 1000;
   const diff = expiresAt - now;
   return diff > 0 ? diff : 0;
 };
@@ -236,18 +234,28 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </p>
           ) : (
             <div className="mb-3">
-              {hasRematched(match.id) ? (
-                <p className="text-xs text-gray-500 italic">
-                  Already rematched - reconnect unavailable
-                </p>
-              ) : (
-                <button
-                  className="text-sm text-blue-600 underline hover:text-blue-700"
-                  onClick={handleReconnect}
-                >
-                  Reconnect (check in required)
-                </button>
-              )}
+              {(() => {
+                // Check rematch status
+                const { hasRematched } = require("@/utils/rematchTracking");
+                const alreadyRematched = hasRematched(match.id);
+                
+                if (alreadyRematched) {
+                  return (
+                    <p className="text-xs text-gray-500 italic">
+                      Already rematched - reconnect unavailable
+                    </p>
+                  );
+                }
+                
+                return (
+                  <button
+                    className="text-sm text-blue-600 underline hover:text-blue-700"
+                    onClick={handleReconnect}
+                  >
+                    Reconnect (check in required)
+                  </button>
+                );
+              })()}
             </div>
           )
         )}

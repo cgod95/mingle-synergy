@@ -232,7 +232,7 @@ export function addMatch(userId: string, matchedUserId: string, venueId: string)
     venueId,
     timestamp: now,
     isActive: true,
-    expiresAt: now + 1000 * 60 * 60 * 24, // 24 hours
+    expiresAt: now + 1000 * 60 * 60 * 3, // 3 hours
     contactShared: false
   };
   dynamicMatches.push(match);

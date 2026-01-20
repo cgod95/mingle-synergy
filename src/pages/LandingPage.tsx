@@ -7,7 +7,6 @@ import { MapPin } from 'lucide-react';
 import { getVenues } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { DEMO_PEOPLE } from '@/lib/demoPeople';
-import config from '@/config';
 
 interface Venue {
   id: string;
@@ -35,10 +34,7 @@ export default function LandingPage() {
     loadVenues();
   }, []);
 
-  const handleJoinClosedBeta = () => {
-    navigate('/demo-welcome');
-  };
-
+  // Generate random rotations for venue cards
   const getRandomRotation = (index: number) => {
     const rotations = [-8, -5, -3, 3, 5, 8, -6, 4];
     return rotations[index % rotations.length];
@@ -46,14 +42,14 @@ export default function LandingPage() {
 
   return (
     <Layout showBottomNav={false}>
-      {/* Dynamic Hero Section - Brand dark background */}
-      <div className="relative min-h-screen bg-[#0a0a0f] overflow-hidden">
-        {/* Animated gradient background - matches brand */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.12)_0%,_transparent_50%)]" />
+      {/* Dynamic Hero Section - Dark background with venue cards */}
+      <div className="relative min-h-screen min-h-[100dvh] bg-neutral-900 overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900" />
         
         {/* Background Cards Grid */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-70">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-8 h-full">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-60">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 p-4 pt-16 h-full">
             {/* Venue cards */}
             {venues.slice(0, 10).map((venue, index) => (
               <motion.div
@@ -76,12 +72,10 @@ export default function LandingPage() {
                   }
                 }}
                 className="relative"
-                style={{ 
-                  transform: `rotate(${getRandomRotation(index)}deg)`,
-                }}
+                style={{ transform: `rotate(${getRandomRotation(index)}deg)` }}
               >
-                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
-                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
+                <Card className="overflow-hidden bg-neutral-800 shadow-xl border-2 border-neutral-700">
+                  <div className="relative h-36 sm:h-48 w-full overflow-hidden bg-neutral-800">
                     {venue.image ? (
                       <img
                         src={venue.image}
@@ -90,8 +84,8 @@ export default function LandingPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#7C3AED]/30 to-[#6D28D9]/20">
-                        <MapPin className="w-12 h-12 text-[#A78BFA]/50" />
+                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600">
+                        <MapPin className="w-8 h-8 sm:w-12 sm:h-12 text-white/50" />
                       </div>
                     )}
                   </div>
@@ -120,50 +114,10 @@ export default function LandingPage() {
                   }
                 }}
                 className="relative"
-                style={{ 
-                  transform: `rotate(${getRandomRotation(index + 6)}deg)`,
-                }}
+                style={{ transform: `rotate(${getRandomRotation(index + 6)}deg)` }}
               >
-                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
-                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
-                    <img
-                      src={person.photo}
-                      alt={person.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-            {/* Extra images for bottom */}
-            {DEMO_PEOPLE.slice(0, 2).map((person, index) => (
-              <motion.div
-                key={`person-extra-${index}`}
-                initial={{ opacity: 0, scale: 0.8, rotate: getRandomRotation(index + 16) }}
-                animate={{ 
-                  opacity: 0.45,
-                  scale: 1,
-                  rotate: getRandomRotation(index + 16),
-                  y: [0, -10, 0]
-                }}
-                transition={{ 
-                  duration: 0.6,
-                  delay: (index + 16) * 0.1,
-                  y: {
-                    duration: 4.5 + (index % 3) * 0.5,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    delay: (index + 16) * 0.2
-                  }
-                }}
-                className="relative"
-                style={{ 
-                  transform: `rotate(${getRandomRotation(index + 16)}deg)`,
-                }}
-              >
-                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
-                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
+                <Card className="overflow-hidden bg-neutral-800 shadow-xl border-2 border-neutral-700">
+                  <div className="relative h-36 sm:h-48 w-full overflow-hidden bg-neutral-800">
                     <img
                       src={person.photo}
                       alt={person.name}
@@ -177,89 +131,65 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Hero Content */}
-        <div className="relative z-20 min-h-screen flex flex-col items-center justify-center text-center px-4 py-12">
-          <div className="relative z-30 inline-block">
-            <div className="bg-[#0a0a0f]/95 backdrop-blur-2xl rounded-3xl px-8 py-12 md:px-12 md:py-16 border border-[#2D2D3A] shadow-2xl shadow-[#7C3AED]/10">
-              {/* Logo with gradient */}
+        {/* Hero Content - Centered */}
+        <div className="relative z-20 min-h-screen min-h-[100dvh] flex flex-col items-center justify-center text-center px-4 py-12 safe-y">
+          {/* Content block */}
+          <div className="relative z-30">
+            <div className="bg-neutral-900/95 backdrop-blur-2xl rounded-3xl px-8 py-10 sm:px-12 sm:py-14 border-2 border-neutral-800 shadow-2xl max-w-sm sm:max-w-md mx-auto">
+              
+              {/* Centered M Logo */}
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="mb-8"
-              >
-                {/* Logo Icon */}
-                <div className="mb-6 flex justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30">
-                    <span className="text-white font-bold text-3xl">M</span>
-                  </div>
-                </div>
-                {/* Gradient Text Logo */}
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-gradient mb-6">
-                  Mingle
-                </h1>
-                <div className="space-y-3">
-                  <p className="text-lg text-[#9CA3AF] max-w-xl mx-auto">
-                    No more swiping. No more noise. Just meet people.
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Primary CTA */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="mb-8"
+                transition={{ duration: 0.5 }}
+                className="flex justify-center mb-6"
               >
-                <Button
-                  onClick={handleJoinClosedBeta}
-                  className="bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white text-xl px-12 py-6 rounded-full shadow-xl shadow-[#7C3AED]/30 font-bold transform hover:scale-105 transition-all"
-                  size="lg"
-                >
-                  Join Closed Beta
-                </Button>
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 flex items-center justify-center shadow-xl">
+                  <span className="text-4xl sm:text-5xl font-bold text-white">M</span>
+                </div>
               </motion.div>
-
-              {/* Auth Actions */}
+              
+              {/* Title */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: config.DEMO_MODE ? 0.6 : 0.4 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
+                transition={{ duration: 0.6, delay: 0.1 }}
               >
-                {!config.DEMO_MODE && (
-                  <Button 
-                    asChild 
-                    className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white text-lg px-8 py-5 rounded-full shadow-lg shadow-[#7C3AED]/25 font-semibold"
-                    size="lg"
-                  >
-                    <Link to="/signup">
-                      Get Started
-                    </Link>
-                  </Button>
-                )}
-                {config.DEMO_MODE && (
-                  <>
-                    <Button 
-                      asChild 
-                      className="flex-1 bg-white/10 backdrop-blur-sm border border-[#2D2D3A] text-white hover:bg-white/20 font-semibold text-base"
-                    >
-                      <Link to="/signup">
-                        Create Account
-                      </Link>
-                    </Button>
-                    <Button 
-                      asChild 
-                      variant="outline" 
-                      className="flex-1 border border-[#2D2D3A] text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
-                    >
-                      <Link to="/signin">
-                        Sign In
-                      </Link>
-                    </Button>
-                  </>
-                )}
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+                  Mingle
+                </h1>
+                <p className="text-base sm:text-lg text-neutral-300 mb-8">
+                  No more swiping. No more noise.<br />Just meet people.
+                </p>
+              </motion.div>
+
+              {/* Get Started Button - Primary CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="space-y-4"
+              >
+                <Button 
+                  asChild 
+                  className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-500 text-white text-lg sm:text-xl px-8 py-6 sm:py-7 rounded-full shadow-xl font-bold transform hover:scale-105 active:scale-95 transition-all touch-target"
+                  size="lg"
+                >
+                  <Link to="/signup">
+                    Get Started
+                  </Link>
+                </Button>
+                
+                {/* Sign In Link */}
+                <Button 
+                  asChild 
+                  variant="ghost"
+                  className="w-full text-neutral-400 hover:text-white hover:bg-white/5 text-base touch-target"
+                >
+                  <Link to="/signin">
+                    Already have an account? Sign In
+                  </Link>
+                </Button>
               </motion.div>
             </div>
           </div>

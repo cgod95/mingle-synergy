@@ -38,7 +38,7 @@ export function clearMessages(matchId?: string) {
   write(read().filter(m => m.matchId !== matchId));
 }
 
-export function pruneOldMessages(hours = 24) {
+export function pruneOldMessages(hours = 3) {
   const cutoff = Date.now() - hours * 60 * 60 * 1000;
   write(read().filter(m => m.ts >= cutoff));
 }

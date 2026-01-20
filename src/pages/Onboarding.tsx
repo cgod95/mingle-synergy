@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { notificationService } from '../services/notificationService';
 import { Button } from '@/components/ui/button';
-import { MapPin, Bell, ChevronRight, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MapPin, Bell, ArrowLeft } from 'lucide-react';
 import { useOnboarding } from '@/context/OnboardingContext';
 import Layout from '@/components/Layout';
 import config from '@/config';
@@ -13,7 +14,8 @@ import { logError } from '@/utils/errorHandler';
 const Onboarding = () => {
   const [step, setStep] = useState(0);
   const [locationRequesting, setLocationRequesting] = useState(false);
-  const [locationStatus, setLocationStatus] = useState<'pending' | 'granted' | 'denied' | 'error'>('pending');
+  const [locationError, setLocationError] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
   const [notificationStatus, setNotificationStatus] = useState<'pending' | 'granted' | 'denied' | 'unsupported'>('pending');
   const [startTime] = useState(Date.now());
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ const Onboarding = () => {
 
   const devBypass = config.DEMO_MODE || config.USE_MOCK;
 
+  // Track onboarding started/resumed
   useEffect(() => {
     const hasStarted = localStorage.getItem('onboarding_started');
     if (!hasStarted) {
@@ -29,36 +32,59 @@ const Onboarding = () => {
         timestamp: Date.now(),
       });
       localStorage.setItem('onboarding_started', 'true');
+    } else {
+      // User is resuming onboarding
+      const lastStep = localStorage.getItem('onboarding_last_step') || '0';
+      analytics.track('onboarding_resumed', {
+        last_completed_step: lastStep,
+        time_since_start: Date.now() - parseInt(localStorage.getItem('onboarding_start_time') || '0'),
+      });
     }
     localStorage.setItem('onboarding_start_time', startTime.toString());
   }, [startTime]);
 
   useEffect(() => {
-    if (step === 1) {
+    let timeoutId: NodeJS.Timeout | null = null;
+    if (step === 1 && locationRequesting) {
+      timeoutId = setTimeout(() => {
+        setLocationRequesting(false);
+        setLocationError(true);
+      }, 15000);
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [step, locationRequesting]);
+
+  // Check notification permission status when reaching notification step
+  useEffect(() => {
+    if (step === 2) {
       if (!("Notification" in window)) {
         setNotificationStatus('unsupported');
       } else if (Notification.permission === "granted") {
         setNotificationStatus('granted');
       } else if (Notification.permission === "denied") {
         setNotificationStatus('denied');
+      } else {
+        setNotificationStatus('pending');
       }
     }
   }, [step]);
 
-  const requestLocation = () => {
+  const requestLocationWithTimeout = () => {
     if (devBypass) {
       localStorage.setItem('locationEnabled', 'mock');
-      setLocationStatus('granted');
-      setTimeout(() => setStep(1), 800);
+      setStep(2);
       return;
     }
 
     setLocationRequesting(true);
-    setLocationStatus('pending');
+    setLocationError(false);
+    setLocationDenied(false);
 
     if (!navigator.geolocation) {
-      setLocationStatus('error');
       setLocationRequesting(false);
+      setLocationError(true);
       return;
     }
 
@@ -67,17 +93,23 @@ const Onboarding = () => {
         localStorage.setItem('locationEnabled', 'true');
         localStorage.setItem('latitude', position.coords.latitude.toString());
         localStorage.setItem('longitude', position.coords.longitude.toString());
-        setLocationStatus('granted');
         setLocationRequesting(false);
-        setTimeout(() => setStep(1), 800);
+        setStep(2);
       },
       (error) => {
         setLocationRequesting(false);
         if (error.code === 1) {
-          setLocationStatus('denied');
+          // Permission denied - allow user to continue with manual venue selection
+          setLocationDenied(true);
           localStorage.setItem('locationEnabled', 'denied');
+          localStorage.setItem('locationPermissionGranted', 'false');
+          // Allow user to continue - they can select venues manually
+          setTimeout(() => {
+            setStep(2); // Continue to notifications step
+          }, 1500);
         } else {
-          setLocationStatus('error');
+          // Other error (timeout, etc.) - allow retry or continue
+          setLocationError(true);
           localStorage.setItem('locationEnabled', 'error');
         }
       },
@@ -92,237 +124,205 @@ const Onboarding = () => {
   const handleNotificationPermission = async () => {
     if (devBypass) {
       localStorage.setItem('notificationsEnabled', 'true');
-      setNotificationStatus('granted');
-      setTimeout(handleComplete, 800);
+      handleComplete();
       return;
     }
 
     try {
       const permission = await notificationService.requestPermission();
       localStorage.setItem('notificationsEnabled', permission === 'granted' ? 'true' : 'false');
-      setNotificationStatus(permission === 'granted' ? 'granted' : 'denied');
-      setTimeout(handleComplete, 800);
+      
+      if (permission === 'granted') {
+        setNotificationStatus('granted');
+      } else {
+        setNotificationStatus('denied');
+      }
+      
+      // Continue regardless of permission result
+      setTimeout(() => {
+        handleComplete();
+      }, 1000);
     } catch (error) {
       logError(error as Error, { context: 'Onboarding.handleNotificationPermission' });
       setNotificationStatus('denied');
       localStorage.setItem('notificationsEnabled', 'false');
-      setTimeout(handleComplete, 800);
+      
+      // Continue anyway
+      setTimeout(() => {
+        handleComplete();
+      }, 1000);
     }
   };
 
   const handleComplete = () => {
     setOnboardingStepComplete('email');
     localStorage.setItem('locationPermissionGranted', 'true');
-    navigate('/create-profile');
+    localStorage.setItem('onboarding_last_step', 'onboarding');
+    navigate('/create-profile'); // Navigate to profile creation first
   };
 
-  const handleSkipNotifications = () => {
+  const handleSkip = () => {
+    // Skip notifications step
     localStorage.setItem('notificationsEnabled', 'false');
+    localStorage.setItem('onboarding_last_step', 'notifications_skipped');
     handleComplete();
   };
 
-  const handleContinueWithoutLocation = () => {
-    localStorage.setItem('locationEnabled', 'denied');
-    setStep(1);
+  const getNotificationStepContent = () => {
+    switch (notificationStatus) {
+      case 'granted':
+        return (
+          <div className="text-center p-4">
+            <div className="text-green-500 mb-2">✓ Notifications enabled</div>
+            <p className="text-sm text-neutral-600">You'll receive notifications for matches and messages.</p>
+          </div>
+        );
+      case 'denied':
+        return (
+          <div className="text-center p-4">
+            <div className="text-yellow-500 mb-2">⚠ Notifications disabled</div>
+            <p className="text-sm text-neutral-600">You can enable notifications later in settings.</p>
+          </div>
+        );
+      case 'unsupported':
+        return (
+          <div className="text-center p-4">
+            <div className="text-neutral-500 mb-2">📱 Notifications not supported</div>
+            <p className="text-sm text-neutral-600">Your browser doesn't support notifications.</p>
+          </div>
+        );
+      default:
+        return (
+          <div className="text-center p-4">
+            <p className="text-sm text-neutral-600">We'll ask for permission to send you notifications.</p>
+          </div>
+        );
+    }
   };
 
   const steps = [
     {
-      id: 'location',
-      icon: MapPin,
-      title: "Enable Location",
-      description: "Find venues near you and auto-detect where you are. You can also select venues manually.",
-      action: requestLocation,
-      actionLabel: "Enable Location",
-      skipLabel: "Continue without",
-      onSkip: handleContinueWithoutLocation,
+      title: 'Enable Location',
+      description: 'We use your location to show you venues nearby and auto-detect where you are.',
+      icon: <MapPin className="w-12 h-12 text-indigo-600" />,
+      action: requestLocationWithTimeout,
+      canSkip: false,
     },
     {
-      id: 'notifications',
-      icon: Bell,
-      title: "Stay in the loop",
-      description: "Get notified when someone likes you or when you match. Don't miss a connection.",
+      title: 'Enable Notifications',
+      description: 'Get notified when someone likes you or when you match.',
+      icon: <Bell className="w-12 h-12 text-indigo-600" />,
       action: handleNotificationPermission,
-      actionLabel: "Enable Notifications",
-      skipLabel: "Maybe later",
-      onSkip: handleSkipNotifications,
+      canSkip: true,
     },
   ];
 
-  const currentStepData = steps[step];
-  const IconComponent = currentStepData.icon;
-
-  const getStatusIcon = () => {
-    if (step === 0) {
-      if (locationStatus === 'granted') return <CheckCircle className="w-5 h-5 text-green-400" />;
-      if (locationStatus === 'denied' || locationStatus === 'error') return <AlertCircle className="w-5 h-5 text-amber-400" />;
-    }
-    if (step === 1) {
-      if (notificationStatus === 'granted') return <CheckCircle className="w-5 h-5 text-green-400" />;
-      if (notificationStatus === 'denied') return <AlertCircle className="w-5 h-5 text-amber-400" />;
-    }
-    return null;
-  };
-
-  const getStatusMessage = () => {
-    if (step === 0) {
-      if (locationStatus === 'granted') return "Location enabled! Finding venues near you...";
-      if (locationStatus === 'denied') return "Location denied. You can still select venues manually.";
-      if (locationStatus === 'error') return "Couldn't get location. You can select venues manually.";
-    }
-    if (step === 1) {
-      if (notificationStatus === 'granted') return "Notifications enabled! You won't miss a match.";
-      if (notificationStatus === 'denied') return "You can enable notifications later in settings.";
-      if (notificationStatus === 'unsupported') return "Your browser doesn't support notifications.";
-    }
-    return null;
-  };
-
-  const showStatusMessage = (step === 0 && locationStatus !== 'pending') || 
-                            (step === 1 && notificationStatus !== 'pending');
+  const currentStep = steps[step];
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-[#0a0a0f] flex flex-col relative overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.12)_0%,_transparent_50%)]" />
-        
-        {/* Progress indicator */}
-        <div className="absolute top-6 left-0 right-0 z-20 px-6">
-          <div className="max-w-md mx-auto flex gap-2">
-            {steps.map((_, index) => (
-              <div 
-                key={index}
-                className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-                  index <= step ? 'bg-[#7C3AED]' : 'bg-[#2D2D3A]'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 flex items-center justify-center px-6 py-20 relative z-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="w-full max-w-md"
-            >
-              {/* Card */}
-              <div className="bg-[#111118] border border-[#2D2D3A] rounded-3xl p-8 shadow-2xl">
-                {/* Icon */}
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-md"
+          >
+            <Card className="w-full border-2 border-neutral-200 bg-white shadow-xl">
+              <CardHeader className="text-center space-y-4 border-b border-neutral-200">
                 <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="relative mb-6"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="flex justify-center"
                 >
-                  <div className="absolute inset-0 bg-[#7C3AED]/20 blur-2xl rounded-full scale-150" />
-                  <div className="relative w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30">
-                    <IconComponent className="w-10 h-10 text-white" strokeWidth={1.5} />
+                  <div className="p-4 rounded-full bg-indigo-100">
+                    {currentStep.icon}
                   </div>
                 </motion.div>
-
-                {/* Title */}
-                <motion.h1
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.15 }}
-                  className="text-2xl font-bold text-white text-center mb-3"
-                >
-                  {currentStepData.title}
-                </motion.h1>
-
-                {/* Description */}
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-[#9CA3AF] text-center mb-8 leading-relaxed"
-                >
-                  {currentStepData.description}
-                </motion.p>
-
-                {/* Status message */}
-                <AnimatePresence>
-                  {showStatusMessage && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mb-6"
+                <CardTitle className="text-heading-2">
+                  {currentStep.title}
+                </CardTitle>
+                <p className="text-neutral-700">{currentStep.description}</p>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                {step === 1 && locationDenied && (
+                  <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="text-yellow-600 mb-2">⚠ Location access denied</div>
+                    <p className="text-sm text-neutral-600">You can still use Mingle by selecting venues manually.</p>
+                  </div>
+                )}
+                
+                {step === 1 && locationError && !locationDenied && (
+                  <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="text-red-600 mb-2">⚠ Location error</div>
+                    <p className="text-sm text-neutral-600">Unable to get your location. You can select venues manually.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={requestLocationWithTimeout}
+                      className="mt-2"
                     >
-                      <div className={`flex items-center gap-3 p-4 rounded-xl ${
-                        (step === 0 && locationStatus === 'granted') || (step === 1 && notificationStatus === 'granted')
-                          ? 'bg-green-500/10 border border-green-500/20'
-                          : 'bg-amber-500/10 border border-amber-500/20'
-                      }`}>
-                        {getStatusIcon()}
-                        <p className="text-sm text-[#9CA3AF]">{getStatusMessage()}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      Try Again
+                    </Button>
+                  </div>
+                )}
+                
+                {step === 2 && getNotificationStepContent()}
 
-                {/* Action button */}
-                {!showStatusMessage && (
+                {step < steps.length - 1 && (
                   <Button
-                    onClick={currentStepData.action}
-                    disabled={locationRequesting}
-                    className="w-full py-6 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white rounded-xl font-semibold shadow-lg shadow-[#7C3AED]/25 transition-all disabled:opacity-50"
+                    onClick={currentStep.action}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
+                    disabled={step === 1 && locationRequesting}
                   >
-                    {locationRequesting ? (
-                      <span className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Requesting...
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        {currentStepData.actionLabel}
-                        <ChevronRight className="w-5 h-5" />
-                      </span>
-                    )}
+                    {step === 1 && (locationDenied || locationError) ? 'Continue Anyway' : 
+                     step === 2 && notificationStatus === 'granted' ? 'Continue' : 'Continue'}
                   </Button>
                 )}
-
-                {/* Continue after status */}
-                {showStatusMessage && (
+                
+                {step === 1 && (locationDenied || locationError) && (
                   <Button
+                    variant="outline"
                     onClick={() => {
-                      if (step === 0) setStep(1);
-                      else handleComplete();
+                      setLocationDenied(false);
+                      setLocationError(false);
+                      setStep(2);
                     }}
-                    className="w-full py-6 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white rounded-xl font-semibold shadow-lg shadow-[#7C3AED]/25"
+                    className="w-full border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
                   >
-                    <span className="flex items-center justify-center gap-2">
-                      Continue
-                      <ChevronRight className="w-5 h-5" />
-                    </span>
+                    Continue Without Location
                   </Button>
                 )}
 
-                {/* Skip button */}
-                {!showStatusMessage && currentStepData.onSkip && (
-                  <button
-                    onClick={currentStepData.onSkip}
-                    className="w-full mt-4 py-3 text-[#6B7280] hover:text-white text-sm font-medium transition-colors"
+                {step === 2 && currentStep.canSkip && (
+                  <Button
+                    variant="outline"
+                    className="w-full border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
+                    onClick={handleSkip}
                   >
-                    {currentStepData.skipLabel}
+                    Skip for now
+                  </Button>
+                )}
+
+                {step > 0 && (
+                  <button
+                    className="mt-4 text-sm text-neutral-600 flex items-center justify-center w-full hover:text-indigo-600 transition-colors"
+                    onClick={() => {
+                      localStorage.setItem('onboarding_last_step', (step - 1).toString());
+                      setStep(step - 1);
+                    }}
+                  >
+                    <ArrowLeft size={16} className="mr-1" /> Back
                   </button>
                 )}
-              </div>
-
-              {/* Step indicator text */}
-              <p className="text-center text-[#6B7280] text-sm mt-6">
-                Step {step + 1} of {steps.length}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </Layout>
   );

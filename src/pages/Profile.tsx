@@ -1,20 +1,25 @@
-// Profile page - Modern hero photo layout, no bio
+// 🧠 Purpose: Implement static Profile page to display current user info.
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Settings, LogOut, Edit, Camera, ChevronRight, Sparkles, CheckCircle } from 'lucide-react';
+import { Settings, LogOut, Edit, AlertCircle, Camera } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import BottomNav from '@/components/BottomNav';
 import { logError } from '@/utils/errorHandler';
+import { UserProfileSkeleton } from '@/components/ui/EnhancedLoadingStates';
 
 export default function Profile() {
   const { currentUser, signOut } = useAuth();
   const navigate = useNavigate();
-  const [profileData, setProfileData] = useState<{ displayName?: string; name?: string; photos?: string[] } | null>(null);
+  const [profileData, setProfileData] = useState<{ displayName?: string; name?: string; bio?: string; photos?: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load profile data from userService
   useEffect(() => {
     const loadProfile = async () => {
       if (!currentUser?.uid) {
@@ -27,9 +32,11 @@ export default function Profile() {
         const { userService } = await import('@/services');
         const profile = await userService.getUserProfile(currentUser.uid);
         if (profile) {
-          const data: { displayName?: string; name?: string; photos?: string[] } = {};
+          // Filter out undefined values to satisfy exactOptionalPropertyTypes
+          const data: { displayName?: string; name?: string; bio?: string; photos?: string[] } = {};
           if (profile.displayName !== undefined) data.displayName = profile.displayName;
           if (profile.name !== undefined) data.name = profile.name;
+          if (profile.bio !== undefined) data.bio = profile.bio;
           if (profile.photos !== undefined) data.photos = profile.photos;
           setProfileData(data);
         }
@@ -43,39 +50,13 @@ export default function Profile() {
     loadProfile();
   }, [currentUser]);
 
-  const displayName = profileData?.displayName || profileData?.name || currentUser?.name || 'User';
-  const mainPhoto = profileData?.photos?.[0];
-  const additionalPhotos = profileData?.photos?.slice(1) || [];
-
-  // Calculate profile completeness
-  const profileCompleteness = useMemo(() => {
-    let score = 0;
-    const checks = {
-      hasName: !!displayName && displayName !== 'User',
-      hasMainPhoto: !!mainPhoto,
-      hasMultiplePhotos: (profileData?.photos?.length || 0) >= 2,
-      // Bio removed - don't check it
-    };
-    
-    if (checks.hasName) score += 40;
-    if (checks.hasMainPhoto) score += 40;
-    if (checks.hasMultiplePhotos) score += 20;
-    
-    return { score, checks };
-  }, [displayName, mainPhoto, profileData?.photos?.length]);
-
   if (!currentUser) return null;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] pb-20">
-        <div className="animate-pulse">
-          <div className="aspect-[3/4] max-h-[60vh] bg-[#1a1a24]" />
-          <div className="p-4 space-y-4">
-            <div className="h-8 bg-[#1a1a24] rounded-lg w-32" />
-            <div className="h-12 bg-[#1a1a24] rounded-xl" />
-            <div className="h-12 bg-[#1a1a24] rounded-xl" />
-          </div>
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-20">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <UserProfileSkeleton />
         </div>
         <BottomNav />
       </div>
@@ -83,190 +64,125 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] pb-20">
-      {/* Hero Photo */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative aspect-[3/4] max-h-[60vh] overflow-hidden"
-      >
-        {mainPhoto ? (
-          <img 
-            src={mainPhoto} 
-            alt={displayName}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center">
-            <span className="text-8xl font-bold text-white/80">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
-        
-        {/* Name overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h1 className="text-3xl font-bold text-white">
-            {displayName}
-          </h1>
+    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="space-y-4">
+          {/* Avatar and Name Section - Card */}
+          <Card className="border-2 border-neutral-700 bg-neutral-800">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: "spring" }}
+                  className="mb-4"
+                >
+                  <Avatar className="h-32 w-32 mx-auto ring-4 ring-indigo-500/50 shadow-lg">
+                    {profileData?.photos && profileData.photos.length > 0 ? (
+                      <img 
+                        src={profileData.photos[0]} 
+                        alt={profileData?.displayName || profileData?.name || 'Profile'} 
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-indigo-600 text-white text-4xl font-bold">
+                        {currentUser.name?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                </motion.div>
+                <h1 className="text-3xl font-bold text-white mb-1">
+                  {profileData?.displayName || profileData?.name || currentUser.name || 'User'}
+                </h1>
+                <p className="text-base text-neutral-400">{currentUser.email}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Photos Section - Card */}
+          {profileData?.photos && profileData.photos.length > 0 && (
+            <Card className="border-2 border-neutral-700 bg-neutral-800">
+              <CardHeader>
+                <CardTitle className="text-white">Photos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-3">
+                  {profileData.photos.map((photo, index) => (
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-neutral-700">
+                      <img 
+                        src={photo} 
+                        alt={`Profile photo ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Bio Section - Card */}
+          <Card className="border-2 border-neutral-700 bg-neutral-800">
+            <CardHeader>
+              <CardTitle className="text-white">Bio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {profileData?.bio ? (
+                <p className="text-sm text-neutral-300">"{profileData.bio}"</p>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/20 rounded-full">
+                  <AlertCircle className="w-4 h-4 text-indigo-400" />
+                  <p className="text-sm text-indigo-300">Add a bio</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons - Card */}
+          <Card className="border-2 border-neutral-700 bg-neutral-800">
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                <Button
+                  onClick={() => navigate('/profile/edit')}
+                  className="w-full h-14 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-base font-bold shadow-lg"
+                  variant="default"
+                  aria-label="Edit profile"
+                >
+                  <Edit className="w-5 h-5 mr-2" />
+                  Edit Profile
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
+                  className="w-full h-12 text-neutral-300 hover:bg-neutral-700 hover:text-white"
+                  aria-label="Edit photos"
+                >
+                  <Camera className="w-5 h-5 mr-2" />
+                  Edit Photo
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/settings')}
+                  className="w-full h-12 text-neutral-300 hover:bg-neutral-700 hover:text-white"
+                  aria-label="Open settings"
+                >
+                  <Settings className="w-5 h-5 mr-2" />
+                  Settings
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={signOut}
+                  className="w-full h-12 text-red-400 hover:bg-red-900/20 hover:text-red-300"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="w-5 h-5 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        {/* Edit photo button */}
-        <button
-          onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-          className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-        >
-          <Camera className="w-5 h-5" />
-        </button>
-      </motion.div>
-
-      {/* Profile Completeness Banner */}
-      {profileCompleteness.score < 100 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-4 -mt-4 relative z-10"
-        >
-          <div className="bg-gradient-to-r from-[#7C3AED]/20 to-[#6D28D9]/10 border border-[#7C3AED]/30 rounded-2xl p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#7C3AED]/20 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-[#A78BFA]" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-white">Profile {profileCompleteness.score}% complete</span>
-                  <span className="text-xs text-[#A78BFA]">Get more matches!</span>
-                </div>
-                {/* Progress bar */}
-                <div className="h-2 bg-[#1a1a24] rounded-full overflow-hidden mb-2">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${profileCompleteness.score}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] rounded-full"
-                  />
-                </div>
-                {/* Tips */}
-                <div className="space-y-1">
-                  {!profileCompleteness.checks.hasMainPhoto && (
-                    <button 
-                      onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-                      className="flex items-center gap-2 text-xs text-[#9CA3AF] hover:text-[#A78BFA] transition-colors"
-                    >
-                      <div className="w-4 h-4 rounded-full border border-[#6B7280] flex items-center justify-center">
-                        <span className="text-[8px]">+</span>
-                      </div>
-                      Add a profile photo
-                    </button>
-                  )}
-                  {profileCompleteness.checks.hasMainPhoto && !profileCompleteness.checks.hasMultiplePhotos && (
-                    <button 
-                      onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-                      className="flex items-center gap-2 text-xs text-[#9CA3AF] hover:text-[#A78BFA] transition-colors"
-                    >
-                      <div className="w-4 h-4 rounded-full border border-[#6B7280] flex items-center justify-center">
-                        <span className="text-[8px]">+</span>
-                      </div>
-                      Add more photos (2+ recommended)
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Complete Profile Badge */}
-      {profileCompleteness.score === 100 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="mx-4 -mt-4 relative z-10"
-        >
-          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/10 border border-green-500/30 rounded-2xl p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <span className="text-sm font-medium text-green-400">Profile complete! You're all set.</span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Additional Photos */}
-      {additionalPhotos.length > 0 && (
-        <div className="px-4 py-4">
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {additionalPhotos.map((photo, index) => (
-              <div 
-                key={index}
-                className="w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 border-[#2D2D3A]"
-              >
-                <img 
-                  src={photo} 
-                  alt={`Photo ${index + 2}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-            <button
-              onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-              className="w-20 h-20 flex-shrink-0 rounded-xl border-2 border-dashed border-[#2D2D3A] flex items-center justify-center text-[#6B7280] hover:border-[#7C3AED] hover:text-[#7C3AED] transition-colors"
-            >
-              <Camera className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="px-4 py-2 space-y-2">
-        {/* Edit Profile */}
-        <button
-          onClick={() => navigate('/profile/edit')}
-          className="w-full flex items-center justify-between p-4 bg-[#111118] rounded-2xl border border-[#2D2D3A] hover:border-[#7C3AED]/50 transition-colors group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] flex items-center justify-center">
-              <Edit className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-medium text-white">Edit Profile</span>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[#6B7280] group-hover:text-[#7C3AED] transition-colors" />
-        </button>
-
-        {/* Settings */}
-        <button
-          onClick={() => navigate('/settings')}
-          className="w-full flex items-center justify-between p-4 bg-[#111118] rounded-2xl border border-[#2D2D3A] hover:border-[#7C3AED]/50 transition-colors group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#1a1a24] flex items-center justify-center">
-              <Settings className="w-5 h-5 text-[#9CA3AF]" />
-            </div>
-            <span className="font-medium text-white">Settings</span>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[#6B7280] group-hover:text-[#7C3AED] transition-colors" />
-        </button>
-
-        {/* Sign Out */}
-        <button
-          onClick={signOut}
-          className="w-full flex items-center justify-between p-4 bg-[#111118] rounded-2xl border border-[#2D2D3A] hover:border-red-500/50 transition-colors group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-              <LogOut className="w-5 h-5 text-red-400" />
-            </div>
-            <span className="font-medium text-red-400">Sign Out</span>
-          </div>
-          <ChevronRight className="w-5 h-5 text-[#6B7280] group-hover:text-red-400 transition-colors" />
-        </button>
       </div>
-
       <BottomNav />
     </div>
   );

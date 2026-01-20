@@ -1,11 +1,14 @@
-// QRCodeScanner - Dark theme with brand purple
+// QR Code Scanner Component
+// NOTE: Requires html5-qrcode library to be installed: npm install html5-qrcode
+// Currently disabled until library is installed. For now, users can scan QR codes
+// with their phone camera app, which will open the URL and auto-check them in.
 
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
-import { X, Camera, AlertCircle, Loader2 } from 'lucide-react';
+// import { Html5Qrcode } from 'html5-qrcode'; // Uncomment when library is installed
+import { X, Camera, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { logError } from '@/utils/errorHandler';
-import { parseQRCodeVenueId } from '@/utils/qrCodeGenerator';
 
 interface QRCodeScannerProps {
   onScanSuccess: (venueId: string) => void;
@@ -13,28 +16,41 @@ interface QRCodeScannerProps {
 }
 
 export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerProps) {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  // const scannerRef = useRef<Html5Qrcode | null>(null); // Uncomment when library is installed
+  const scannerRef = useRef<any>(null);
   const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>("QR scanner requires html5-qrcode library. Please scan QR code with your phone camera app instead.");
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
   const scannerId = "qr-reader";
 
   useEffect(() => {
+    // Disabled until html5-qrcode is installed
+    setError("QR scanner not available. Please scan the QR code with your phone camera app - it will open the app and auto-check you in!");
+    return;
+    
+    /* Uncomment when html5-qrcode is installed:
     const startScanning = async () => {
       try {
         const html5QrCode = new Html5Qrcode(scannerId);
         scannerRef.current = html5QrCode;
 
         await html5QrCode.start(
-          { facingMode: "environment" },
+          { facingMode: "environment" }, // Use back camera
           {
             fps: 10,
             qrbox: { width: 250, height: 250 }
           },
           (decodedText) => {
+            // QR code scanned successfully
             handleQRCodeScanned(decodedText);
           },
-          () => {}
+          (errorMessage) => {
+            // Ignore scanning errors (just keep scanning)
+            // Only log if it's a real error
+            if (errorMessage.includes('No MultiFormat Readers')) {
+              // This is normal, ignore
+            }
+          }
         );
 
         setScanning(true);
@@ -42,6 +58,7 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
       } catch (err: any) {
         logError(err as Error, { source: 'QRCodeScanner', action: 'startScanning' });
         
+        // Check if it's a permission error
         if (err.name === 'NotAllowedError' || err.message?.includes('permission')) {
           setCameraPermissionDenied(true);
           setError('Camera permission denied. Please enable camera access in your browser settings.');
@@ -56,19 +73,26 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
     startScanning();
 
     return () => {
+      // Cleanup
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
         scannerRef.current.clear();
       }
     };
+    */ // End of commented code
   }, []);
 
   const handleQRCodeScanned = (decodedText: string) => {
+    // Parse QR code using utility function
+    const { parseQRCodeVenueId } = require('@/utils/qrCodeGenerator');
     const venueId = parseQRCodeVenueId(decodedText);
     
     if (venueId) {
+      // Stop scanning
       scannerRef.current?.stop().catch(() => {});
       scannerRef.current?.clear();
+      
+      // Call success handler
       onScanSuccess(venueId);
     } else {
       setError('Invalid QR code format. Please scan a venue QR code.');
@@ -78,20 +102,20 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
   const handleRetry = () => {
     setError(null);
     setCameraPermissionDenied(false);
+    // Reload component to retry
     window.location.reload();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#111118] rounded-2xl border border-[#2D2D3A] shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="p-4 border-b border-[#2D2D3A] flex items-center justify-between bg-gradient-to-r from-[#7C3AED]/10 to-[#6D28D9]/10">
-          <h2 className="text-lg font-semibold text-white">Scan QR Code</h2>
+    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white shadow-2xl">
+        <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+          <h2 className="text-lg font-semibold text-neutral-800">Scan QR Code</h2>
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={onClose}
-            className="text-[#6B7280] hover:text-white hover:bg-[#1a1a24]"
+            className="hover:bg-neutral-100"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -100,70 +124,52 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
         <div className="p-4">
           {error ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-red-400" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
-              <p className="text-red-400 mb-2 font-medium">{error}</p>
+              <p className="text-red-600 mb-2 font-medium">{error}</p>
               {cameraPermissionDenied && (
-                <p className="text-sm text-[#6B7280] mb-4">
+                <p className="text-sm text-neutral-600 mb-4">
                   Go to your browser settings and enable camera access for this site.
                 </p>
               )}
               <div className="flex gap-2 justify-center">
-                <Button 
-                  onClick={handleRetry} 
-                  className="bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white"
-                >
+                <Button onClick={handleRetry} className="bg-gradient-to-r from-indigo-500 to-purple-500">
                   <Camera className="w-4 h-4 mr-2" />
                   Try Again
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={onClose}
-                  className="border-[#2D2D3A] text-[#9CA3AF] hover:bg-[#1a1a24] hover:text-white"
-                >
+                <Button variant="outline" onClick={onClose}>
                   Cancel
                 </Button>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Scanner viewport */}
               <div 
                 id={scannerId} 
-                className="w-full rounded-xl overflow-hidden bg-[#0a0a0f]"
+                className="w-full rounded-lg overflow-hidden bg-neutral-900"
                 style={{ minHeight: '300px' }}
               />
-              
-              {scanning && (
-                <div className="text-center">
-                  <p className="text-sm text-white mb-1">
-                    Point camera at venue QR code
-                  </p>
-                  <p className="text-xs text-[#6B7280]">
-                    Make sure the QR code is well-lit and in focus
-                  </p>
-                </div>
-              )}
-              
-              {!scanning && !error && (
-                <div className="text-center py-4">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#7C3AED] mx-auto mb-2" />
-                  <p className="text-sm text-[#9CA3AF]">Starting camera...</p>
-                </div>
-              )}
-              
+              <div className="text-center">
+                <p className="text-sm text-neutral-600 mb-1">
+                  Point camera at venue QR code
+                </p>
+                <p className="text-xs text-neutral-500">
+                  Make sure the QR code is well-lit and in focus
+                </p>
+              </div>
               <Button 
                 variant="outline" 
                 onClick={onClose}
-                className="w-full border-[#2D2D3A] text-[#9CA3AF] hover:bg-[#1a1a24] hover:text-white"
+                className="w-full"
               >
                 Cancel
               </Button>
             </div>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
+

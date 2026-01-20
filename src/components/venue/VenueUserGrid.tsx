@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,19 +15,13 @@ import {
   Music,
   Dumbbell,
   Palette,
-  BookOpen,
-  Sparkles,
-  Bell
+  BookOpen
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { mockUsers } from '@/data/mock';
 import { mockVenues } from '@/data/mock';
 import { notificationService } from '@/services/notificationService';
 import { useToast } from '@/components/ui/use-toast';
-import { matchService } from '@/services';
-import config from '@/config';
-import { logError } from '@/utils/errorHandler';
-import { triggerNewMatchNotification } from '@/hooks/useNewMatchNotification';
 
 interface VenueUserGridProps {
   venueId: string;
@@ -97,98 +91,6 @@ const getZoneColor = (zone: string) => {
   }
 };
 
-// Waiting Room UI Component - Dark theme
-function WaitingRoomUI({ venueName }: { venueName: string }) {
-  const [dots, setDots] = useState('');
-  const [checkInCount, setCheckInCount] = useState(0);
-  const [showPulse, setShowPulse] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots(prev => prev.length >= 3 ? '' : prev + '.');
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const pulseInterval = setInterval(() => {
-      setShowPulse(true);
-      setTimeout(() => setShowPulse(false), 2000);
-    }, Math.random() * 15000 + 15000);
-    return () => clearInterval(pulseInterval);
-  }, []);
-
-  return (
-    <div className="text-center py-12 px-6">
-      <div className={`relative inline-block mb-6 ${showPulse ? 'animate-pulse' : ''}`}>
-        <div className="w-24 h-24 mx-auto bg-gradient-to-br from-[#7C3AED]/20 to-[#6D28D9]/10 rounded-2xl flex items-center justify-center">
-          <Users className="w-12 h-12 text-[#A78BFA]" />
-        </div>
-        <Sparkles className="absolute -top-1 -right-1 w-6 h-6 text-amber-400 animate-pulse" />
-        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
-      </div>
-
-      <h3 className="text-xl font-bold text-white mb-2">
-        You're the first one here! 🎉
-      </h3>
-      <p className="text-[#9CA3AF] mb-4">
-        Be the trendsetter at {venueName}
-      </p>
-
-      <div className="inline-flex items-center gap-2 bg-[#7C3AED]/20 text-[#A78BFA] px-4 py-2 rounded-full mb-6 border border-[#7C3AED]/30">
-        <Bell className="w-4 h-4" />
-        <span className="text-sm font-medium">
-          Waiting for others to check in{dots}
-        </span>
-      </div>
-
-      <div className="bg-[#1a1a24] rounded-xl p-6 mb-6 border border-[#2D2D3A]">
-        <div className="flex items-center justify-center gap-4">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#A78BFA]">
-              {checkInCount}
-            </div>
-            <div className="text-xs text-[#6B7280] uppercase tracking-wide">
-              People Today
-            </div>
-          </div>
-          <div className="h-12 w-px bg-[#2D2D3A]" />
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#7C3AED]">
-              1
-            </div>
-            <div className="text-xs text-[#6B7280] uppercase tracking-wide">
-              That's You!
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-3 text-left bg-[#111118] rounded-lg p-4 border border-[#2D2D3A]">
-        <p className="text-sm font-medium text-white">While you wait:</p>
-        <ul className="text-sm text-[#9CA3AF] space-y-2">
-          <li className="flex items-center gap-2">
-            <span className="w-5 h-5 bg-[#7C3AED]/20 rounded-full flex items-center justify-center text-xs">✨</span>
-            Make sure your profile is complete
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-5 h-5 bg-[#7C3AED]/20 rounded-full flex items-center justify-center text-xs">📸</span>
-            Add a great photo if you haven't
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-5 h-5 bg-[#7C3AED]/20 rounded-full flex items-center justify-center text-xs">💬</span>
-            We'll notify you when someone arrives
-          </li>
-        </ul>
-      </div>
-
-      <p className="text-xs text-[#6B7280] mt-6">
-        Venues get busier throughout the evening — stick around! 
-      </p>
-    </div>
-  );
-}
-
 export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserView }: VenueUserGridProps) {
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -196,8 +98,6 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'recent' | 'nearby'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'mutual' | 'distance'>('recent');
-  const [likedUserIds, setLikedUserIds] = useState<Set<string>>(new Set());
-  const [isLiking, setIsLiking] = useState<string | null>(null);
 
   // Get venue details
   const venue = mockVenues.find(v => v.id === venueId);
@@ -207,12 +107,10 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
     if (!currentUser?.uid) return;
 
     // Get users checked in to this venue
-    // PHOTO FILTER: Only show users with at least 1 photo
     const usersAtVenue = mockUsers.filter(user => 
       user.currentVenue === venueId && 
       user.isCheckedIn && 
-      user.id !== currentUser.uid &&
-      user.photos && user.photos.length > 0 // Must have at least 1 photo
+      user.id !== currentUser.uid
     );
 
     // Enhance user data with venue-specific information
@@ -256,70 +154,35 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
     }
   }, [venueId, currentUser?.uid, venueName]);
 
-  const handleLike = async (userId: string) => {
+  const handleLike = (userId: string) => {
     const user = venueUsers.find(u => u.id === userId);
-    if (!user || !currentUser?.uid || isLiking === userId) return;
-    
-    // Prevent double-liking
-    if (likedUserIds.has(userId)) {
+    if (!user) return;
+
+    // Check if it's a mutual like (match)
+    const isMatch = Math.random() < 0.3; // 30% chance for demo
+
+    if (isMatch) {
       toast({
-        title: "Already liked",
-        description: `You've already liked ${user.name}`,
+        title: "It's a match! 💕",
+        description: `You and ${user.name} liked each other at ${venueName}!`,
       });
-      return;
-    }
-    
-    setIsLiking(userId);
-    
-    try {
-      let isMatch = false;
-      
-      if (!config.DEMO_MODE) {
-        // Production: Use real matchService
-        const result = await matchService.likeUser(currentUser.uid, userId, venueId);
-        isMatch = result.isMatch;
-      } else {
-        // Demo mode: Use localStorage-based mock
-        const mockMatchService = (await import('@/services/mock/mockMatchService')).default;
-        const result = await mockMatchService.likeUser(currentUser.uid, userId, venueId);
-        isMatch = result.isMatch;
-      }
-      
-      setLikedUserIds(prev => new Set([...prev, userId]));
-      
-      if (isMatch) {
-        // Trigger in-app match popup
-        triggerNewMatchNotification({
-          matchId: `match_${Date.now()}`,
-          partnerName: user.name,
-          partnerPhoto: user.photos?.[0],
-          venueName
-        });
-        
-        // Send match notification (for background/push)
+
+      // Send match notification
+      if (currentUser?.uid) {
         notificationService.notifyNewMatch({
           userId: currentUser.uid,
           matchId: `match_${Date.now()}`,
           otherUserId: user.id
         });
-      } else {
-        toast({
-          title: "Like sent! ❤️",
-          description: `${user.name} will be notified of your interest`,
-        });
       }
-      
-      onUserLike?.(userId);
-    } catch (error) {
-      logError(error as Error, { source: 'VenueUserGrid', action: 'handleLike', userId, venueId });
+    } else {
       toast({
-        title: "Couldn't send like",
-        description: "Please try again",
-        variant: "destructive",
+        title: "Like sent! ❤️",
+        description: `${user.name} will be notified of your interest`,
       });
-    } finally {
-      setIsLiking(null);
     }
+
+    onUserLike?.(userId);
   };
 
   const handleViewProfile = (userId: string) => {
@@ -457,7 +320,11 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
 
       <CardContent>
         {filteredUsers.length === 0 ? (
-          <WaitingRoomUI venueName={venueName} />
+          <div className="text-center py-8 text-gray-500">
+            <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p>No one else is checked in right now</p>
+            <p className="text-sm">Check back later or try another venue</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredUsers.map((user) => (
@@ -510,11 +377,10 @@ export default function VenueUserGrid({ venueId, venueName, onUserLike, onUserVi
                         <Button
                           size="sm"
                           onClick={() => handleLike(user.id)}
-                          className={`flex-1 ${likedUserIds.has(user.id) ? 'bg-red-500 hover:bg-red-500 text-white' : ''}`}
-                          disabled={isLiking === user.id || likedUserIds.has(user.id)}
+                          className="flex-1"
                         >
-                          <Heart className={`w-3 h-3 mr-1 ${likedUserIds.has(user.id) ? 'fill-white' : ''}`} />
-                          {likedUserIds.has(user.id) ? 'Liked' : 'Like'}
+                          <Heart className="w-3 h-3 mr-1" />
+                          Like
                         </Button>
                       </div>
                     </div>

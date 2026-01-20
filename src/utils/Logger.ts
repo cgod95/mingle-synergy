@@ -42,25 +42,16 @@ const SENSITIVE_FIELDS = [
 ];
 
 class Logger {
-  private currentLevel: number | null = null;
-
-  private getLevel(): number {
-    // Lazy initialization of log level using Vite env vars directly
-    // This avoids circular dependency issues with config import
-    if (this.currentLevel === null) {
-      const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
-      this.currentLevel = isProduction ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
-    }
-    return this.currentLevel;
-  }
+  private currentLevel: number;
 
   constructor() {
-    // Don't initialize level in constructor to avoid TDZ issues
-    // Level will be lazily initialized on first log call
+    // In production, only show WARN and ERROR
+    // In development, show all levels
+    this.currentLevel = config.ENVIRONMENT === 'production' ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
   }
 
   private shouldLog(level: number): boolean {
-    return level >= this.getLevel();
+    return level >= this.currentLevel;
   }
 
   private sanitizeData(data: unknown): unknown {

@@ -7,16 +7,12 @@ import { isOnline } from '@/utils/networkMonitor';
 import { getAuth } from 'firebase/auth';
 import config from '@/config';
 import { logError, logUserAction } from '@/utils/errorHandler';
-import { APP_CONSTANTS } from '@/constants/app';
 
 // Cache key constants
 const CACHE_KEYS = {
   VENUES: 'cached_venues',
   VENUE_PREFIX: 'venue_'
 };
-
-// Check-in expiry from centralized constants - users auto-checkout after 12 hours
-const CHECKIN_EXPIRY_MS = APP_CONSTANTS.CHECKIN_EXPIRY_MS;
 
 // Mock venue data for demo mode - expanded with Unsplash images
 // Sydney venues with Sydney coordinates
@@ -339,18 +335,24 @@ class FirebaseVenueService implements VenueService {
       // First check out from any existing venue
       await this.checkOutFromVenue(userId);
       
-      // Update user's check-in status only
-      // NOTE: We don't update the venue document because venues collection has write: false
-      // Check-in counts are calculated by querying users collection
+      const batch = writeBatch(firestore);
+      
+      // Update user's check-in status
       const userDocRef = doc(firestore, 'users', userId);
-      const now = Date.now();
-      await updateDoc(userDocRef, {
+      batch.update(userDocRef, {
         isCheckedIn: true,
-        isVisible: true,  // Ensure user is visible to others at the venue
         currentVenue: venueId,
-        checkInTime: serverTimestamp(),
-        checkInExpiry: now + CHECKIN_EXPIRY_MS // User auto-checkouts after 12 hours
+        checkInTime: serverTimestamp()
       });
+      
+      // Increment venue's check-in count and add user to checkedInUsers array
+      const venueDocRef = doc(firestore, 'venues', venueId);
+      batch.update(venueDocRef, {
+        checkInCount: increment(1),
+        checkedInUsers: arrayUnion(userId)
+      });
+      
+      await batch.commit();
       logUserAction('venue_checkin', { userId, venueId });
     } catch (error) {
       logError(error as Error, { source: 'venueService', action: 'checkInToVenue', userId, venueId });
@@ -381,39 +383,24 @@ class FirebaseVenueService implements VenueService {
         return;
       }
       
-      // Update user's check-out status only
-      // NOTE: We don't update the venue document because venues collection has write: false
-      // Check-in counts are calculated by querying users collection
-      await updateDoc(userDocRef, {
+      const batch = writeBatch(firestore);
+      
+      // Update user's check-out status
+      batch.update(userDocRef, {
         isCheckedIn: false,
         currentVenue: null,
         currentZone: null,
-        checkInExpiry: null, // Clear expiry
         checkOutTime: serverTimestamp()
       });
       
-      // Clear venue-specific likes when checking out
-      // Likes are now stored per venue, so we delete the venue-specific likes document
-      try {
-        const matchService = (await import('./matchService')).default;
-        await matchService.clearVenueLikes(userId, currentVenue);
-      } catch (likesError) {
-        // Non-critical - log but don't fail checkout
-        logError(likesError instanceof Error ? likesError : new Error('Unknown error clearing likes'), { source: 'venueService', action: 'clearVenueLikesOnCheckout', userId, venueId: currentVenue });
-      }
+      // Decrement venue's check-in count and remove user from checkedInUsers array
+      const venueDocRef = doc(firestore, 'venues', currentVenue);
+      batch.update(venueDocRef, {
+        checkInCount: increment(-1),
+        checkedInUsers: arrayRemove(userId)
+      });
       
-      // Also clear any legacy global likes (backward compatibility)
-      try {
-        const likesRef = doc(firestore, 'likes', userId);
-        const likesDoc = await getDoc(likesRef);
-        if (likesDoc.exists()) {
-          await updateDoc(likesRef, { likes: [] });
-        }
-      } catch (likesError) {
-        // Non-critical - log but don't fail checkout
-        logError(likesError instanceof Error ? likesError : new Error('Unknown error resetting likes'), { source: 'venueService', action: 'resetLikesOnCheckout', userId });
-      }
-      
+      await batch.commit();
       logUserAction('venue_checkout', { userId, venueId: currentVenue });
     } catch (error) {
       // Get currentVenue for error logging
@@ -523,7 +510,6 @@ class FirebaseVenueService implements VenueService {
 
   /**
    * Get all users checked into a specific venue
-   * Filters out users whose check-in has expired (12 hours)
    */
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
     try {
@@ -532,33 +518,14 @@ class FirebaseVenueService implements VenueService {
         return [];
       }
       
-      const now = Date.now();
       const usersRef = collection(firestore, 'users');
-      // Query for users at this venue who are explicitly checked in
-      const q = query(
-        usersRef, 
-        where('currentVenue', '==', venueId),
-        where('isCheckedIn', '==', true)
-      );
+      const q = query(usersRef, where('currentVenue', '==', venueId));
       const snapshot = await getDocs(q);
       
-      // Filter out expired users (those whose checkInExpiry has passed)
-      // This handles both users with no expiry field (legacy) and expired users
-      return snapshot.docs
-        .filter(doc => {
-          const data = doc.data();
-          const expiry = data.checkInExpiry;
-          // If no expiry field, use checkInTime + 12 hours as fallback
-          if (!expiry && data.checkInTime) {
-            const checkInTime = data.checkInTime?.toMillis?.() || data.checkInTime;
-            return (checkInTime + CHECKIN_EXPIRY_MS) > now;
-          }
-          return !expiry || expiry > now;
-        })
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as UserProfile));
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as UserProfile));
     } catch (error) {
       logError(error as Error, { source: 'venueService', action: 'getUsersAtVenue', venueId });
       return [];
@@ -566,8 +533,31 @@ class FirebaseVenueService implements VenueService {
   }
 }
 
-// Note: Use venueService.checkInToVenue() instead of standalone function
-// The standalone function has been removed to avoid inconsistency
+// Simple standalone check-in function
+export const checkInToVenue = async (venueId: string): Promise<void> => {
+  // In demo mode, just return without Firebase operations
+  if (config.DEMO_MODE || !firestore) {
+    return;
+  }
+  
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) throw new Error('User not authenticated.');
+
+  const userRef = doc(firestore, 'users', user.uid);
+  const venueRef = doc(firestore, 'venues', venueId);
+
+  // Confirm venue exists
+  const venueSnap = await getDoc(venueRef);
+  if (!venueSnap.exists()) throw new Error('Venue does not exist.');
+
+  // Update user's checkedInVenues field
+  await updateDoc(userRef, {
+    checkedInVenues: arrayUnion(venueId),
+    lastCheckIn: Date.now(),
+  });
+};
 
 export const getCheckedInUsers = async (venueId: string): Promise<UserProfile[]> => {
   // Return empty array in demo mode or if firestore is not available
@@ -575,29 +565,10 @@ export const getCheckedInUsers = async (venueId: string): Promise<UserProfile[]>
     return [];
   }
   
-  const now = Date.now();
   const usersRef = collection(firestore, 'users');
-  // Use currentVenue and isCheckedIn fields (consistent with checkInToVenue)
-  const q = query(
-    usersRef, 
-    where('currentVenue', '==', venueId),
-    where('isCheckedIn', '==', true)
-  );
+  const q = query(usersRef, where('checkedInVenues', 'array-contains', venueId));
   const snapshot = await getDocs(q);
-  
-  // Filter out expired users (those whose checkInExpiry has passed)
-  return snapshot.docs
-    .filter(doc => {
-      const data = doc.data();
-      const expiry = data.checkInExpiry;
-      // If no expiry field, use checkInTime + 12 hours as fallback
-      if (!expiry && data.checkInTime) {
-        const checkInTime = data.checkInTime?.toMillis?.() || data.checkInTime;
-        return (checkInTime + CHECKIN_EXPIRY_MS) > now;
-      }
-      return !expiry || expiry > now;
-    })
-    .map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
 };
 
 export default new FirebaseVenueService();

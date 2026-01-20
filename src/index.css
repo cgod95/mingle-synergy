@@ -77,27 +77,6 @@
   }
 }
 
-/* ---- Mobile viewport fix for fixed positioning ---- */
-/* This ensures the bottom nav stays visible on iOS/Android */
-html, body {
-  height: 100%;
-  min-height: 100%;
-  min-height: -webkit-fill-available;
-  overflow-x: hidden;
-}
-
-body {
-  /* Prevent rubber-banding from affecting fixed elements */
-  overscroll-behavior-y: none;
-}
-
-#root {
-  min-height: 100%;
-  min-height: -webkit-fill-available;
-  display: flex;
-  flex-direction: column;
-}
-
 /* ---- Utility shims so JSX classes keep working ---- */
 @layer utilities {
   .bg-background { background-color: hsl(var(--background)); }
@@ -120,70 +99,6 @@ body {
     animation: fade-in 0.2s ease-out forwards;
   }
   
-  /* Shimmer effect for skeleton loaders */
-  @keyframes shimmer {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-  
-  /* Page transition animations */
-  @keyframes page-enter {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes page-exit {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-  }
-  
-  .page-enter {
-    animation: page-enter 0.25s ease-out forwards;
-  }
-  
-  .page-exit {
-    animation: page-exit 0.2s ease-in forwards;
-  }
-  
-  /* Smooth scale animation for cards and buttons */
-  @keyframes scale-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  
-  .animate-scale-in {
-    animation: scale-in 0.2s ease-out forwards;
-  }
-  
-  /* Stagger delay utilities for lists */
-  .stagger-1 { animation-delay: 50ms; }
-  .stagger-2 { animation-delay: 100ms; }
-  .stagger-3 { animation-delay: 150ms; }
-  .stagger-4 { animation-delay: 200ms; }
-  .stagger-5 { animation-delay: 250ms; }
-  
   /* Mobile touch targets - ensure minimum 44x44px for accessibility */
   @media (max-width: 640px) {
     button, .btn, [role="button"], a[role="button"] {
@@ -202,4 +117,153 @@ body {
       padding: 0.5rem;
     }
   }
+
+  /* ---- iOS Safe Area Utilities ---- */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  .safe-x {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  .safe-y {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-all {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  /* iOS-specific fixes */
+  .ios-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+  
+  .ios-fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  }
+  
+  .ios-fixed-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  }
+  
+  /* Prevent content from going under notch/dynamic island */
+  .content-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  /* Full height accounting for safe areas */
+  .h-screen-safe {
+    height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+  
+  .min-h-screen-safe {
+    min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+  
+  /* Bottom padding for pages with bottom nav */
+  .pb-nav-safe {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+  
+  /* Touch-friendly buttons for iOS */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Smooth momentum scrolling */
+  .scroll-smooth-ios {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
 }
+  /* Keyboard handling for iOS */
+  :root {
+    --keyboard-height: 0px;
+  }
+  
+  .keyboard-visible {
+    /* Adjust scroll when keyboard is visible */
+  }
+  
+  .keyboard-visible .ios-fixed-bottom {
+    bottom: var(--keyboard-height);
+    transition: bottom 0.25s ease-out;
+  }
+  
+  /* iOS-specific form improvements */
+  input, textarea, select {
+    /* Prevent iOS zoom on focus */
+    font-size: 16px;
+    /* Remove iOS default styling */
+    -webkit-appearance: none;
+    border-radius: 0.5rem;
+  }
+  
+  /* Smooth scrolling for iOS */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+  
+  /* Active states for touch feedback */
+  .active\\:scale-98:active {
+    transform: scale(0.98);
+  }
+  
+  .active\\:scale-95:active {
+    transform: scale(0.95);
+  }
+  
+  /* Prevent pull-to-refresh on iOS */
+  body {
+    overscroll-behavior-y: none;
+  }
+  
+  /* Fix for iOS momentum scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure text is readable on notched devices */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .safe-padding {
+      padding-top: env(safe-area-inset-top);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+    }
+  }

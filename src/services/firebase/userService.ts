@@ -15,12 +15,8 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from '../../firebase';
 import { UserProfile, UserService } from '@/types/services';
 import { logError } from '@/utils/errorHandler';
-import { APP_CONSTANTS } from '@/constants/app';
 
 type PartialUserProfile = Partial<UserProfile>;
-
-// Check-in expiry from centralized constants - 12 hours
-const CHECKIN_EXPIRY_MS = APP_CONSTANTS.CHECKIN_EXPIRY_MS;
 
 class FirebaseUserService implements UserService {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
@@ -108,23 +104,9 @@ class FirebaseUserService implements UserService {
   }
 
   async completeOnboarding(userId: string): Promise<void> {
-    try {
-      if (!firestore) {
-        throw new Error('Firestore not available');
-      }
-      
-      const userRef = doc(firestore, 'users', userId);
-      await updateDoc(userRef, {
-        onboardingComplete: true,
-        onboardingCompletedAt: Date.now(),
-      });
-      
-      // Also set localStorage for quick access
-      localStorage.setItem('onboardingComplete', 'true');
-    } catch (error) {
-      logError(error as Error, { source: 'userService', action: 'completeOnboarding', userId });
-      throw new Error('Failed to complete onboarding');
-    }
+    // Onboarding completion is handled by onboardingService
+    // This method exists for interface compatibility
+    // The actual completion is tracked in the onboarding collection
   }
 
   async getUsersAtVenue(venueId: string): Promise<UserProfile[]> {
@@ -134,32 +116,14 @@ class FirebaseUserService implements UserService {
         return [];
       }
       
-      const now = Date.now();
       const usersRef = collection(firestore, 'users');
-      // Filter by both currentVenue AND isCheckedIn to exclude stale check-ins
-      const q = query(
-        usersRef, 
-        where('currentVenue', '==', venueId),
-        where('isCheckedIn', '==', true)
-      );
+      const q = query(usersRef, where('currentVenue', '==', venueId));
       const snapshot = await getDocs(q);
       
-      // Filter out expired users (those whose checkInExpiry has passed)
-      return snapshot.docs
-        .filter(doc => {
-          const data = doc.data();
-          const expiry = data.checkInExpiry;
-          // If no expiry field, use checkInTime + 12 hours as fallback
-          if (!expiry && data.checkInTime) {
-            const checkInTime = data.checkInTime?.toMillis?.() || data.checkInTime;
-            return (checkInTime + CHECKIN_EXPIRY_MS) > now;
-          }
-          return !expiry || expiry > now;
-        })
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as UserProfile));
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as UserProfile));
     } catch (error) {
       logError(error as Error, { source: 'userService', action: 'getUsersAtVenue', venueId });
       return [];
@@ -250,60 +214,18 @@ class FirebaseUserService implements UserService {
       // Get the download URL
       const downloadURL = await getDownloadURL(snapshot.ref);
       
-      // ENFORCE 1 PHOTO MAX: Replace existing photo instead of appending
+      // Get current user profile to update photos array
+      const currentProfile = await this.getUserProfile(userId);
+      const currentPhotos = currentProfile?.photos || [];
+      
+      // Update user profile with the new photo URL
       await this.updateUserProfile(userId, {
-        photos: [downloadURL] // Only store the single new photo
+        photos: [...currentPhotos, downloadURL]
       });
       
       return downloadURL;
     } catch (error) {
       logError(error as Error, { source: 'userService', action: 'uploadProfilePhoto', userId });
-      throw error;
-    }
-  }
-
-  async blockUser(currentUserId: string, blockedUserId: string): Promise<void> {
-    try {
-      if (!firestore) {
-        throw new Error('Firestore not available');
-      }
-      
-      // MUTUAL BLOCK: Block is bidirectional - both users cannot see each other
-      const currentUserRef = doc(firestore, 'users', currentUserId);
-      const blockedUserRef = doc(firestore, 'users', blockedUserId);
-      
-      // Add blockedUserId to current user's blockedUsers
-      await updateDoc(currentUserRef, {
-        blockedUsers: arrayUnion(blockedUserId)
-      });
-      
-      // Add currentUserId to blocked user's blockedUsers (mutual block)
-      await updateDoc(blockedUserRef, {
-        blockedUsers: arrayUnion(currentUserId)
-      });
-    } catch (error) {
-      logError(error as Error, { source: 'userService', action: 'blockUser', currentUserId, blockedUserId });
-      throw error;
-    }
-  }
-
-  async reportUser(currentUserId: string, reportedUserId: string, reason: string): Promise<void> {
-    try {
-      if (!firestore) {
-        throw new Error('Firestore not available');
-      }
-      
-      // Create a report document in the reports collection
-      const reportsRef = collection(firestore, 'reports');
-      await setDoc(doc(reportsRef), {
-        reporterId: currentUserId,
-        reportedUserId,
-        reason,
-        timestamp: Date.now(),
-        status: 'pending'
-      });
-    } catch (error) {
-      logError(error as Error, { source: 'userService', action: 'reportUser', currentUserId, reportedUserId });
       throw error;
     }
   }

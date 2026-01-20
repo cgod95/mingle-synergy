@@ -34,34 +34,8 @@ export function getThread(id: string): ChatThread | undefined {
   return s[id];
 }
 export function getLastMessage(id: string): ChatMessage | undefined {
-  // First check the chatStore (mingle_chats_v1)
   const t = getThread(id);
-  if (t && t.messages.length) {
-    return t.messages[t.messages.length - 1];
-  }
-  
-  // Also check ChatRoom's storage format (mingle:messages:${id})
-  // This ensures we find messages regardless of which component saved them
-  try {
-    const chatRoomKey = `mingle:messages:${id}`;
-    const raw = localStorage.getItem(chatRoomKey);
-    if (raw) {
-      const msgs = JSON.parse(raw) as { sender: "you" | "them"; text: string; ts: number }[];
-      if (msgs.length) {
-        const last = msgs[msgs.length - 1];
-        // Convert 'you'/'them' to 'me'/'them' format
-        return {
-          sender: last.sender === 'you' ? 'me' : 'them',
-          text: last.text,
-          ts: last.ts
-        };
-      }
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  
-  return undefined;
+  return t && t.messages.length ? t.messages[t.messages.length - 1] : undefined;
 }
 export function listThreads(): ChatThread[] {
   const s = load();
@@ -82,7 +56,7 @@ export async function ensureDemoThreadsSeed() {
   // Create 10-15 matches with varied activity
   const now = Date.now();
   const matchSeeds = DEMO_PEOPLE.slice(0, 15).map((person, index) => {
-    const venues = ['club-aurora', 'neon-garden', 'luna-lounge', 'venue1', 'venue2', 'venue3'];
+    const venues = ['1', '2', '3', '4', '5', '6'];
     const venueType = index % 4 === 0 ? 'club' : index % 4 === 1 ? 'bar' : index % 4 === 2 ? 'cafe' : 'restaurant';
     
     // Varied expiry times (some expiring soon, some with 2+ hours)

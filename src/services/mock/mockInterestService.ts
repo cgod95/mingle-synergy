@@ -68,7 +68,7 @@ class MockInterestService implements InterestService {
         venueId,
         timestamp: Date.now(),
         isActive: true,
-        expiresAt: Date.now() + (24 * 60 * 60 * 1000)
+        expiresAt: Date.now() + (3 * 60 * 60 * 1000)
       };
       
       // Get existing interests from storage

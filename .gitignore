@@ -32,3 +32,15 @@ dist-ssr
 .env.production
 scripts/serviceAccountKey.json
 .vercel
+
+# iOS/Capacitor
+ios/App/App/public/
+ios/App/Pods/
+ios/capacitor-cordova-ios-plugins/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM

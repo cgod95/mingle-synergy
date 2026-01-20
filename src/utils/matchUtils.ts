@@ -1,16 +1,16 @@
-import { APP_CONSTANTS } from '@/constants/app';
-
 export const isMatchExpired = (createdAt: Date) => {
   const now = new Date().getTime();
   const matchTime = createdAt.getTime();
-  return now - matchTime > APP_CONSTANTS.MATCH_EXPIRY_MS;
+  const threeHours = 3 * 60 * 60 * 1000;
+  return now - matchTime > threeHours;
 };
 
 export const getMatchTimeRemaining = (createdAt: Date): number => {
   const now = new Date().getTime();
   const matchTime = createdAt.getTime();
+  const threeHours = 3 * 60 * 60 * 1000;
   const elapsed = now - matchTime;
-  return Math.max(0, APP_CONSTANTS.MATCH_EXPIRY_MS - elapsed);
+  return Math.max(0, threeHours - elapsed);
 };
 
 export const formatTimeRemaining = (milliseconds: number): string => {

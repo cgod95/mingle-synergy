@@ -19,7 +19,6 @@ import { FirestoreMatch } from "@/types/match";
 import { FEATURE_FLAGS } from "@/lib/flags";
 import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 import { logError } from '@/utils/errorHandler';
-import config from '@/config';
 
 export interface Message {
   id: string;
@@ -31,7 +30,7 @@ export interface Message {
 
 /**
  * Send a message with validation for the message limit per user per match
- * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 10)
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
  */
 export const sendMessageWithLimit = async ({
   matchId,
@@ -61,7 +60,9 @@ export const sendMessageWithLimit = async ({
     // Continue to send message without limit check
   } else {
     // In demo mode, skip message limit checks
-    if (!config.DEMO_MODE) {
+    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+    
+    if (!isDemoMode) {
       // Check if firestore is available before using collection
       if (!firestore) {
         throw new Error('Firestore not available');
@@ -70,7 +71,7 @@ export const sendMessageWithLimit = async ({
       const messagesRef = collection(firestore, "messages");
       const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
         ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-        : 10;
+        : 3;
 
       const q = query(
         messagesRef,
@@ -86,7 +87,8 @@ export const sendMessageWithLimit = async ({
   }
 
   // In demo mode, use localStorage-based chatStore instead of Firestore
-  if (config.DEMO_MODE) {
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  if (isDemoMode) {
     const { appendMessage } = await import('@/lib/chatStore');
     appendMessage(matchId, {
       sender: 'me',
@@ -111,7 +113,7 @@ export const sendMessageWithLimit = async ({
 
 /**
  * Check if a user can send a message (enforce message limit per user per match)
- * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 10)
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
  */
 export const canSendMessage = async (matchId: string, senderId: string): Promise<boolean> => {
   // Check if user is premium (premium users get unlimited messages)
@@ -133,7 +135,8 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
   }
   
   // In demo mode, always allow sending messages (unlimited)
-  if (config.DEMO_MODE) {
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  if (isDemoMode) {
     return true;
   }
 
@@ -145,7 +148,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
     
     const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
       ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-      : 10;
+      : 3;
     const q = query(
       collection(firestore, "messages"),
       where("matchId", "==", matchId),
@@ -160,7 +163,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
 };
 
 /**
- * Send a message, but prevent sending to expired matches
+ * Send a message, but prevent sending to expired matches (older than 3 hours)
  */
 export const sendMessage = async (matchId: string, senderId: string, text: string): Promise<void> => {
   // Check if firestore is available
@@ -230,7 +233,7 @@ export const getMessageCount = async (matchId: string, senderId: string): Promis
 export const getRemainingMessages = async (matchId: string, senderId: string): Promise<number> => {
   const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
     ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 10;
+    : 3;
   const count = await getMessageCount(matchId, senderId);
   return Math.max(0, messageLimit - count);
 };
@@ -244,8 +247,25 @@ export const subscribeToMessageLimit = (
   senderId: string,
   callback: (canSend: boolean, remaining: number) => void
 ) => {
-  // Note: Premium check removed for beta - premium is not available
-  // When premium is enabled, add async check here
+  // Check if user is premium (premium users get unlimited messages)
+  // Note: Premium is NOT available in beta, but logic is here for future
+  let isPremium = false;
+  try {
+    const { subscriptionService } = require("@/services");
+    if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+      const subscription = subscriptionService.getUserSubscription(senderId);
+      isPremium = subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+    }
+  } catch {
+    // Ignore errors - assume not premium
+  }
+  
+  // Premium users bypass message limits (hide UI)
+  if (isPremium) {
+    // Return a no-op unsubscribe function
+    callback(true, 999); // Show unlimited for premium
+    return () => {}; // No-op unsubscribe
+  }
   
   // Check if firestore is available
   if (!firestore) {
@@ -261,7 +281,7 @@ export const subscribeToMessageLimit = (
 
   const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
     ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 10;
+    : 3;
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const messageCount = snapshot.docs.length;
     const canSend = messageCount < messageLimit;
@@ -359,24 +379,8 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
         lastMessageTime = lastMessageData.createdAt?.toDate?.() ?? new Date(match.timestamp || Date.now());
       }
 
-      // Get unread count - count messages not read by current user
-      let unreadCount = 0;
-      try {
-        const unreadMessagesQuery = query(
-          messagesRef,
-          where("matchId", "==", match.id),
-          where("senderId", "!=", userId) // Only messages from other user
-        );
-        const unreadSnapshot = await getDocs(unreadMessagesQuery);
-        unreadCount = unreadSnapshot.docs.filter(doc => {
-          const data = doc.data();
-          const readBy = data.readBy || [];
-          return !readBy.includes(userId); // Not read by current user
-        }).length;
-      } catch (error) {
-        // Non-critical - continue with 0 unread count
-        logError(error as Error, { source: 'messageService', action: 'getUnreadCount', matchId: match.id, userId });
-      }
+      // Get unread count (simplified - you might want to track this in the match document)
+      const unreadCount = 0; // TODO: Implement unread message tracking
 
       chatPreviews.push({
         chatId: match.id,
@@ -401,44 +405,12 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
 };
 
 /**
- * Get all messages for a match (one-time fetch)
- */
-export const getMatchMessages = async (matchId: string): Promise<Message[]> => {
-  // Check if firestore is available
-  if (!firestore) {
-    return [];
-  }
-  
-  try {
-    const messagesRef = collection(firestore, "messages");
-    const q = query(
-      messagesRef,
-      where("matchId", "==", matchId),
-      orderBy("createdAt", "asc")
-    );
-    
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      senderId: doc.data().senderId,
-      text: doc.data().text,
-      createdAt: doc.data().createdAt?.toDate?.() ?? new Date(),
-      readBy: doc.data().readBy || [],
-    }));
-  } catch (error) {
-    logError(error as Error, { source: 'messageService', action: 'getMatchMessages', matchId });
-    return [];
-  }
-};
-
-/**
  * Subscribe to real-time message updates for a match
  * Returns an unsubscribe function
  */
 export const subscribeToMessages = (
   matchId: string, 
-  callback: (messages: Message[]) => void,
-  onError?: (error: Error) => void
+  callback: (messages: Message[]) => void
 ) => {
   // Check if firestore is available
   if (!firestore) {
@@ -453,81 +425,16 @@ export const subscribeToMessages = (
     orderBy("createdAt", "asc")
   );
 
-  return onSnapshot(
-    q, 
-    (snapshot) => {
-      const messages: Message[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        senderId: doc.data().senderId,
-        text: doc.data().text,
-        createdAt: doc.data().createdAt?.toDate?.() ?? new Date(),
-        readBy: doc.data().readBy || [],
-      }));
-      callback(messages);
-    },
-    (error) => {
-      // Log the error but don't wipe existing messages
-      logError(error as Error, { source: 'messageService', action: 'subscribeToMessages', matchId });
-      if (onError) {
-        onError(error as Error);
-      }
-    }
-  );
-};
-
-/**
- * Get the last message for a specific match (for Matches page preview)
- * Returns null if no messages exist
- */
-export interface LastMessageInfo {
-  text: string;
-  senderId: string;
-  createdAt: Date;
-}
-
-export const getLastMessageForMatch = async (matchId: string): Promise<LastMessageInfo | null> => {
-  // In demo mode, return null (use localStorage instead)
-  if (config.DEMO_MODE) {
-    console.log('[messageService] getLastMessageForMatch: Demo mode, returning null');
-    return null;
-  }
-  
-  // Check if firestore is available
-  if (!firestore) {
-    console.log('[messageService] getLastMessageForMatch: Firestore not available');
-    return null;
-  }
-  
-  try {
-    console.log('[messageService] getLastMessageForMatch: Querying messages for matchId:', matchId);
-    const messagesRef = collection(firestore, "messages");
-    const q = query(
-      messagesRef,
-      where("matchId", "==", matchId),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    );
-    
-    const snapshot = await getDocs(q);
-    console.log('[messageService] getLastMessageForMatch: Found', snapshot.size, 'messages');
-    
-    if (snapshot.empty) {
-      return null;
-    }
-    
-    const doc = snapshot.docs[0];
-    const data = doc.data();
-    console.log('[messageService] getLastMessageForMatch: Last message data:', { text: data.text, senderId: data.senderId, matchId: data.matchId });
-    return {
-      text: data.text || '',
-      senderId: data.senderId || '',
-      createdAt: data.createdAt?.toDate?.() ?? new Date(),
-    };
-  } catch (error) {
-    console.error('[messageService] getLastMessageForMatch: Error querying messages:', error);
-    logError(error as Error, { source: 'messageService', action: 'getLastMessageForMatch', matchId });
-    return null;
-  }
+  return onSnapshot(q, (snapshot) => {
+    const messages: Message[] = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      senderId: doc.data().senderId,
+      text: doc.data().text,
+      createdAt: doc.data().createdAt?.toDate?.() ?? new Date(),
+      readBy: doc.data().readBy || [],
+    }));
+    callback(messages);
+  });
 };
 
 /**

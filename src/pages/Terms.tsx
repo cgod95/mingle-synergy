@@ -4,7 +4,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { goBackSafely } from '@/utils/navigation';
 import Layout from '@/components/Layout';
 
 const Terms: React.FC = () => {
@@ -34,7 +33,7 @@ const Terms: React.FC = () => {
               </p>
             </div>
 
-            <Button className="w-full" onClick={() => goBackSafely(navigate, '/')}>
+            <Button className="w-full" onClick={() => navigate(-1)}>
               Back
             </Button>
           </CardContent>

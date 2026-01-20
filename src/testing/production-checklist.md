@@ -26,7 +26,7 @@
 - [ ] Venue discovery and check-in work as expected
 - [ ] Interest expression and matching logic work correctly
 - [ ] Contact sharing between matches functions properly
-- [ ] Match expiry works as designed (24-hour window)
+- [ ] Match expiry works as designed (3-hour window)
 - [ ] Notifications are delivered correctly
 
 ### Browser Compatibility

@@ -2,6 +2,12 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { initCapacitor, isNativePlatform } from "./lib/capacitor";
+
+// Initialize Capacitor for native iOS/Android
+if (isNativePlatform) {
+  initCapacitor();
+}
 
 // Additional safeguard: Ensure React DevTools is disabled and check for multiple React instances
 if (typeof window !== 'undefined') {

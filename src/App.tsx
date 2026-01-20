@@ -31,8 +31,6 @@ const UsageStats = lazy(() => import("./pages/UsageStats"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const About = lazy(() => import("./pages/About"));
-const Terms = lazy(() => import("./pages/Terms"));
-const Safety = lazy(() => import("./pages/Safety"));
 const Debug = lazy(() => import("./pages/Debug"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 
@@ -43,7 +41,7 @@ const PageLoader = () => {
     return null;
   }
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 via-pink-50 to-white flex items-center justify-center">
       <StandardLoadingSpinner size="lg" message="Loading..." />
     </div>
   );
@@ -55,29 +53,7 @@ import { OnboardingProvider } from "./context/OnboardingContext";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { Toaster } from "./components/ui/toaster";
 import { NetworkErrorBanner } from "./components/ui/NetworkErrorBanner";
-import { ExpiryWarning } from "./components/ExpiryWarning";
-import { NewMatchModal } from "./components/NewMatchModal";
-import { useNewMatchNotification } from "./hooks/useNewMatchNotification";
 import analytics from "./services/appAnalytics";
-import { FEATURE_FLAGS } from "./lib/flags";
-
-// Wrapper for NewMatchModal to use hooks
-function NewMatchModalWrapper() {
-  const { currentMatch, isModalOpen, closeModal } = useNewMatchNotification();
-  
-  if (!currentMatch) return null;
-  
-  return (
-    <NewMatchModal
-      isOpen={isModalOpen}
-      onClose={closeModal}
-      matchId={currentMatch.matchId}
-      partnerName={currentMatch.partnerName}
-      partnerPhoto={currentMatch.partnerPhoto}
-      venueName={currentMatch.venueName}
-    />
-  );
-}
 
 function AppRoutes() {
   const location = useLocation();
@@ -121,11 +97,7 @@ function AppRoutes() {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/safety" element={<Safety />} />
-          {FEATURE_FLAGS.DEBUG_ROUTES_ENABLED && (
-            <Route path="/debug" element={<Debug />} />
-          )}
+          <Route path="/debug" element={<Debug />} />
         </Route>
         {/* Chat room - full screen, bypasses AppShell */}
         {/* ChatRoomGuard must be inside Route to have Router context */}
@@ -178,9 +150,7 @@ export default function App() {
                 v7_relativeSplatPath: true,
               }}
             >
-              <ExpiryWarning />
               <AppRoutes />
-              <NewMatchModalWrapper />
             </BrowserRouter>
             <Toaster />
             {/* Global network error banner - shows when offline or network errors occur */}
