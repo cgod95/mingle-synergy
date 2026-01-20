@@ -1,54 +1,120 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface PageTransitionProps {
   children: React.ReactNode;
-  mode?: 'fade' | 'slide' | 'scale';
+  className?: string;
 }
 
-const PageTransition: React.FC<PageTransitionProps> = ({ 
+// Smooth page entry animation wrapper
+export const PageTransition: React.FC<PageTransitionProps> = ({ 
   children, 
-  mode = 'fade' 
+  className = '' 
 }) => {
-  const location = useLocation();
-
-  const variants = {
-    fade: {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      exit: { opacity: 0 },
-      transition: { duration: 0.3 }
-    },
-    slide: {
-      initial: { opacity: 0, x: 20 },
-      animate: { opacity: 1, x: 0 },
-      exit: { opacity: 0, x: -20 },
-      transition: { duration: 0.3, ease: "easeInOut" as const }
-    },
-    scale: {
-      initial: { opacity: 0, scale: 0.95 },
-      animate: { opacity: 1, scale: 1 },
-      exit: { opacity: 0, scale: 1.05 },
-      transition: { duration: 0.3, ease: "easeInOut" as const }
-    }
-  };
-
-  const currentVariant = variants[mode];
-
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={currentVariant.initial}
-        animate={currentVariant.animate}
-        exit={currentVariant.exit}
-        transition={currentVariant.transition}
-        className="w-full"
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ 
+        duration: 0.25, 
+        ease: [0.25, 0.46, 0.45, 0.94] // Custom easing for snappy feel
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Staggered list animation for items
+export const StaggeredList: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  staggerDelay?: number;
+}> = ({ children, className = '', staggerDelay = 0.05 }) => {
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: staggerDelay,
+          },
+        },
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Individual staggered item
+export const StaggeredItem: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className = '' }) => {
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 16 },
+        visible: { 
+          opacity: 1, 
+          y: 0,
+          transition: {
+            duration: 0.3,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          },
+        },
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Fade in animation for content
+export const FadeIn: React.FC<{
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}> = ({ children, delay = 0, className = '' }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Scale in animation for cards and modals
+export const ScaleIn: React.FC<{
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}> = ({ children, delay = 0, className = '' }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ 
+        duration: 0.25, 
+        delay,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
   );
 };
 
