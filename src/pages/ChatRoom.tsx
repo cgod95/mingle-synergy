@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BlockReportDialog } from "@/components/BlockReportDialog";
 
+import { isMingleBot } from "@/lib/mingleBot";
 import { getActiveMatches } from "@/lib/matchesCompat";
 import { getMessageCount, canSendMessage, getRemainingMessages, incrementMessageCount } from "@/utils/messageLimitTracking";
 import { getCheckedVenueId } from "@/lib/checkinStore";
@@ -176,6 +177,24 @@ export default function ChatRoom() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [msgs]);
 
+
+  // Listen for bot replies and refresh messages
+  useEffect(() => {
+    if (!matchId || !isMingleBot(matchId)) return;
+    
+    const handleBotReply = (e: CustomEvent) => {
+      if (e.detail?.threadId === matchId) {
+        // Reload messages from localStorage
+        const reloaded = loadMessages(matchId);
+        setMsgs(reloaded);
+      }
+    };
+    
+    window.addEventListener("mingle-bot-reply", handleBotReply as EventListener);
+    return () => {
+      window.removeEventListener("mingle-bot-reply", handleBotReply as EventListener);
+    };
+  }, [matchId]);
   useEffect(() => {
     // Focus input on mount
     inputRef.current?.focus();

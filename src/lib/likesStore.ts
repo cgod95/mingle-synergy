@@ -1,3 +1,5 @@
+import { isMingleBot, BOT_WELCOME_MESSAGE } from './mingleBot';
+
 const KEY = "mingle_likes_v1";
 
 type Store = {
@@ -44,6 +46,30 @@ export function ensureDemoLikesSeed() {
 export async function likePerson(id: string): Promise<boolean> {
   const s = load();
   if (!s.mine.includes(id)) s.mine.push(id);
+  
+  // MINGLE BOT: Always match instantly with the bot
+  if (isMingleBot(id)) {
+    if (!s.likedMe.includes(id)) {
+      s.likedMe.push(id);
+    }
+    if (!s.matches.includes(id)) {
+      s.matches.push(id);
+      // Create chat with bot and add welcome message
+      try {
+        const { ensureChat, appendMessage } = await import('./chatStore');
+        ensureChat(id, { name: 'Mingle Team' });
+        appendMessage(id, { 
+          sender: "them", 
+          ts: Date.now(), 
+          text: BOT_WELCOME_MESSAGE 
+        });
+      } catch (error) {
+        // Non-critical - chat creation failed
+      }
+    }
+    save(s);
+    return true;
+  }
   
   // Check if they already like you (instant match)
   let mutual = s.likedMe.includes(id);

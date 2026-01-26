@@ -3,13 +3,14 @@
  * Internals can change without breaking pages.
  */
 import config from '@/config';
-import { getPeopleAtVenue, getPerson as getPersonFromDemoPeople } from './demoPeople';
+import { getPeopleAtVenue, getPerson as getPersonFromDemoPeople, type Person } from './demoPeople';
 import { 
   getVenues as getVenuesFromDemoVenues, 
   getVenue as getVenueFromDemoVenues,
   listPeopleForVenue as listPeopleForVenueFromDemoVenues,
   getPerson as getPersonFromDemoVenues
 } from './demoVenues';
+import { getBotForVenue, isMingleBot, MINGLE_BOT } from './mingleBot';
 
 // Venue functions - use venueService in production (Firestore), demo venues only in demo mode
 export async function getVenues() {
@@ -50,17 +51,39 @@ export async function getVenue(id: string) {
   }
 }
 
-// People functions - use demoPeople in demo mode, demoVenues otherwise
-export function getPeople(venueId: string) {
+/**
+ * Get people at a venue - ALWAYS includes the Mingle Bot for testing
+ */
+export function getPeople(venueId: string): Person[] {
+  let people: Person[];
+  
   if (config.DEMO_MODE) {
-    return getPeopleAtVenue(venueId);
+    people = getPeopleAtVenue(venueId);
+  } else {
+    people = listPeopleForVenueFromDemoVenues(venueId);
   }
-  return listPeopleForVenueFromDemoVenues(venueId);
+  
+  // Always inject the Mingle Bot at each venue for testing/review purposes
+  const bot = getBotForVenue(venueId);
+  
+  // Check if bot is already in the list (shouldn't be, but just in case)
+  const hasBot = people.some(p => isMingleBot(p.id));
+  if (!hasBot) {
+    // Add bot at the beginning of the list so it's visible
+    people = [bot, ...people];
+  }
+  
+  return people;
 }
 
 export const listPeopleForVenue = getPeople;
 
-export function getPerson(id: string) {
+export function getPerson(id: string): Person | undefined {
+  // Check if requesting the bot
+  if (isMingleBot(id)) {
+    return MINGLE_BOT;
+  }
+  
   if (config.DEMO_MODE) {
     return getPersonFromDemoPeople(id);
   }

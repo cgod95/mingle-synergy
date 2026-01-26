@@ -1,4 +1,4 @@
-import { getPerson } from './demoPeople';
+import { getPerson } from './api';
 import { listMatches } from './likesStore';
 import { ensureChat } from './chatStore';
 import config from '@/config';
