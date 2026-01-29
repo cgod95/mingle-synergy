@@ -4,6 +4,46 @@ import App from "./App";
 import "./index.css";
 import { initCapacitor, isNativePlatform } from "./lib/capacitor";
 
+// CRITICAL: Unregister ALL service workers to prevent stale cache issues
+// This ensures users always get fresh content after deployments
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  // Immediately unregister all service workers
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister().then((success) => {
+        if (success && !import.meta.env.PROD) {
+          console.log('[SW] Unregistered service worker:', registration.scope);
+        }
+      });
+    }
+  }).catch((error) => {
+    // Silently fail - SW unregistration is best-effort
+    if (!import.meta.env.PROD) {
+      console.warn('[SW] Failed to unregister service workers:', error);
+    }
+  });
+
+  // Also clear all caches to ensure fresh content
+  if ('caches' in window) {
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          return caches.delete(cacheName).then((success) => {
+            if (success && !import.meta.env.PROD) {
+              console.log('[Cache] Deleted cache:', cacheName);
+            }
+          });
+        })
+      );
+    }).catch((error) => {
+      // Silently fail - cache clearing is best-effort
+      if (!import.meta.env.PROD) {
+        console.warn('[Cache] Failed to clear caches:', error);
+      }
+    });
+  }
+}
+
 // Initialize Capacitor for native iOS/Android
 if (isNativePlatform) {
   initCapacitor();

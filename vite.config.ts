@@ -1,41 +1,44 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import { VitePWA } from 'vite-plugin-pwa'
+// PWA disabled to prevent caching issues during active development
+// import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        globIgnores: ['**/node_modules/**/*'],
-        // Explicitly include index.html in precache manifest
-        additionalManifestEntries: [
-          { url: '/index.html', revision: null }
-        ],
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/assets\//],
-        navigateFallbackAllowlist: [/^(?!\/__).*/],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'unsplash-images',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-            },
-          },
-        ],
-        cleanupOutdatedCaches: true,
-        skipWaiting: true,
-      },
-    }),
+    // PWA DISABLED - was causing stale cache issues where old index.html
+    // would reference asset hashes that no longer exist after new deployments.
+    // Re-enable once the app is stable and ready for production PWA features.
+    // VitePWA({
+    //   registerType: 'autoUpdate',
+    //   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+    //   workbox: {
+    //     globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+    //     globIgnores: ['**/node_modules/**/*'],
+    //     additionalManifestEntries: [
+    //       { url: '/index.html', revision: null }
+    //     ],
+    //     navigateFallback: '/index.html',
+    //     navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/assets\//],
+    //     navigateFallbackAllowlist: [/^(?!\/__).*/],
+    //     runtimeCaching: [
+    //       {
+    //         urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
+    //         handler: 'CacheFirst',
+    //         options: {
+    //           cacheName: 'unsplash-images',
+    //           expiration: {
+    //             maxEntries: 50,
+    //             maxAgeSeconds: 60 * 60 * 24 * 30,
+    //           },
+    //         },
+    //       },
+    //     ],
+    //     cleanupOutdatedCaches: true,
+    //     skipWaiting: true,
+    //   },
+    // }),
   ],
   server: {
     port: 5173,
