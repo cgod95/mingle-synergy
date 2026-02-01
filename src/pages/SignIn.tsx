@@ -85,8 +85,10 @@ export default function SignIn() {
                   <label className="block text-sm font-medium text-neutral-300">Email</label>
               <Input 
                 placeholder="Enter your email" 
-                    type="email" autoComplete="email" autoCapitalize="none" autoCorrect="off"
-                    autoComplete="email"
+                type="email" 
+                autoComplete="email" 
+                autoCapitalize="none" 
+                autoCorrect="off"
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                     className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
@@ -97,8 +99,8 @@ export default function SignIn() {
             <div className="space-y-2">
                   <label className="block text-sm font-medium text-neutral-300">Password</label>
               <Input 
-                type="password" autoComplete="current-password" 
-                    autoComplete="current-password"
+                type="password" 
+                autoComplete="current-password"
                 placeholder="Enter your password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 

@@ -4,9 +4,7 @@ import {
   signOut as firebaseSignOut,
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   onAuthStateChanged as firebaseOnAuthStateChanged,
-  User,
-  fetchSignInMethodsForEmail,
-  AuthError
+  User
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '@/firebase/config';
@@ -19,9 +17,13 @@ const errorMessages: Record<string, string> = {
   'auth/invalid-email': 'Please enter a valid email address.',
   'auth/user-not-found': 'No account found with this email. Please sign up instead.',
   'auth/wrong-password': 'Incorrect password. Please try again or reset your password.',
+  'auth/invalid-credential': 'Invalid email or password. Please try again.',
+  'auth/invalid-login-credentials': 'Invalid email or password. Please try again.',
   'auth/weak-password': 'Password should be at least 6 characters.',
   'auth/too-many-requests': 'Too many unsuccessful login attempts. Please try again later.',
-  'auth/network-request-failed': 'Network error. Please check your connection.'
+  'auth/network-request-failed': 'Network error. Please check your connection.',
+  'auth/internal-error': 'An error occurred. Please try again.',
+  'auth/user-disabled': 'This account has been disabled. Please contact support.',
 };
 
 interface FirebaseErrorWithCode extends Error {
@@ -33,17 +35,8 @@ class FirebaseAuthService implements AuthService {
     try {
       logUserAction('sign_in_attempt', { email });
       
-      try {
-        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-        if (signInMethods.length === 0) {
-          throw new Error('No account found with this email. Would you like to sign up instead?');
-        }
-      } catch (error: unknown) {
-        const firebaseError = error as FirebaseErrorWithCode;
-        if (firebaseError.code && firebaseError.code !== 'auth/user-not-found') {
-          throw error;
-        }
-      }
+      // Note: Removed deprecated fetchSignInMethodsForEmail check
+      // Firebase v9+ handles user-not-found via signInWithEmailAndPassword directly
       
       const credential = await firebaseSignInWithEmailAndPassword(auth, email, password);
       logUserAction('sign_in_success', { userId: credential.user.uid });
@@ -83,17 +76,8 @@ class FirebaseAuthService implements AuthService {
 
   async signUp(email: string, password: string): Promise<UserCredential> {
     try {
-      try {
-        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-        if (signInMethods.length > 0) {
-          throw new Error(errorMessages['auth/email-already-in-use'] || 'This email is already registered.');
-        }
-      } catch (error: unknown) {
-        const firebaseError = error as FirebaseErrorWithCode;
-        if (firebaseError.code && firebaseError.code !== 'auth/email-already-in-use') {
-          throw error;
-        }
-      }
+      // Note: Removed deprecated fetchSignInMethodsForEmail check
+      // Firebase v9+ handles email-already-in-use via createUserWithEmailAndPassword directly
       
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       

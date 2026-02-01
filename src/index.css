@@ -1,5 +1,7 @@
 /* Import design tokens - MUST come before @tailwind directives */
 @import './styles/design-tokens.css';
+/* Import responsive styles for tablet/iPad support */
+@import './styles/responsive.css';
 
 @tailwind base;
 @tailwind components;

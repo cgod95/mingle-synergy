@@ -89,10 +89,12 @@ export default function SignUp() {
                   <label className="block text-sm font-medium text-neutral-300">Email</label>
                   <Input 
                     placeholder="Enter your email" 
-          type="email" autoComplete="email" autoCapitalize="none" autoCorrect="off"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+                    type="email" 
+                    autoComplete="email" 
+                    autoCapitalize="none" 
+                    autoCorrect="off"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
           required
                     disabled={busy}
@@ -102,10 +104,10 @@ export default function SignUp() {
                   <label className="block text-sm font-medium text-neutral-300">Password</label>
                   <Input 
                     placeholder="Password (min 6 characters)" 
-          type="password" autoComplete="new-password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+                    type="password" 
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
           minLength={6}
                     className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
           required
