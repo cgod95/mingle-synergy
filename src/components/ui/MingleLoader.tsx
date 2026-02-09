@@ -6,7 +6,7 @@ export default function MingleLoader() {
       <div className="flex flex-col items-center">
         {/* M Logo - Large */}
         <div className="w-24 h-24 mb-6 animate-pulse">
-          <div className="w-full h-full rounded-2xl bg-white flex items-center justify-center shadow-2xl">
+          <div className="w-full h-full rounded-2xl bg-neutral-800 flex items-center justify-center shadow-2xl border border-neutral-700">
             <span className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
               M
             </span>

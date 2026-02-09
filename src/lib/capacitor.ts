@@ -28,13 +28,25 @@ export async function initCapacitor() {
     // Configure keyboard behavior
     const { Keyboard } = await import('@capacitor/keyboard');
     
-    // Handle keyboard show/hide
+    // Handle keyboard show/hide (use both Will and Did for reliability across iOS versions)
     Keyboard.addListener('keyboardWillShow', (info) => {
       document.documentElement.style.setProperty('--keyboard-height', `${info.keyboardHeight}px`);
       document.body.classList.add('keyboard-visible');
     });
 
+    Keyboard.addListener('keyboardDidShow', (info) => {
+      // Fallback: ensure keyboard height is set even if WillShow didn't fire
+      document.documentElement.style.setProperty('--keyboard-height', `${info.keyboardHeight}px`);
+      document.body.classList.add('keyboard-visible');
+    });
+
     Keyboard.addListener('keyboardWillHide', () => {
+      document.documentElement.style.setProperty('--keyboard-height', '0px');
+      document.body.classList.remove('keyboard-visible');
+    });
+
+    Keyboard.addListener('keyboardDidHide', () => {
+      // Fallback: ensure keyboard height is cleared even if WillHide didn't fire
       document.documentElement.style.setProperty('--keyboard-height', '0px');
       document.body.classList.remove('keyboard-visible');
     });

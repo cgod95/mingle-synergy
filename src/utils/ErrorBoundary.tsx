@@ -99,18 +99,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const stepName = this.props.stepName;
       
       return (
-        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary/10 to-background flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-lg shadow-xl border-2 border-red-200 p-6">
+        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-neutral-800 rounded-lg shadow-xl border-2 border-red-700/50 p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-red-800 mb-2">
+              <h2 className="text-xl font-semibold text-red-400 mb-2">
                 {stepName ? `Error in ${stepName} step` : 'Something went wrong'}
               </h2>
-              <p className="text-red-600 mb-4">{errorMessage}</p>
+              <p className="text-red-300 mb-4">{errorMessage}</p>
             </div>
             
             <div className="flex flex-col space-y-3">
@@ -123,14 +123,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               {stepName && (
                 <button
                   onClick={this.handleGoBack}
-                  className="w-full px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg font-medium transition-colors"
+                  className="w-full px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-neutral-200 rounded-lg font-medium transition-colors"
                 >
                   Go Back
                 </button>
               )}
               <button
                 onClick={() => window.location.href = '/'}
-                className="w-full px-4 py-2 bg-neutral-50 hover:bg-neutral-100 text-neutral-600 rounded-lg font-medium transition-colors"
+                className="w-full px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded-lg font-medium transition-colors"
               >
                 Go Home
               </button>

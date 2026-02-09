@@ -5,7 +5,7 @@ export default function ProfilePage() {
   const { user, logout } = useAuth();
   return (
     <section className="mx-auto max-w-md p-4">
-      <div className="rounded-2xl bg-white p-4 shadow-sm">
+      <div className="rounded-2xl bg-neutral-800 border border-neutral-700 p-4 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="size-16 shrink-0 overflow-hidden rounded-full bg-neutral-200"></div>
           <div>

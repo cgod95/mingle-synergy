@@ -69,11 +69,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
   return (
     <div className="w-full">
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-200 hover:-translate-y-1">
-        <CardHeader className="pb-4 bg-indigo-50">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-neutral-700 hover:border-indigo-500 hover:-translate-y-1 bg-neutral-800">
+        <CardHeader className="pb-4 bg-neutral-800/50">
           <div className="flex items-center space-x-4">
             <div className="relative transition-transform hover:scale-105 active:scale-95">
-              <Avatar className="h-20 w-20 cursor-pointer ring-2 ring-white shadow-lg" onClick={() => onViewProfile(match.id)}>
+              <Avatar className="h-20 w-20 cursor-pointer ring-2 ring-indigo-500/50 shadow-lg" onClick={() => onViewProfile(match.id)}>
                 <AvatarImage 
                   src={match.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop"} 
                   alt={match.name} 
@@ -101,7 +101,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
-                <h3 className="font-bold text-xl truncate text-neutral-900">
+                <h3 className="font-bold text-xl truncate text-white">
                   {match.name}
                 </h3>
                 <Badge variant="outline" className="text-xs font-medium">
@@ -109,7 +109,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 </Badge>
               </div>
               
-              <div className="flex items-center space-x-2 text-sm text-neutral-600 mb-2">
+              <div className="flex items-center space-x-2 text-sm text-neutral-400 mb-2">
                 <MapPin className="w-3.5 h-3.5 text-indigo-500" />
                 <span className="truncate font-medium">{match.venue?.name || 'Unknown venue'}</span>
               </div>
@@ -141,10 +141,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
         <CardContent className="pt-4 pb-4">
           {match.lastMessage && (
-            <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+            <div className="mb-4 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700/50">
               <div className="flex items-start space-x-2">
-                <MessageCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-neutral-700 line-clamp-2 font-medium">
+                <MessageCircle className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-neutral-300 line-clamp-2 font-medium">
                   {match.lastMessage.content}
                 </p>
               </div>
@@ -177,7 +177,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onViewProfile(match.id)}
-                className="w-full border-2 hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+                className="w-full border-2 border-neutral-600 hover:border-indigo-500 hover:bg-indigo-900/30 text-neutral-300 transition-all"
               >
                 View Profile
               </Button>
@@ -196,8 +196,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
           </div>
           
           {match.matchedAt && (
-            <div className="mt-3 pt-3 border-t border-neutral-100">
-              <div className="flex items-center justify-center space-x-1 text-xs text-neutral-500">
+            <div className="mt-3 pt-3 border-t border-neutral-700">
+              <div className="flex items-center justify-center space-x-1 text-xs text-neutral-400">
                 <Clock className="w-3 h-3" />
                 <span>Matched {match.matchedAt}</span>
               </div>

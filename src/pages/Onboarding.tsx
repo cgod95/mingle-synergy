@@ -221,7 +221,7 @@ const Onboarding = () => {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex items-center justify-center p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -231,35 +231,35 @@ const Onboarding = () => {
             transition={{ duration: 0.3 }}
             className="w-full max-w-md"
           >
-            <Card className="w-full border-2 border-neutral-200 bg-white shadow-xl">
-              <CardHeader className="text-center space-y-4 border-b border-neutral-200">
+            <Card className="w-full border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+              <CardHeader className="text-center space-y-4 border-b border-neutral-700">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                   className="flex justify-center"
                 >
-                  <div className="p-4 rounded-full bg-indigo-100">
+                  <div className="p-4 rounded-full bg-indigo-900/50">
                     {currentStep.icon}
                   </div>
                 </motion.div>
                 <CardTitle className="text-heading-2">
                   {currentStep.title}
                 </CardTitle>
-                <p className="text-neutral-700">{currentStep.description}</p>
+                <p className="text-neutral-400">{currentStep.description}</p>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 {step === 1 && locationDenied && (
-                  <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="text-yellow-600 mb-2">⚠ Location access denied</div>
-                    <p className="text-sm text-neutral-600">You can still use Mingle by selecting venues manually.</p>
+                  <div className="text-center p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+                    <div className="text-yellow-400 mb-2">Location access denied</div>
+                    <p className="text-sm text-neutral-400">You can still use Mingle by selecting venues manually.</p>
                   </div>
                 )}
                 
                 {step === 1 && locationError && !locationDenied && (
-                  <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="text-red-600 mb-2">⚠ Location error</div>
-                    <p className="text-sm text-neutral-600">Unable to get your location. You can select venues manually.</p>
+                  <div className="text-center p-4 bg-red-900/20 border border-red-700/50 rounded-lg">
+                    <div className="text-red-400 mb-2">Location error</div>
+                    <p className="text-sm text-neutral-400">Unable to get your location. You can select venues manually.</p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -292,7 +292,7 @@ const Onboarding = () => {
                       setLocationError(false);
                       setStep(2);
                     }}
-                    className="w-full border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
+                    className="w-full border-2 border-neutral-600 hover:bg-neutral-700 text-neutral-300"
                   >
                     Continue Without Location
                   </Button>
@@ -301,7 +301,7 @@ const Onboarding = () => {
                 {step === 2 && currentStep.canSkip && (
                   <Button
                     variant="outline"
-                    className="w-full border-2 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
+                    className="w-full border-2 border-neutral-600 hover:bg-neutral-700 text-neutral-300"
                     onClick={handleSkip}
                   >
                     Skip for now
@@ -310,7 +310,7 @@ const Onboarding = () => {
 
                 {step > 0 && (
                   <button
-                    className="mt-4 text-sm text-neutral-600 flex items-center justify-center w-full hover:text-indigo-600 transition-colors"
+                    className="mt-4 text-sm text-neutral-400 flex items-center justify-center w-full hover:text-indigo-400 transition-colors min-h-[44px]"
                     onClick={() => {
                       localStorage.setItem('onboarding_last_step', (step - 1).toString());
                       setStep(step - 1);

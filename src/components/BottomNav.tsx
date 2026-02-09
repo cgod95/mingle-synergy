@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Heart, User, MapPin } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -12,6 +12,16 @@ const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
+  const lastNavTime = useRef(0);
+
+  // Debounced navigation to prevent double-taps
+  const handleNavigate = useCallback((path: string) => {
+    const now = Date.now();
+    if (now - lastNavTime.current < 300) return; // 300ms debounce
+    lastNavTime.current = now;
+    hapticLight();
+    navigate(path);
+  }, [navigate]);
 
   // Always show bottom nav if explicitly requested or after onboarding
   const localStorageComplete = localStorage.getItem('onboardingComplete') === 'true';
@@ -78,7 +88,7 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 nav-blur-ios border-t border-neutral-700/50 shadow-2xl z-50"
+      className="fixed bottom-0 left-0 right-0 nav-blur-ios border-t border-neutral-700/50 shadow-2xl z-50 hide-on-keyboard"
       style={{ 
         paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'env(safe-area-inset-left, 0px)',
@@ -94,7 +104,7 @@ const BottomNav: React.FC = () => {
           return (
             <button
               key={item.path}
-              onClick={() => { hapticLight(); navigate(item.path); }}
+              onClick={() => handleNavigate(item.path)}
               aria-label={`Navigate to ${item.label}${showBadge ? ` (${unreadCount} unread)` : ''}`}
               aria-current={active ? 'page' : undefined}
               className="relative flex flex-col items-center justify-center py-2 px-4 min-w-[72px] min-h-[56px] rounded-xl transition-all duration-200 active:scale-95 touch-target"

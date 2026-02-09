@@ -30,7 +30,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     <div className={cn('flex flex-col items-center', className)}>
       {/* M Logo */}
       <div className={cn(sizes.logo, 'mb-4 animate-pulse')}>
-        <div className="w-full h-full rounded-2xl bg-white flex items-center justify-center shadow-lg">
+        <div className="w-full h-full rounded-2xl bg-neutral-800 flex items-center justify-center shadow-lg border border-neutral-700">
           <span className={cn(sizes.text, 'font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent')}>
             M
           </span>
@@ -42,7 +42,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className={cn(sizes.dots, 'bg-purple-600 rounded-full animate-pulse')}
+            className={cn(sizes.dots, 'bg-indigo-400 rounded-full animate-pulse')}
             style={{
               animationDelay: `${i * 0.2}s`,
               animationDuration: '0.8s',
@@ -53,7 +53,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       
       {/* Optional message */}
       {message && (
-        <p className="mt-4 text-sm text-neutral-600">{message}</p>
+        <p className="mt-4 text-sm text-neutral-400">{message}</p>
       )}
     </div>
   );

@@ -87,7 +87,7 @@ const CardDivider = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("border-t border-neutral-200 my-4", className)}
+    className={cn("border-t border-neutral-700 my-4", className)}
     {...props}
   />
 ))

@@ -73,13 +73,13 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
   if (otherUsers.length === 0) {
     return (
       <div className="text-center py-12 px-4">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
-          <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-900/50 flex items-center justify-center">
+          <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-neutral-900 mb-2">No one here yet</h3>
-        <p className="text-sm text-neutral-600">Check back later or try another venue!</p>
+        <h3 className="text-lg font-semibold text-white mb-2">No one here yet</h3>
+        <p className="text-sm text-neutral-400">Check back later or try another venue!</p>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ y: -4 }}
-            className="bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
+            className="bg-neutral-800 rounded-xl border border-neutral-700 overflow-hidden shadow-sm hover:shadow-md transition-all"
           >
             <div className="relative h-48 w-full overflow-hidden bg-neutral-200">
               <img
@@ -110,11 +110,11 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
               />
             </div>
             <div className="p-4">
-              <h3 className="text-base font-semibold text-neutral-900 mb-1">
-                {user.name}{user.age && <span className="text-neutral-600 font-normal">, {user.age}</span>}
+              <h3 className="text-base font-semibold text-white mb-1">
+                {user.name}{user.age && <span className="text-neutral-400 font-normal">, {user.age}</span>}
               </h3>
               {user.bio && (
-                <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{user.bio}</p>
+                <p className="text-sm text-neutral-400 mb-3 line-clamp-2">{user.bio}</p>
               )}
               
               {isRematchable && !isLiked ? (
@@ -123,7 +123,7 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
                   disabled={isLoading}
                   className={`mt-2 w-full px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     isLoading 
-                      ? 'bg-neutral-300 cursor-not-allowed text-neutral-600' 
+                      ? 'bg-neutral-700 cursor-not-allowed text-neutral-400' 
                       : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
                   }`}
                 >
@@ -135,7 +135,7 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
                   disabled={isLiked || isLoading}
                   className={`mt-2 w-full px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     isLiked || isLoading
-                      ? 'bg-neutral-100 cursor-not-allowed text-neutral-600' 
+                      ? 'bg-neutral-700 cursor-not-allowed text-neutral-400' 
                       : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
                   }`}
                 >

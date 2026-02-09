@@ -201,7 +201,7 @@ export default function CheckInPage() {
   const preselect = qrVenueId || params.get("id");
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-20">
+    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Back Button - only show if not in demo mode or if user came from landing */}

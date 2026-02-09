@@ -84,19 +84,19 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
   const isDisabled = loading || !text.trim() || !canSend || !currentUser;
 
   return (
-    <div className="flex flex-col gap-2 p-4 bg-white border-t">
+    <div className="flex flex-col gap-2 p-4 bg-neutral-800 border-t border-neutral-700">
       {/* Message limit indicator */}
-      <div className="flex justify-between items-center text-xs text-gray-500">
+      <div className="flex justify-between items-center text-xs text-neutral-400">
         <span>
           {canSend ? `${remainingMessages} messages remaining` : 'Message limit reached'}
         </span>
-        {error && <span className="text-red-500">{error}</span>}
+        {error && <span className="text-red-400">{error}</span>}
       </div>
 
       {/* Input and send button */}
       <div className="flex items-center gap-2">
         <input
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+          className="flex-1 rounded-lg border border-neutral-600 bg-neutral-700 text-white px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 placeholder:text-neutral-500"
           placeholder={canSend ? "Type your message..." : "Message limit reached"}
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -107,14 +107,14 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
         <Button 
           onClick={handleSend} 
           disabled={isDisabled}
-          className="px-4 py-2 text-sm"
+          className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white"
         >
           {loading ? 'Sending...' : 'Send'}
         </Button>
       </div>
 
       {/* Character count */}
-      <div className="text-xs text-gray-400 text-right">
+      <div className="text-xs text-neutral-500 text-right">
         {text.length}/500
       </div>
     </div>

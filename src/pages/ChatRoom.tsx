@@ -498,8 +498,8 @@ export default function ChatRoom() {
 
       {/* Input - Fixed at bottom */}
       <div 
-        className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
-        style={{ bottom: "var(--keyboard-height, 0px)", paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+        className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 transition-[padding] duration-150"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', marginBottom: 'var(--keyboard-height, 0px)' }}
       >
         {/* Message limit indicator (hidden for premium users) */}
         {remainingMessages < 5 && remainingMessages < 999 && (
@@ -540,7 +540,7 @@ export default function ChatRoom() {
                   : "Type a message..."
               }
               disabled={!canSendMsg}
-              className={`w-full rounded-full border-2 px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm ${
+              className={`w-full rounded-full border-2 px-4 sm:px-5 py-2.5 sm:py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm ${
                 !canSendMsg 
                   ? 'border-red-700 bg-red-900/30 text-neutral-400 cursor-not-allowed' 
                   : 'border-neutral-600 bg-neutral-700 text-neutral-200'

@@ -64,10 +64,11 @@
         --sal: env(safe-area-inset-left);
       }
       
-      /* Prevent rubber-banding on iOS */
+      /* Prevent rubber-banding on iOS + eliminate white flash */
       html, body {
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
+        background-color: #171717;
       }
       
       /* Native-like touch behavior */

@@ -44,14 +44,14 @@ export default function MessageLimitModal({
                   <li>Wait for a reply from your match</li>
                   <li>Reconnect when you're both at the same venue again</li>
                 </ul>
-                <p className="mt-3 text-sm font-medium text-neutral-700">
+                <p className="mt-3 text-sm font-medium text-neutral-300">
                   Match active for 24 hours - make plans to meet up tonight!
                 </p>
               </>
             ) : (
               <>
                 You have <strong>{remainingMessages} message{remainingMessages !== 1 ? 's' : ''} remaining</strong> for this match.
-                <p className="mt-3 text-sm text-neutral-600">
+                <p className="mt-3 text-sm text-neutral-400">
                   Match active for 24 hours - use them to make plans to meet up in person.
                 </p>
               </>

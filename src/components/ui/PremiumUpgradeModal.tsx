@@ -86,24 +86,24 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl m-4">
+      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-neutral-800 rounded-2xl shadow-2xl m-4 border border-neutral-700">
         {/* Header */}
-        <div className="relative p-6 border-b border-neutral-200">
+        <div className="relative p-6 border-b border-neutral-700">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-100 transition-colors"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-700 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-neutral-400" />
           </button>
           
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
               <Star className="w-8 h-8 text-yellow-500 mr-2" />
-              <h2 className="text-3xl font-bold text-neutral-900">
+              <h2 className="text-3xl font-bold text-white">
                 Upgrade to Premium
               </h2>
             </div>
-            <p className="text-neutral-600 text-lg">
+            <p className="text-neutral-400 text-lg">
               {trigger === 'match_limit' && "You've reached your daily match limit. Upgrade for unlimited matches!"}
               {trigger === 'message_limit' && "Unlock unlimited messaging to keep the conversation flowing!"}
               {trigger === 'manual' && "Unlock all premium features and enhance your dating experience"}
@@ -119,8 +119,8 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
                 key={plan.id}
                 className={`relative cursor-pointer transition-all hover:shadow-lg ${
                   selectedPlan === plan.id
-                    ? 'ring-2 ring-indigo-500 bg-indigo-50'
-                    : 'hover:bg-neutral-50'
+                    ? 'ring-2 ring-indigo-500 bg-indigo-900/30'
+                    : 'hover:bg-neutral-700'
                 }`}
                 onClick={() => setSelectedPlan(plan.id)}
               >
@@ -133,11 +133,11 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                   {plan.description && (
-                    <CardDescription className="text-neutral-600">{plan.description}</CardDescription>
+                    <CardDescription className="text-neutral-400">{plan.description}</CardDescription>
                   )}
                   
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-neutral-900">
+                    <span className="text-4xl font-bold text-white">
                       ${plan.price}
                     </span>
                     <span className="text-neutral-500 ml-2">
@@ -147,7 +147,7 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
                   
                   {plan.trialDays && (
                     <div className="mt-2">
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Badge variant="secondary" className="bg-green-900/50 text-green-400 border border-green-700">
                         {plan.trialDays}-day free trial
                       </Badge>
                     </div>
@@ -159,7 +159,7 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
                     {plan.features.map((feature: string, index: number) => (
                       <li key={index} className="flex items-center">
                         <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
+                        <span className="text-neutral-300">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -171,8 +171,8 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
           {/* Feature Comparison */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold mb-4 text-center">Feature Comparison</h3>
-            <div className="bg-neutral-50 rounded-xl p-6">
-              <div className="grid grid-cols-3 gap-4 text-sm font-medium text-neutral-600 mb-4">
+            <div className="bg-neutral-900/50 rounded-xl p-6">
+              <div className="grid grid-cols-3 gap-4 text-sm font-medium text-neutral-400 mb-4">
                 <div>Feature</div>
                 <div className="text-center">Free</div>
                 <div className="text-center">Premium</div>
@@ -180,10 +180,10 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
               
               <div className="space-y-3">
                 {features.map((feature, index) => (
-                  <div key={index} className="grid grid-cols-3 gap-4 items-center py-2 border-b border-neutral-200 last:border-b-0">
+                  <div key={index} className="grid grid-cols-3 gap-4 items-center py-2 border-b border-neutral-700 last:border-b-0">
                     <div className="flex items-center">
-                      <feature.icon className="w-4 h-4 mr-2 text-neutral-500" />
-                      <span className="text-neutral-700">{feature.text}</span>
+                      <feature.icon className="w-4 h-4 mr-2 text-neutral-400" />
+                      <span className="text-neutral-300">{feature.text}</span>
                     </div>
                     <div className="text-center">
                       {feature.free ? (
@@ -213,7 +213,7 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
                 placeholder="Enter promo code"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                className="flex-1 px-4 py-2 border border-neutral-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-neutral-700 text-white placeholder:text-neutral-500 text-base"
               />
               <Button
                 onClick={handlePromoCode}

@@ -45,7 +45,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="border border-neutral-200 hover:border-indigo-300 hover:shadow-md transition-all overflow-hidden bg-white">
+      <Card className="border border-neutral-700 hover:border-indigo-500 hover:shadow-md transition-all overflow-hidden bg-neutral-800">
         {/* User Image */}
         <div className="relative h-64 w-full overflow-hidden bg-neutral-200">
           {user.photos && user.photos.length > 0 ? (
@@ -79,15 +79,15 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-neutral-900 truncate">
+              <h3 className="text-lg font-semibold text-white truncate">
                 {user.name}
-                {user.age && <span className="text-neutral-600 font-normal">, {user.age}</span>}
+                {user.age && <span className="text-neutral-400 font-normal">, {user.age}</span>}
               </h3>
             </div>
           </div>
           
           {user.bio && (
-            <p className="text-sm text-neutral-600 mb-4 line-clamp-2">{user.bio}</p>
+            <p className="text-sm text-neutral-400 mb-4 line-clamp-2">{user.bio}</p>
           )}
 
           <Button

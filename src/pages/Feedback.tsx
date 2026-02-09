@@ -53,7 +53,7 @@ export default function Feedback() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-20">
+      <div className="min-h-screen bg-neutral-900 pb-nav-safe">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Back Button */}
           <div className="mb-4">
@@ -61,14 +61,14 @@ export default function Feedback() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/settings')}
-              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+              className="text-indigo-400 hover:text-indigo-300 hover:bg-neutral-800"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Settings
             </Button>
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2">Feedback</h1>
-          <p className="text-sm text-neutral-600 mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">Feedback</h1>
+          <p className="text-sm text-neutral-400 mb-6">
             Tell us what feels good, broken, or missing. Your feedback helps us improve!
           </p>
 
@@ -76,7 +76,7 @@ export default function Feedback() {
             <textarea
               value={text}
               onChange={e => setText(e.target.value)}
-              className="w-full rounded-xl border border-neutral-200 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full rounded-xl border border-neutral-700 bg-neutral-800 text-white px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-neutral-500 text-base"
               rows={5}
               placeholder="Share your thoughts, report bugs, or suggest features..."
               disabled={isSubmitting}
@@ -99,14 +99,14 @@ export default function Feedback() {
 
           {items.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-3">Your Previous Feedback</h2>
+              <h2 className="text-lg font-semibold text-white mb-3">Your Previous Feedback</h2>
               <div className="space-y-2">
                 {items.map((it) => (
-                  <div key={it.id || it.createdAt} className="rounded-xl border border-neutral-200 bg-white p-4">
-                    <div className="text-xs text-neutral-400 mb-1">
+                  <div key={it.id || it.createdAt} className="rounded-xl border border-neutral-700 bg-neutral-800 p-4">
+                    <div className="text-xs text-neutral-500 mb-1">
                       {new Date(it.createdAt).toLocaleString()}
                     </div>
-                    <div className="text-sm text-neutral-700">{it.message}</div>
+                    <div className="text-sm text-neutral-300">{it.message}</div>
                   </div>
                 ))}
               </div>

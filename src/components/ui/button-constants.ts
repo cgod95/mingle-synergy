@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority"
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] touch-action-manipulation",
   {
     variants: {
       variant: {
@@ -16,10 +16,10 @@ export const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/90 active:text-primary/80 dark:text-primary dark:hover:text-primary/90",
       },
       size: {
-        default: "h-10 px-4 py-2 min-w-[100px]",
-        sm: "h-9 rounded-md px-3 text-xs min-w-[80px]",
-        lg: "h-12 rounded-lg px-8 text-base min-w-[120px]",
-        icon: "h-10 w-10",
+        default: "h-11 px-4 py-2 min-w-[100px] min-h-[44px]",
+        sm: "h-10 rounded-md px-3 text-xs min-w-[80px] min-h-[44px]",
+        lg: "h-12 rounded-lg px-8 text-base min-w-[120px] min-h-[48px]",
+        icon: "h-11 w-11 min-h-[44px] min-w-[44px]",
       },
     },
     defaultVariants: {
