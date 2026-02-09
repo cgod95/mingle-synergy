@@ -124,24 +124,24 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="text-center p-3 bg-white/50 rounded-lg">
+            <div className="text-center p-3 bg-neutral-800/50 rounded-lg">
               <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <div className="text-lg font-semibold text-slate-800">Real Users</div>
               <div className="text-sm text-slate-600">Connect with real people</div>
             </div>
-            <div className="text-center p-3 bg-white/50 rounded-lg">
+            <div className="text-center p-3 bg-neutral-800/50 rounded-lg">
               <MapPin className="w-8 h-8 text-green-600 mx-auto mb-2" />
               <div className="text-lg font-semibold text-slate-800">Real Venues</div>
               <div className="text-sm text-slate-600">Check in at real locations</div>
             </div>
-            <div className="text-center p-3 bg-white/50 rounded-lg">
+            <div className="text-center p-3 bg-neutral-800/50 rounded-lg">
               <MessageCircle className="w-8 h-8 text-purple-600 mx-auto mb-2" />
               <div className="text-lg font-semibold text-slate-800">Real Chat</div>
               <div className="text-sm text-slate-600">Real conversations</div>
             </div>
           </div>
           
-          <div className="bg-white/70 rounded-lg p-4 border border-yellow-200">
+          <div className="bg-neutral-800/70 rounded-lg p-4 border border-yellow-700/50">
             <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
               <Info className="w-4 h-4 mr-2 text-blue-600" />
               Quick Start Guide

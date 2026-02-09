@@ -5,7 +5,7 @@ export default function AppShell() {
   const loc = useLocation();
   const hideTabs = false; // keep tabs visible across app for now
   return (
-    <div className="mx-auto min-h-dvh max-w-screen-md bg-neutral-50 text-neutral-900">
+    <div className="mx-auto min-h-dvh max-w-screen-md bg-neutral-900 text-white">
       <main className="pb-[76px]">
         <Outlet />
       </main>

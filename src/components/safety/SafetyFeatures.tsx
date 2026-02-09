@@ -168,10 +168,10 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
       {/* Header */}
       <div className="text-center">
         <Shield className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-white mb-2">
           Safety & Trust
         </h2>
-        <p className="text-gray-600 max-w-md mx-auto">
+        <p className="text-neutral-400 max-w-md mx-auto">
           Your safety is our priority. Use these tools to stay safe and report any concerns.
         </p>
       </div>
@@ -189,7 +189,7 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                 activeTab === tab.id
                   ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-700"
+                  : "bg-gray-50 text-neutral-400 hover:bg-gray-100 hover:text-gray-700"
               )}
             >
               <Icon className="w-4 h-4" />
@@ -211,14 +211,14 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
         >
           {activeTab === 'overview' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="p-2 bg-red-100 rounded-lg">
                     <Flag className="w-5 h-5 text-red-600" />
                   </div>
-                  <h3 className="font-semibold text-gray-900">Report Issues</h3>
+                  <h3 className="font-semibold text-white">Report Issues</h3>
                 </div>
-                <p className="text-gray-600 mb-4">
+                <p className="text-neutral-400 mb-4">
                   Report inappropriate behavior, fake profiles, or safety concerns.
                 </p>
                 <button
@@ -229,14 +229,14 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
                 </button>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="p-2 bg-gray-100 rounded-lg">
-                    <UserX className="w-5 h-5 text-gray-600" />
+                    <UserX className="w-5 h-5 text-neutral-400" />
                   </div>
-                  <h3 className="font-semibold text-gray-900">Block Users</h3>
+                  <h3 className="font-semibold text-white">Block Users</h3>
                 </div>
-                <p className="text-gray-600 mb-4">
+                <p className="text-neutral-400 mb-4">
                   Block users you don't want to interact with anymore.
                 </p>
                 <button
@@ -247,14 +247,14 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
                 </button>
               </div>
 
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="p-2 bg-green-100 rounded-lg">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                   </div>
-                  <h3 className="font-semibold text-gray-900">Verify Profile</h3>
+                  <h3 className="font-semibold text-white">Verify Profile</h3>
                 </div>
-                <p className="text-gray-600 mb-4">
+                <p className="text-neutral-400 mb-4">
                   Get verified to show others you're a real person.
                 </p>
                 <button
@@ -269,8 +269,8 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
 
           {activeTab === 'report' && (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+                <h3 className="text-lg font-semibold text-white mb-4">
                   Report a User
                 </h3>
                 
@@ -294,8 +294,8 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
                             className="mt-1"
                           />
                           <div className="flex-1">
-                            <div className="font-medium text-gray-900">{reason.label}</div>
-                            <div className="text-sm text-gray-600">{reason.description}</div>
+                            <div className="font-medium text-white">{reason.label}</div>
+                            <div className="text-sm text-neutral-400">{reason.description}</div>
                           </div>
                         </label>
                       ))}
@@ -340,8 +340,8 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
 
           {activeTab === 'block' && (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+                <h3 className="text-lg font-semibold text-white mb-4">
                   Blocked Users
                 </h3>
                 
@@ -356,26 +356,26 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
 
           {activeTab === 'verify' && (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+              <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
                 <div className="text-center">
                   <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg font-semibold text-white mb-2">
                     Verify Your Profile
                   </h3>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-neutral-400 mb-6">
                     Get a verification badge to show others you're a real person. This helps build trust and increases your matches.
                   </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <Camera className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                      <h4 className="font-medium text-gray-900">Take a Selfie</h4>
-                      <p className="text-sm text-gray-600">We'll compare it to your profile photos</p>
+                      <h4 className="font-medium text-white">Take a Selfie</h4>
+                      <p className="text-sm text-neutral-400">We'll compare it to your profile photos</p>
                     </div>
                     <div className="p-4 bg-green-50 rounded-lg">
                       <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                      <h4 className="font-medium text-gray-900">Get Verified</h4>
-                      <p className="text-sm text-gray-600">Receive your verification badge</p>
+                      <h4 className="font-medium text-white">Get Verified</h4>
+                      <p className="text-sm text-neutral-400">Receive your verification badge</p>
                     </div>
                   </div>
                   
@@ -399,15 +399,15 @@ const SafetyFeatures: React.FC<SafetyFeaturesProps> = ({ className }) => {
                     key={tip.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                    className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start space-x-4">
                       <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
                         <Icon className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-2">{tip.title}</h3>
-                        <p className="text-gray-600 text-sm">{tip.description}</p>
+                        <h3 className="font-semibold text-white mb-2">{tip.title}</h3>
+                        <p className="text-neutral-400 text-sm">{tip.description}</p>
                       </div>
                     </div>
                   </motion.div>

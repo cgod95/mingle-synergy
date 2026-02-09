@@ -184,7 +184,7 @@ export default function VenueDetails() {
   };
 
   return (
-    <div className="mb-20 bg-neutral-900 min-h-screen">
+    <div className="mb-20 bg-neutral-900 min-h-screen min-h-[100dvh]">
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Back Button */}
         <div className="mb-4">

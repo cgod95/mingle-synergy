@@ -420,7 +420,7 @@ export const MarketingAssets: React.FC = () => {
 
           {/* Feature Screenshots */}
           {[1, 2, 3].map((i) => (
-            <div key={i} className="aspect-[9/16] bg-white border rounded-lg p-4 flex flex-col items-center justify-center">
+            <div key={i} className="aspect-[9/16] bg-neutral-800 border border-neutral-700 rounded-lg p-4 flex flex-col items-center justify-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                 <Logo variant="icon" size="md" />
               </div>
@@ -438,7 +438,7 @@ export const MarketingAssets: React.FC = () => {
         <h2 className="text-2xl font-semibold text-gray-900">Print Materials</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Business Card */}
-          <div className="aspect-[1.75/1] bg-white border rounded-lg p-6 flex items-center justify-between">
+          <div className="aspect-[1.75/1] bg-neutral-800 border border-neutral-700 rounded-lg p-6 flex items-center justify-between">
             <div>
               <Logo variant="full" size="md" />
               <p className="text-sm text-gray-600 mt-2">Business Development</p>

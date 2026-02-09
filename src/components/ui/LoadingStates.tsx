@@ -237,10 +237,10 @@ export const InfiniteScrollLoader: React.FC<{ isLoading: boolean }> = ({ isLoadi
 export const FullPageLoader: React.FC<{ message?: string }> = ({ 
   message = "Loading..." 
 }) => (
-  <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-neutral-900/95 flex items-center justify-center z-50">
     <div className="text-center space-y-4">
-      <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full mx-auto animate-spin" />
-      <p className="text-neutral-600">{message}</p>
+      <div className="w-12 h-12 border-4 border-neutral-700 border-t-indigo-500 rounded-full mx-auto animate-spin" />
+      <p className="text-neutral-400">{message}</p>
     </div>
   </div>
 );

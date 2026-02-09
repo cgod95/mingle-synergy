@@ -171,23 +171,23 @@ const AdvancedAdmin: React.FC = () => {
       case 'healthy': return 'text-green-600';
       case 'warning': return 'text-yellow-600';
       case 'critical': return 'text-red-600';
-      default: return 'text-gray-600';
+      default: return 'text-neutral-400';
     }
   };
 
   if (isLoading) {
     return (
       <PrivateLayout>
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
           <div className="max-w-7xl mx-auto p-4">
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-8 bg-neutral-800 rounded w-1/4 mb-4"></div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-32 bg-gray-200 rounded"></div>
+                  <div key={i} className="h-32 bg-neutral-800 rounded"></div>
                 ))}
               </div>
-              <div className="h-96 bg-gray-200 rounded"></div>
+              <div className="h-96 bg-neutral-800 rounded"></div>
             </div>
           </div>
         </div>
@@ -198,11 +198,11 @@ const AdvancedAdmin: React.FC = () => {
   if (!metrics || !analytics || !security) {
     return (
       <PrivateLayout>
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
           <div className="max-w-7xl mx-auto p-4">
             <div className="text-center py-12">
-              <h2 className="text-xl font-semibold mb-2">No Admin Data Available</h2>
-              <p className="text-gray-600">Unable to load admin dashboard data</p>
+              <h2 className="text-xl font-semibold text-white mb-2">No Admin Data Available</h2>
+              <p className="text-neutral-400">Unable to load admin dashboard data</p>
             </div>
           </div>
         </div>
@@ -212,12 +212,12 @@ const AdvancedAdmin: React.FC = () => {
 
   return (
     <PrivateLayout>
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
         <div className="max-w-7xl mx-auto p-4">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Advanced Admin Dashboard</h1>
-            <p className="text-gray-600">Comprehensive system monitoring and analytics</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Advanced Admin Dashboard</h1>
+            <p className="text-neutral-400">Comprehensive system monitoring and analytics</p>
           </div>
 
           {/* Controls */}
@@ -266,7 +266,7 @@ const AdvancedAdmin: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">System Health</p>
+                    <p className="text-sm font-medium text-neutral-400">System Health</p>
                     <p className={`text-2xl font-bold ${getHealthColor(metrics.systemHealth)}`}>
                       {metrics.systemHealth.toUpperCase()}
                     </p>
@@ -274,8 +274,8 @@ const AdvancedAdmin: React.FC = () => {
                   <Activity className="w-8 h-8 text-green-500" />
                 </div>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-600">Uptime: {metrics.uptime}%</p>
-                  <p className="text-sm text-gray-600">Response: {metrics.responseTime}ms</p>
+                  <p className="text-sm text-neutral-400">Uptime: {metrics.uptime}%</p>
+                  <p className="text-sm text-neutral-400">Response: {metrics.responseTime}ms</p>
                 </div>
               </CardContent>
             </Card>
@@ -284,13 +284,13 @@ const AdvancedAdmin: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Users</p>
+                    <p className="text-sm font-medium text-neutral-400">Total Users</p>
                     <p className="text-2xl font-bold">{metrics.totalUsers.toLocaleString()}</p>
                   </div>
                   <Users className="w-8 h-8 text-blue-500" />
                 </div>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-600">Active: {metrics.activeUsers.toLocaleString()}</p>
+                  <p className="text-sm text-neutral-400">Active: {metrics.activeUsers.toLocaleString()}</p>
                   <Progress value={(metrics.activeUsers / metrics.totalUsers) * 100} className="h-2 mt-1" />
                 </div>
               </CardContent>
@@ -300,13 +300,13 @@ const AdvancedAdmin: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Matches</p>
+                    <p className="text-sm font-medium text-neutral-400">Total Matches</p>
                     <p className="text-2xl font-bold">{metrics.totalMatches.toLocaleString()}</p>
                   </div>
                   <Heart className="w-8 h-8 text-red-500" />
                 </div>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-600">Messages: {metrics.totalMessages.toLocaleString()}</p>
+                  <p className="text-sm text-neutral-400">Messages: {metrics.totalMessages.toLocaleString()}</p>
                   <Progress value={75} className="h-2 mt-1" />
                 </div>
               </CardContent>
@@ -316,13 +316,13 @@ const AdvancedAdmin: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Error Rate</p>
+                    <p className="text-sm font-medium text-neutral-400">Error Rate</p>
                     <p className="text-2xl font-bold">{metrics.errorRate}%</p>
                   </div>
                   <AlertTriangle className="w-8 h-8 text-yellow-500" />
                 </div>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-600">Last 24 hours</p>
+                  <p className="text-sm text-neutral-400">Last 24 hours</p>
                   <Progress value={100 - metrics.errorRate} className="h-2 mt-1" />
                 </div>
               </CardContent>
@@ -375,7 +375,7 @@ const AdvancedAdmin: React.FC = () => {
                         <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <p className="font-medium">{venue.name}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-neutral-400">
                               {venue.checkins} check-ins • {venue.matches} matches
                             </p>
                           </div>
@@ -473,22 +473,22 @@ const AdvancedAdmin: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-2xl font-bold text-red-600">{security.failedLogins}</p>
-                        <p className="text-sm text-gray-600">Failed Logins</p>
+                        <p className="text-sm text-neutral-400">Failed Logins</p>
                       </div>
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-2xl font-bold text-yellow-600">{security.suspiciousActivity}</p>
-                        <p className="text-sm text-gray-600">Suspicious Activity</p>
+                        <p className="text-sm text-neutral-400">Suspicious Activity</p>
                       </div>
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-2xl font-bold text-red-600">{security.blockedUsers}</p>
-                        <p className="text-sm text-gray-600">Blocked Users</p>
+                        <p className="text-sm text-neutral-400">Blocked Users</p>
                       </div>
                       <div className="text-center p-3 border rounded-lg">
                         <p className="text-2xl font-bold text-green-600">{security.dataBreaches}</p>
-                        <p className="text-sm text-gray-600">Data Breaches</p>
+                        <p className="text-sm text-neutral-400">Data Breaches</p>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-neutral-400">
                       Last Security Scan: {new Date(security.lastSecurityScan).toLocaleString()}
                     </div>
                   </CardContent>
@@ -528,7 +528,7 @@ const AdvancedAdmin: React.FC = () => {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Uptime</span>
-                        <span className="text-sm text-gray-600">{metrics.uptime}%</span>
+                        <span className="text-sm text-neutral-400">{metrics.uptime}%</span>
                       </div>
                       <Progress value={metrics.uptime} className="h-2" />
                     </div>
@@ -536,7 +536,7 @@ const AdvancedAdmin: React.FC = () => {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Response Time</span>
-                        <span className="text-sm text-gray-600">{metrics.responseTime}ms</span>
+                        <span className="text-sm text-neutral-400">{metrics.responseTime}ms</span>
                       </div>
                       <Progress value={100 - (metrics.responseTime / 1000) * 100} className="h-2" />
                     </div>
@@ -544,7 +544,7 @@ const AdvancedAdmin: React.FC = () => {
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Error Rate</span>
-                        <span className="text-sm text-gray-600">{metrics.errorRate}%</span>
+                        <span className="text-sm text-neutral-400">{metrics.errorRate}%</span>
                       </div>
                       <Progress value={100 - metrics.errorRate} className="h-2" />
                     </div>

@@ -31,8 +31,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId }) =>
               className={cn(
                 "max-w-[75%] px-4 py-2 rounded-lg text-sm",
                 isCurrentUser
-                  ? "bg-blue-500 text-white self-end ml-auto"
-                  : "bg-white border text-gray-900 self-start mr-auto"
+                  ? "bg-indigo-600 text-white self-end ml-auto"
+                  : "bg-neutral-700 border border-neutral-600 text-neutral-200 self-start mr-auto"
               )}
             >
               <p>{msg.text}</p>

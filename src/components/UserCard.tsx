@@ -68,7 +68,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
           )}
           {user.age && (
             <div className="absolute top-3 right-3">
-              <Badge className="bg-white/90 backdrop-blur-sm text-neutral-700 border border-neutral-200">
+              <Badge className="bg-neutral-800/90 backdrop-blur-sm text-neutral-200 border border-neutral-600">
                 {user.age}
               </Badge>
             </div>

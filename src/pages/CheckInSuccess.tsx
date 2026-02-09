@@ -9,7 +9,7 @@ export default function CheckInSuccess() {
 
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12 text-center pb-20">
+      <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] bg-neutral-900 px-4 py-12 text-center pb-20">
         <SuccessAlert message="You've successfully checked in to the venue!" />
         <h1 className="text-3xl font-bold mb-4">You're checked in! 🎉</h1>
         <p className="text-lg text-muted-foreground mb-6">

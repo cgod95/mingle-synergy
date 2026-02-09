@@ -160,13 +160,13 @@ const Billing: React.FC = () => {
   if (isLoading) {
     return (
       <PrivateLayout>
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
           <div className="max-w-4xl mx-auto p-4">
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-8 bg-neutral-800 rounded w-1/4 mb-4"></div>
               <div className="space-y-4">
-                <div className="h-64 bg-gray-200 rounded"></div>
-                <div className="h-64 bg-gray-200 rounded"></div>
+                <div className="h-64 bg-neutral-800 rounded"></div>
+                <div className="h-64 bg-neutral-800 rounded"></div>
               </div>
             </div>
           </div>
@@ -177,7 +177,7 @@ const Billing: React.FC = () => {
 
   return (
     <PrivateLayout>
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
         <div className="max-w-4xl mx-auto p-4">
           {/* Header */}
           <div className="mb-6">
@@ -189,8 +189,8 @@ const Billing: React.FC = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Billing & Subscription</h1>
-            <p className="text-gray-600">Manage your subscription and payment methods</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Billing & Subscription</h1>
+            <p className="text-neutral-400">Manage your subscription and payment methods</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -209,7 +209,7 @@ const Billing: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-xl font-semibold">{currentTier.name}</h3>
-                          <p className="text-gray-600">
+                          <p className="text-neutral-400">
                             {formatCurrency(currentTier.price)}/{currentTier.interval}
                           </p>
                         </div>
@@ -224,7 +224,7 @@ const Billing: React.FC = () => {
                         <h4 className="font-medium mb-2">Features:</h4>
                         <ul className="space-y-1">
                           {currentTier.features.map((feature, index) => (
-                            <li key={index} className="flex items-center text-sm text-gray-600">
+                            <li key={index} className="flex items-center text-sm text-neutral-400">
                               <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
                               {feature}
                             </li>
@@ -245,7 +245,7 @@ const Billing: React.FC = () => {
                     <div className="text-center py-8">
                       <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                       <h3 className="text-lg font-medium mb-2">No Active Plan</h3>
-                      <p className="text-gray-600 mb-4">Choose a plan to unlock premium features</p>
+                      <p className="text-neutral-400 mb-4">Choose a plan to unlock premium features</p>
                       <Button onClick={() => navigate('/settings')}>
                         View Plans
                       </Button>
@@ -274,13 +274,13 @@ const Billing: React.FC = () => {
                           </Badge>
                         )}
                         <h3 className="text-lg font-semibold">{tier.name}</h3>
-                        <p className="text-2xl font-bold text-gray-900 mb-2">
+                        <p className="text-2xl font-bold text-white mb-2">
                           {formatCurrency(tier.price)}
-                          <span className="text-sm font-normal text-gray-600">/{tier.interval}</span>
+                          <span className="text-sm font-normal text-neutral-400">/{tier.interval}</span>
                         </p>
                         <ul className="space-y-1 mb-4">
                           {tier.features.slice(0, 3).map((feature, index) => (
-                            <li key={index} className="text-sm text-gray-600">• {feature}</li>
+                            <li key={index} className="text-sm text-neutral-400">• {feature}</li>
                           ))}
                         </ul>
                         <Button

@@ -79,7 +79,7 @@ export default function OnboardingPhoto() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] bg-neutral-900 px-4 text-center">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
           <CardTitle>Upload Your Photos</CardTitle>

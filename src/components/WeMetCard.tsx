@@ -17,7 +17,7 @@ const WeMetCard: React.FC<WeMetCardProps> = ({ user, onConfirmWeMet }) => {
   };
 
   return (
-    <div className="rounded-2xl shadow p-4 bg-white flex flex-col items-center text-center">
+    <div className="rounded-2xl shadow p-4 bg-neutral-800 border border-neutral-700 flex flex-col items-center text-center">
       <img 
         src={user.photos?.[0] || '/placeholder.svg'} 
         alt={user.name} 

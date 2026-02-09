@@ -34,7 +34,7 @@ const OnboardingProfile: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] bg-neutral-900 px-4">
       <h1 className="text-2xl font-bold mb-6">Create Your Profile</h1>
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
         <div>

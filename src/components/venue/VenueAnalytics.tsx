@@ -171,7 +171,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
       <div className={cn("flex items-center justify-center py-12", className)}>
         <div className="text-center">
           <Activity className="w-8 h-8 text-blue-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading analytics...</p>
+          <p className="text-neutral-400">Loading analytics...</p>
         </div>
       </div>
     );
@@ -182,10 +182,10 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-white">
             {venueName} Analytics
           </h2>
-          <p className="text-gray-600">
+          <p className="text-neutral-400">
             Real-time insights and performance metrics
           </p>
         </div>
@@ -215,8 +215,8 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                 "flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                 activeTab === tab.id
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-700"
+                  ? "bg-blue-900/50 text-blue-700 border border-blue-200"
+                  : "bg-gray-50 text-neutral-400 hover:bg-gray-100 hover:text-gray-700"
               )}
             >
               <Icon className="w-4 h-4" />
@@ -239,16 +239,16 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Check-ins</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-neutral-400">Total Check-ins</p>
+                  <p className="text-2xl font-bold text-white">
                     {formatNumber(analyticsData.overview.totalCheckIns)}
                   </p>
                 </div>
-                <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="p-2 bg-blue-900/50 rounded-lg">
                   <MapPin className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
@@ -262,16 +262,16 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1 }}
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Users</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-neutral-400">Active Users</p>
+                  <p className="text-2xl font-bold text-white">
                     {analyticsData.overview.activeUsers}
                   </p>
                 </div>
-                <div className="p-2 bg-green-100 rounded-lg">
+                <div className="p-2 bg-green-900/50 rounded-lg">
                   <Users className="w-5 h-5 text-green-600" />
                 </div>
               </div>
@@ -285,12 +285,12 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Matches</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-neutral-400">Total Matches</p>
+                  <p className="text-2xl font-bold text-white">
                     {formatNumber(analyticsData.overview.totalMatches)}
                   </p>
                 </div>
@@ -308,16 +308,16 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-neutral-400">Revenue</p>
+                  <p className="text-2xl font-bold text-white">
                     ${analyticsData.overview.revenue.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-2 bg-purple-100 rounded-lg">
+                <div className="p-2 bg-purple-900/50 rounded-lg">
                   <Zap className="w-5 h-5 text-purple-600" />
                 </div>
               </div>
@@ -331,14 +331,14 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
 
         {activeTab === 'trends' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+              <h3 className="text-lg font-semibold text-white mb-4">
                 Daily Check-ins
               </h3>
               <div className="space-y-3">
                 {analyticsData.trends.dailyCheckIns.map((day, index) => (
                   <div key={day.date} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-neutral-400">
                       {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
                     </span>
                     <div className="flex items-center space-x-2">
@@ -348,7 +348,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                           style={{ width: `${(day.count / 100) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 w-8 text-right">
+                      <span className="text-sm font-medium text-white w-8 text-right">
                         {day.count}
                       </span>
                     </div>
@@ -357,14 +357,14 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+              <h3 className="text-lg font-semibold text-white mb-4">
                 Peak Hours
               </h3>
               <div className="grid grid-cols-6 gap-2">
                 {analyticsData.trends.hourlyActivity.map((hour) => (
                   <div key={hour.hour} className="text-center">
-                    <div className="text-xs text-gray-600 mb-1">
+                    <div className="text-xs text-neutral-400 mb-1">
                       {hour.hour === 0 ? '12 AM' : hour.hour <= 12 ? `${hour.hour} ${hour.hour === 12 ? 'PM' : 'AM'}` : `${hour.hour - 12} PM`}
                     </div>
                     <div className="bg-gray-200 rounded h-20 relative">
@@ -383,14 +383,14 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
 
         {activeTab === 'demographics' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+              <h3 className="text-lg font-semibold text-white mb-4">
                 Age Distribution
               </h3>
               <div className="space-y-3">
                 {analyticsData.demographics.ageGroups.map((group) => (
                   <div key={group.range} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{group.range}</span>
+                    <span className="text-sm text-neutral-400">{group.range}</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div
@@ -398,7 +398,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                           style={{ width: `${group.percentage}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 w-12 text-right">
+                      <span className="text-sm font-medium text-white w-12 text-right">
                         {group.percentage}%
                       </span>
                     </div>
@@ -407,14 +407,14 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+              <h3 className="text-lg font-semibold text-white mb-4">
                 Top Interests
               </h3>
               <div className="space-y-3">
                 {analyticsData.demographics.interests.slice(0, 5).map((interest) => (
                   <div key={interest.interest} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{interest.interest}</span>
+                    <span className="text-sm text-neutral-400">{interest.interest}</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div
@@ -422,7 +422,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                           style={{ width: `${interest.percentage}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 w-12 text-right">
+                      <span className="text-sm font-medium text-white w-12 text-right">
                         {interest.percentage}%
                       </span>
                     </div>
@@ -435,31 +435,31 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
 
         {activeTab === 'performance' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+              <h3 className="text-lg font-semibold text-white mb-4">
                 Key Metrics
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Match Rate</span>
+                  <span className="text-sm text-neutral-400">Match Rate</span>
                   <span className="text-lg font-semibold text-green-600">
                     {formatPercentage(analyticsData.performance.matchRate)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Response Rate</span>
+                  <span className="text-sm text-neutral-400">Response Rate</span>
                   <span className="text-lg font-semibold text-blue-600">
                     {formatPercentage(analyticsData.performance.messageResponseRate)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Retention Rate</span>
+                  <span className="text-sm text-neutral-400">Retention Rate</span>
                   <span className="text-lg font-semibold text-purple-600">
                     {formatPercentage(analyticsData.performance.userRetentionRate)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Avg Session</span>
+                  <span className="text-sm text-neutral-400">Avg Session</span>
                   <span className="text-lg font-semibold text-orange-600">
                     {analyticsData.performance.averageSessionDuration} min
                   </span>
@@ -467,14 +467,14 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-neutral-800 p-6 rounded-xl border border-neutral-700 shadow-sm">
+              <h3 className="text-lg font-semibold text-white mb-4">
                 Popular Features
               </h3>
               <div className="space-y-3">
                 {analyticsData.performance.popularFeatures.map((feature) => (
                   <div key={feature.feature} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{feature.feature}</span>
+                    <span className="text-sm text-neutral-400">{feature.feature}</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div
@@ -482,7 +482,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                           style={{ width: `${(feature.usage / 250) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 w-12 text-right">
+                      <span className="text-sm font-medium text-white w-12 text-right">
                         {feature.usage}
                       </span>
                     </div>

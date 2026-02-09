@@ -394,7 +394,7 @@ export const AnimatedModal: React.FC<AnimatedModalProps> = ({
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className={cn(
-              'relative bg-white rounded-lg shadow-xl max-w-md w-full p-6',
+              'relative bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-w-md w-full p-6',
               className
             )}
             onClick={(e) => e.stopPropagation()}
@@ -874,7 +874,7 @@ export function HoverCard({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 10 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-50 top-full left-0 mt-2 p-3 bg-white border rounded-lg shadow-lg"
+            className="absolute z-50 top-full left-0 mt-2 p-3 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg"
           >
             {hoverContent}
           </motion.div>

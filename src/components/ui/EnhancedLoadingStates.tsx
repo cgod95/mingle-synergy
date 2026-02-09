@@ -57,7 +57,7 @@ export const UserProfileSkeleton: React.FC<{ className?: string }> = ({ classNam
 
 // Match card skeleton
 export const MatchCardSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm', className)}>
+  <div className={cn('bg-neutral-800 rounded-lg p-4 shadow-sm', className)}>
     <div className="flex items-center space-x-3">
       <Skeleton className="w-12 h-12" rounded="full" />
       <div className="flex-1 space-y-2">
@@ -79,7 +79,7 @@ export const MatchCardSkeleton: React.FC<{ className?: string }> = ({ className 
 
 // Venue card skeleton
 export const VenueCardSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm', className)}>
+  <div className={cn('bg-neutral-800 rounded-lg overflow-hidden shadow-sm', className)}>
     <Skeleton className="w-full h-32" />
     <div className="p-4 space-y-3">
       <Skeleton className="h-5 w-3/4" />
@@ -294,7 +294,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   return (
     <div className={cn("relative", className)}>
       {children}
-      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="absolute inset-0 bg-neutral-900/80 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-sm text-gray-600">{message}</p>

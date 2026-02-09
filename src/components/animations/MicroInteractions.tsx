@@ -56,7 +56,7 @@ export const MatchAnimation: React.FC<{ isVisible: boolean; onComplete?: () => v
             initial={{ rotate: -180, scale: 0 }}
             animate={{ rotate: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="bg-white rounded-full p-8 shadow-2xl"
+            className="bg-neutral-800 border border-neutral-700 rounded-full p-8 shadow-2xl"
           >
             <motion.div
               animate={{ 
@@ -316,7 +316,7 @@ export const AnimatedCard: React.FC<{
         boxShadow: "0 10px 25px rgba(0,0,0,0.1)"
       }}
       transition={{ duration: 0.2 }}
-      className={`bg-white rounded-lg shadow-sm ${className}`}
+      className={`bg-neutral-800 border border-neutral-700 rounded-lg shadow-sm ${className}`}
     >
       {children}
     </motion.div>

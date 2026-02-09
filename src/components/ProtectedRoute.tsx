@@ -30,7 +30,7 @@ const ProtectedRoute: React.FC<RouteWrapperProps> = ({ children }) => {
   // Show loading state while checking auth/onboarding
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex items-center justify-center">
         <LoadingSpinner size="md" message="Loading..." />
       </div>
     );

@@ -44,12 +44,12 @@ const Contact: React.FC = () => {
   if (isSubmitted) {
     return (
       <PublicLayout>
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
           <div className="max-w-2xl mx-auto p-4">
             <div className="text-center py-12">
-              <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h1>
-              <p className="text-gray-600 mb-6">
+              <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
+              <h1 className="text-2xl font-bold text-white mb-2">Message Sent!</h1>
+              <p className="text-neutral-400 mb-6">
                 Thank you for contacting us. We'll get back to you within 24 hours.
               </p>
               <Button onClick={() => navigate('/')}>
@@ -64,7 +64,7 @@ const Contact: React.FC = () => {
 
   return (
     <PublicLayout>
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
         <div className="max-w-4xl mx-auto p-4">
           {/* Header */}
           <div className="mb-6">
@@ -76,8 +76,8 @@ const Contact: React.FC = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Contact Support</h1>
-            <p className="text-gray-600">Get in touch with our support team</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Contact Support</h1>
+            <p className="text-neutral-400">Get in touch with our support team</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -183,21 +183,21 @@ const Contact: React.FC = () => {
                     <Mail className="w-5 h-5 text-blue-600" />
                     <div>
                       <p className="font-medium">Email</p>
-                      <p className="text-sm text-gray-600">support@mingle.com</p>
+                      <p className="text-sm text-neutral-400">support@mingle.com</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <MessageCircle className="w-5 h-5 text-green-600" />
                     <div>
                       <p className="font-medium">Live Chat</p>
-                      <p className="text-sm text-gray-600">Available 24/7</p>
+                      <p className="text-sm text-neutral-400">Available 24/7</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Clock className="w-5 h-5 text-orange-600" />
                     <div>
                       <p className="font-medium">Response Time</p>
-                      <p className="text-sm text-gray-600">Within 24 hours</p>
+                      <p className="text-sm text-neutral-400">Within 24 hours</p>
                     </div>
                   </div>
                 </CardContent>

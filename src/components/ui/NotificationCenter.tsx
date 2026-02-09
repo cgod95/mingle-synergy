@@ -200,9 +200,9 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+            className="absolute right-0 top-full mt-2 w-80 bg-neutral-800 rounded-lg shadow-lg border border-neutral-700 z-50"
           >
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-neutral-700">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Notifications</h3>
                 <div className="flex items-center space-x-2">

@@ -34,7 +34,7 @@ export default function DemoWelcome() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-900">
+    <div className="min-h-screen min-h-[100dvh] bg-neutral-900">
       <MingleHeader />
       <div className="flex items-center justify-center p-4 pt-8 min-h-[calc(100dvh-4rem)]">
         <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">

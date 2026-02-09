@@ -20,12 +20,12 @@ const VenueHeader: React.FC<VenueHeaderProps> = ({ venue, onCheckOut, expiryTime
   };
   
   return (
-    <div className="p-4 bg-white rounded-xl shadow-sm mb-4">
+    <div className="p-4 bg-neutral-800 border border-neutral-700 rounded-xl shadow-sm mb-4">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-xl font-bold">{venue.name}</h1>
-          {venue.address && <p className="text-gray-600 text-sm">{venue.address}</p>}
-          <div className="flex items-center mt-2 text-sm text-gray-500">
+          <h1 className="text-xl font-bold text-white">{venue.name}</h1>
+          {venue.address && <p className="text-neutral-400 text-sm">{venue.address}</p>}
+          <div className="flex items-center mt-2 text-sm text-neutral-500">
             <Clock size={16} className="mr-1.5" />
             <span>Expires at {formatTime(expiryTime)}</span>
           </div>

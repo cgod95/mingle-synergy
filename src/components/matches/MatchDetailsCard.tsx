@@ -76,7 +76,7 @@ const MatchDetailsCard: React.FC<MatchDetailsCardProps> = ({
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-neutral-800 border border-neutral-700 rounded-lg shadow-sm overflow-hidden">
       <div className="p-4">
         <div className="flex items-center space-x-3 mb-4">
           <img 

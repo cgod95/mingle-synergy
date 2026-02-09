@@ -109,10 +109,10 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
       </div>
       
       {/* Prominent Check-out Box */}
-      <div className="bg-white shadow-md rounded-lg p-4 mb-4 flex justify-between items-center border-l-4 border-coral-500">
+      <div className="bg-neutral-800 shadow-md rounded-lg p-4 mb-4 flex justify-between items-center border-l-4 border-indigo-500">
         <div>
-          <span className="text-coral-700 font-medium">You are checked in</span>
-          <p className="text-xs text-gray-600">Other users can see you here</p>
+          <span className="text-indigo-400 font-medium">You are checked in</span>
+          <p className="text-xs text-neutral-400">Other users can see you here</p>
         </div>
         <button 
           onClick={onCheckOut}

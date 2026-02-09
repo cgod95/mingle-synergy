@@ -108,14 +108,14 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white shadow-2xl">
-        <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
-          <h2 className="text-lg font-semibold text-neutral-800">Scan QR Code</h2>
+      <Card className="w-full max-w-md bg-neutral-800 border border-neutral-700 shadow-2xl">
+        <div className="p-4 border-b border-neutral-700 flex items-center justify-between bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+          <h2 className="text-lg font-semibold text-white">Scan QR Code</h2>
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={onClose}
-            className="hover:bg-neutral-100"
+            className="hover:bg-neutral-700 text-neutral-400 min-h-[44px] min-w-[44px]"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -124,8 +124,8 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
         <div className="p-4">
           {error ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-red-600" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900/50 flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-red-400" />
               </div>
               <p className="text-red-600 mb-2 font-medium">{error}</p>
               {cameraPermissionDenied && (

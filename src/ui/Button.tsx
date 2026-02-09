@@ -8,9 +8,9 @@ export default function Button({ variant="primary", size="md", className="", ...
   const base = "inline-flex items-center justify-center rounded-xl font-medium transition-all";
   const sizes = size==="sm" ? "h-9 px-3 text-sm" : "h-10 px-4 text-sm";
   const styles = {
-    primary:  "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
-    secondary:"bg-white border border-slate-200 text-slate-800 hover:bg-slate-50",
-    ghost:    "bg-transparent text-slate-700 hover:bg-slate-50",
+    primary:  "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm",
+    secondary:"bg-neutral-800 border border-neutral-700 text-neutral-200 hover:bg-neutral-700",
+    ghost:    "bg-transparent text-neutral-300 hover:bg-neutral-800",
     danger:   "bg-rose-600 text-white hover:bg-rose-700"
   }[variant];
   return <button className={`${base} ${sizes} ${styles} ${className}`} {...rest} />;

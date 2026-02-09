@@ -48,9 +48,9 @@ export default function ProfilePhotoUploader() {
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4">
+    <div className="rounded-2xl border border-neutral-700 bg-neutral-800 p-4">
       <div className="flex items-center gap-4">
-        <div className="size-20 overflow-hidden rounded-2xl bg-neutral-100 ring-1 ring-neutral-200">
+        <div className="size-20 overflow-hidden rounded-2xl bg-neutral-700 ring-1 ring-neutral-600">
           {preview ? (
             <img
               src={preview}
