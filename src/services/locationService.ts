@@ -160,18 +160,28 @@ export class LocationService {
   showLocationExplanationModal(onAccept: () => void) {
     // Create modal element
     const modalContainer = document.createElement('div');
-    modalContainer.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modalContainer.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999]';
+    modalContainer.style.animation = 'fadeIn 0.2s ease-out';
     
-    // Modal content
+    // Modal content - dark theme, industry-standard pre-permission
     modalContainer.innerHTML = `
-      <div class="bg-white rounded-lg p-6 m-4 max-w-sm">
-        <h3 class="text-xl font-bold mb-4">Allow Location Access</h3>
-        <p class="mb-4">Mingle needs your location to show you venues and people nearby. We only use your location when the app is open.</p>
-        <div class="flex justify-end space-x-3">
-          <button id="location-later" class="px-4 py-2 text-gray-600">Later</button>
-          <button id="location-allow" class="px-4 py-2 bg-brand-primary text-white rounded-lg">Allow</button>
+      <div class="bg-neutral-800 rounded-2xl p-6 m-4 max-w-sm border border-neutral-700 shadow-2xl" style="animation: slideUp 0.3s ease-out">
+        <div class="flex justify-center mb-4">
+          <div class="w-16 h-16 rounded-full bg-indigo-600/20 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgb(129,140,248)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+        </div>
+        <h3 class="text-xl font-bold mb-2 text-white text-center">Find Venues Near You</h3>
+        <p class="mb-6 text-neutral-400 text-center text-sm leading-relaxed">Mingle uses your location to show nearby venues and people. Your location is only used while the app is open and is never shared publicly.</p>
+        <div class="flex flex-col gap-3">
+          <button id="location-allow" class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-colors min-h-[48px]">Enable Location</button>
+          <button id="location-later" class="w-full px-4 py-3 text-neutral-400 hover:text-neutral-200 rounded-xl font-medium transition-colors min-h-[44px]">Not Now</button>
         </div>
       </div>
+      <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      </style>
     `;
     
     document.body.appendChild(modalContainer);

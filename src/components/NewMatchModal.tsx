@@ -7,8 +7,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MessageCircle, Heart, Sparkles } from 'lucide-react';
+import { X, MessageCircle, Heart, Sparkles, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { hapticHeavy } from '@/lib/haptics';
 
 interface NewMatchModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export function NewMatchModal({
 
   useEffect(() => {
     if (isOpen) {
+      hapticHeavy(); // Strong haptic for match celebration
       // Show content with delay for animation
       setTimeout(() => setShowContent(true), 100);
     } else {
@@ -173,6 +175,34 @@ export function NewMatchModal({
                       {partnerName}
                     </motion.p>
 
+                    {/* Notification prompt - contextual, only shown once */}
+                    {'Notification' in window && Notification.permission === 'default' && !localStorage.getItem('notif_prompt_shown') && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.55 }}
+                        className="mb-4 p-3 rounded-xl bg-indigo-900/30 border border-indigo-700/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Bell className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-neutral-300">Get notified when {partnerName} replies</p>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              localStorage.setItem('notif_prompt_shown', 'true');
+                              try {
+                                await Notification.requestPermission();
+                              } catch {}
+                            }}
+                            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 whitespace-nowrap"
+                          >
+                            Enable
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
                     {/* Action buttons */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -182,7 +212,7 @@ export function NewMatchModal({
                     >
                       <Button
                         onClick={handleSendMessage}
-                        className="w-full py-6 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg shadow-pink-500/25"
+                        className="w-full py-6 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg shadow-pink-500/25 min-h-[48px]"
                       >
                         <MessageCircle className="w-5 h-5 mr-2" />
                         Send a Message
@@ -191,7 +221,7 @@ export function NewMatchModal({
                       <Button
                         onClick={handleKeepBrowsing}
                         variant="ghost"
-                        className="w-full py-6 text-neutral-400 hover:text-white hover:bg-neutral-800/50 rounded-xl"
+                        className="w-full py-6 text-neutral-400 hover:text-white hover:bg-neutral-800/50 rounded-xl min-h-[44px]"
                       >
                         Keep Browsing
                       </Button>

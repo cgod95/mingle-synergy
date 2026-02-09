@@ -17,6 +17,8 @@ import { VenueCardSkeleton } from "@/components/ui/LoadingStates";
 import { calculateDistance } from "@/utils/locationUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, History } from "lucide-react";
+import { LocationPermissionPrompt, LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
+import { getLocationPermissionStatus } from "@/utils/locationPermission";
 
 const ACTIVE_KEY = "mingle_active_venue";
 
@@ -44,6 +46,8 @@ export default function CheckInPage() {
   const [venueError, setVenueError] = useState<Error | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string>(getLocationPermissionStatus());
   
   // Add refs to prevent duplicate concurrent calls
   const loadingRef = useRef(false);
@@ -276,42 +280,50 @@ export default function CheckInPage() {
               <Card
                 className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
                 onClick={async () => {
+                  // Show pre-permission prompt if status is still 'prompt' (never asked)
+                  if (locationStatus === 'prompt') {
+                    setShowLocationPrompt(true);
+                    return;
+                  }
+                  
+                  // If denied, show toast with settings hint
+                  if (locationStatus === 'denied') {
+                    toast({
+                      title: "Location access needed",
+                      description: "Open your device Settings to enable location for Mingle.",
+                    });
+                    return;
+                  }
+
                   setIsCheckingIn(true);
                   try {
-                    const { requestLocationPermission } = await import("@/utils/locationPermission");
-                    const granted = await requestLocationPermission();
-                    if (granted) {
-                      // Try to detect nearby venue
-                      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, {
-                          enableHighAccuracy: true,
-                          timeout: 10000,
-                        });
+                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                      navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
                       });
-                      
-                      // Find closest venue (simplified - would need proper distance calculation)
-                      const nearbyVenue = venues.find(v => {
-                        // Simple distance check (would need proper haversine formula)
-                        return v.latitude && v.longitude;
+                    });
+                    
+                    // Find closest venue using distance
+                    const nearbyVenue = venues.find(v => {
+                      if (!v.latitude || !v.longitude) return false;
+                      const dist = calculateDistance(
+                        { latitude: position.coords.latitude, longitude: position.coords.longitude },
+                        { latitude: v.latitude, longitude: v.longitude }
+                      );
+                      return dist < 0.5; // Within 500m
+                    });
+                    
+                    if (nearbyVenue) {
+                      await onCheckIn(nearbyVenue.id);
+                      toast({
+                        title: "Checked in!",
+                        description: `You're now checked in at ${nearbyVenue.name}`,
                       });
-                      
-                      if (nearbyVenue) {
-                        await onCheckIn(nearbyVenue.id);
-                        toast({
-                          title: "Checked in!",
-                          description: `You're now checked in at ${nearbyVenue.name}`,
-                        });
-                      } else {
-                        toast({
-                          title: "No venue nearby",
-                          description: "Please scan QR code or select a venue manually.",
-                          variant: "destructive",
-                        });
-                      }
                     } else {
                       toast({
-                        title: "Location permission needed",
-                        description: "Please enable location access or scan QR code.",
+                        title: "No venue nearby",
+                        description: "Please scan QR code or select a venue manually.",
                         variant: "destructive",
                       });
                     }
@@ -402,6 +414,11 @@ export default function CheckInPage() {
               </span>
             </div>
           </div>
+        )}
+
+        {/* Location denied banner */}
+        {locationStatus === 'denied' && (
+          <LocationDeniedBanner className="mb-4" />
         )}
 
         {checked && (
@@ -594,6 +611,31 @@ export default function CheckInPage() {
         )}
       </div>
       <BottomNav />
+
+      {/* Pre-permission prompt (shown before native iOS dialog) */}
+      <LocationPermissionPrompt
+        open={showLocationPrompt}
+        onAllow={async () => {
+          setShowLocationPrompt(false);
+          setIsCheckingIn(true);
+          try {
+            const { requestLocationPermission } = await import("@/utils/locationPermission");
+            const granted = await requestLocationPermission();
+            setLocationStatus(granted ? 'granted' : 'denied');
+            if (granted) {
+              toast({
+                title: "Location enabled",
+                description: "You can now auto-detect nearby venues.",
+              });
+            }
+          } catch {
+            setLocationStatus('denied');
+          } finally {
+            setIsCheckingIn(false);
+          }
+        }}
+        onDismiss={() => setShowLocationPrompt(false)}
+      />
     </div>
   );
 }

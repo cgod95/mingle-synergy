@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import services from '@/services';
 import { canRematch, createRematch } from '@/services/firebase/matchService';
 import { logError } from '@/utils/errorHandler';
+import { hapticMedium, hapticSuccess } from '@/lib/haptics';
 
 type Props = {
   users: UserProfile[];
@@ -40,6 +41,7 @@ export default function VenueUserGrid({ users, venueId, venueName }: Props) {
 
   const handleLike = async (targetUserId: string) => {
     if (!currentUser?.uid || likedIds.includes(targetUserId)) return;
+    hapticMedium();
     
     try {
       await services.interest.expressInterest(currentUser.uid, targetUserId, venueId);

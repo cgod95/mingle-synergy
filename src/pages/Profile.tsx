@@ -54,7 +54,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-20">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <UserProfileSkeleton />
         </div>
@@ -64,7 +64,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-20">
+    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="space-y-4">
           {/* Avatar and Name Section - Card */}

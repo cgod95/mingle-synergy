@@ -23,6 +23,7 @@ import MessageLimitModal from "@/components/ui/MessageLimitModal";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { retryWithMessage, isNetworkError } from "@/utils/retry";
+import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import { logError } from "@/utils/errorHandler";
 
 // Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
@@ -221,6 +222,7 @@ export default function ChatRoom() {
     const t = text.trim();
     if (!t || !currentUser?.uid || sending) return;
     
+    hapticLight();
     setSendError(null);
     setSending(true);
     

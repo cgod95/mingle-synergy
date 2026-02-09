@@ -52,7 +52,14 @@ class NotificationService {
   constructor() {
     this.isSupported = 'Notification' in window;
     this.loadNotifications();
-    this.initializePushNotifications();
+    // Don't request notification permission on init - defer to contextual moment
+    // (e.g. after first match). This avoids the "wall of pop-ups" UX issue.
+    // Check if already granted and set up handlers if so.
+    if (this.isSupported && Notification.permission === 'granted') {
+      this.permission = 'granted';
+      this.subscribeToPushNotifications();
+      this.setupNotificationHandlers();
+    }
   }
 
   private loadNotifications() {

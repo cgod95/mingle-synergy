@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { logError } from "@/utils/errorHandler";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -115,6 +116,7 @@ export default function Matches() {
   };
 
   const handleMatchClick = (matchId: string) => {
+    hapticLight();
     navigate(`/chat/${matchId}`);
   };
 
@@ -152,7 +154,7 @@ export default function Matches() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-20">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="mb-6">
