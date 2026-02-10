@@ -665,14 +665,13 @@ const SettingsPage: React.FC = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
 
-        {/* Premium Upgrade Modal */}
-        <PremiumUpgradeModal
-          isOpen={isPremiumModalOpen}
-          onClose={() => setIsPremiumModalOpen(false)}
-          trigger="manual"
-        />
+          {/* Premium Upgrade Modal */}
+          <PremiumUpgradeModal
+            isOpen={isPremiumModalOpen}
+            onClose={() => setIsPremiumModalOpen(false)}
+            trigger="manual"
+          />
     </div>
   );
 };
