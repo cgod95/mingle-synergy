@@ -4,8 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { feedbackRepo } from "@/services/feedbackRepo";
 import { Button } from "@/components/ui/button";
-import Layout from "@/components/Layout";
-import BottomNav from "@/components/BottomNav";
 import { logError } from "@/utils/errorHandler";
 
 type FeedbackItem = { id?: string; message: string; createdAt: number; from?: string | null };
@@ -52,9 +50,7 @@ export default function Feedback() {
   }
 
   return (
-    <Layout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto">
           {/* Back Button */}
           <div className="mb-4">
             <Button
@@ -112,9 +108,6 @@ export default function Feedback() {
               </div>
             </div>
           )}
-        </div>
-      </div>
-      <BottomNav />
-    </Layout>
+    </div>
   );
 }

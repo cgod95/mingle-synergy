@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PublicLayout from '@/components/PublicLayout';
 import { toast } from '@/components/ui/use-toast';
 
 const Contact: React.FC = () => {
@@ -43,29 +42,23 @@ const Contact: React.FC = () => {
 
   if (isSubmitted) {
     return (
-      <PublicLayout>
-        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-          <div className="max-w-2xl mx-auto p-4">
-            <div className="text-center py-12">
-              <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
-              <h1 className="text-2xl font-bold text-white mb-2">Message Sent!</h1>
-              <p className="text-neutral-400 mb-6">
-                Thank you for contacting us. We'll get back to you within 24 hours.
-              </p>
-              <Button onClick={() => navigate('/')}>
-                Return Home
-              </Button>
-            </div>
-          </div>
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center py-12">
+          <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
+          <h1 className="text-2xl font-bold text-white mb-2">Message Sent!</h1>
+          <p className="text-neutral-400 mb-6">
+            Thank you for contacting us. We'll get back to you within 24 hours.
+          </p>
+          <Button onClick={() => navigate('/')}>
+            Return Home
+          </Button>
         </div>
-      </PublicLayout>
+      </div>
     );
   }
 
   return (
-    <PublicLayout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">
             <Button
@@ -230,9 +223,7 @@ const Contact: React.FC = () => {
               </Card>
             </div>
           </div>
-        </div>
-      </div>
-    </PublicLayout>
+    </div>
   );
 };
 

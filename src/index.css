@@ -73,10 +73,23 @@
   }
 
   /* Set globals via vars (no @apply) */
-  * { border-color: hsl(var(--border)); }
+  /* Only apply border-color on elements that explicitly use a border utility.
+     The old wildcard `* { border-color }` leaked visible lines on scroll edges. */
+  *,
+  *::before,
+  *::after {
+    border-color: transparent;
+  }
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+  }
+}
+
+/* Restore border-color on elements that use Tailwind border utilities */
+@layer base {
+  [class*="border"] {
+    border-color: hsl(var(--border));
   }
 }
 

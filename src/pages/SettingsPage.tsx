@@ -34,8 +34,6 @@ import { analytics } from '@/services/analytics';
 import { notificationService } from '@/services/notificationService';
 import { realtimeService } from '@/services/realtimeService';
 import PremiumUpgradeModal from '@/components/ui/PremiumUpgradeModal';
-import Layout from '@/components/Layout';
-import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -538,9 +536,7 @@ const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <Layout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center space-x-2 mb-6">
             <Button
@@ -677,9 +673,7 @@ const SettingsPage: React.FC = () => {
           onClose={() => setIsPremiumModalOpen(false)}
           trigger="manual"
         />
-      </div>
-      <BottomNav />
-    </Layout>
+    </div>
   );
 };
 

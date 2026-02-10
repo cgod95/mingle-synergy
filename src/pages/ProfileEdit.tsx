@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Camera, X, Upload } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import Layout from "@/components/Layout";
 import { logError } from "@/utils/errorHandler";
 import { useToast } from "@/hooks/use-toast";
 
@@ -209,21 +208,17 @@ export default function ProfileEdit() {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-neutral-300">Loading profile...</p>
-          </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-neutral-300">Loading profile...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
           {/* Back Button */}
           <div className="mb-4">
             <Button
@@ -367,8 +362,6 @@ export default function ProfileEdit() {
             </Button>
           </CardContent>
         </Card>
-        </div>
-      </div>
-    </Layout>
+    </div>
   );
 }

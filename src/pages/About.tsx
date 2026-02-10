@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, Users, MapPin, Shield, Zap, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PublicLayout from '@/components/PublicLayout';
 
 const About: React.FC = () => {
   const navigate = useNavigate();
@@ -54,9 +53,7 @@ const About: React.FC = () => {
   ];
 
   return (
-    <PublicLayout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center space-x-2 mb-6">
             <Button
@@ -239,9 +236,7 @@ const About: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
-    </PublicLayout>
+    </div>
   );
 };
 

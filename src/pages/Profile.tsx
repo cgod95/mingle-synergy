@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Settings, LogOut, Edit, AlertCircle, Camera } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import BottomNav from '@/components/BottomNav';
 import { logError } from '@/utils/errorHandler';
 import { UserProfileSkeleton } from '@/components/ui/EnhancedLoadingStates';
 
@@ -54,18 +53,15 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <UserProfileSkeleton />
-        </div>
-        <BottomNav />
+      <div className="max-w-4xl mx-auto">
+        <UserProfileSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div>
+      <div className="max-w-4xl mx-auto">
         <div className="space-y-4">
           {/* Avatar and Name Section - Card */}
           <Card className="border-2 border-neutral-700 bg-neutral-800">
@@ -183,7 +179,6 @@ export default function Profile() {
           </Card>
         </div>
       </div>
-      <BottomNav />
     </div>
   );
 }

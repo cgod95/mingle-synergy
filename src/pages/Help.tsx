@@ -5,7 +5,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Search, MessageCircle, BookOpen, Video, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PublicLayout from '@/components/PublicLayout';
 
 const Help: React.FC = () => {
   const navigate = useNavigate();
@@ -59,9 +58,7 @@ const Help: React.FC = () => {
   ];
 
   return (
-    <PublicLayout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center space-x-2 mb-6">
             <Button
@@ -167,9 +164,7 @@ const Help: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
-    </PublicLayout>
+    </div>
   );
 };
 

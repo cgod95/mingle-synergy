@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
-import BottomNav from "@/components/BottomNav";
 import config from "@/config";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { RetryButton } from "@/components/ui/RetryButton";
@@ -19,8 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, History } from "lucide-react";
 import { LocationPermissionPrompt, LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
-
-const ACTIVE_KEY = "mingle_active_venue";
+import { checkInAt, getCheckedVenueId } from "@/lib/checkinStore";
 
 interface VenueWithDistance {
   id: string;
@@ -38,7 +36,7 @@ export default function CheckInPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [venues, setVenues] = useState<VenueWithDistance[]>([]);
-  const [checked, setChecked] = useState<boolean>(() => !!localStorage.getItem(ACTIVE_KEY));
+  const [checked, setChecked] = useState<boolean>(() => !!getCheckedVenueId());
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -72,7 +70,7 @@ export default function CheckInPage() {
     // Photo check removed for easier demo/testing
     
     hapticSuccess();
-    localStorage.setItem(ACTIVE_KEY, id);
+    checkInAt(id);
     setChecked(true);
     
     // Track user checked in event per spec section 9
@@ -165,12 +163,12 @@ export default function CheckInPage() {
       // Auto-check-in if coming from QR code URL
       if (qrVenueId && source === "qr" && currentUser) {
         const venue = loadedVenues.find(v => v.id === qrVenueId);
-        const alreadyChecked = !!localStorage.getItem(ACTIVE_KEY);
+        const alreadyChecked = !!getCheckedVenueId();
         
         if (venue && !alreadyChecked) {
           // Small delay to show user what's happening
           setTimeout(() => {
-            localStorage.setItem(ACTIVE_KEY, qrVenueId);
+            checkInAt(qrVenueId);
             setChecked(true);
             
             // Track check-in
@@ -205,9 +203,9 @@ export default function CheckInPage() {
   const preselect = qrVenueId || params.get("id");
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
+    <div>
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto">
         {/* Back Button - only show if not in demo mode or if user came from landing */}
         {!config.DEMO_MODE && (
           <div className="mb-4">
@@ -610,7 +608,6 @@ export default function CheckInPage() {
         </div>
         )}
       </div>
-      <BottomNav />
 
       {/* Pre-permission prompt (shown before native iOS dialog) */}
       <LocationPermissionPrompt

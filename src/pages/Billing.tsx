@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CreditCard, Calendar, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PrivateLayout from '@/components/PrivateLayout';
 import { toast } from '@/components/ui/use-toast';
 import SubscriptionService from '@/services/subscriptionService';
 
@@ -159,26 +158,20 @@ const Billing: React.FC = () => {
 
   if (isLoading) {
     return (
-      <PrivateLayout>
-        <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-          <div className="max-w-4xl mx-auto p-4">
-            <div className="animate-pulse">
-              <div className="h-8 bg-neutral-800 rounded w-1/4 mb-4"></div>
-              <div className="space-y-4">
-                <div className="h-64 bg-neutral-800 rounded"></div>
-                <div className="h-64 bg-neutral-800 rounded"></div>
-              </div>
-            </div>
+      <div className="max-w-4xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-neutral-800 rounded w-1/4 mb-4"></div>
+          <div className="space-y-4">
+            <div className="h-64 bg-neutral-800 rounded"></div>
+            <div className="h-64 bg-neutral-800 rounded"></div>
           </div>
         </div>
-      </PrivateLayout>
+      </div>
     );
   }
 
   return (
-    <PrivateLayout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">
             <Button
@@ -359,9 +352,7 @@ const Billing: React.FC = () => {
               </Card>
             </div>
           </div>
-        </div>
-      </div>
-    </PrivateLayout>
+    </div>
   );
 };
 

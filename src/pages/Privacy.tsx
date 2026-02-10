@@ -5,15 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
 
 export default function Privacy() {
   const navigate = useNavigate();
 
   return (
-    <Layout>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 pb-nav-safe">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
           <div className="flex items-center space-x-2 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-indigo-900/30 text-indigo-400">
               <ArrowLeft className="h-5 w-5" />
@@ -77,8 +74,6 @@ export default function Privacy() {
               </Button>
             </div>
           </div>
-        </div>
-      </div>
-    </Layout>
+    </div>
   );
 } 

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import BottomNav from "@/components/BottomNav";
 import { useDemoPresence } from "@/hooks/useDemoPresence";
 import config from "@/config";
 import { canSeePeopleAtVenues } from "@/utils/locationPermission";
@@ -184,8 +183,8 @@ export default function VenueDetails() {
   };
 
   return (
-    <div className="mb-20 bg-neutral-900 min-h-screen min-h-[100dvh]">
-      <div className="max-w-6xl mx-auto px-4 py-6">
+    <div>
+      <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <div className="mb-4">
           <Button
@@ -231,9 +230,10 @@ export default function VenueDetails() {
             </div>
             <Button
               onClick={handleCheckIn}
+              disabled={checkedIn === venue.id}
               className={`rounded-full px-6 py-2.5 font-medium shadow-lg transition-all ${
                 checkedIn === venue.id
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  ? "bg-green-700/80 text-green-100 cursor-default opacity-90"
                   : "bg-indigo-600 hover:bg-indigo-700 text-white"
               }`}
             >
@@ -444,7 +444,6 @@ export default function VenueDetails() {
       <AnimatePresence>
         {toast && <Toast text={toast} />}
       </AnimatePresence>
-      <BottomNav />
     </div>
   );
 }

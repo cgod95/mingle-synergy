@@ -1,5 +1,5 @@
 import { emit } from "./bus";
-import { isCheckedInAt } from "./checkin";
+import { isCheckedIn as isCheckedInAt } from "./checkinStore";
 import { ensureChat, appendMessage } from "./chatStore";
 
 const KEY = "mingle:likes";

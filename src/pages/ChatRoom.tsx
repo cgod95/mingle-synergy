@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Send, MoreVertical, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +18,7 @@ import { BlockReportDialog } from "@/components/BlockReportDialog";
 
 import { isMingleBot } from "@/lib/mingleBot";
 import { getActiveMatches } from "@/lib/matchesCompat";
+import { appendMessage as appendToChatStore } from "@/lib/chatStore";
 import { getMessageCount, canSendMessage, getRemainingMessages, incrementMessageCount } from "@/utils/messageLimitTracking";
 import { getCheckedVenueId } from "@/lib/checkinStore";
 import MessageLimitModal from "@/components/ui/MessageLimitModal";
@@ -88,6 +90,7 @@ export default function ChatRoom() {
   const [sendError, setSendError] = useState<Error | null>(null);
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
+  const keyboardHeight = useKeyboardHeight();
 
   // Load match name, avatar, expiry, and venue from matchesCompat
   useEffect(() => {
@@ -177,6 +180,15 @@ export default function ChatRoom() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [msgs]);
+
+  // Scroll to bottom when keyboard opens so user can see latest messages
+  useEffect(() => {
+    if (keyboardHeight > 0) {
+      setTimeout(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 100);
+    }
+  }, [keyboardHeight]);
 
 
   // Listen for bot replies and refresh messages
@@ -271,9 +283,12 @@ export default function ChatRoom() {
         });
       }
       
-      const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts: Date.now() }];
+      const ts = Date.now();
+      const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts }];
       setMsgs(next);
       saveMessages(matchId, next);
+      // Sync to chatStore so Matches page sees messages (fixes "New"/"Start conversation" persistence)
+      appendToChatStore(matchId, { sender: "me", text: t, ts });
       setText("");
       setShowStarters(false); // Hide starters after first message
       inputRef.current?.focus();
@@ -295,15 +310,24 @@ export default function ChatRoom() {
   };
 
   const sendStarter = (starter: string) => {
-    const next: Msg[] = [...msgs, { sender: "you" as const, text: starter, ts: Date.now() }];
+    const ts = Date.now();
+    const next: Msg[] = [...msgs, { sender: "you" as const, text: starter, ts }];
     setMsgs(next);
     saveMessages(matchId, next);
+    // Sync to chatStore so Matches page sees messages
+    appendToChatStore(matchId, { sender: "me", text: starter, ts });
     setShowStarters(false);
     inputRef.current?.focus();
   };
 
       return (
-        <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
+        <div 
+          className="fixed inset-0 flex flex-col bg-neutral-900 z-50"
+          style={{
+            // On native, shrink bottom to account for keyboard
+            bottom: Capacitor.isNativePlatform() ? `${keyboardHeight}px` : undefined,
+          }}
+        >
           <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl">
             <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
             {/* Mingle Branding */}
@@ -500,8 +524,8 @@ export default function ChatRoom() {
 
       {/* Input - Fixed at bottom */}
       <div 
-        className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0 transition-[padding] duration-150"
-        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', marginBottom: 'var(--keyboard-height, 0px)' }}
+        className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
+        style={{ paddingBottom: keyboardHeight > 0 ? '0.75rem' : 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
         {/* Message limit indicator (hidden for premium users) */}
         {remainingMessages < 5 && remainingMessages < 999 && (
