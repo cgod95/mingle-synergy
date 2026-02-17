@@ -82,7 +82,7 @@ const Help: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search for help articles..."
-                className="w-full pl-10 pr-4 py-3 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -90,7 +90,7 @@ const Help: React.FC = () => {
           {/* Help Categories */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {helpCategories.map((category, index) => (
-              <Card key={index} className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+              <Card key={index} className="bg-neutral-800 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
                 <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                   <CardTitle className="flex items-center text-indigo-400">
                     <category.icon className="w-5 h-5 mr-2" />
@@ -110,7 +110,7 @@ const Help: React.FC = () => {
           </div>
 
           {/* FAQ Section */}
-          <Card className="mb-8 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="mb-8 bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="text-indigo-400">Frequently Asked Questions</CardTitle>
             </CardHeader>
@@ -131,7 +131,7 @@ const Help: React.FC = () => {
           </Card>
 
           {/* Contact Support */}
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="text-indigo-400">Still Need Help?</CardTitle>
             </CardHeader>

@@ -178,7 +178,7 @@ export default function PhotoUpload() {
   return (
     <Layout showBottomNav={false}>
       <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex flex-col justify-center p-4 safe-y">
-        <Card className="w-full max-w-md mx-auto border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+        <Card className="w-full max-w-md mx-auto bg-neutral-800 shadow-xl">
           <CardHeader className="text-center space-y-2 border-b border-neutral-700 pb-4">
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
@@ -285,7 +285,7 @@ export default function PhotoUpload() {
                 variant="outline"
                 onClick={handleBack}
                 disabled={uploading || uploaded}
-                className="w-full border-2 border-neutral-600 hover:bg-neutral-700 text-neutral-300 hover:text-white min-h-[48px] touch-target"
+                className="w-full hover:bg-neutral-700 text-neutral-300 hover:text-white min-h-[48px] touch-target"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Back
@@ -297,7 +297,7 @@ export default function PhotoUpload() {
                     variant="outline"
                     onClick={handleRemovePhoto}
                     disabled={uploading}
-                    className="flex-1 border-2 border-neutral-600 hover:bg-neutral-700 text-neutral-300 hover:text-white min-h-[48px] touch-target"
+                    className="flex-1 hover:bg-neutral-700 text-neutral-300 hover:text-white min-h-[48px] touch-target"
                   >
                     <X className="w-5 h-5 mr-2" />
                     Retake

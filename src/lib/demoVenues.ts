@@ -9,6 +9,7 @@ export type Person = {
   id: string;
   name: string;
   photo: string;
+  age?: number;
 };
 
 const VENUES: Venue[] = [
@@ -34,17 +35,17 @@ const VENUES: Venue[] = [
 
 const PEOPLE_BY_VENUE: Record<string, Person[]> = {
   "club-aurora": [
-    { id: "chloe", name: "Chloe R.", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop" },
-    { id: "lucas", name: "Lucas P.", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop" },
-    { id: "nina",  name: "Nina L.",  photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop" },
+    { id: "chloe", name: "Chloe", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop", age: 26 },
+    { id: "lucas", name: "Lucas", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop", age: 28 },
+    { id: "nina",  name: "Nina",  photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop", age: 24 },
   ],
   "neon-garden": [
-    { id: "maya",  name: "Maya S.",  photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop" },
-    { id: "andre", name: "Andre V.", photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop" },
+    { id: "maya",  name: "Maya",  photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop", age: 25 },
+    { id: "andre", name: "Andre", photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop", age: 29 },
   ],
   "luna-lounge": [
-    { id: "sara",  name: "Sara D.",  photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop" },
-    { id: "kevin", name: "Kevin J.", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop" },
+    { id: "sara",  name: "Sara",  photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop", age: 27 },
+    { id: "kevin", name: "Kevin", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop", age: 30 },
   ],
 };
 

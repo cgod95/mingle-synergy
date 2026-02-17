@@ -109,7 +109,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+          <Card className="w-full max-w-md bg-neutral-800 shadow-xl">
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mb-4 ring-2 ring-red-900/50">
                 <AlertTriangle className="w-8 h-8 text-red-400" />
@@ -124,7 +124,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="bg-neutral-900/50 p-3 rounded-lg border border-neutral-700">
+                <details className="bg-neutral-900/50 p-3 rounded-lg">
                   <summary className="cursor-pointer text-sm font-medium text-neutral-400 hover:text-neutral-300 mb-2">
                     Error Details (Development)
                   </summary>

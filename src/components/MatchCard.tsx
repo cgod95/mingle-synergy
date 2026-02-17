@@ -69,7 +69,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
   return (
     <div className="w-full">
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-neutral-700 hover:border-indigo-500 hover:-translate-y-1 bg-neutral-800">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-indigo-500 hover:-translate-y-1 bg-neutral-800">
         <CardHeader className="pb-4 bg-neutral-800/50">
           <div className="flex items-center space-x-4">
             <div className="relative transition-transform hover:scale-105 active:scale-95">
@@ -177,7 +177,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onViewProfile(match.id)}
-                className="w-full border-2 border-neutral-600 hover:border-indigo-500 hover:bg-indigo-900/30 text-neutral-300 transition-all"
+                className="w-full hover:border-indigo-500 hover:bg-indigo-900/30 text-neutral-300 transition-all"
               >
                 View Profile
               </Button>

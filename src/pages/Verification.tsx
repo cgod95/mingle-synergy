@@ -148,7 +148,7 @@ export default function Verification() {
 
   if (checkingStatus) {
     return (
-      <div className="flex items-center justify-center min-h-screen min-h-[100dvh] bg-neutral-900">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
@@ -171,7 +171,7 @@ export default function Verification() {
           </div>
 
           {/* Email Verification */}
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -251,7 +251,7 @@ export default function Verification() {
           </Card>
 
           {/* Selfie Verification (Optional) */}
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

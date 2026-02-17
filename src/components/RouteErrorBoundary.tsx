@@ -99,7 +99,7 @@ class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: strin
 
       return (
         <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md border-2 border-neutral-700 bg-neutral-800">
+          <Card className="w-full max-w-md bg-neutral-800">
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-red-900/50 rounded-full flex items-center justify-center mb-4">
                 <AlertTriangle className="w-6 h-6 text-red-400" />

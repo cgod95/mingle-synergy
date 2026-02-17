@@ -1,4 +1,3 @@
-import { Capacitor } from '@capacitor/core';
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useNavigate, useParams, Link } from "react-router-dom";
@@ -216,7 +215,7 @@ export default function ChatRoom() {
   if (!matchId) {
     return (
       <div className="min-h-screen min-h-[100dvh] bg-neutral-900 p-4 flex items-center justify-center">
-        <div className="max-w-md w-full bg-neutral-800 border-2 border-neutral-700 rounded-2xl shadow-lg p-6 text-center">
+        <div className="max-w-md w-full bg-neutral-800 rounded-2xl shadow-lg p-6 text-center">
           <p className="text-neutral-300">Chat not found.</p>
           <Button 
             onClick={() => navigate(-1)} 
@@ -320,321 +319,240 @@ export default function ChatRoom() {
     inputRef.current?.focus();
   };
 
-      return (
+  return (
+    <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
+      {/* Capacitor Keyboard plugin with resize:'native' already shrinks the
+          WebView when the keyboard opens — no manual bottom offset needed. */}
+      <div className="max-w-lg mx-auto w-full h-full flex flex-col bg-neutral-900">
+        <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
+
+        {/* Header — single clean bar */}
         <div 
-          className="fixed inset-0 flex flex-col bg-neutral-900 z-50"
-          style={{
-            // On native, shrink bottom to account for keyboard
-            bottom: Capacitor.isNativePlatform() ? `${keyboardHeight}px` : undefined,
-          }}
+          className="bg-neutral-900 px-3 py-2.5 flex items-center gap-3 flex-shrink-0"
+          style={{ paddingTop: 'max(0.625rem, env(safe-area-inset-top, 0px))' }}
         >
-          <div className="max-w-4xl mx-auto w-full h-full flex flex-col bg-neutral-800 shadow-xl">
-            <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
-            {/* Mingle Branding */}
-            <div className="bg-neutral-800/80 backdrop-blur-md border-b border-neutral-700 px-4 sm:px-6 py-2 flex items-center flex-shrink-0">
-              <Link to="/matches" className="group">
-                <MingleMLogo size="sm" showText={true} className="text-white" />
-              </Link>
-            </div>
-          {/* Header */}
-          <div className="bg-neutral-800 border-b border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center space-x-3 shadow-sm flex-shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="rounded-full"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <Avatar className="h-10 w-10 ring-2 ring-indigo-500/50 rounded-md">
-          {matchAvatar ? (
-            <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
-          ) : null}
-          <AvatarFallback className="bg-indigo-600 text-white rounded-md">
-            {matchName.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-white truncate">{matchName}</h2>
-          <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="rounded-full text-neutral-300 hover:text-white -ml-1">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <Avatar className="h-9 w-9 rounded-full">
+            {matchAvatar ? (
+              <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-full" />
+            ) : null}
+            <AvatarFallback className="bg-indigo-600 text-white text-sm rounded-full">
+              {matchName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-semibold text-white text-sm truncate">{matchName}</h2>
             {matchExpiresAt && getRemainingTime() && (
-              <p className="text-xs text-indigo-400 font-medium">
-                Active for {getRemainingTime()}
+              <p className="text-xs text-neutral-400">
+                {getRemainingTime()} left
               </p>
             )}
           </div>
-        </div>
-        {/* Block/Report Menu */}
-        {otherUserId && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <MoreVertical className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowBlockDialog(true)}>
-                <span className="text-red-600">Block User</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowReportDialog(true)}>
-                <span>Report User</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
-        {/* How Mingle Works Info Banner */}
-        {msgs.length <= 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 bg-indigo-900/50 rounded-xl border border-indigo-700 p-3"
-          >
-            <div className="flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-neutral-200 mb-1">You have 5 messages to make plans</p>
-                <p className="text-xs text-neutral-300">Focus on meeting up in person - that's what Mingle is all about!</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Conversation Starters - Show when conversation is new */}
-        {showStarters && msgs.length <= 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4"
-          >
-            <div className="flex items-center gap-2 mb-3 px-2">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              <p className="text-sm font-medium text-neutral-300">Try a conversation starter</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {CONVERSATION_STARTERS.slice(0, 3).map((starter, idx) => (
-                <motion.button
-                  key={idx}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setText(starter);
-                    setShowStarters(false);
-                    inputRef.current?.focus();
-                  }}
-                  className="px-4 py-2 text-sm bg-neutral-700 border-2 border-indigo-600 rounded-full text-neutral-200 hover:border-indigo-500 hover:bg-indigo-900/30 transition-all"
+          {otherUserId && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full text-neutral-400 hover:text-white">
+                  <MoreVertical className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-neutral-800 border-neutral-700">
+                <DropdownMenuItem 
+                  onClick={() => navigate(`/profile/${otherUserId}`)}
+                  className="text-neutral-200 focus:bg-neutral-700"
                 >
-                  {starter}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
+                  View Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowBlockDialog(true)}
+                  className="text-red-400 focus:bg-neutral-700"
+                >
+                  Block User
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowReportDialog(true)}
+                  className="text-neutral-300 focus:bg-neutral-700"
+                >
+                  Report
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
-        <AnimatePresence>
-          {msgs.map((m, i) => (
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
+          {/* How Mingle Works Info Banner */}
+          {msgs.length <= 1 && (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 bg-indigo-900/30 rounded-xl p-3"
+            >
+              <div className="flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-neutral-200 mb-1">You have 5 messages to make plans</p>
+                  <p className="text-xs text-neutral-300">Focus on meeting up in person - that's what Mingle is all about!</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Conversation Starters - Show when conversation is new */}
+          {showStarters && msgs.length <= 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4"
+            >
+              <div className="flex items-center gap-2 mb-3 px-2">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <p className="text-sm font-medium text-neutral-300">Try a conversation starter</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {CONVERSATION_STARTERS.slice(0, 3).map((starter, idx) => (
+                  <motion.button
+                    key={idx}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setText(starter);
+                      setShowStarters(false);
+                      inputRef.current?.focus();
+                    }}
+                    className="px-4 py-2 text-sm bg-neutral-800 rounded-full text-neutral-200 hover:bg-indigo-900/30 transition-all"
+                  >
+                    {starter}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          <AnimatePresence>
+            {msgs.map((m, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className={`flex ${m.sender === "you" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                    m.sender === "you"
+                      ? "bg-indigo-600 text-white rounded-br-md"
+                      : "bg-neutral-800 text-neutral-200 rounded-bl-md"
+                  }`}
+                >
+                  <p className="text-[15px] leading-relaxed break-words">{m.text}</p>
+                  <p className={`text-[11px] mt-1 ${m.sender === "you" ? "text-indigo-200/60 text-right" : "text-neutral-500"}`}>
+                    {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {/* Typing Indicator */}
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className={`flex items-end gap-2 ${m.sender === "you" ? "justify-end" : "justify-start"}`}
+              className="flex justify-start"
             >
-              {/* Avatar for their messages */}
-              {m.sender === "them" && (
-                <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
-                  {matchAvatar ? (
-                    <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
-                  ) : null}
-                  <AvatarFallback className="bg-indigo-600 text-white text-xs rounded-md">
-                    {matchName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              
-              <div
-                className={`max-w-[75%] sm:max-w-[70%] rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 shadow-sm ${
-                  m.sender === "you"
-                    ? "bg-indigo-600 text-white rounded-br-sm"
-                    : "bg-neutral-700 border-2 border-neutral-600 text-neutral-200 rounded-bl-sm"
-                }`}
-              >
-                <p className="text-sm sm:text-base leading-relaxed font-medium break-words">{m.text}</p>
-                <p className={`text-xs mt-1.5 opacity-70 ${m.sender === "you" ? "text-right" : "text-left"}`}>
-                  {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </p>
+              <div className="bg-neutral-800 rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="flex gap-1">
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="w-1.5 h-1.5 bg-neutral-500 rounded-full" />
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="w-1.5 h-1.5 bg-neutral-500 rounded-full" />
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="w-1.5 h-1.5 bg-neutral-500 rounded-full" />
+                </div>
               </div>
-
-              {/* Avatar for your messages (smaller, optional) */}
-              {m.sender === "you" && (
-                <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
-                  <AvatarFallback className="bg-purple-600 text-white text-xs rounded-md">
-                    {currentUser?.name?.charAt(0) || "Y"}
-                  </AvatarFallback>
-                </Avatar>
-              )}
             </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {/* Typing Indicator */}
-        {isTyping && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center gap-2 px-2"
-          >
-            <Avatar className="h-8 w-8 flex-shrink-0 rounded-md">
-              {matchAvatar ? (
-                <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-md" />
-              ) : null}
-              <AvatarFallback className="bg-indigo-600 text-white text-xs rounded-md">
-                {matchName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="bg-neutral-700 border-2 border-neutral-600 rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
-              <div className="flex gap-1">
-                <motion.div
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                  className="w-2 h-2 bg-neutral-400 rounded-full"
-                />
-                <motion.div
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                  className="w-2 h-2 bg-neutral-400 rounded-full"
-                />
-                <motion.div
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                  className="w-2 h-2 bg-neutral-400 rounded-full"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-        
-        <div ref={endRef} />
-      </div>
+          )}
 
-      {/* Input - Fixed at bottom */}
-      <div 
-        className="bg-neutral-800 border-t border-neutral-700 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0"
-        style={{ paddingBottom: keyboardHeight > 0 ? '0.75rem' : 'max(0.75rem, env(safe-area-inset-bottom))' }}
-      >
-        {/* Message limit indicator (hidden for premium users) */}
-        {remainingMessages < 5 && remainingMessages < 999 && (
-          <div className="mb-2 px-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className={`font-medium ${
-                remainingMessages === 0 ? 'text-red-400' : 
-                remainingMessages === 1 ? 'text-orange-400' : 
-                'text-neutral-400'
-              }`}>
-                {remainingMessages === 0 
-                  ? "Make plans to meet up" 
-                  : `Chat to coordinate meeting`}
-              </span>
-              {remainingMessages === 0 && (
-                <button
-                  onClick={() => setShowMessageLimitModal(true)}
-                  className="text-indigo-400 hover:text-indigo-300 underline text-xs"
-                >
-                  Learn more
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-        
-        <form onSubmit={onSend} className="flex gap-2 sm:gap-3 items-end">
-          <div className="flex-1 relative">
-            <input
-              ref={inputRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder={
-                !canSendMsg 
-                  ? "Message limit reached" 
-                  : remainingMessages < 5 
-                  ? `Type a message... (${remainingMessages} left)`
-                  : "Type a message..."
-              }
-              disabled={!canSendMsg}
-              className={`w-full rounded-full border-2 px-4 sm:px-5 py-2.5 sm:py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm ${
-                !canSendMsg 
-                  ? 'border-red-700 bg-red-900/30 text-neutral-400 cursor-not-allowed' 
-                  : 'border-neutral-600 bg-neutral-700 text-neutral-200'
-              }`}
-            />
-            {!canSendMsg && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-xs text-red-400 font-medium bg-red-900/90 px-2 py-1 rounded">
-                  Limit reached
-                </span>
-              </div>
-            )}
-          </div>
-          <Button
-            type="submit"
-            disabled={!text.trim() || !canSendMsg || sending}
-            className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0"
-            size="icon"
-            title={!canSendMsg ? "Message limit reached. Reconnect at a venue to continue chatting." : sending ? "Sending..." : ""}
-          >
-            {sending ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-              </motion.div>
-            ) : (
-              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-            )}
-          </Button>
-        </form>
-        
-        {/* Helpful tip */}
-        {remainingMessages > 0 && remainingMessages < 5 && (
-          <p className="text-xs text-neutral-400 mt-2 px-2 text-center">
-            💡 Tip: Focus on meeting up in person rather than long conversations
-          </p>
-        )}
-      </div>
-      
-      {/* Message Limit Modal */}
-      <MessageLimitModal
-        open={showMessageLimitModal}
-        onClose={() => setShowMessageLimitModal(false)}
-        remainingMessages={remainingMessages}
-      />
-
-      {/* Block/Report Dialogs */}
-      {otherUserId && (
-        <>
-          <BlockReportDialog
-            userId={otherUserId}
-            userName={matchName}
-            open={showBlockDialog}
-            onClose={() => setShowBlockDialog(false)}
-            type="block"
-          />
-          <BlockReportDialog
-            userId={otherUserId}
-            userName={matchName}
-            open={showReportDialog}
-            onClose={() => setShowReportDialog(false)}
-            type="report"
-          />
-        </>
-      )}
-          </div>
+          <div ref={endRef} />
         </div>
-      );
+
+        {/* Input */}
+        <div
+          className="bg-neutral-900 px-4 py-3 flex-shrink-0"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
+        >
+          {/* Message limit indicator */}
+          {remainingMessages === 0 && (
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs text-neutral-500">Message limit reached</span>
+              <button
+                onClick={() => setShowMessageLimitModal(true)}
+                className="text-indigo-400 text-xs font-medium"
+              >
+                Options
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={onSend} className="flex gap-2 items-end">
+            <div className="flex-1">
+              <input
+                ref={inputRef}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder={
+                  !canSendMsg
+                    ? "Message limit reached"
+                    : "Type a message..."
+                }
+                disabled={!canSendMsg}
+                className={`w-full rounded-full px-4 py-2.5 text-[15px] focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                  !canSendMsg
+                    ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+                    : 'bg-neutral-800 text-white placeholder:text-neutral-500'
+                }`}
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={!text.trim() || !canSendMsg || sending}
+              className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-30 h-10 w-10 flex-shrink-0"
+              size="icon"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </form>
+        </div>
+
+        {/* Message Limit Modal */}
+        <MessageLimitModal
+          open={showMessageLimitModal}
+          onClose={() => setShowMessageLimitModal(false)}
+          remainingMessages={remainingMessages}
+        />
+
+        {/* Block/Report Dialogs */}
+        {otherUserId && (
+          <>
+            <BlockReportDialog
+              userId={otherUserId}
+              userName={matchName}
+              open={showBlockDialog}
+              onClose={() => setShowBlockDialog(false)}
+              type="block"
+            />
+            <BlockReportDialog
+              userId={otherUserId}
+              userName={matchName}
+              open={showReportDialog}
+              onClose={() => setShowReportDialog(false)}
+              type="report"
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
 }

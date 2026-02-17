@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { MapPin } from 'lucide-react';
 import { getVenues } from '@/lib/api';
-import { Card } from '@/components/ui/card';
+
 import { DEMO_PEOPLE } from '@/lib/demoPeople';
 import config from '@/config';
 
@@ -80,7 +80,7 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index)}deg)`,
                 }}
               >
-                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
+                <div className="overflow-hidden rounded-xl bg-[#1A1A24] shadow-xl">
                   <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
                     {venue.image ? (
                       <img
@@ -95,7 +95,7 @@ export default function LandingPage() {
                       </div>
                     )}
                   </div>
-                </Card>
+                </div>
               </motion.div>
             ))}
             {/* People cards */}
@@ -124,7 +124,7 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index + 6)}deg)`,
                 }}
               >
-                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
+                <div className="overflow-hidden rounded-xl bg-[#1A1A24] shadow-xl">
                   <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
                     <img
                       src={person.photo}
@@ -133,7 +133,7 @@ export default function LandingPage() {
                       loading="lazy"
                     />
                   </div>
-                </Card>
+                </div>
               </motion.div>
             ))}
             {/* Extra images for bottom */}
@@ -162,7 +162,7 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index + 16)}deg)`,
                 }}
               >
-                <Card className="overflow-hidden bg-[#1A1A24] shadow-xl border border-[#2D2D3A]">
+                <div className="overflow-hidden rounded-xl bg-[#1A1A24] shadow-xl">
                   <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
                     <img
                       src={person.photo}
@@ -171,7 +171,7 @@ export default function LandingPage() {
                       loading="lazy"
                     />
                   </div>
-                </Card>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -180,7 +180,7 @@ export default function LandingPage() {
         {/* Hero Content */}
         <div className="relative z-20 min-h-screen min-h-[100dvh] flex safe-y flex-col items-center justify-center text-center px-4 py-12">
           <div className="relative z-30 inline-block">
-            <div className="bg-[#0a0a0f]/95 backdrop-blur-2xl rounded-3xl px-8 py-12 md:px-12 md:py-16 border border-[#2D2D3A] shadow-2xl shadow-[#7C3AED]/10">
+            <div className="bg-[#0a0a0f]/95 backdrop-blur-2xl rounded-3xl px-8 py-12 md:px-12 md:py-16 shadow-2xl shadow-[#7C3AED]/10">
               {/* Logo with gradient */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -210,7 +210,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
-                className="mb-8"
+                className="mb-6"
               >
                 <Button
                   onClick={handleJoinClosedBeta}
@@ -221,45 +221,19 @@ export default function LandingPage() {
                 </Button>
               </motion.div>
 
-              {/* Auth Actions */}
+              {/* Sign in link */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: config.DEMO_MODE ? 0.6 : 0.4 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="text-center"
               >
-                {!config.DEMO_MODE && (
-                  <Button 
-                    asChild 
-                    className="flex-1 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white text-lg px-8 py-5 rounded-full shadow-lg shadow-[#7C3AED]/25 font-semibold"
-                    size="lg"
-                  >
-                    <Link to="/signup">
-                      Get Started
-                    </Link>
-                  </Button>
-                )}
-                {config.DEMO_MODE && (
-                  <>
-                    <Button 
-                      asChild 
-                      className="flex-1 bg-white/10 backdrop-blur-sm border border-[#2D2D3A] text-white hover:bg-white/20 font-semibold text-base"
-                    >
-                      <Link to="/signup">
-                        Create Account
-                      </Link>
-                    </Button>
-                    <Button 
-                      asChild 
-                      variant="outline" 
-                      className="flex-1 border border-[#2D2D3A] text-white hover:bg-white/10 backdrop-blur-sm bg-white/5 text-base"
-                    >
-                      <Link to="/signin">
-                        Sign In
-                      </Link>
-                    </Button>
-                  </>
-                )}
+                <p className="text-sm text-[#9CA3AF]">
+                  Already have an account?{' '}
+                  <Link to="/signin" className="text-[#A78BFA] hover:text-[#C4B5FD] font-medium">
+                    Sign in
+                  </Link>
+                </p>
               </motion.div>
             </div>
           </div>

@@ -40,7 +40,7 @@ export default function DemoWelcome() {
         <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Left Side - Philosophy/Education */}
           <div>
-            <Card className="border-2 border-neutral-700 shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
+            <Card className="shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
               <CardHeader className="space-y-4 pb-6">
                 <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
                   What is Mingle
@@ -56,7 +56,7 @@ export default function DemoWelcome() {
 
           {/* Right Side - Demo Features */}
           <div>
-            <Card className="border-2 border-neutral-700 shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
+            <Card className="shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
               <CardHeader className="space-y-4 pb-6">
                 <div className="space-y-2">
                   <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">

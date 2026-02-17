@@ -8,7 +8,7 @@ import MingleMLogo from '@/components/ui/MingleMLogo';
 export default function MingleHeader() {
   return (
     <header
-      className="sticky top-0 z-50 nav-blur-ios border-b border-neutral-800/50 shadow-lg"
+      className="sticky top-0 z-50 nav-blur-ios shadow-sm"
       style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}

@@ -559,7 +559,7 @@ const SettingsPage: React.FC = () => {
           <div className="space-y-4">
             {settingsSections.map((section, sectionIndex) => (
               <div key={sectionIndex}>
-                <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
+                <Card className="bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
                   <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                     <CardTitle className="flex items-center text-heading-3">
                       <section.icon className="w-5 h-5 mr-2 text-indigo-400" />

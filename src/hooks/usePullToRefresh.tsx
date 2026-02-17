@@ -3,7 +3,7 @@
  * Provides native-feel pull-to-refresh behavior
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { hapticMedium } from '@/lib/haptics';
 
 interface UsePullToRefreshOptions {

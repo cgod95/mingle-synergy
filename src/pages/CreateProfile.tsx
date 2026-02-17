@@ -240,130 +240,123 @@ export default function CreateProfile() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-2 border-neutral-700 bg-neutral-800 shadow-xl">
-          <CardHeader className="text-center space-y-2 border-b border-neutral-700 bg-gradient-to-r from-neutral-800/50 via-neutral-800/50 to-neutral-800/50">
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-2">
-              <div className="flex items-center space-x-2">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 overflow-y-auto safe-y">
+        <div className="flex flex-col min-h-screen min-h-[100dvh] px-4 py-8">
+          {/* Back */}
+          <div className="flex-shrink-0 mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/signup')}
+              className="text-neutral-400 hover:text-white -ml-2"
+              size="sm"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center w-full max-w-sm mx-auto">
+            {/* Progress */}
+            <div className="flex items-center justify-center mb-6 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-neutral-700 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-neutral-700 text-neutral-400 flex items-center justify-center text-sm font-semibold">2</div>
+                <div className="w-10 h-0.5 bg-neutral-700 rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-neutral-800 text-neutral-500 flex items-center justify-center text-sm font-semibold">2</div>
               </div>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent font-bold">
-              Create Profile
-            </CardTitle>
-            <p className="text-sm text-neutral-300">Step 1 of 2: Tell us about you</p>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Your name</label>
-              <Input 
-                placeholder="Enter your name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                className="bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-800"
-              />
+
+            <div className="text-center mb-6 flex-shrink-0">
+              <h1 className="text-2xl font-bold text-white">Create your profile</h1>
+              <p className="text-sm text-neutral-400 mt-1">Tell us about yourself</p>
             </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Your age</label>
-              <Select value={age.toString()} onValueChange={(v) => setAge(Number(v))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ageOptions.map((ageOption) => (
-                    <SelectItem key={ageOption} value={ageOption.toString()}>
-                      {ageOption}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Gender</label>
-              <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {genderOptions.map((g) => (
-                    <SelectItem key={g} value={g}>
-                      {g.charAt(0).toUpperCase() + g.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-neutral-300">Interested in</label>
-              <Select 
-                value={interestedIn} 
-                onValueChange={setInterestedIn}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {interestedInOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg"
-                >
-                  <p className="text-sm text-red-400 mb-2">{error}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSubmit}
-                    className="w-full border-red-700/50 text-red-400 hover:bg-red-900/20"
+
+            <div className="space-y-4 flex-shrink-0">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-neutral-300">Name</label>
+                <Input 
+                  placeholder="Your name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)}
+                  className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl h-12"
+                />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-neutral-300">Age</label>
+                <Select value={age.toString()} onValueChange={(v) => setAge(Number(v))}>
+                  <SelectTrigger className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-800 border-neutral-700">
+                    {ageOptions.map((ageOption) => (
+                      <SelectItem key={ageOption} value={ageOption.toString()}>
+                        {ageOption}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-neutral-300">Gender</label>
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-800 border-neutral-700">
+                    {genderOptions.map((g) => (
+                      <SelectItem key={g} value={g}>
+                        {g.charAt(0).toUpperCase() + g.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-neutral-300">Interested in</label>
+                <Select value={interestedIn} onValueChange={setInterestedIn}>
+                  <SelectTrigger className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-800 border-neutral-700">
+                    {interestedInOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="p-3 bg-red-900/30 rounded-xl"
                   >
-                    Retry
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <div className="flex space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/signup')}
-                className="flex-1 border-2 border-neutral-700 hover:bg-neutral-700 text-neutral-300 hover:text-white"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
+                    <p className="text-sm text-red-400">{error}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
               <Button
                 onClick={handleSubmit}
                 loading={saving}
-                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-md"
+                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl"
                 disabled={!name.trim() || saving}
               >
                 {saving ? (
-                  <span className="flex items-center justify-center">
-                    {retryCount > 0 ? `Retrying... (${retryCount})` : 'Saving...'}
-                  </span>
+                  retryCount > 0 ? `Retrying... (${retryCount})` : 'Saving...'
                 ) : (
                   'Continue'
                 )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </Layout>
   );

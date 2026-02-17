@@ -21,7 +21,7 @@ export default function Privacy() {
           </div>
 
           <div className="space-y-4">
-            <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+            <Card className="bg-neutral-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                 <CardTitle className="text-indigo-400">Your Data</CardTitle>
               </CardHeader>
@@ -32,7 +32,7 @@ export default function Privacy() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+            <Card className="bg-neutral-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                 <CardTitle className="text-indigo-400">Third-Party Services</CardTitle>
               </CardHeader>
@@ -43,7 +43,7 @@ export default function Privacy() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+            <Card className="bg-neutral-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                 <CardTitle className="text-indigo-400">Data Removal</CardTitle>
               </CardHeader>
@@ -54,7 +54,7 @@ export default function Privacy() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+            <Card className="bg-neutral-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
                 <CardTitle className="text-indigo-400">Policy Updates</CardTitle>
               </CardHeader>

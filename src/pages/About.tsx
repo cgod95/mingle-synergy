@@ -71,7 +71,7 @@ const About: React.FC = () => {
           </div>
 
           {/* App Info */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="mb-6 bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="flex items-center text-indigo-400">
                 <Star className="w-5 h-5 mr-2" />
@@ -103,7 +103,7 @@ const About: React.FC = () => {
           </Card>
 
           {/* Mission */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="mb-6 bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="text-indigo-400">Our Mission</CardTitle>
               <CardDescription className="text-neutral-300">
@@ -121,7 +121,7 @@ const About: React.FC = () => {
           </Card>
 
           {/* Features */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="mb-6 bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="text-indigo-400">Key Features</CardTitle>
               <CardDescription className="text-neutral-300">
@@ -147,7 +147,7 @@ const About: React.FC = () => {
           </Card>
 
           {/* Team */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="mb-6 bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="text-indigo-400">Our Team</CardTitle>
               <CardDescription className="text-neutral-300">
@@ -171,7 +171,7 @@ const About: React.FC = () => {
           </Card>
 
           {/* Contact */}
-          <Card className="mb-6 border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="mb-6 bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="text-indigo-400">Get in Touch</CardTitle>
               <CardDescription className="text-neutral-300">
@@ -206,7 +206,7 @@ const About: React.FC = () => {
           </Card>
 
           {/* Legal Links */}
-          <Card className="border-2 border-neutral-700 bg-neutral-800 shadow-lg">
+          <Card className="bg-neutral-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
               <CardTitle className="text-indigo-400">Legal</CardTitle>
             </CardHeader>

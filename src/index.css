@@ -269,8 +269,8 @@
     overscroll-behavior-y: none;
   }
   
-  /* Fix for iOS momentum scrolling */
-  * {
+  /* Fix for iOS momentum scrolling — scoped to scrollable containers */
+  .scroll-ios {
     -webkit-overflow-scrolling: touch;
   }
   

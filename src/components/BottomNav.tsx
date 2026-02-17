@@ -88,7 +88,7 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 nav-blur-ios border-t border-neutral-700/50 shadow-2xl z-50 hide-on-keyboard"
+      className="fixed bottom-0 left-0 right-0 nav-blur-ios shadow-2xl z-50 hide-on-keyboard"
       style={{ 
         paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'env(safe-area-inset-left, 0px)',

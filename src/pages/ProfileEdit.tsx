@@ -231,7 +231,7 @@ export default function ProfileEdit() {
               Back to Profile
             </Button>
           </div>
-          <Card className="w-full border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+          <Card className="w-full bg-neutral-800 shadow-xl">
             <CardHeader className="text-center space-y-2 border-b border-neutral-700">
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 Edit Profile
@@ -249,7 +249,7 @@ export default function ProfileEdit() {
                     <img
                       src={photos[0]}
                       alt="Profile"
-                      className="w-full h-64 object-cover rounded-lg border-2 border-neutral-600"
+                      className="w-full h-64 object-cover rounded-lg"
                     />
                     <button
                       onClick={() => handleRemoveExistingPhoto(0)}
@@ -263,7 +263,7 @@ export default function ProfileEdit() {
               )}
               
               {/* Photo Upload Area */}
-              <div className="border-2 border-dashed border-neutral-600 rounded-lg p-6 bg-neutral-700/50">
+              <div className="border-dashed rounded-lg p-6 bg-neutral-700/50">
                 {preview ? (
                   <div className="space-y-3">
                     <div className="relative">

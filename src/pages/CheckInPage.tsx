@@ -1,10 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, CheckCircle2, ArrowLeft, QrCode } from "lucide-react";
+import { MapPin, QrCode } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import config from "@/config";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
@@ -15,7 +13,6 @@ import { hapticSuccess } from "@/lib/haptics";
 import { VenueCardSkeleton } from "@/components/ui/LoadingStates";
 import { calculateDistance } from "@/utils/locationUtils";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, History } from "lucide-react";
 import { LocationPermissionPrompt, LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
 import { checkInAt, getCheckedVenueId } from "@/lib/checkinStore";
@@ -43,62 +40,33 @@ export default function CheckInPage() {
   const [loadingVenues, setLoadingVenues] = useState(true);
   const [venueError, setVenueError] = useState<Error | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
-  const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string>(getLocationPermissionStatus());
   
-  // Add refs to prevent duplicate concurrent calls
   const loadingRef = useRef(false);
   const lastLoadKeyRef = useRef<string>("");
 
-  // Get venueId from QR code URL params
   const qrVenueId = params.get("venueId");
   const source = params.get("source");
 
-  // Load recently visited venues
-  useEffect(() => {
-    try {
-      const recent = JSON.parse(localStorage.getItem('checkedInVenues') || '[]');
-      setRecentlyVisited(recent.slice(0, 5)); // Last 5 venues
-    } catch (error) {
-      // Non-critical
-    }
-  }, []);
-
   const onCheckIn = async (id: string) => {
-    // DEMO MODE: Photo requirement disabled
-    // Photo check removed for easier demo/testing
-    
     hapticSuccess();
     checkInAt(id);
     setChecked(true);
     
-    // Track user checked in event per spec section 9
     try {
       const { trackUserCheckedIn } = await import("@/services/specAnalytics");
       const venue = venues.find(v => v.id === id);
       trackUserCheckedIn(id, venue?.name || id);
-    } catch (error) {
-      // Failed to track check-in event - non-critical
-    }
+    } catch (error) {}
     
     navigate(`/venues/${id}`);
   };
 
-  // Memoize loadVenues to prevent recreation and use stable dependencies
   const loadVenues = useCallback(async () => {
-    // Create a unique key for this load attempt
     const loadKey = `${qrVenueId || ''}-${source || ''}-${currentUser?.uid || 'none'}`;
-    
-    // Prevent duplicate concurrent calls
-    if (loadingRef.current) {
-      return;
-    }
-    
-    // Prevent duplicate calls with same parameters
-    if (lastLoadKeyRef.current === loadKey) {
-      return;
-    }
+    if (loadingRef.current) return;
+    if (lastLoadKeyRef.current === loadKey) return;
     
     loadingRef.current = true;
     lastLoadKeyRef.current = loadKey;
@@ -111,7 +79,6 @@ export default function CheckInPage() {
         { operationName: 'loading venues', maxRetries: 3 }
       );
       
-      // Get user location if available
       let userLat: number | null = null;
       let userLng: number | null = null;
       
@@ -127,12 +94,9 @@ export default function CheckInPage() {
           userLat = position.coords.latitude;
           userLng = position.coords.longitude;
           setUserLocation({ lat: userLat, lng: userLng });
-        } catch (error) {
-          // Location not available - continue without distance calculation
-        }
+        } catch (error) {}
       }
       
-      // Calculate distances and sort by proximity
       const venuesWithDistance: VenueWithDistance[] = loadedVenues.map((venue: any) => {
         let distanceKm: number | undefined;
         if (userLat !== null && userLng !== null && venue.latitude && venue.longitude) {
@@ -141,475 +105,221 @@ export default function CheckInPage() {
             { latitude: venue.latitude, longitude: venue.longitude }
           );
         }
-        return {
-          ...venue,
-          distanceKm
-        };
+        return { ...venue, distanceKm };
       });
       
-      // Sort by distance (closest first), then by check-in count
       venuesWithDistance.sort((a, b) => {
-        if (a.distanceKm !== undefined && b.distanceKm !== undefined) {
-          return a.distanceKm - b.distanceKm;
-        }
+        if (a.distanceKm !== undefined && b.distanceKm !== undefined) return a.distanceKm - b.distanceKm;
         if (a.distanceKm !== undefined) return -1;
         if (b.distanceKm !== undefined) return 1;
         return (b.checkInCount || 0) - (a.checkInCount || 0);
       });
       
-      // Show top 3 closest venues
-      setVenues(venuesWithDistance.slice(0, 3));
+      setVenues(venuesWithDistance.slice(0, 10));
       
-      // Auto-check-in if coming from QR code URL
       if (qrVenueId && source === "qr" && currentUser) {
-        const venue = loadedVenues.find(v => v.id === qrVenueId);
+        const venue = loadedVenues.find((v: any) => v.id === qrVenueId);
         const alreadyChecked = !!getCheckedVenueId();
-        
         if (venue && !alreadyChecked) {
-          // Small delay to show user what's happening
           setTimeout(() => {
             checkInAt(qrVenueId);
             setChecked(true);
-            
-            // Track check-in
             try {
               import("@/services/specAnalytics").then(({ trackUserCheckedIn }) => {
                 trackUserCheckedIn(qrVenueId, venue.name);
               });
-            } catch (error) {
-              // Failed to track check-in event - non-critical
-            }
-            
+            } catch (error) {}
             navigate(`/venues/${qrVenueId}`);
           }, 500);
         }
       }
     } catch (error) {
-      logError(error instanceof Error ? error : new Error('Failed to load venues'), { 
-        context: 'CheckInPage.loadVenues' 
-      });
+      logError(error instanceof Error ? error : new Error('Failed to load venues'), { context: 'CheckInPage.loadVenues' });
       setVenueError(error instanceof Error ? error : new Error('Failed to load venues'));
       setVenues([]);
     } finally {
       setLoadingVenues(false);
       loadingRef.current = false;
     }
-  }, [qrVenueId, source, currentUser?.uid]); // Use uid instead of whole currentUser object
+  }, [qrVenueId, source, currentUser?.uid]);
 
   useEffect(() => {
     loadVenues();
-  }, [loadVenues]); // Only depend on memoized function
-
-  const preselect = qrVenueId || params.get("id");
+  }, [loadVenues]);
 
   return (
     <div>
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
-      <div className="max-w-6xl mx-auto">
-        {/* Back Button - only show if not in demo mode or if user came from landing */}
-        {!config.DEMO_MODE && (
-          <div className="mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="text-indigo-400 hover:text-indigo-300 hover:bg-neutral-800"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </div>
-        )}
-        <div className="mb-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">Venues</h1>
-            <p className="text-neutral-300 mb-3">Check in with the QR code at the venue, auto check-in, or choose from the venues below.</p>
-            <div className="flex items-center gap-2 text-sm text-neutral-400">
-              <MapPin className="w-4 h-4 text-indigo-400" />
-              <span>Showing venues closest to you</span>
-            </div>
-          </div>
+      <div className="max-w-lg mx-auto">
+        {/* Header */}
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold text-white mb-1">Venues</h1>
+          <p className="text-sm text-neutral-400">Check in to see who's here</p>
         </div>
 
-        {/* Check-in Options - Uniform Cards */}
-        <div className="flex flex-col items-center gap-4 mb-6 relative">
-          {/* Connecting visual element */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-px h-8 bg-gradient-to-b from-indigo-500/50 via-indigo-500/50 to-transparent pointer-events-none z-0" />
-          {/* QR Code Scanner Button - Primary */}
-          <div className="w-full max-w-md">
-            <Card 
-              className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
-              onClick={() => {
-                // For now, show message about using phone camera
-                // Scanner component will be enabled when html5-qrcode is installed
-                toast({
-                  title: "Scan QR Code",
-                  description: "Use your phone camera to scan the venue QR code. It will open this app and auto-check you in!",
+        {/* Quick Actions — compact row */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <button
+            onClick={() => {
+              toast({
+                title: "Scan QR Code",
+                description: "Use your phone camera to scan the venue QR code.",
+              });
+            }}
+            className="flex items-center gap-3 px-4 py-3.5 bg-indigo-600/20 rounded-xl active:scale-[0.97] transition-transform"
+          >
+            <QrCode className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+            <span className="text-sm font-medium text-white">Scan QR Code</span>
+          </button>
+          
+          <button
+            onClick={async () => {
+              if (locationStatus === 'prompt') {
+                setShowLocationPrompt(true);
+                return;
+              }
+              if (locationStatus === 'denied') {
+                toast({ title: "Location needed", description: "Enable location in Settings." });
+                return;
+              }
+              setIsCheckingIn(true);
+              try {
+                const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                  navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
                 });
-              }}
-              aria-label="Scan QR code to check in"
-            >
-              <div className="px-6 py-6 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <QrCode className="w-8 h-8 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-white mb-2">
-                  Scan QR Code
-                </h2>
-                <p className="text-sm text-neutral-200">
-                  The QR code will automatically check you in
-                </p>
+                const nearbyVenue = venues.find(v => {
+                  if (!v.latitude || !v.longitude) return false;
+                  return calculateDistance(
+                    { latitude: position.coords.latitude, longitude: position.coords.longitude },
+                    { latitude: v.latitude, longitude: v.longitude }
+                  ) < 0.5;
+                });
+                if (nearbyVenue) {
+                  await onCheckIn(nearbyVenue.id);
+                } else {
+                  toast({ title: "No venue nearby", description: "Select a venue manually.", variant: "destructive" });
+                }
+              } catch (error) {
+                toast({ title: "Location error", description: "Could not detect location.", variant: "destructive" });
+              } finally {
+                setIsCheckingIn(false);
+              }
+            }}
+            className="flex items-center gap-3 px-4 py-3.5 bg-indigo-600/20 rounded-xl active:scale-[0.97] transition-transform relative"
+          >
+            <MapPin className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+            <span className="text-sm font-medium text-white">I'm Here</span>
+            {isCheckingIn && (
+              <div className="absolute inset-0 bg-indigo-600/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               </div>
-            </Card>
-          </div>
+            )}
+          </button>
+        </div>
 
-        {/* Show message if coming from QR code */}
+        {/* QR scan notification */}
         {source === "qr" && qrVenueId && (
-          <div className="mb-4 p-4 bg-indigo-500/30 border border-indigo-500/50 rounded-xl">
+          <div className="mb-4 p-3 bg-indigo-600/20 rounded-xl">
             <p className="text-sm text-white font-medium">
-              📱 Scanned QR code for {venues.find(v => v.id === qrVenueId)?.name || "venue"} - Checking you in...
+              Checking you in to {venues.find(v => v.id === qrVenueId)?.name || "venue"}...
             </p>
           </div>
         )}
 
-          {/* Auto-detect Button - Secondary */}
-          {navigator.geolocation && (
-            <div className="w-full max-w-md">
-              <Card
-                className="border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/40 to-indigo-500/30 cursor-pointer hover:border-indigo-400 hover:from-indigo-500/50 hover:to-indigo-500/40 hover:shadow-xl transition-all relative group"
-                onClick={async () => {
-                  // Show pre-permission prompt if status is still 'prompt' (never asked)
-                  if (locationStatus === 'prompt') {
-                    setShowLocationPrompt(true);
-                    return;
-                  }
-                  
-                  // If denied, show toast with settings hint
-                  if (locationStatus === 'denied') {
-                    toast({
-                      title: "Location access needed",
-                      description: "Open your device Settings to enable location for Mingle.",
-                    });
-                    return;
-                  }
+        {/* Location denied */}
+        {locationStatus === 'denied' && <LocationDeniedBanner className="mb-4" />}
 
-                  setIsCheckingIn(true);
-                  try {
-                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                      navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                      });
-                    });
-                    
-                    // Find closest venue using distance
-                    const nearbyVenue = venues.find(v => {
-                      if (!v.latitude || !v.longitude) return false;
-                      const dist = calculateDistance(
-                        { latitude: position.coords.latitude, longitude: position.coords.longitude },
-                        { latitude: v.latitude, longitude: v.longitude }
-                      );
-                      return dist < 0.5; // Within 500m
-                    });
-                    
-                    if (nearbyVenue) {
-                      await onCheckIn(nearbyVenue.id);
-                      toast({
-                        title: "Checked in!",
-                        description: `You're now checked in at ${nearbyVenue.name}`,
-                      });
-                    } else {
-                      toast({
-                        title: "No venue nearby",
-                        description: "Please scan QR code or select a venue manually.",
-                        variant: "destructive",
-                      });
-                    }
-                  } catch (error) {
-                    toast({
-                      title: "Location error",
-                      description: "Could not detect your location. Please scan QR code or select manually.",
-                      variant: "destructive",
-                    });
-                  } finally {
-                    setIsCheckingIn(false);
-                  }
-                }}
-                aria-label="Auto check-in using location"
-              >
-                <div className="px-6 py-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <MapPin className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-xl font-bold text-white mb-2">
-                    I'm Here
-                  </h2>
-                  <p className="text-sm text-neutral-200">
-                    Auto check-in to nearest venue
-                  </p>
-                </div>
-                {isCheckingIn && (
-                  <div className="absolute inset-0 bg-indigo-500/50 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-                  </div>
-                )}
-              </Card>
-            </div>
-          )}
-        </div>
-
-        {/* Recently Visited Section */}
-        {recentlyVisited.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <History className="w-4 h-4 text-indigo-400" />
-              <h2 className="text-xl font-bold text-white">Recently Visited</h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {recentlyVisited.map((venueId) => {
-                const venue = venues.find(v => v.id === venueId);
-                if (!venue) return null;
-                return (
-                  <Card
-                    key={venueId}
-                    className="cursor-pointer border border-neutral-700 hover:border-indigo-500 bg-neutral-800 overflow-hidden"
-                    onClick={() => onCheckIn(venueId)}
-                    aria-label={`Check in to ${venue.name}`}
-                  >
-                    <div className="relative h-24 w-full overflow-hidden bg-neutral-200">
-                      {venue.image ? (
-                        <img
-                          src={venue.image}
-                          alt={venue.name}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600">
-                          <MapPin className="w-6 h-6 text-white/50" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-2">
-                      <p className="text-xs font-semibold text-white truncate">{venue.name}</p>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Divider */}
-        {navigator.geolocation && (
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-neutral-700"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-neutral-900 text-neutral-400 font-medium">
-                Nearby Venues
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Location denied banner */}
-        {locationStatus === 'denied' && (
-          <LocationDeniedBanner className="mb-4" />
-        )}
-
-        {checked && (
-          <div className="mb-4 p-4 bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-indigo-900/40 border-2 border-indigo-600/50 rounded-xl flex items-center space-x-3 shadow-lg">
-            <CheckCircle2 className="w-6 h-6 text-indigo-400 flex-shrink-0" />
-            <p className="text-sm text-indigo-300 font-semibold">You're checked in! Browse people at your venue.</p>
-          </div>
-        )}
-
+        {/* Error state */}
         {venueError && venues.length === 0 && (
-          <div className="mb-6 p-6 bg-neutral-800 rounded-xl border-2 border-red-700 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-900 flex items-center justify-center">
-              <MapPin className="w-8 h-8 text-red-400" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Failed to load venues</h3>
-            <p className="text-sm text-neutral-300 mb-4">
-              {isNetworkError(venueError)
-                ? 'Network error. Please check your connection and try again.'
-                : venueError.message || 'Something went wrong. Please try again.'}
+          <div className="text-center py-12">
+            <MapPin className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-white mb-1">Failed to load venues</h3>
+            <p className="text-sm text-neutral-500 mb-4">
+              {isNetworkError(venueError) ? 'Check your connection.' : 'Something went wrong.'}
             </p>
             <RetryButton onRetry={loadVenues} isLoading={loadingVenues} />
           </div>
         )}
 
+        {/* Loading */}
         {loadingVenues && venues.length === 0 && !venueError && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
               <VenueCardSkeleton key={i} index={i} />
             ))}
           </div>
         )}
 
+        {/* Empty state */}
         {!loadingVenues && !venueError && venues.length === 0 && (
-          <div className="mb-6 p-8 bg-neutral-800 rounded-xl border-2 border-neutral-700 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-900 flex items-center justify-center">
-              <MapPin className="w-8 h-8 text-indigo-400" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">No venues found nearby</h3>
-            <p className="text-sm text-neutral-300 mb-4">
-              We couldn't find any venues in your area. Try scanning a QR code at a venue or check back later.
-            </p>
-            <Button
-              onClick={() => loadVenues()}
-              variant="outline"
-              className="border-indigo-600 text-indigo-400 hover:bg-indigo-900/30"
-            >
+          <div className="text-center py-12">
+            <MapPin className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-white mb-1">No venues nearby</h3>
+            <p className="text-sm text-neutral-500 mb-4">Try scanning a QR code at a venue.</p>
+            <Button onClick={() => loadVenues()} variant="outline" size="sm" className="rounded-xl">
               Refresh
             </Button>
           </div>
         )}
 
+        {/* Venue Cards */}
         {!loadingVenues && venues.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {venues.map((v, index) => {
-            const distanceText = v.distanceKm !== undefined 
-              ? v.distanceKm < 1 
-                ? `${Math.round(v.distanceKm * 1000)}m`
-                : `${v.distanceKm.toFixed(1)}km`
-              : null;
-            
-            return (
-              <div key={v.id}>
-                <Card
-                  className={`cursor-pointer transition-all h-full overflow-hidden relative border-2 ${
-                    preselect === v.id 
-                      ? "border-indigo-600 shadow-lg bg-indigo-900/30 ring-2 ring-indigo-500" 
-                      : "border-neutral-700 hover:border-indigo-500 hover:shadow-lg bg-neutral-800"
-                  } focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-neutral-900`}
+          <div className="space-y-3">
+            {venues.map((v) => {
+              const distanceText = v.distanceKm !== undefined 
+                ? v.distanceKm < 1 
+                  ? `${Math.round(v.distanceKm * 1000)}m`
+                  : `${v.distanceKm.toFixed(1)}km`
+                : null;
+              
+              return (
+                <button
+                  key={v.id}
                   onClick={() => onCheckIn(v.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      onCheckIn(v.id);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
+                  className="w-full text-left rounded-xl overflow-hidden bg-neutral-800 active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   aria-label={`Check in to ${v.name}`}
                 >
-                  {/* Prominent "Tap to Check In" indicator */}
-                  <div className="absolute top-2 right-2 z-20">
-                    <Badge className="bg-indigo-600 text-white font-bold shadow-xl px-3 py-1.5 text-xs border-2 border-indigo-400 animate-pulse">
-                      Tap to Check In
-                    </Badge>
-                  </div>
-                  {/* Venue Image */}
-                  <div className="relative h-48 w-full overflow-hidden bg-neutral-200 aspect-square">
+                  <div className="relative h-40 overflow-hidden">
                     {v.image ? (
                       <img
                         src={v.image}
                         alt={v.name}
-                        className="h-full w-full object-cover object-center"
+                        className="h-full w-full object-cover"
                         loading="lazy"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop";
                         }}
                       />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center">
-                        <MapPin className="w-12 h-12 text-neutral-400" />
+                      <div className="h-full w-full flex items-center justify-center bg-neutral-700">
+                        <MapPin className="w-8 h-8 text-neutral-500" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                    {/* Distance - PROMINENT */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 via-transparent to-transparent" />
+                    
+                    {/* Distance badge */}
                     {distanceText && (
-                      <div className="absolute top-2 right-2">
-                        <Badge className="bg-indigo-600 text-white font-bold shadow-xl px-3 py-1.5 text-sm border-2 border-indigo-400">
-                          {distanceText}
-                        </Badge>
+                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                        {distanceText}
                       </div>
                     )}
-                    {/* People count */}
-                    {v.checkInCount !== undefined && v.checkInCount > 0 && (
-                      <div className="absolute bottom-2 left-2">
-                        <Badge className="bg-indigo-600/90 backdrop-blur-sm border-2 border-indigo-500 text-white font-semibold shadow-lg px-3 py-1">
-                          {v.checkInCount} {v.checkInCount === 1 ? 'person' : 'people'} here
-                        </Badge>
-                      </div>
-                    )}
-                    {/* Venue Status Indicator */}
-                    {v.openingHours && (
-                      <div className="absolute top-2 left-2">
-                        <Badge className="bg-green-600/90 backdrop-blur-sm border-2 border-green-500 text-white font-semibold shadow-lg px-2 py-1 text-xs">
-                          <Clock className="w-3 h-3 mr-1 inline" />
-                          Open
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-bold text-white text-lg flex-1">{v.name}</h3>
-                      {/* Distance badge in card body for mobile */}
-                      {distanceText && (
-                        <Badge className="bg-indigo-600 text-white font-semibold text-xs px-2 py-1 ml-2 flex-shrink-0">
-                          {distanceText}
-                        </Badge>
+                    
+                    {/* Venue info overlay */}
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="font-bold text-white text-lg">{v.name}</h3>
+                      {v.address && (
+                        <p className="text-neutral-300 text-sm mt-0.5">{v.address}</p>
                       )}
                     </div>
-                    {/* Opening Hours - PROMINENT */}
-                    {v.openingHours && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                        <p className="text-sm text-indigo-300 font-medium">
-                          {v.openingHours.includes('until') || v.openingHours.includes('Closes') 
-                            ? v.openingHours.replace(/Closes|Open until/gi, 'Open until').trim()
-                            : `Open until ${v.openingHours}`}
-                        </p>
-                      </div>
-                    )}
-                    {v.address && (
-                      <p className="text-sm text-neutral-400 mb-2">
-                        {v.address}
-                      </p>
-                    )}
-                    {/* Social Proof */}
-                    {v.checkInCount !== undefined && v.checkInCount > 0 && (
-                      <p className="text-xs text-indigo-400 mb-2">
-                        {v.checkInCount} {v.checkInCount === 1 ? 'person' : 'people'} checked in today
-                      </p>
-                    )}
-                    {/* Venue Categories/Tags */}
-                    {(v as any).categories && Array.isArray((v as any).categories) && (v as any).categories.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {(v as any).categories.slice(0, 3).map((cat: string, idx: number) => (
-                          <Badge key={idx} variant="outline" className="text-xs border-indigo-700/50 text-indigo-300 bg-indigo-900/20">
-                            {cat}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                    <Button
-                      size="lg"
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-xl min-h-[48px] mt-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCheckIn(v.id);
-                      }}
-                    >
-                      <MapPin className="w-5 h-5 mr-2" />
-                      Check In Here
-                    </Button>
                   </div>
-                </Card>
-              </div>
-            );
-          })}
-        </div>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* Pre-permission prompt (shown before native iOS dialog) */}
+      {/* Location permission prompt */}
       <LocationPermissionPrompt
         open={showLocationPrompt}
         onAllow={async () => {
@@ -619,12 +329,6 @@ export default function CheckInPage() {
             const { requestLocationPermission } = await import("@/utils/locationPermission");
             const granted = await requestLocationPermission();
             setLocationStatus(granted ? 'granted' : 'denied');
-            if (granted) {
-              toast({
-                title: "Location enabled",
-                description: "You can now auto-detect nearby venues.",
-              });
-            }
           } catch {
             setLocationStatus('denied');
           } finally {

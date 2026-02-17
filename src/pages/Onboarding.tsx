@@ -231,7 +231,7 @@ const Onboarding = () => {
             transition={{ duration: 0.3 }}
             className="w-full max-w-md"
           >
-            <Card className="w-full border-2 border-neutral-700 bg-neutral-800 shadow-xl">
+            <Card className="w-full bg-neutral-800 shadow-xl">
               <CardHeader className="text-center space-y-4 border-b border-neutral-700">
                 <motion.div
                   initial={{ scale: 0 }}
@@ -292,7 +292,7 @@ const Onboarding = () => {
                       setLocationError(false);
                       setStep(2);
                     }}
-                    className="w-full border-2 border-neutral-600 hover:bg-neutral-700 text-neutral-300"
+                    className="w-full hover:bg-neutral-700 text-neutral-300"
                   >
                     Continue Without Location
                   </Button>
@@ -301,7 +301,7 @@ const Onboarding = () => {
                 {step === 2 && currentStep.canSkip && (
                   <Button
                     variant="outline"
-                    className="w-full border-2 border-neutral-600 hover:bg-neutral-700 text-neutral-300"
+                    className="w-full hover:bg-neutral-700 text-neutral-300"
                     onClick={handleSkip}
                   >
                     Skip for now
