@@ -11,8 +11,6 @@ import {
   CHECKIN_WARNING_MS,
 } from '@/lib/checkinStore';
 import { useToast } from '@/hooks/use-toast';
-import config from '@/config';
-import venueService from '@/services/firebase/venueService';
 import { useAuth } from '@/context/AuthContext';
 
 interface ExpiryWarningProps {
@@ -57,17 +55,7 @@ export function ExpiryWarning({ className = '' }: ExpiryWarningProps) {
   const handleExpired = async () => {
     const venueId = getCheckedVenueId();
     
-    // Clear local state
-    clearCheckIn();
-    
-    // Sync to Firebase
-    if (!config.DEMO_MODE && currentUser?.uid) {
-      try {
-        await venueService.checkOutFromVenue(currentUser.uid);
-      } catch {
-        // Silent fail - local state already cleared
-      }
-    }
+    clearCheckIn(currentUser?.uid);
 
     toast({
       title: "Check-in expired",

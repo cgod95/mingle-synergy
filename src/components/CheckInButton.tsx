@@ -71,7 +71,7 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
 
     setLoading(true);
     try {
-      checkInAt(venueId);
+      checkInAt(venueId, currentUser.uid);
       setIsCurrentVenue(true);
 
       toast({
@@ -96,7 +96,7 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
 
     setLoading(true);
     try {
-      clearCheckIn();
+      clearCheckIn(currentUser.uid);
       setIsCurrentVenue(false);
 
       toast({

@@ -1,10 +1,13 @@
 /**
  * Unified check-in store — single source of truth for venue check-in state.
  *
- * Stores:  { venueId, ts }  in localStorage under KEY.
- * Provides expiry helpers so ExpiryWarning and other consumers can
- * query remaining time, expiring-soon, and expired states.
+ * Stores locally in localStorage AND persists to Firestore so other users
+ * can see who is checked in at a venue in real time.
  */
+
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { firestore } from '@/firebase/config';
+import { logError } from '@/utils/errorHandler';
 
 const KEY = "mingle:checkedVenueId";
 const TS_KEY = "mingle:checkedVenueTs";
@@ -13,6 +16,29 @@ const TS_KEY = "mingle:checkedVenueTs";
 export const CHECKIN_DURATION_MS = 12 * 60 * 60 * 1000;
 /** Show "expiring soon" warning when less than 30 min remain */
 export const CHECKIN_WARNING_MS = 30 * 60 * 1000;
+
+// ── Firestore sync ────────────────────────────────────────────
+
+async function syncCheckInToFirestore(venueId: string | null, userId?: string): Promise<void> {
+  if (!firestore || !userId) return;
+  try {
+    const userRef = doc(firestore, 'users', userId);
+    if (venueId) {
+      await updateDoc(userRef, {
+        currentVenue: venueId,
+        checkedInAt: serverTimestamp(),
+        isVisible: true,
+      });
+    } else {
+      await updateDoc(userRef, {
+        currentVenue: null,
+        checkedInAt: null,
+      });
+    }
+  } catch (error) {
+    logError(error as Error, { source: 'checkinStore', action: 'syncCheckInToFirestore', venueId: venueId || 'null' });
+  }
+}
 
 // ── Zone helpers ──────────────────────────────────────────────
 
@@ -50,11 +76,14 @@ export function getCheckInTimestamp(): number {
   }
 }
 
-export function checkInAt(venueId: string): void {
+/**
+ * Check in at a venue. Persists locally and to Firestore.
+ * Pass userId to sync to Firestore so other users can see you.
+ */
+export function checkInAt(venueId: string, userId?: string): void {
   try {
     localStorage.setItem(KEY, venueId);
     localStorage.setItem(TS_KEY, String(Date.now()));
-    // Also write to the legacy mingle:checkin key so any old consumers stay in sync
     try {
       localStorage.setItem(
         "mingle:checkin",
@@ -65,9 +94,13 @@ export function checkInAt(venueId: string): void {
       window.dispatchEvent(new Event("mingle:checkin"));
     } catch {}
   } catch {}
+  syncCheckInToFirestore(venueId, userId);
 }
 
-export function clearCheckIn(): void {
+/**
+ * Clear check-in. Pass userId to sync removal to Firestore.
+ */
+export function clearCheckIn(userId?: string): void {
   try {
     localStorage.removeItem(KEY);
     localStorage.removeItem(TS_KEY);
@@ -76,6 +109,7 @@ export function clearCheckIn(): void {
   try {
     window.dispatchEvent(new Event("mingle:checkin"));
   } catch {}
+  syncCheckInToFirestore(null, userId);
 }
 
 export function isCheckedIn(venueId?: string | null): boolean {

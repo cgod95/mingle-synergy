@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Send, MoreVertical, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import MingleMLogo from "@/components/ui/MingleMLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,19 +14,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BlockReportDialog } from "@/components/BlockReportDialog";
 
-import { isMingleBot } from "@/lib/mingleBot";
 import { getActiveMatches } from "@/lib/matchesCompat";
-import { appendMessage as appendToChatStore } from "@/lib/chatStore";
-import { getMessageCount, canSendMessage, getRemainingMessages, incrementMessageCount } from "@/utils/messageLimitTracking";
-import { getCheckedVenueId } from "@/lib/checkinStore";
+import { subscribeToMessages, sendMessage as firebaseSendMessage, canSendMessage as firebaseCanSendMessage, getRemainingMessages as firebaseGetRemaining, type Message } from "@/services/messageService";
 import MessageLimitModal from "@/components/ui/MessageLimitModal";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
-import { retryWithMessage, isNetworkError } from "@/utils/retry";
-import { hapticLight, hapticSuccess } from "@/lib/haptics";
+import { isNetworkError } from "@/utils/retry";
+import { hapticLight } from "@/lib/haptics";
 import { logError } from "@/utils/errorHandler";
+import { FEATURE_FLAGS } from "@/lib/flags";
 
-// Conversation starter prompts (Venue/IRL focused - aligned with Mingle mission)
 const CONVERSATION_STARTERS = [
   "What brings you here tonight?",
   "Have you been to this venue before?",
@@ -38,36 +34,11 @@ const CONVERSATION_STARTERS = [
   "What do you think of the music?",
 ];
 
-/** Local storage helpers */
-const messagesKey = (id: string) => `mingle:messages:${id}`;
-type Msg = { sender: "you" | "them"; text: string; ts: number };
-
-function loadMessages(id: string): Msg[] {
-  try {
-    const raw = localStorage.getItem(messagesKey(id));
-    return raw ? (JSON.parse(raw) as Msg[]) : [];
-  } catch {
-    return [];
-  }
-}
-function saveMessages(id: string, msgs: Msg[]) {
-  try {
-    localStorage.setItem(messagesKey(id), JSON.stringify(msgs));
-  } catch {}
-}
-function ensureThread(id: string): Msg[] {
-  const cur = loadMessages(id);
-  if (cur.length > 0) return cur;
-  const starter: Msg[] = [
-    { sender: "them", text: "Hey 👋", ts: Date.now() - 60_000 },
-  ];
-  saveMessages(id, starter);
-  return starter;
-}
+type Msg = { sender: "you" | "them"; text: string; ts: number; id?: string };
 
 export default function ChatRoom() {
   const { id } = useParams<{ id: string }>();
-  const matchId = id; // Use id from params (ChatRoomGuard passes it as id)
+  const matchId = id;
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
@@ -75,23 +46,21 @@ export default function ChatRoom() {
   const [matchName, setMatchName] = useState<string>("Chat");
   const [matchAvatar, setMatchAvatar] = useState<string>("");
   const [matchExpiresAt, setMatchExpiresAt] = useState<number>(0);
-  const [venueName, setVenueName] = useState<string>("");
+  const [otherUserId, setOtherUserId] = useState<string>("");
   const [showStarters, setShowStarters] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showMessageLimitModal, setShowMessageLimitModal] = useState(false);
-  const [remainingMessages, setRemainingMessages] = useState(3);
+  const [remainingMessages, setRemainingMessages] = useState(10);
   const [canSendMsg, setCanSendMsg] = useState(true);
   const [sendError, setSendError] = useState<Error | null>(null);
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
   const keyboardHeight = useKeyboardHeight();
 
-  // Load match name, avatar, expiry, and venue from matchesCompat
+  // Load match info (partner name, avatar, expiry)
   useEffect(() => {
     const loadMatchInfo = async () => {
       if (!matchId || !currentUser?.uid) return;
@@ -102,8 +71,8 @@ export default function ChatRoom() {
           setMatchName(match.displayName || "Chat");
           setMatchAvatar(match.avatarUrl || "");
           setMatchExpiresAt(match.expiresAt || 0);
-          // Show conversation starters if this is a new conversation
-          if (msgs.length <= 1) {
+          setOtherUserId(match.partnerId || "");
+          if (msgs.length === 0) {
             setShowStarters(true);
           }
         }
@@ -112,34 +81,46 @@ export default function ChatRoom() {
       }
     };
     loadMatchInfo();
-  }, [matchId, currentUser, msgs.length]);
+  }, [matchId, currentUser?.uid]);
 
-  // Typing indicator logic
-  // Note: In production, this would receive typing events from Firebase/WebSocket
-  // For now, we simulate typing when user types (demo mode)
-  // TODO: Integrate with real-time service to show when OTHER user is typing
+  // Real-time Firestore message listener
   useEffect(() => {
-    // Simulate other user typing occasionally (demo)
-    // In production, this would be: onTypingEvent from Firebase/WebSocket
-    if (text.length > 0 && Math.random() > 0.7) {
-      setIsTyping(true);
-      const timeout = setTimeout(() => {
-        setIsTyping(false);
-      }, 2000);
-      return () => clearTimeout(timeout);
-    }
-    return () => {
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
+    if (!matchId || !currentUser?.uid) return;
+
+    const unsubscribe = subscribeToMessages(matchId, (firebaseMessages: Message[]) => {
+      const mapped: Msg[] = firebaseMessages.map(m => ({
+        id: m.id,
+        sender: m.senderId === currentUser.uid ? "you" as const : "them" as const,
+        text: m.text,
+        ts: m.createdAt?.getTime?.() || Date.now(),
+      }));
+      setMsgs(mapped);
+      if (mapped.length === 0) {
+        setShowStarters(true);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [matchId, currentUser?.uid]);
+
+  // Update message limits
+  useEffect(() => {
+    if (!matchId || !currentUser?.uid) return;
+    const updateLimits = async () => {
+      const remaining = await firebaseGetRemaining(matchId, currentUser.uid);
+      const canSend = await firebaseCanSendMessage(matchId, currentUser.uid);
+      setRemainingMessages(remaining);
+      setCanSendMsg(canSend);
+      if (!canSend && remaining === 0) {
+        setShowMessageLimitModal(true);
       }
     };
-  }, [msgs.length]); // Trigger on new messages (simulating response)
+    updateLimits();
+  }, [matchId, currentUser?.uid, msgs.length]);
 
-  // Calculate remaining time until match expires
   const getRemainingTime = () => {
     if (!matchExpiresAt) return null;
-    const now = Date.now();
-    const remaining = matchExpiresAt - now;
+    const remaining = matchExpiresAt - Date.now();
     if (remaining <= 0) return null;
     const hours = Math.floor(remaining / (1000 * 60 * 60));
     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
@@ -147,40 +128,10 @@ export default function ChatRoom() {
     return `${minutes}m`;
   };
 
-  // Get other user ID from match (for block/report)
-  const otherUserId = useMemo(() => {
-    // In a real implementation, fetch match data to get otherUserId
-    // For now, use matchId as placeholder
-    return matchId || "";
-  }, [matchId]);
-
-  useEffect(() => {
-    if (!matchId) return;
-    const seeded = ensureThread(matchId);
-    setMsgs(seeded);
-    
-    // Update message limit tracking
-    if (currentUser?.uid) {
-      const updateLimits = async () => {
-        const remaining = await getRemainingMessages(matchId, currentUser.uid);
-        const canSend = await canSendMessage(matchId, currentUser.uid);
-        setRemainingMessages(remaining);
-        setCanSendMsg(canSend);
-        
-        // Show modal if limit reached (but not for premium users)
-        if (!canSend && remaining === 0) {
-          setShowMessageLimitModal(true);
-        }
-      };
-      updateLimits();
-    }
-  }, [matchId, currentUser?.uid]);
-
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [msgs]);
 
-  // Scroll to bottom when keyboard opens so user can see latest messages
   useEffect(() => {
     if (keyboardHeight > 0) {
       setTimeout(() => {
@@ -189,26 +140,7 @@ export default function ChatRoom() {
     }
   }, [keyboardHeight]);
 
-
-  // Listen for bot replies and refresh messages
   useEffect(() => {
-    if (!matchId || !isMingleBot(matchId)) return;
-    
-    const handleBotReply = (e: CustomEvent) => {
-      if (e.detail?.threadId === matchId) {
-        // Reload messages from localStorage
-        const reloaded = loadMessages(matchId);
-        setMsgs(reloaded);
-      }
-    };
-    
-    window.addEventListener("mingle-bot-reply", handleBotReply as EventListener);
-    return () => {
-      window.removeEventListener("mingle-bot-reply", handleBotReply as EventListener);
-    };
-  }, [matchId]);
-  useEffect(() => {
-    // Focus input on mount
     inputRef.current?.focus();
   }, []);
 
@@ -236,65 +168,21 @@ export default function ChatRoom() {
     hapticLight();
     setSendError(null);
     setSending(true);
+    setText("");
     
     try {
-      // Check message limit (premium users bypass)
-      const canSend = await retryWithMessage(
-        () => canSendMessage(matchId, currentUser.uid),
-        { operationName: 'checking message limit', maxRetries: 2 }
-      );
-      
-      if (!canSend) {
-        toast({
-          title: "Message limit reached",
-          description: "You've sent all 5 messages. Wait for a reply or reconnect at a venue.",
-          variant: "destructive",
-        });
-        setShowMessageLimitModal(true);
-        return;
-      }
-      
-      // Increment message count (only for non-premium users)
-      const isPremium = await (async () => {
-        try {
-          const { subscriptionService } = await import("@/services");
-          if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
-            const subscription = subscriptionService.getUserSubscription(currentUser.uid);
-            return subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
-          }
-        } catch {}
-        return false;
-      })();
-      
-      if (!isPremium) {
-        incrementMessageCount(matchId, currentUser.uid);
-      }
-      
-      const remaining = await getRemainingMessages(matchId, currentUser.uid);
-      setRemainingMessages(remaining);
-      setCanSendMsg(await canSendMessage(matchId, currentUser.uid));
-      
-      // Show toast if 1 message remaining (but not for premium)
-      if (remaining === 1 && !isPremium) {
-        toast({
-          title: "1 message remaining",
-          description: "Make it count! Focus on meeting up in person.",
-        });
-      }
-      
-      const ts = Date.now();
-      const next: Msg[] = [...msgs, { sender: "you" as const, text: t, ts }];
-      setMsgs(next);
-      saveMessages(matchId, next);
-      // Sync to chatStore so Matches page sees messages (fixes "New"/"Start conversation" persistence)
-      appendToChatStore(matchId, { sender: "me", text: t, ts });
-      setText("");
-      setShowStarters(false); // Hide starters after first message
+      await firebaseSendMessage(matchId, currentUser.uid, t);
+      setShowStarters(false);
       inputRef.current?.focus();
     } catch (error) {
-      logError(error as Error, { context: 'ChatRoom.onSend', matchId, userId: currentUser?.uid || 'unknown' });
+      logError(error as Error, { context: 'ChatRoom.onSend', matchId, userId: currentUser.uid });
       const errorObj = error instanceof Error ? error : new Error('Failed to send message');
       setSendError(errorObj);
+      setText(t); // Restore text on failure
+      
+      if (errorObj.message.includes('limit')) {
+        setShowMessageLimitModal(true);
+      }
       
       toast({
         title: "Failed to send message",
@@ -306,17 +194,6 @@ export default function ChatRoom() {
     } finally {
       setSending(false);
     }
-  };
-
-  const sendStarter = (starter: string) => {
-    const ts = Date.now();
-    const next: Msg[] = [...msgs, { sender: "you" as const, text: starter, ts }];
-    setMsgs(next);
-    saveMessages(matchId, next);
-    // Sync to chatStore so Matches page sees messages
-    appendToChatStore(matchId, { sender: "me", text: starter, ts });
-    setShowStarters(false);
-    inputRef.current?.focus();
   };
 
   return (
@@ -393,7 +270,7 @@ export default function ChatRoom() {
               <div className="flex items-start gap-2">
                 <Sparkles className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-xs font-medium text-neutral-200 mb-1">You have 5 messages to make plans</p>
+                  <p className="text-xs font-medium text-neutral-200 mb-1">You have {typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5} messages to make plans</p>
                   <p className="text-xs text-neutral-300">Focus on meeting up in person - that's what Mingle is all about!</p>
                 </div>
               </div>
@@ -417,10 +294,18 @@ export default function ChatRoom() {
                     key={idx}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setText(starter);
+                    onClick={async () => {
+                      if (!currentUser?.uid || !matchId || sending) return;
                       setShowStarters(false);
-                      inputRef.current?.focus();
+                      setSending(true);
+                      try {
+                        await firebaseSendMessage(matchId, currentUser.uid, starter);
+                      } catch (error) {
+                        logError(error as Error, { context: 'ChatRoom.conversationStarter', matchId });
+                        setText(starter);
+                      } finally {
+                        setSending(false);
+                      }
                     }}
                     className="px-4 py-2 text-sm bg-neutral-800 rounded-full text-neutral-200 hover:bg-indigo-900/30 transition-all"
                   >
@@ -434,7 +319,7 @@ export default function ChatRoom() {
           <AnimatePresence>
             {msgs.map((m, i) => (
               <motion.div
-                key={i}
+                key={m.id || i}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
@@ -456,24 +341,6 @@ export default function ChatRoom() {
               </motion.div>
             ))}
           </AnimatePresence>
-
-          {/* Typing Indicator */}
-          {isTyping && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex justify-start"
-            >
-              <div className="bg-neutral-800 rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex gap-1">
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="w-1.5 h-1.5 bg-neutral-500 rounded-full" />
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="w-1.5 h-1.5 bg-neutral-500 rounded-full" />
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="w-1.5 h-1.5 bg-neutral-500 rounded-full" />
-                </div>
-              </div>
-            </motion.div>
-          )}
 
           <div ref={endRef} />
         </div>

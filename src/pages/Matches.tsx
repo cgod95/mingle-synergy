@@ -1,26 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Clock, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart, MapPin, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
-import { getLastMessage } from "@/lib/chatStore";
-
-function getLastMessageAny(matchId: string) {
-  const fromStore = getLastMessage(matchId);
-  if (fromStore) return fromStore;
-  try {
-    const raw = localStorage.getItem(`mingle:messages:${matchId}`);
-    if (!raw) return undefined;
-    const msgs = JSON.parse(raw) as { sender: string; text: string; ts: number }[];
-    if (msgs.length === 0) return undefined;
-    const last = msgs[msgs.length - 1];
-    return { sender: last.sender === 'you' ? ('me' as const) : ('them' as const), text: last.text, ts: last.ts };
-  } catch {
-    return undefined;
-  }
-}
-
 import { useAuth } from "@/context/AuthContext";
-import config from "@/config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -40,29 +22,52 @@ export default function Matches() {
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchWithPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
+  const pullStartY = useRef<number | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchMatches = async () => {
-      if (!currentUser?.uid) {
-        setIsLoading(false);
-        return;
-      }
-      
-      setIsLoading(true);
-      try {
-        const allMatches = await getAllMatches(currentUser.uid);
+  const fetchMatches = useCallback(async (silent = false) => {
+    if (!currentUser?.uid) {
+      setIsLoading(false);
+      return;
+    }
+    
+    if (!silent) setIsLoading(true);
+    try {
+      const allMatches = await getAllMatches(currentUser.uid);
         const now = Date.now();
-        const enrichedMatches: MatchWithPreview[] = allMatches.map((match) => {
-          const lastMsg = getLastMessageAny(match.id);
-          const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
-          return {
-            ...match,
-            lastMessage: lastMsg?.text,
-            lastMessageTime: lastMsg?.ts,
-            isNew,
-          };
-        });
+
+        // Fetch last message for each match from Firestore
+        let getLastFirebaseMessage: ((matchId: string) => Promise<{ text: string; ts: number } | null>) | null = null;
+        try {
+          const { collection: col, query: q, where: w, orderBy: ob, limit: lim, getDocs } = await import('firebase/firestore');
+          const { firestore } = await import('@/firebase/config');
+          if (firestore) {
+            getLastFirebaseMessage = async (matchId: string) => {
+              try {
+                const snap = await getDocs(q(col(firestore, 'messages'), w('matchId', '==', matchId), ob('createdAt', 'desc'), lim(1)));
+                if (snap.empty) return null;
+                const d = snap.docs[0].data();
+                return { text: d.text || '', ts: d.createdAt?.toDate?.()?.getTime?.() || Date.now() };
+              } catch { return null; }
+            };
+          }
+        } catch {}
+
+        const enrichedMatches: MatchWithPreview[] = await Promise.all(
+          allMatches.map(async (match) => {
+            const lastMsg = getLastFirebaseMessage ? await getLastFirebaseMessage(match.id) : null;
+            const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
+            return {
+              ...match,
+              lastMessage: lastMsg?.text,
+              lastMessageTime: lastMsg?.ts,
+              isNew,
+            };
+          })
+        );
 
         enrichedMatches.sort((a, b) => {
           if (a.lastMessageTime && b.lastMessageTime) return b.lastMessageTime - a.lastMessageTime;
@@ -76,13 +81,43 @@ export default function Matches() {
         logError(error as Error, { context: 'Matches.fetchMatches', userId: currentUser?.uid || 'unknown' });
       } finally {
         setIsLoading(false);
+        setIsRefreshing(false);
       }
-    };
-
-    fetchMatches();
-    const interval = config.DEMO_MODE ? null : setInterval(fetchMatches, 30000);
-    return () => { if (interval) clearInterval(interval); };
   }, [currentUser?.uid]);
+
+  useEffect(() => {
+    fetchMatches();
+    const interval = setInterval(() => fetchMatches(true), 30000);
+    return () => clearInterval(interval);
+  }, [fetchMatches]);
+
+  const handlePullRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    hapticLight();
+    await fetchMatches(true);
+  }, [fetchMatches]);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (scrollRef.current && scrollRef.current.scrollTop <= 0) {
+      pullStartY.current = e.touches[0].clientY;
+    }
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (pullStartY.current === null) return;
+    const diff = e.touches[0].clientY - pullStartY.current;
+    if (diff > 0) {
+      setPullDistance(Math.min(diff * 0.5, 80));
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    if (pullDistance > 50) {
+      handlePullRefresh();
+    }
+    pullStartY.current = null;
+    setPullDistance(0);
+  }, [pullDistance, handlePullRefresh]);
 
   const formatRemainingTime = (expiresAt: number): string => {
     const remaining = getRemainingSeconds({ expiresAt } as Match);
@@ -169,7 +204,23 @@ export default function Matches() {
 
   return (
     <ErrorBoundary>
-      <div className="max-w-lg mx-auto">
+      <div
+        ref={scrollRef}
+        className="max-w-lg mx-auto"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Pull-to-refresh indicator */}
+        {(pullDistance > 0 || isRefreshing) && (
+          <div
+            className="flex items-center justify-center overflow-hidden transition-all"
+            style={{ height: isRefreshing ? 40 : pullDistance }}
+          >
+            <RefreshCw className={`w-5 h-5 text-indigo-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-5">
           <h1 className="text-2xl font-bold text-white">Matches</h1>

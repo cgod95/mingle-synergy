@@ -11,17 +11,11 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    function isMatchParticipant(matchData) {
-      return isSignedIn() && (
-        matchData.userId1 == request.auth.uid ||
-        matchData.userId2 == request.auth.uid
-      );
-    }
-
-    // User profiles - users can read/write their own document
+    // User profiles - any authenticated user can read profiles (needed for venue grid, chat, etc.)
+    // Only the owner can write their own document
     // Enforce bio (min 10 chars) and photos (at least 1) for profile updates
     match /users/{uid} {
-      allow read: if isSelf(uid);
+      allow read: if isSignedIn();
       allow create: if isSelf(uid);
       
       // Update: validate bio and photos if they're being updated
@@ -86,8 +80,11 @@ service cloud.firestore {
         resource.data.userId2 == request.auth.uid
       );
       
-      // Delete: not allowed (matches are soft-deleted or archived)
-      allow delete: if false;
+      // Delete: participants can delete expired matches
+      allow delete: if isSignedIn() && (
+        resource.data.userId1 == request.auth.uid ||
+        resource.data.userId2 == request.auth.uid
+      );
     }
 
     // Messages - only participants of the match can read/write
@@ -128,21 +125,26 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Notifications - users can read/update their own notification document
+    match /notifications/{userId} {
+      allow read: if isSelf(userId);
+      allow create: if isSignedIn();
+      allow update: if isSelf(userId);
+    }
+
     // Reports - users can write, only admins can read (read disabled for now)
     match /reports/{reportId} {
       allow write: if isSignedIn();
       allow read: if false; // Private to admins - enable when admin system is implemented
     }
 
-    // Likes/Interests - users can read their own likes, create likes where they are the sender
+    // Likes - each document is keyed by userId and contains a `likes` array of target user IDs
+    // Users can read any likes doc (needed for mutual-like detection) and write their own
     match /likes/{likeId} {
-      allow read: if isSignedIn() && (
-        resource.data.fromUserId == request.auth.uid ||
-        resource.data.toUserId == request.auth.uid
-      );
-      allow create: if isSignedIn() &&
-        request.resource.data.fromUserId == request.auth.uid;
-      allow update, delete: if false; // Likes are immutable
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && likeId == request.auth.uid;
+      allow update: if isSignedIn() && likeId == request.auth.uid;
+      allow delete: if isSignedIn() && likeId == request.auth.uid;
     }
 
     // Interests collection (if used separately from likes)

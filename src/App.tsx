@@ -33,6 +33,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const About = lazy(() => import("./pages/About"));
 const Debug = lazy(() => import("./pages/Debug"));
 const Feedback = lazy(() => import("./pages/Feedback"));
+const UserProfileView = lazy(() => import("./pages/UserProfileView"));
 
 // Minimal loading component - uses standardized LoadingSpinner
 const PageLoader = () => {
@@ -88,6 +89,7 @@ function AppRoutes() {
           {/* ChatIndex removed - unified into Matches page */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />
+          <Route path="/profile/:userId" element={<UserProfileView />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/verification" element={<Verification />} />

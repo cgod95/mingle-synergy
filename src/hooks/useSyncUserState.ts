@@ -40,11 +40,9 @@ export function useSyncUserState() {
         if (profile) {
           // Sync check-in status
           if (profile.isCheckedIn && profile.currentVenue) {
-            // User is checked in - update local storage
-            checkInAt(profile.currentVenue);
+            checkInAt(profile.currentVenue, currentUser.uid);
           } else {
-            // User is not checked in - clear local storage
-            clearCheckIn();
+            clearCheckIn(currentUser.uid);
           }
           
           // Store user profile data in localStorage for offline access

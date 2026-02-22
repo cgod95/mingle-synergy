@@ -51,7 +51,7 @@ export default function CheckInPage() {
 
   const onCheckIn = async (id: string) => {
     hapticSuccess();
-    checkInAt(id);
+    checkInAt(id, currentUser?.uid);
     setChecked(true);
     
     try {
@@ -122,7 +122,7 @@ export default function CheckInPage() {
         const alreadyChecked = !!getCheckedVenueId();
         if (venue && !alreadyChecked) {
           setTimeout(() => {
-            checkInAt(qrVenueId);
+            checkInAt(qrVenueId, currentUser?.uid);
             setChecked(true);
             try {
               import("@/services/specAnalytics").then(({ trackUserCheckedIn }) => {
