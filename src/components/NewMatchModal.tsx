@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, MessageCircle, Heart, Sparkles, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { hapticHeavy } from '@/lib/haptics';
@@ -30,6 +30,8 @@ export function NewMatchModal({
 }: NewMatchModalProps) {
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const noMotion = { duration: 0 };
 
   useEffect(() => {
     if (isOpen) {
@@ -65,10 +67,10 @@ export function NewMatchModal({
           
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.8, y: 20 }}
+            transition={prefersReducedMotion ? noMotion : { type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 flex items-center justify-center z-50 p-4"
           >
             <div className="bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-neutral-700/50 relative overflow-hidden">
@@ -149,19 +151,20 @@ export function NewMatchModal({
                           </div>
                         </div>
                         
-                        {/* Animated ring */}
-                        <motion.div
-                          animate={{ 
-                            scale: [1, 1.2, 1],
-                            opacity: [0.5, 0, 0.5]
-                          }}
-                          transition={{ 
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                          className="absolute inset-0 rounded-full border-2 border-pink-400/50"
-                        />
+                        {!prefersReducedMotion && (
+                          <motion.div
+                            animate={{ 
+                              scale: [1, 1.2, 1],
+                              opacity: [0.5, 0, 0.5]
+                            }}
+                            transition={{ 
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                            className="absolute inset-0 rounded-full border-2 border-pink-400/50"
+                          />
+                        )}
                       </div>
                     </motion.div>
 

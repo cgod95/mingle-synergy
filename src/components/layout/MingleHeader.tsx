@@ -13,14 +13,14 @@ export default function MingleHeader() {
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+      <div className="max-w-7xl mx-auto px-3">
+        <div className="flex items-center justify-between h-11">
           <Link
             to="/checkin"
             aria-label="Mingle - Go to check in"
-            className="group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg p-2 -ml-2 active:scale-95 transition-transform touch-target"
+            className="group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg p-1.5 -ml-1.5 active:scale-95 transition-transform touch-target"
           >
-            <MingleMLogo size="md" showText={true} />
+            <MingleMLogo size="sm" showText={true} />
           </Link>
         </div>
       </div>

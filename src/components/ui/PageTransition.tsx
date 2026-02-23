@@ -1,25 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface PageTransitionProps {
   children: React.ReactNode;
   className?: string;
+  direction?: 'push' | 'pop' | 'fade';
 }
 
-// Smooth page entry animation wrapper
+const PUSH_VARIANTS = {
+  initial: { opacity: 0, x: '20%' },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: '-20%' },
+};
+
+const POP_VARIANTS = {
+  initial: { opacity: 0, x: '-20%' },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: '20%' },
+};
+
+const FADE_VARIANTS = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+};
+
+const INSTANT = { duration: 0 };
+const IOS_EASE = { duration: 0.22, ease: [0.32, 0.72, 0, 1] };
+
 export const PageTransition: React.FC<PageTransitionProps> = ({ 
   children, 
-  className = '' 
+  className = '',
+  direction = 'fade',
 }) => {
+  const prefersReducedMotion = useReducedMotion();
+  const variants = direction === 'push' ? PUSH_VARIANTS : direction === 'pop' ? POP_VARIANTS : FADE_VARIANTS;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ 
-        duration: 0.25, 
-        ease: [0.25, 0.46, 0.45, 0.94] // Custom easing for snappy feel
-      }}
+      initial={prefersReducedMotion ? false : variants.initial}
+      animate={variants.animate}
+      exit={prefersReducedMotion ? undefined : variants.exit}
+      transition={prefersReducedMotion ? INSTANT : IOS_EASE}
       className={className}
     >
       {children}

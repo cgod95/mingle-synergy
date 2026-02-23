@@ -34,6 +34,7 @@ const About = lazy(() => import("./pages/About"));
 const Debug = lazy(() => import("./pages/Debug"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const UserProfileView = lazy(() => import("./pages/UserProfileView"));
+const OnboardingCarousel = lazy(() => import("./components/onboarding/OnboardingCarousel"));
 
 // Minimal loading component - uses standardized LoadingSpinner
 const PageLoader = () => {
@@ -78,6 +79,7 @@ function AppRoutes() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         {/* Onboarding routes - require auth but allow authenticated users */}
+        <Route path="/welcome" element={<ProtectedRoute><OnboardingCarousel /></ProtectedRoute>} />
         <Route path="/upload" element={<ProtectedRoute><ErrorBoundary stepName="upload"><ProfileUpload /></ErrorBoundary></ProtectedRoute>} />
         <Route path="/create-profile" element={<ProtectedRoute><ErrorBoundary stepName="profile"><CreateProfile /></ErrorBoundary></ProtectedRoute>} />
         <Route path="/photo-upload" element={<ProtectedRoute><ErrorBoundary stepName="photo"><PhotoUpload /></ErrorBoundary></ProtectedRoute>} />

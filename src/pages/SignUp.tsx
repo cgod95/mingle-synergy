@@ -28,7 +28,7 @@ export default function SignUp() {
 
     try {
       await signUpUser(email, password);
-      navigate('/create-profile');
+      navigate('/welcome');
     } catch (e: any) {
       const errorMessage = e?.message || 'Failed to sign up';
       if (errorMessage.includes('email-already-in-use')) {

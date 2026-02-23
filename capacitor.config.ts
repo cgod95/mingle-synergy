@@ -10,7 +10,11 @@ const config: CapacitorConfig = {
     contentInset: 'automatic',
     allowsLinkPreview: true,
     scrollEnabled: true,
+    backgroundColor: '#171717',
   },
+  
+  // Prevent white flash behind WebView
+  backgroundColor: '#171717',
   
   // Plugin configuration
   plugins: {

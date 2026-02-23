@@ -49,6 +49,7 @@ const ProtectedRoute: React.FC<RouteWrapperProps> = ({ children }) => {
       const redirectPath = STEP_TO_PATH[nextStep] || '/create-profile';
       // Don't redirect if already on an onboarding page
       const isOnOnboardingPage = 
+        location.pathname.startsWith('/welcome') ||
         location.pathname.startsWith('/create-profile') || 
         location.pathname.startsWith('/photo-upload') || 
         location.pathname.startsWith('/upload');

@@ -66,7 +66,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       (match: FirestoreMatch) =>
         match.timestamp &&
         typeof match.timestamp === "number" &&
-        now - match.timestamp < 3 * 60 * 60 * 1000 // 3 hours
+        now - match.timestamp < MATCH_EXPIRY_TIME
     );
 
     return activeMatches.sort((a, b) => b.timestamp - a.timestamp);
@@ -539,7 +539,7 @@ export const sendMessage = async (
   // Match expiry logic
   const matchCreatedAt = matchData.timestamp;
   const now = Date.now();
-  const expiresAt = matchCreatedAt + 3 * 60 * 60 * 1000;
+  const expiresAt = matchCreatedAt + MATCH_EXPIRY_TIME;
   if (now > expiresAt) throw new Error("Match has expired");
 
   // Message limit per user
@@ -564,11 +564,9 @@ export const cleanupExpiredMatches = async (): Promise<void> => {
   const matchRef = collection(firestore, "matches");
   const snapshot = await getDocs(matchRef);
   const now = Date.now();
-  const threeHoursMs = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
-
   const expired = snapshot.docs.filter(doc => {
     const data = doc.data();
-    return data.timestamp && (now - data.timestamp) > threeHoursMs;
+    return data.timestamp && (now - data.timestamp) > MATCH_EXPIRY_TIME;
   });
 
   await Promise.all(expired.map(doc => deleteDoc(doc.ref)));
@@ -580,7 +578,7 @@ export const isMatchExpired = (match: FirestoreMatch): boolean => {
   const now = Date.now();
   const matchTime = match.timestamp;
   const diff = now - matchTime;
-  return diff > 3 * 60 * 60 * 1000; // 3 hours
+  return diff > MATCH_EXPIRY_TIME;
 };
 
 export const deleteExpiredMatches = async (userId: string) => {
@@ -626,7 +624,7 @@ export const getActiveMatches = async (userId: string): Promise<FirestoreMatch[]
     (match: FirestoreMatch) =>
       match.timestamp &&
       typeof match.timestamp === "number" &&
-      now - match.timestamp < 3 * 60 * 60 * 1000 // 3 hours
+      now - match.timestamp < MATCH_EXPIRY_TIME
   );
 
   return activeMatches.sort((a, b) => b.timestamp - a.timestamp);
@@ -671,7 +669,7 @@ export const getPreviousMatch = async (uid1: string, uid2: string): Promise<Fire
       involvesBothUsers &&
       match.timestamp &&
       typeof match.timestamp === "number" &&
-      now - match.timestamp >= 3 * 60 * 60 * 1000 // expired
+      now - match.timestamp >= MATCH_EXPIRY_TIME
     ) {
       return match;
     }
@@ -757,7 +755,7 @@ export const getActiveMatchesForUser = async (userId: string) => {
   }
   
   const now = Date.now();
-  const threeHoursInMs = 3 * 60 * 60 * 1000;
+  const expiryMs = MATCH_EXPIRY_TIME;
 
   const matchesRef = collection(firestore, 'matches');
   // Query for matches where user is userId1
@@ -773,7 +771,7 @@ export const getActiveMatchesForUser = async (userId: string) => {
   for (const match of allMatches) {
     const data = match.data();
     const createdAt = typeof data.timestamp === 'number' ? data.timestamp : 0;
-    if (now - createdAt <= threeHoursInMs) {
+    if (now - createdAt <= expiryMs) {
       activeMatches.push({ id: match.id, ...data });
     } else {
       // Mark expired matches with the new structure instead of deleting

@@ -18,15 +18,26 @@ interface VenueUser {
  * Real-time hook that returns users currently checked in at a venue.
  * Uses Firestore onSnapshot so the list updates live as people check in/out.
  */
-export function usePeopleAtVenue(venueId: string | undefined): VenueUser[] {
+export function usePeopleAtVenue(venueId: string | undefined): { people: VenueUser[]; loading: boolean; error: Error | null; retry: () => void } {
   const [people, setPeople] = useState<VenueUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const retry = () => {
+    setError(null);
+    setRetryKey(k => k + 1);
+  };
 
   useEffect(() => {
     if (!venueId || !firestore) {
       setPeople([]);
+      setLoading(false);
       return;
     }
 
+    setLoading(true);
+    setError(null);
     const usersRef = collection(firestore, "users");
     const q = query(
       usersRef,
@@ -42,15 +53,18 @@ export function usePeopleAtVenue(venueId: string | undefined): VenueUser[] {
           ...doc.data(),
         })) as VenueUser[];
         setPeople(users);
+        setError(null);
+        setLoading(false);
       },
-      (error) => {
-        logError(error, { source: "usePeopleAtVenue", venueId });
-        setPeople([]);
+      (err) => {
+        logError(err, { source: "usePeopleAtVenue", venueId });
+        setError(err);
+        setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [venueId]);
+  }, [venueId, retryKey]);
 
-  return people;
+  return { people, loading, error, retry };
 }

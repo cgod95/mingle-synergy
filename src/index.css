@@ -80,9 +80,10 @@
   *::after {
     border-color: transparent;
   }
-  body {
+  html, body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    overscroll-behavior-y: none;
   }
 }
 
@@ -99,6 +100,39 @@
   .text-foreground { color: hsl(var(--foreground)); }
   .border-border { border-color: hsl(var(--border)); }
   
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Skeleton shimmer animation */
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.04) 40%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 60%,
+      transparent 100%
+    );
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
   /* Fade-in animation for loading states */
   @keyframes fade-in {
     from {

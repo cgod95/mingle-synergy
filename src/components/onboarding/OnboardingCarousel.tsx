@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, MapPin, Users, MessageSquare } from 'lucide-react';
+import { QrCode, Heart, Users, ShieldCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useOnboarding } from '@/context/OnboardingContext';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface OnboardingCarouselProps {
   onComplete?: () => void;
@@ -12,84 +12,100 @@ interface OnboardingCarouselProps {
 const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
-  const { isOnboardingComplete, setOnboardingStepComplete } = useOnboarding();
+  const prefersReducedMotion = useReducedMotion();
   
   const slides = [
     {
-      title: "This isn't a dating app",
-      description: "It's an anti-dating app that helps you meet people in real life, not just chat endlessly online.",
-      icon: <MessageSquare className="h-16 w-16 text-brand-primary" />
+      step: '01',
+      title: "Check in",
+      description: "Walk into a venue. Scan the QR code or tap to check in. We confirm you're actually there.",
+      icon: <QrCode className="h-14 w-14 text-indigo-400" />,
     },
     {
-      title: "Seize the moment",
-      description: "When you match, you have just 3 hours to introduce yourself. No endless waiting - just real connections.",
-      icon: <Clock className="h-16 w-16 text-brand-primary" />
+      step: '02',
+      title: "Match",
+      description: "See who else is here. Like someone? If they like you back, you're matched.",
+      icon: <Heart className="h-14 w-14 text-indigo-400" />,
     },
     {
-      title: "Be in the same place",
-      description: "We show you people who are at the same venue as you right now. No more guessing if they're really nearby.",
-      icon: <MapPin className="h-16 w-16 text-brand-primary" />
+      step: '03',
+      title: "Meet",
+      description: "You're in the same place. Skip the small talk over text. Go meet them.",
+      icon: <Users className="h-14 w-14 text-indigo-400" />,
     },
     {
-      title: "Say hi in person",
-      description: "The most powerful way to connect is face to face. We give you the courage to walk over and introduce yourself.",
-      icon: <Users className="h-16 w-16 text-brand-primary" />
-    }
+      step: '04',
+      title: "The rules",
+      description: "Matches expire in 24 hours. You get 10 messages each. No algorithm — you see everyone at the venue.",
+      icon: <ShieldCheck className="h-14 w-14 text-indigo-400" />,
+    },
   ];
   
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Last slide, complete onboarding and go to profile edit
       handleComplete();
     }
   };
   
   const handleSkip = () => {
-    // Skip onboarding, mark as seen and go to profile edit
     handleComplete();
   };
   
   const handleComplete = () => {
-    // Mark onboarding as complete and navigate to profile edit
     localStorage.setItem('onboardingSeen', 'true');
-    // Mark all onboarding steps as complete
-    setOnboardingStepComplete('email');
-    setOnboardingStepComplete('profile');
-    setOnboardingStepComplete('photo');
     
     if (onComplete) {
       onComplete();
     } else {
-      navigate('/profile/edit');
+      navigate('/create-profile', { replace: true });
     }
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-neutral-900">
       <div className="flex-1 flex flex-col justify-center px-6 py-12">
-        <div className="max-w-md mx-auto text-center">
-          <div className="flex justify-center mb-6">
-            {slides[currentSlide].icon}
-          </div>
+        <div className="max-w-md mx-auto w-full text-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={prefersReducedMotion ? false : { opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0, x: -40 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
+            >
+              <div className="flex justify-center mb-3">
+                <span className="text-xs font-bold tracking-widest text-indigo-400 uppercase">
+                  {slides[currentSlide].step}
+                </span>
+              </div>
+              
+              <div className="flex justify-center mb-6">
+                <div className="w-24 h-24 rounded-2xl bg-indigo-600/15 flex items-center justify-center">
+                  {slides[currentSlide].icon}
+                </div>
+              </div>
+              
+              <h1 className="text-2xl font-bold text-white mb-3">
+                {slides[currentSlide].title}
+              </h1>
+              
+              <p className="text-neutral-400 text-base leading-relaxed max-w-xs mx-auto">
+                {slides[currentSlide].description}
+              </p>
+            </motion.div>
+          </AnimatePresence>
           
-          <h1 className="text-2xl font-semibold text-foreground mb-3">
-            {slides[currentSlide].title}
-          </h1>
-          
-          <p className="text-muted-foreground mb-8 text-base leading-relaxed">
-            {slides[currentSlide].description}
-          </p>
-          
-          {/* Progress dots */}
-          <div className="flex justify-center space-x-2 mb-8">
+          <div className="flex justify-center space-x-2 mt-10">
             {slides.map((_, index) => (
               <div 
                 key={index}
                 className={cn(
-                  "h-2 w-2 rounded-full",
-                  index === currentSlide ? "bg-brand-primary" : "bg-text-tertiary/30"
+                  "h-1.5 rounded-full transition-all duration-300",
+                  index === currentSlide 
+                    ? "bg-indigo-500 w-6" 
+                    : "bg-neutral-700 w-1.5"
                 )}
               />
             ))}
@@ -97,20 +113,20 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
         </div>
       </div>
       
-      <div className="p-6">
-        <div className="max-w-md mx-auto">
+      <div className="p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))' }}>
+        <div className="max-w-md mx-auto space-y-3">
           <Button
             onClick={handleNext}
-            className="w-full py-6 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full font-medium text-base"
+            className="w-full py-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-semibold text-base"
           >
-            {currentSlide < slides.length - 1 ? 'Next' : 'Complete Onboarding'}
+            {currentSlide < slides.length - 1 ? 'Next' : 'Get Started'}
           </Button>
           
           {currentSlide < slides.length - 1 && (
             <Button
               onClick={handleSkip}
               variant="ghost"
-              className="w-full py-6 text-muted-foreground font-medium text-base mt-4"
+              className="w-full py-4 text-neutral-500 hover:text-neutral-300 font-medium text-sm"
             >
               Skip
             </Button>

@@ -74,9 +74,9 @@ const BottomNav: React.FC = () => {
   }
 
   const navItems = [
-    { path: '/checkin', icon: MapPin, label: 'Venues' },
-    { path: '/matches', icon: Heart, label: 'Matches', showBadge: true },
-    { path: '/profile', icon: User, label: 'Profile' },
+    { path: '/checkin', icon: MapPin, label: 'Venues', activeColor: 'text-indigo-400' },
+    { path: '/matches', icon: Heart, label: 'Matches', showBadge: true, activeColor: 'text-rose-400' },
+    { path: '/profile', icon: User, label: 'Profile', activeColor: 'text-indigo-400' },
   ];
 
   const isActive = (path: string) => {
@@ -95,7 +95,7 @@ const BottomNav: React.FC = () => {
         paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
-      <div className="flex justify-around items-center max-w-md mx-auto px-2 pt-2">
+      <div className="flex justify-around items-center max-w-md mx-auto px-2 pt-1.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -107,21 +107,21 @@ const BottomNav: React.FC = () => {
               onClick={() => handleNavigate(item.path)}
               aria-label={`Navigate to ${item.label}${showBadge ? ` (${unreadCount} unread)` : ''}`}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-col items-center justify-center py-2 px-4 min-w-[72px] min-h-[56px] rounded-xl transition-all duration-200 active:scale-95 touch-target"
+              className="relative flex flex-col items-center justify-center py-1.5 px-4 min-w-[64px] min-h-[48px] rounded-xl transition-all duration-200 active:scale-95 touch-target"
             >
-              <div className={`relative ${active ? 'text-indigo-400' : 'text-neutral-400'}`}>
-                <Icon size={26} strokeWidth={active ? 2.5 : 2} />
+              <div className={`relative ${active ? (item.activeColor || 'text-indigo-400') : 'text-neutral-400'}`}>
+                <Icon size={22} strokeWidth={active ? 2.5 : 2} />
                 {showBadge && (
-                  <div className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-lg border-2 border-neutral-800">
+                  <div role="status" aria-live="polite" className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-0.5 shadow-lg border-2 border-neutral-800">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </div>
                 )}
               </div>
-              <span className={`text-[11px] mt-1 ${active ? 'font-semibold text-indigo-400' : 'font-medium text-neutral-500'}`}>
+              <span className={`text-[10px] mt-0.5 ${active ? `font-semibold ${item.activeColor || 'text-indigo-400'}` : 'font-medium text-neutral-400'}`}>
                 {item.label}
               </span>
               {active && (
-                <div className="absolute bottom-1 w-6 h-1 bg-indigo-500 rounded-full" />
+                <div className={`absolute bottom-0.5 w-5 h-0.5 rounded-full ${item.path === '/matches' ? 'bg-rose-500' : 'bg-indigo-500'}`} />
               )}
             </button>
           );

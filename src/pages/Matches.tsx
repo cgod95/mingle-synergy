@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, MapPin, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { Heart, MapPin, ChevronDown, ChevronUp, RefreshCw, Trash2 } from "lucide-react";
+import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
 import { useAuth } from "@/context/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { MatchListSkeleton } from "@/components/ui/LoadingStates";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { logError } from "@/utils/errorHandler";
-import { hapticLight } from "@/lib/haptics";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -24,6 +24,21 @@ export default function Matches() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('mingle_dismissed_matches');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+
+  const dismissMatch = useCallback((matchId: string) => {
+    hapticMedium();
+    setDismissedIds(prev => {
+      const next = new Set(prev).add(matchId);
+      localStorage.setItem('mingle_dismissed_matches', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
   const pullStartY = useRef<number | null>(null);
   const [pullDistance, setPullDistance] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -133,7 +148,7 @@ export default function Matches() {
     navigate(`/chat/${matchId}`);
   };
 
-  const activeMatchesList = matches.filter(m => !isExpired(m));
+  const activeMatchesList = matches.filter(m => !isExpired(m) && !dismissedIds.has(m.id));
   const expiredMatchesList = matches.filter(m => isExpired(m));
 
   const MatchRow = ({ match, expired = false }: { match: MatchWithPreview; expired?: boolean }) => {
@@ -144,20 +159,22 @@ export default function Matches() {
     return (
       <button
         onClick={() => handleMatchClick(match.id)}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl active:scale-[0.98] transition-all text-left ${
+        aria-label={`Chat with ${match.displayName || 'Match'}`}
+        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl active:scale-[0.98] transition-all text-left ${
           expired ? 'opacity-50' : 'hover:bg-neutral-800/50'
         }`}
       >
-        {/* Avatar */}
+        {/* Photo thumbnail — rounded rectangle */}
         <div className="relative flex-shrink-0">
-          <Avatar className="h-14 w-14">
+          <div className="h-16 w-16 rounded-xl overflow-hidden bg-neutral-700">
             {match.avatarUrl ? (
-              <AvatarImage src={match.avatarUrl} alt={match.displayName || "Match"} />
-            ) : null}
-            <AvatarFallback className="bg-indigo-600 text-white font-bold text-lg">
-              {(match.displayName || "M").charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+              <img src={match.avatarUrl} alt={match.displayName || "Match"} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-indigo-600 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">{(match.displayName || "M").charAt(0).toUpperCase()}</span>
+              </div>
+            )}
+          </div>
           {match.unreadCount && match.unreadCount > 0 && !expired && (
             <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
               <span className="text-[10px] font-bold text-white">{match.unreadCount > 9 ? '9+' : match.unreadCount}</span>
@@ -173,9 +190,8 @@ export default function Matches() {
             }`}>
               {match.displayName || "Match"}
             </h3>
-            {/* Time */}
             <span className={`text-xs flex-shrink-0 ml-2 ${
-              expired ? 'text-neutral-500' : isUrgent ? 'text-orange-400' : 'text-neutral-500'
+              expired ? 'text-neutral-400' : isUrgent ? 'text-orange-400' : 'text-neutral-400'
             }`}>
               {expired ? 'Expired' : remainingTime}
             </span>
@@ -186,19 +202,55 @@ export default function Matches() {
               ? match.unreadCount && match.unreadCount > 0 && !expired
                 ? 'text-white font-medium'
                 : 'text-neutral-400'
-              : 'text-neutral-500 italic'
+              : 'text-neutral-400 italic'
           }`}>
             {match.lastMessage || "Start a conversation..."}
           </p>
           
           {match.venueName && (
-            <div className="flex items-center gap-1 mt-1">
-              <MapPin className="w-3 h-3 text-neutral-500" />
-              <span className="text-xs text-neutral-500">{match.venueName}</span>
+            <div className="flex items-center gap-1 mt-0.5">
+              <MapPin className="w-3 h-3 text-neutral-400" />
+              <span className="text-xs text-neutral-400">{match.venueName}</span>
             </div>
           )}
         </div>
       </button>
+    );
+  };
+
+  const SwipeableMatchRow = ({ match, expired = false }: { match: MatchWithPreview; expired?: boolean }) => {
+    const x = useMotionValue(0);
+    const bgOpacity = useTransform(x, [-80, -40, 0], [1, 0.5, 0]);
+
+    const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      if (info.offset.x < -60) {
+        dismissMatch(match.id);
+      }
+    };
+
+    if (expired) {
+      return <MatchRow match={match} expired />;
+    }
+
+    return (
+      <div className="relative overflow-hidden rounded-xl">
+        <motion.div
+          className="absolute inset-0 flex items-center justify-end pr-5 bg-red-600/90 rounded-xl"
+          style={{ opacity: bgOpacity }}
+        >
+          <Trash2 className="w-5 h-5 text-white" />
+        </motion.div>
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: -80, right: 0 }}
+          dragElastic={0.1}
+          onDragEnd={handleDragEnd}
+          style={{ x }}
+          className="relative bg-neutral-900"
+        >
+          <MatchRow match={match} />
+        </motion.div>
+      </div>
     );
   };
 
@@ -222,8 +274,8 @@ export default function Matches() {
         )}
 
         {/* Header */}
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold text-white">Matches</h1>
+        <div className="mb-4">
+          <h1 className="text-page-title">Matches</h1>
           {activeMatchesList.length > 0 && (
             <p className="text-sm text-neutral-400 mt-1">
               {activeMatchesList.length} active {activeMatchesList.length === 1 ? 'conversation' : 'conversations'}
@@ -237,7 +289,7 @@ export default function Matches() {
           <EmptyState
             icon={Heart}
             title="No matches yet"
-            description="Check into a venue to start meeting people"
+            description="Your matches will appear here. Head to a venue to start meeting people."
             action={{
               label: "Find Venues",
               onClick: () => navigate('/checkin')
@@ -249,7 +301,7 @@ export default function Matches() {
             {activeMatchesList.length > 0 && (
               <div className="space-y-1">
                 {activeMatchesList.map((match) => (
-                  <MatchRow key={match.id} match={match} />
+                  <SwipeableMatchRow key={match.id} match={match} />
                 ))}
               </div>
             )}

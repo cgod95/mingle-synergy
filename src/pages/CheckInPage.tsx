@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, QrCode } from "lucide-react";
+import { MapPin, QrCode, Users, CheckCircle2 } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -34,6 +34,7 @@ export default function CheckInPage() {
   const [params] = useSearchParams();
   const [venues, setVenues] = useState<VenueWithDistance[]>([]);
   const [checked, setChecked] = useState<boolean>(() => !!getCheckedVenueId());
+  const [checkedVenueId, setCheckedVenueId] = useState<string | null>(() => getCheckedVenueId());
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -53,6 +54,7 @@ export default function CheckInPage() {
     hapticSuccess();
     checkInAt(id, currentUser?.uid);
     setChecked(true);
+    setCheckedVenueId(id);
     
     try {
       const { trackUserCheckedIn } = await import("@/services/specAnalytics");
@@ -152,9 +154,9 @@ export default function CheckInPage() {
       <NetworkErrorBanner error={venueError} onRetry={loadVenues} />
       <div className="max-w-lg mx-auto">
         {/* Header */}
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold text-white mb-1">Venues</h1>
-          <p className="text-sm text-neutral-400">Check in to see who's here</p>
+        <div className="mb-4">
+          <h1 className="text-page-title mb-0.5">Venues</h1>
+          <p className="text-page-subtitle">Check in to see who's here</p>
         </div>
 
         {/* Quick Actions — compact row */}
@@ -234,7 +236,7 @@ export default function CheckInPage() {
           <div className="text-center py-12">
             <MapPin className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-white mb-1">Failed to load venues</h3>
-            <p className="text-sm text-neutral-500 mb-4">
+            <p className="text-sm text-neutral-400 mb-4">
               {isNetworkError(venueError) ? 'Check your connection.' : 'Something went wrong.'}
             </p>
             <RetryButton onRetry={loadVenues} isLoading={loadingVenues} />
@@ -255,7 +257,7 @@ export default function CheckInPage() {
           <div className="text-center py-12">
             <MapPin className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-white mb-1">No venues nearby</h3>
-            <p className="text-sm text-neutral-500 mb-4">Try scanning a QR code at a venue.</p>
+            <p className="text-sm text-neutral-400 mb-4">Try scanning a QR code at a venue.</p>
             <Button onClick={() => loadVenues()} variant="outline" size="sm" className="rounded-xl">
               Refresh
             </Button>
@@ -272,14 +274,16 @@ export default function CheckInPage() {
                   : `${v.distanceKm.toFixed(1)}km`
                 : null;
               
+              const isCheckedHere = checkedVenueId === v.id;
+              
               return (
                 <button
                   key={v.id}
-                  onClick={() => onCheckIn(v.id)}
+                  onClick={() => isCheckedHere ? navigate(`/venues/${v.id}`) : onCheckIn(v.id)}
                   className="w-full text-left rounded-xl overflow-hidden bg-neutral-800 active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label={`Check in to ${v.name}`}
+                  aria-label={isCheckedHere ? `View ${v.name}` : `Check in to ${v.name}`}
                 >
-                  <div className="relative h-40 overflow-hidden">
+                  <div className="relative h-32 overflow-hidden">
                     {v.image ? (
                       <img
                         src={v.image}
@@ -292,24 +296,40 @@ export default function CheckInPage() {
                       />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-neutral-700">
-                        <MapPin className="w-8 h-8 text-neutral-500" />
+                        <MapPin className="w-8 h-8 text-neutral-400" />
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 via-transparent to-transparent" />
                     
+                    {/* You're here badge */}
+                    {isCheckedHere && (
+                      <div className="absolute top-2.5 left-2.5 bg-green-500/90 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        You're here
+                      </div>
+                    )}
+
                     {/* Distance badge */}
                     {distanceText && (
-                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                      <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded-full">
                         {distanceText}
                       </div>
                     )}
                     
                     {/* Venue info overlay */}
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <h3 className="font-bold text-white text-lg">{v.name}</h3>
-                      {v.address && (
-                        <p className="text-neutral-300 text-sm mt-0.5">{v.address}</p>
-                      )}
+                    <div className="absolute bottom-2.5 left-3 right-3">
+                      <h3 className="font-bold text-white text-base leading-tight">{v.name}</h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {v.address && (
+                          <p className="text-neutral-300 text-xs truncate">{v.address}</p>
+                        )}
+                        {(v.checkInCount ?? 0) > 0 && (
+                          <span className="flex items-center gap-1 text-indigo-300 text-xs font-medium flex-shrink-0">
+                            <Users className="w-3 h-3" />
+                            {v.checkInCount} here
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </button>

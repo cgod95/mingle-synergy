@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Heart, MapPin, CheckCircle2, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,10 +23,13 @@ import { logError } from "@/utils/errorHandler";
 import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
+import { NewMatchModal } from "@/components/NewMatchModal";
 
 function Toast({ text }: { text: string }) {
   return (
     <motion.div
+      role="alert"
+      aria-live="assertive"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
@@ -68,17 +71,19 @@ export default function VenueDetails() {
     }
   }, [id]);
 
-  const people = usePeopleAtVenue(id);
+  const { people, loading: peopleLoading, error: peopleError, retry: retryPeople } = usePeopleAtVenue(id);
   
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
+  const [matchModal, setMatchModal] = useState<{ matchId: string; partnerName: string; partnerPhoto?: string } | null>(null);
   const pendingLikeRef = useRef<string | null>(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const realtimeMatches = useRealtimeMatches();
+  const prefersReducedMotion = useReducedMotion();
 
   const isMatchedWith = useCallback((userId: string) => {
     return realtimeMatches.some(
@@ -163,20 +168,21 @@ export default function VenueDetails() {
     setTimeout(() => setToast(null), 1600);
   };
 
-  // Watch realtimeMatches for new match after liking
+  // Watch realtimeMatches for new match after liking — open celebration modal
   useEffect(() => {
     if (!pendingLikeRef.current) return;
     const personId = pendingLikeRef.current;
-    const matched = realtimeMatches.some(
+    const match = realtimeMatches.find(
       m => m.userId1 === personId || m.userId2 === personId
     );
-    if (matched) {
+    if (match) {
       pendingLikeRef.current = null;
-      hapticSuccess();
-      setToast("It's a match! 🎉");
-      setTimeout(() => setToast(null), 2500);
+      const person = people.find(p => p.id === personId);
+      const partnerName = (person as any)?.displayName || (person as any)?.name || 'Someone';
+      const partnerPhoto = (person as any)?.photos?.[0] || (person as any)?.photo;
+      setMatchModal({ matchId: match.id, partnerName, partnerPhoto });
     }
-  }, [realtimeMatches]);
+  }, [realtimeMatches, people]);
 
   const handleLike = async (personId: string) => {
     if (isLiking === personId || !currentUser?.uid || !id) return;
@@ -208,8 +214,8 @@ export default function VenueDetails() {
 
   return (
     <div className="max-w-lg mx-auto">
-      {/* Venue Header */}
-      <div className="relative h-48 overflow-hidden">
+      {/* Venue Header — compact */}
+      <div className="relative h-36 overflow-hidden">
         <img
           src={venue.image || "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1200&auto=format&fit=crop"}
           alt={venue.name}
@@ -220,41 +226,65 @@ export default function VenueDetails() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent" />
-        <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-0.5">{venue.name}</h1>
-            {venue.address && (
-              <div className="flex items-center gap-1 text-neutral-300 text-sm">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>{venue.address}</span>
-              </div>
-            )}
+        <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
+          <div className="min-w-0 flex-1 mr-3">
+            <h1 className="text-xl font-bold text-white leading-tight truncate">{venue.name}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              {venue.address && (
+                <div className="flex items-center gap-1 text-neutral-300 text-xs min-w-0">
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{venue.address}</span>
+                </div>
+              )}
+              {visiblePeople.length > 0 && (
+                <span className="text-indigo-300 text-xs font-medium flex-shrink-0">
+                  {visiblePeople.length} here
+                </span>
+              )}
+            </div>
           </div>
           {checkedIn !== venue.id && (
             <Button
               onClick={handleCheckIn}
-              className="rounded-full px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium"
+              className="rounded-full px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium flex-shrink-0"
               size="sm"
             >
               Check In
             </Button>
           )}
           {checkedIn === venue.id && (
-            <button onClick={handleCheckOut} className="flex items-center gap-1.5 text-green-400 text-sm font-medium">
-              <CheckCircle2 className="w-4 h-4" />
+            <button onClick={handleCheckOut} className="flex items-center gap-1 text-green-400 text-xs font-medium flex-shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Checked In</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* People Grid */}
-      <div className="px-4 pt-4 pb-2">
-        {!canSeePeopleAtVenues() ? (
-          <div className="text-center py-12">
-            <MapPin className="w-10 h-10 text-neutral-500 mx-auto mb-3" />
-            <p className="text-neutral-300 font-medium mb-1">Location access required</p>
-            <p className="text-sm text-neutral-500 mb-4">Enable location to see people here</p>
+      {/* People Grid — tight */}
+      <div className="px-3 pt-3 pb-2">
+        {peopleLoading ? (
+          <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-2">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="rounded-lg overflow-hidden bg-neutral-800 skeleton-shimmer">
+                <div className="aspect-[3/4] bg-neutral-800" />
+              </div>
+            ))}
+          </div>
+        ) : peopleError ? (
+          <div className="text-center py-10">
+            <MapPin className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
+            <p className="text-neutral-300 font-medium text-sm mb-1">Couldn't load people</p>
+            <p className="text-xs text-neutral-400 mb-3">Something went wrong. Tap to retry.</p>
+            <Button onClick={retryPeople} size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+              Retry
+            </Button>
+          </div>
+        ) : !canSeePeopleAtVenues() ? (
+          <div className="text-center py-10">
+            <MapPin className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
+            <p className="text-neutral-300 font-medium text-sm mb-1">Location access required</p>
+            <p className="text-xs text-neutral-500 mb-3">Enable location to see people here</p>
             <Button
               onClick={async () => {
                 const { requestLocationPermission } = await import("@/utils/locationPermission");
@@ -268,84 +298,102 @@ export default function VenueDetails() {
             </Button>
           </div>
         ) : visiblePeople.length === 0 ? (
-          <div className="text-center py-16">
-            <Heart className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
+          <div className="text-center py-12">
+            <motion.div
+              animate={prefersReducedMotion ? undefined : { scale: [1, 1.08, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Heart className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
+            </motion.div>
             <h3 className="text-lg font-semibold text-white mb-1">No one here yet</h3>
-            <p className="text-sm text-neutral-500">Be the first to check in!</p>
+            <p className="text-sm text-neutral-400">You're the first one here. Others will see you when they check in.</p>
           </div>
         ) : (
           <>
-            <p className="text-sm text-neutral-400 mb-3">
-              {visiblePeople.length} {visiblePeople.length === 1 ? 'person' : 'people'} here
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              {visiblePeople.map((p) => {
-                const personAge = (p as any).age;
-                const matched = isMatchedWith(p.id);
-                const liked = likedIds.has(p.id);
-                
-                return (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="relative rounded-xl overflow-hidden bg-neutral-800"
-                    onClick={() => navigate(`/profile/${p.id}`)}
-                  >
-                    <div className="relative aspect-[3/4] overflow-hidden">
-                      {(p as any).photos?.[0] || (p as any).photo ? (
-                        <img
-                          src={(p as any).photos?.[0] || (p as any).photo}
-                          alt={(p as any).displayName || (p as any).name || 'Someone'}
-                          className="w-full h-full object-cover object-center"
-                          loading="lazy"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center">
-                          <User className="w-16 h-16 text-white/60" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                      
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <p className="text-white font-semibold text-base leading-tight">
-                          {(p as any).displayName || (p as any).name || 'Someone'}{personAge ? `, ${personAge}` : ''}
-                        </p>
-                        {matched && (
-                          <p className="text-indigo-300 text-xs font-medium mt-0.5">Matched</p>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLike(p.id);
-                        }}
-                        disabled={liked || matched || isLiking === p.id}
-                        className={`absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 ${
-                          matched
-                            ? 'bg-indigo-500 text-white'
-                            : liked
-                            ? 'bg-neutral-600 text-neutral-300'
-                            : isLiking === p.id
-                            ? 'bg-white/70 text-neutral-500'
-                            : 'bg-white/90 text-neutral-800 hover:bg-white'
-                        }`}
-                      >
-                        {isLiking === p.id ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Heart className={`w-5 h-5 ${liked || matched ? 'fill-current' : ''}`} />
-                        )}
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
+          {checkedIn !== venue.id && (
+            <div className="bg-indigo-600/10 rounded-xl p-3 mb-2 flex items-center justify-between">
+              <span className="text-sm text-neutral-300">Check in to let others see you</span>
+              <button
+                onClick={handleCheckIn}
+                className="bg-indigo-600 text-white text-xs font-medium px-3 py-1.5 rounded-full active:scale-95 transition-transform"
+              >
+                Check In
+              </button>
             </div>
+          )}
+          <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-2" aria-live="polite" aria-relevant="additions removals">
+            {visiblePeople.map((p) => {
+              const personAge = (p as any).age;
+              const matched = isMatchedWith(p.id);
+              const liked = likedIds.has(p.id);
+              const personName = (p as any).displayName || (p as any).name || 'Someone';
+              
+              return (
+                <motion.div
+                  key={p.id}
+                  initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
+                  className="relative rounded-lg overflow-hidden bg-neutral-800 active:scale-[0.97] transition-transform cursor-pointer"
+                  onClick={() => navigate(`/profile/${p.id}`)}
+                  role="button"
+                  aria-label={`View ${personName}'s profile`}
+                >
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    {(p as any).photos?.[0] || (p as any).photo ? (
+                      <img
+                        src={(p as any).photos?.[0] || (p as any).photo}
+                        alt={personName}
+                        className="w-full h-full object-cover object-center"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center">
+                        <User className="w-12 h-12 text-white/60" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-2">
+                      <p className="text-white font-semibold text-sm leading-tight">
+                        {personName}{personAge ? `, ${personAge}` : ''}
+                      </p>
+                      {matched && (
+                        <p className="text-rose-300 text-[10px] font-medium mt-0.5">Matched</p>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLike(p.id);
+                      }}
+                      disabled={liked || matched || isLiking === p.id}
+                      aria-label={`Like ${personName}`}
+                      className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 touch-target ${
+                        matched
+                          ? 'bg-rose-500 text-white'
+                          : liked
+                          ? 'bg-rose-500/20 text-rose-400'
+                          : isLiking === p.id
+                          ? 'bg-white/70 text-neutral-500'
+                          : 'bg-white/90 text-rose-500 hover:bg-white'
+                      }`}
+                    >
+                      {isLiking === p.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Heart className={`w-4 h-4 ${liked || matched ? 'fill-current' : ''}`} />
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
           </>
         )}
       </div>
@@ -353,6 +401,16 @@ export default function VenueDetails() {
       <AnimatePresence>
         {toast && <Toast text={toast} />}
       </AnimatePresence>
+
+      {/* Match celebration modal */}
+      <NewMatchModal
+        isOpen={!!matchModal}
+        onClose={() => setMatchModal(null)}
+        matchId={matchModal?.matchId || ''}
+        partnerName={matchModal?.partnerName || ''}
+        partnerPhoto={matchModal?.partnerPhoto}
+        venueName={venue?.name}
+      />
 
       <AlertDialog open={showCheckoutConfirm} onOpenChange={setShowCheckoutConfirm}>
         <AlertDialogContent className="bg-neutral-800 border-neutral-700">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Heart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
 import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useToast } from "@/hooks/use-toast";
+import useEmblaCarousel from "embla-carousel-react";
+import { cn } from "@/lib/utils";
 
 interface ProfileData {
   displayName?: string;
@@ -16,6 +18,89 @@ interface ProfileData {
   bio?: string;
   photos?: string[];
   age?: number;
+}
+
+function PhotoCarousel({ photos, alt }: { photos: string[]; alt: string }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, dragFree: false });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on("select", onSelect);
+    return () => { emblaApi.off("select", onSelect); };
+  }, [emblaApi, onSelect]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!emblaApi) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); emblaApi.scrollPrev(); }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); emblaApi.scrollNext(); }
+  }, [emblaApi]);
+
+  if (photos.length === 0) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800">
+        <Camera className="w-16 h-16 text-neutral-500 mb-3" />
+        <p className="text-neutral-400 font-medium">No photo</p>
+      </div>
+    );
+  }
+
+  if (photos.length === 1) {
+    return (
+      <img src={photos[0]} alt={alt} className="w-full h-full object-cover" />
+    );
+  }
+
+  return (
+    <div
+      className="relative w-full h-full"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={`Photo ${selectedIndex + 1} of ${photos.length}`}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
+      <div ref={emblaRef} className="overflow-hidden w-full h-full">
+        <div className="flex h-full">
+          {photos.map((photo, i) => (
+            <div key={i} className="flex-[0_0_100%] min-w-0 h-full">
+              <img src={photo} alt={`${alt} photo ${i + 1}`} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Tap-to-advance zones */}
+      <div
+        className="absolute left-0 top-0 bottom-14 w-[30%] z-10 cursor-pointer"
+        onClick={() => emblaApi?.scrollPrev()}
+        aria-label="Previous photo"
+        role="button"
+      />
+      <div
+        className="absolute right-0 top-0 bottom-14 w-[30%] z-10 cursor-pointer"
+        onClick={() => emblaApi?.scrollNext()}
+        aria-label="Next photo"
+        role="button"
+      />
+      {/* Dot indicators */}
+      <div className="absolute bottom-14 left-0 right-0 flex justify-center gap-1.5 z-10 pointer-events-none">
+        {photos.map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-1.5 rounded-full transition-all duration-200",
+              i === selectedIndex ? "bg-white w-4" : "bg-white/40 w-1.5"
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function UserProfileView() {
@@ -41,7 +126,7 @@ export default function UserProfileView() {
     try {
       await likeUserWithMutualDetection(currentUser.uid, userId, venueId);
       setLiked(true);
-      toast({ title: "Like sent ❤️" });
+      toast({ title: "Like sent" });
     } catch (error) {
       logError(error instanceof Error ? error : new Error('Failed to like'), {
         context: 'UserProfileView.handleLike', userId
@@ -55,7 +140,7 @@ export default function UserProfileView() {
   useEffect(() => {
     if (isMatched && liked) {
       hapticSuccess();
-      toast({ title: "It's a match! 🎉", description: "You can now chat with this person" });
+      toast({ title: "It's a match!", description: "You can now chat with this person" });
     }
   }, [isMatched]);
 
@@ -98,38 +183,28 @@ export default function UserProfileView() {
   }
 
   const displayName = profile.displayName || profile.name || "User";
-  const mainPhoto = profile.photos?.[0];
+  const photos = profile.photos || [];
 
   return (
     <div className="max-w-lg mx-auto">
       {/* Back button */}
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-3 pt-2 pb-1">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate(-1)}
-          className="rounded-full text-neutral-300 hover:text-white -ml-2"
+          className="rounded-full text-neutral-300 hover:text-white -ml-1"
+          aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
       </div>
 
-      {/* Profile Card */}
-      <div className="relative rounded-2xl overflow-hidden bg-neutral-800 mx-4">
-        <div className="relative aspect-[3/4] max-h-[480px] overflow-hidden bg-neutral-700">
-          {mainPhoto ? (
-            <img
-              src={mainPhoto}
-              alt={displayName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800">
-              <Camera className="w-16 h-16 text-neutral-500 mb-3" />
-              <p className="text-neutral-400 font-medium">No photo</p>
-            </div>
-          )}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-5">
+      {/* Profile Card with swipeable photos */}
+      <div className="relative rounded-2xl overflow-hidden bg-neutral-800 mx-3">
+        <div className="relative aspect-[3/4] max-h-[460px] overflow-hidden bg-neutral-700">
+          <PhotoCarousel photos={photos} alt={displayName} />
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
             <h1 className="text-2xl font-bold text-white">
               {displayName}{profile.age ? `, ${profile.age}` : ""}
             </h1>
@@ -137,30 +212,15 @@ export default function UserProfileView() {
         </div>
 
         {profile.bio && (
-          <div className="p-5">
+          <div className="p-4">
             <p className="text-base text-neutral-300 leading-relaxed">{profile.bio}</p>
           </div>
         )}
       </div>
 
-      {/* Additional photos */}
-      {profile.photos && profile.photos.length > 1 && (
-        <div className="grid grid-cols-3 gap-2 mx-4 mt-3">
-          {profile.photos.slice(1).map((photo, index) => (
-            <div key={index} className="relative aspect-square rounded-xl overflow-hidden">
-              <img
-                src={photo}
-                alt={`Photo ${index + 2}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Like / Matched action button */}
       {currentUser?.uid && userId !== currentUser.uid && venueId && (
-        <div className="mx-4 mt-5 mb-8">
+        <div className="mx-3 mt-4 mb-8">
           {isMatched ? (
             <Button
               onClick={() => {
@@ -170,6 +230,7 @@ export default function UserProfileView() {
                 if (match) navigate(`/chat/${match.id}`);
               }}
               className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white py-3 text-base font-semibold"
+              aria-label={`Chat with ${displayName}`}
             >
               Chat with {displayName}
             </Button>
@@ -177,6 +238,7 @@ export default function UserProfileView() {
             <Button
               onClick={handleLike}
               disabled={isLiking || liked}
+              aria-label={liked ? 'Already liked' : `Like ${displayName}`}
               className={`w-full rounded-xl py-3 text-base font-semibold ${
                 liked
                   ? 'bg-neutral-700 text-neutral-400'

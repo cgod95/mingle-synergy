@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Send, MoreVertical, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,7 +15,7 @@ import {
 import { BlockReportDialog } from "@/components/BlockReportDialog";
 
 import { getActiveMatches } from "@/lib/matchesCompat";
-import { subscribeToMessages, sendMessage as firebaseSendMessage, canSendMessage as firebaseCanSendMessage, getRemainingMessages as firebaseGetRemaining, type Message } from "@/services/messageService";
+import { subscribeToMessages, sendMessage as firebaseSendMessage, canSendMessage as firebaseCanSendMessage, getRemainingMessages as firebaseGetRemaining, markMessagesAsRead, type Message } from "@/services/messageService";
 import MessageLimitModal from "@/components/ui/MessageLimitModal";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
@@ -59,6 +59,7 @@ export default function ChatRoom() {
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
   const keyboardHeight = useKeyboardHeight();
+  const prefersReducedMotion = useReducedMotion();
 
   // Load match info (partner name, avatar, expiry)
   useEffect(() => {
@@ -87,6 +88,9 @@ export default function ChatRoom() {
   useEffect(() => {
     if (!matchId || !currentUser?.uid) return;
 
+    // Mark messages as read when entering the chat
+    markMessagesAsRead(matchId, currentUser.uid).catch(() => {});
+
     const unsubscribe = subscribeToMessages(matchId, (firebaseMessages: Message[]) => {
       const mapped: Msg[] = firebaseMessages.map(m => ({
         id: m.id,
@@ -97,6 +101,10 @@ export default function ChatRoom() {
       setMsgs(mapped);
       if (mapped.length === 0) {
         setShowStarters(true);
+      }
+      // Mark new messages as read as they arrive
+      if (firebaseMessages.some(m => m.senderId !== currentUser.uid)) {
+        markMessagesAsRead(matchId, currentUser.uid).catch(() => {});
       }
     });
 
@@ -259,7 +267,7 @@ export default function ChatRoom() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900">
+        <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900" aria-live="polite">
           {/* How Mingle Works Info Banner */}
           {msgs.length <= 1 && (
             <motion.div
@@ -288,8 +296,8 @@ export default function ChatRoom() {
                 <Sparkles className="w-4 h-4 text-indigo-400" />
                 <p className="text-sm font-medium text-neutral-300">Try a conversation starter</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {CONVERSATION_STARTERS.slice(0, 3).map((starter, idx) => (
+              <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide">
+                {CONVERSATION_STARTERS.slice(0, 4).map((starter, idx) => (
                   <motion.button
                     key={idx}
                     whileHover={{ scale: 1.02 }}
@@ -307,7 +315,7 @@ export default function ChatRoom() {
                         setSending(false);
                       }
                     }}
-                    className="px-4 py-2 text-sm bg-neutral-800 rounded-full text-neutral-200 hover:bg-indigo-900/30 transition-all"
+                    className="px-4 py-2 text-sm bg-neutral-800 rounded-full text-neutral-200 hover:bg-indigo-900/30 transition-all whitespace-nowrap flex-shrink-0 snap-start"
                   >
                     {starter}
                   </motion.button>
@@ -320,10 +328,10 @@ export default function ChatRoom() {
             {msgs.map((m, i) => (
               <motion.div
                 key={m.id || i}
-                initial={{ opacity: 0, y: 8 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
+                exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
                 className={`flex ${m.sender === "you" ? "justify-end" : "justify-start"}`}
               >
                 <div
@@ -334,7 +342,7 @@ export default function ChatRoom() {
                   }`}
                 >
                   <p className="text-[15px] leading-relaxed break-words">{m.text}</p>
-                  <p className={`text-[11px] mt-1 ${m.sender === "you" ? "text-indigo-200/60 text-right" : "text-neutral-500"}`}>
+                  <p className={`text-[11px] mt-1 ${m.sender === "you" ? "text-indigo-200/60 text-right" : "text-neutral-400"}`}>
                     {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>

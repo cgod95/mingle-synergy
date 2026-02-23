@@ -3,13 +3,12 @@ import { Skeleton } from './skeleton';
 import { Card, CardContent, CardHeader } from './card';
 import { LoadingSpinner } from './LoadingSpinner';
 
-// Skeleton animation component
 const SkeletonPulse: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ 
   className = '', 
   style 
 }) => (
   <div
-    className={`bg-neutral-200 rounded animate-pulse ${className}`}
+    className={`bg-neutral-800 rounded skeleton-shimmer ${className}`}
     style={style}
   />
 );

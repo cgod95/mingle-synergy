@@ -108,6 +108,7 @@ export const sendMessageWithLimit = async ({
     senderId,
     text: message,
     createdAt: serverTimestamp(),
+    readBy: [senderId],
   });
 };
 
@@ -193,6 +194,7 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
         senderId,
         text,
         createdAt: serverTimestamp(),
+        readBy: [senderId],
       });
       
       // Track message sent event per spec section 9

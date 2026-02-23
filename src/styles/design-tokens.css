@@ -116,51 +116,95 @@
   --z-tooltip: 1070;
 }
 
-/* Utility Classes */
+/* ---- Semantic Typography (dark mode) ---- */
+
+.text-page-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: #ffffff;
+}
+
+.text-page-subtitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-neutral-300);
+}
+
+.text-card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: #ffffff;
+}
+
+.text-card-subtitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-neutral-400);
+}
+
+.text-body-dark {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-neutral-300);
+}
+
+.text-label-dark {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-neutral-200);
+}
+
+/* Legacy light-mode utility classes (kept for backwards compat) */
 .text-heading-1 {
-  font-size: var(--font-size-4xl); /* Increased from 3xl */
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .text-heading-2 {
-  font-size: var(--font-size-3xl); /* Increased from 2xl */
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .text-heading-3 {
-  font-size: var(--font-size-2xl); /* Increased from xl */
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
 }
 
 .text-body {
-  font-size: var(--font-size-lg); /* Increased from base */
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
 }
 
 .text-body-secondary {
-  font-size: var(--font-size-lg); /* Increased from base */
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
 }
 
 .text-caption {
-  font-size: var(--font-size-base); /* Increased from sm */
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
 }
 
 .text-label {
-  font-size: var(--font-size-sm); /* Increased from xs */
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
   color: var(--color-text-tertiary);
