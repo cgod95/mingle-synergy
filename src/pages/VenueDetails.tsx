@@ -95,6 +95,26 @@ export default function VenueDetails() {
     setCheckedIn(getCheckedVenueId());
   }, [venue?.id, currentUser?.uid]);
 
+  // #region agent log
+  console.log('[DBG59ec69] VenueDetails hooks-complete', { loadingVenue, hasVenue: !!venue, hasError: !!venueError, peopleLen: people.length });
+  // #endregion
+
+  // Watch realtimeMatches for new match after liking — open celebration modal
+  useEffect(() => {
+    if (!pendingLikeRef.current) return;
+    const personId = pendingLikeRef.current;
+    const match = realtimeMatches.find(
+      m => m.userId1 === personId || m.userId2 === personId
+    );
+    if (match) {
+      pendingLikeRef.current = null;
+      const person = people.find(p => p.id === personId);
+      const partnerName = (person as any)?.displayName || (person as any)?.name || 'Someone';
+      const partnerPhoto = (person as any)?.photos?.[0] || (person as any)?.photo;
+      setMatchModal({ matchId: match.id, partnerName, partnerPhoto });
+    }
+  }, [realtimeMatches, people]);
+
   if (loadingVenue) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -167,22 +187,6 @@ export default function VenueDetails() {
     setToast("Checked out");
     setTimeout(() => setToast(null), 1600);
   };
-
-  // Watch realtimeMatches for new match after liking — open celebration modal
-  useEffect(() => {
-    if (!pendingLikeRef.current) return;
-    const personId = pendingLikeRef.current;
-    const match = realtimeMatches.find(
-      m => m.userId1 === personId || m.userId2 === personId
-    );
-    if (match) {
-      pendingLikeRef.current = null;
-      const person = people.find(p => p.id === personId);
-      const partnerName = (person as any)?.displayName || (person as any)?.name || 'Someone';
-      const partnerPhoto = (person as any)?.photos?.[0] || (person as any)?.photo;
-      setMatchModal({ matchId: match.id, partnerName, partnerPhoto });
-    }
-  }, [realtimeMatches, people]);
 
   const handleLike = async (personId: string) => {
     if (isLiking === personId || !currentUser?.uid || !id) return;

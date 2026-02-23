@@ -38,9 +38,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // #region agent log
-    console.error('[DBG310] ErrorBoundary caught:', error?.message, '\nStack:', error?.stack?.substring(0,800), '\nComponent:', errorInfo?.componentStack?.substring(0,800));
-    // #endregion
     // Check for React error #300 (multiple React instances)
     const isReactError300 = error.message?.includes('Minified React error #300') ||
                            error.message?.includes('Invalid hook call') ||
