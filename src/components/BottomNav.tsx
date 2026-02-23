@@ -74,9 +74,9 @@ const BottomNav: React.FC = () => {
   }
 
   const navItems = [
-    { path: '/checkin', icon: MapPin, label: 'Venues', activeColor: 'text-indigo-400' },
+    { path: '/checkin', icon: MapPin, label: 'Venues', activeColor: 'text-violet-400' },
     { path: '/matches', icon: Heart, label: 'Matches', showBadge: true, activeColor: 'text-rose-400' },
-    { path: '/profile', icon: User, label: 'Profile', activeColor: 'text-indigo-400' },
+    { path: '/profile', icon: User, label: 'Profile', activeColor: 'text-violet-400' },
   ];
 
   const isActive = (path: string) => {
@@ -109,7 +109,7 @@ const BottomNav: React.FC = () => {
               aria-current={active ? 'page' : undefined}
               className="relative flex flex-col items-center justify-center py-1.5 px-4 min-w-[64px] min-h-[48px] rounded-xl transition-all duration-200 active:scale-95 touch-target"
             >
-              <div className={`relative ${active ? (item.activeColor || 'text-indigo-400') : 'text-neutral-400'}`}>
+              <div className={`relative ${active ? (item.activeColor || 'text-violet-400') : 'text-neutral-400'}`}>
                 <Icon size={22} strokeWidth={active ? 2.5 : 2} />
                 {showBadge && (
                   <div role="status" aria-live="polite" className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-0.5 shadow-lg border-2 border-neutral-800">
@@ -117,11 +117,11 @@ const BottomNav: React.FC = () => {
                   </div>
                 )}
               </div>
-              <span className={`text-[10px] mt-0.5 ${active ? `font-semibold ${item.activeColor || 'text-indigo-400'}` : 'font-medium text-neutral-400'}`}>
+              <span className={`text-[10px] mt-0.5 ${active ? `font-semibold ${item.activeColor || 'text-violet-400'}` : 'font-medium text-neutral-400'}`}>
                 {item.label}
               </span>
               {active && (
-                <div className={`absolute bottom-0.5 w-5 h-0.5 rounded-full ${item.path === '/matches' ? 'bg-rose-500' : 'bg-indigo-500'}`} />
+                <div className={`absolute bottom-0.5 w-5 h-0.5 rounded-full ${item.path === '/matches' ? 'bg-rose-500' : 'bg-violet-500'}`} />
               )}
             </button>
           );

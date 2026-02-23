@@ -85,7 +85,7 @@ export function NewMatchModal({
               {/* Decorative background elements */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-violet-500/20 rounded-full blur-3xl" />
               </div>
 
               <AnimatePresence>
@@ -135,7 +135,7 @@ export function NewMatchModal({
                       className="flex justify-center mb-6"
                     >
                       <div className="relative">
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-indigo-500 p-1">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-violet-500 p-1">
                           <div className="w-full h-full rounded-full overflow-hidden bg-neutral-800">
                             {partnerPhoto ? (
                               <img
@@ -184,10 +184,10 @@ export function NewMatchModal({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.55 }}
-                        className="mb-4 p-3 rounded-xl bg-indigo-900/30 border border-indigo-700/50"
+                        className="mb-4 p-3 rounded-xl bg-violet-900/30 border border-violet-700/50"
                       >
                         <div className="flex items-center gap-3">
-                          <Bell className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                          <Bell className="w-5 h-5 text-violet-400 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-neutral-300">Get notified when {partnerName} replies</p>
                           </div>
@@ -198,7 +198,7 @@ export function NewMatchModal({
                                 await Notification.requestPermission();
                               } catch {}
                             }}
-                            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 whitespace-nowrap"
+                            className="text-xs font-semibold text-violet-400 hover:text-violet-300 whitespace-nowrap"
                           >
                             Enable
                           </button>

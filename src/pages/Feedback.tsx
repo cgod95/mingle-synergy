@@ -57,7 +57,7 @@ export default function Feedback() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/settings')}
-              className="text-indigo-400 hover:text-indigo-300 hover:bg-neutral-800"
+              className="text-violet-400 hover:text-violet-300 hover:bg-neutral-800"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Settings
@@ -72,7 +72,7 @@ export default function Feedback() {
             <textarea
               value={text}
               onChange={e => setText(e.target.value)}
-              className="w-full rounded-xl border border-neutral-700 bg-neutral-800 text-white px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-neutral-500 text-base"
+              className="w-full rounded-xl border border-neutral-700 bg-neutral-800 text-white px-4 py-3 focus:ring-2 focus:ring-violet-500 focus:border-transparent placeholder:text-neutral-500 text-base"
               rows={5}
               placeholder="Share your thoughts, report bugs, or suggest features..."
               disabled={isSubmitting}
@@ -81,7 +81,7 @@ export default function Feedback() {
               <button 
                 type="submit" 
                 disabled={isSubmitting || !text.trim()}
-                className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-white hover:from-indigo-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full bg-gradient-to-r from-violet-500 to-violet-500 px-6 py-2 text-white hover:from-violet-600 hover:to-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Sending...' : 'Submit Feedback'}
               </button>

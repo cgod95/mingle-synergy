@@ -134,7 +134,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
               className={`w-full font-semibold min-h-[48px] ${
                 isCheckedIn 
                   ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg'
+                  : 'bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg'
               }`}
             >
               {isCheckedIn ? (

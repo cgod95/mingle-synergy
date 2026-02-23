@@ -38,7 +38,7 @@ function ProfilePhotoCarousel({ photos, name, onUpload }: { photos: string[]; na
           variant="ghost"
           size="sm"
           onClick={onUpload}
-          className="mt-2 text-indigo-400 hover:text-indigo-300"
+          className="mt-2 text-violet-400 hover:text-violet-300"
         >
           Upload Photo
         </Button>
@@ -167,7 +167,7 @@ export default function Profile() {
               ) : (
                 <button 
                   onClick={() => navigate('/profile/edit')}
-                  className="text-sm text-indigo-400 hover:text-indigo-300"
+                  className="text-sm text-violet-400 hover:text-violet-300"
                 >
                   + Add a bio
                 </button>
@@ -179,7 +179,7 @@ export default function Profile() {
           <div className="space-y-1.5">
             <Button
               onClick={() => navigate('/profile/edit')}
-              className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl"
+              className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl"
               variant="default"
               aria-label="Edit profile"
             >

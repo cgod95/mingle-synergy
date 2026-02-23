@@ -168,9 +168,9 @@ export default function CheckInPage() {
                 description: "Use your phone camera to scan the venue QR code.",
               });
             }}
-            className="flex items-center gap-3 px-4 py-3.5 bg-indigo-600/20 rounded-xl active:scale-[0.97] transition-transform"
+            className="flex items-center gap-3 px-4 py-3.5 bg-violet-600/20 rounded-xl active:scale-[0.97] transition-transform"
           >
-            <QrCode className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+            <QrCode className="w-5 h-5 text-violet-400 flex-shrink-0" />
             <span className="text-sm font-medium text-white">Scan QR Code</span>
           </button>
           
@@ -207,12 +207,12 @@ export default function CheckInPage() {
                 setIsCheckingIn(false);
               }
             }}
-            className="flex items-center gap-3 px-4 py-3.5 bg-indigo-600/20 rounded-xl active:scale-[0.97] transition-transform relative"
+            className="flex items-center gap-3 px-4 py-3.5 bg-violet-600/20 rounded-xl active:scale-[0.97] transition-transform relative"
           >
-            <MapPin className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+            <MapPin className="w-5 h-5 text-violet-400 flex-shrink-0" />
             <span className="text-sm font-medium text-white">I'm Here</span>
             {isCheckingIn && (
-              <div className="absolute inset-0 bg-indigo-600/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
+              <div className="absolute inset-0 bg-violet-600/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               </div>
             )}
@@ -221,7 +221,7 @@ export default function CheckInPage() {
 
         {/* QR scan notification */}
         {source === "qr" && qrVenueId && (
-          <div className="mb-4 p-3 bg-indigo-600/20 rounded-xl">
+          <div className="mb-4 p-3 bg-violet-600/20 rounded-xl">
             <p className="text-sm text-white font-medium">
               Checking you in to {venues.find(v => v.id === qrVenueId)?.name || "venue"}...
             </p>
@@ -280,7 +280,7 @@ export default function CheckInPage() {
                 <button
                   key={v.id}
                   onClick={() => isCheckedHere ? navigate(`/venues/${v.id}`) : onCheckIn(v.id)}
-                  className="w-full text-left rounded-xl overflow-hidden bg-neutral-800 active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full text-left rounded-xl overflow-hidden bg-neutral-800 active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-violet-500"
                   aria-label={isCheckedHere ? `View ${v.name}` : `Check in to ${v.name}`}
                 >
                   <div className="relative h-32 overflow-hidden">
@@ -324,7 +324,7 @@ export default function CheckInPage() {
                           <p className="text-neutral-300 text-xs truncate">{v.address}</p>
                         )}
                         {(v.checkInCount ?? 0) > 0 && (
-                          <span className="flex items-center gap-1 text-indigo-300 text-xs font-medium flex-shrink-0">
+                          <span className="flex items-center gap-1 text-violet-300 text-xs font-medium flex-shrink-0">
                             <Users className="w-3 h-3" />
                             {v.checkInCount} here
                           </span>

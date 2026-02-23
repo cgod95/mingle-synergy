@@ -20,7 +20,7 @@
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 271 81% 56%; /* purple-600 #9333EA - Brand primary */
+    --primary: 263 70% 58%; /* violet-600 #7C3AED - Brand primary */
     --primary-foreground: 0 0% 100%; /* white */
 
     --secondary: 0 0% 20%;
@@ -37,7 +37,7 @@
 
     --border: 0 0% 20%; /* neutral-800 */
     --input: 0 0% 20%;
-    --ring: 239 84% 67%; /* indigo-500 */
+    --ring: 263 70% 58%; /* violet-600 */
 
     --radius: 0.75rem;
   }
@@ -443,7 +443,7 @@ button, a, [role="button"], input[type="submit"], input[type="button"] {
 
 /* Text gradient utility */
 .text-gradient {
-  background: linear-gradient(135deg, #818CF8 0%, #C084FC 50%, #F472B6 100%);
+  background: linear-gradient(135deg, #A78BFA 0%, #C084FC 50%, #F472B6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

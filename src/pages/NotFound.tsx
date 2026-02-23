@@ -25,18 +25,18 @@ const NotFound = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-          className="w-24 h-24 mx-auto mb-6 rounded-full bg-indigo-900/50 flex items-center justify-center"
+          className="w-24 h-24 mx-auto mb-6 rounded-full bg-violet-900/50 flex items-center justify-center"
         >
-          <SearchX className="w-12 h-12 text-indigo-400" />
+          <SearchX className="w-12 h-12 text-violet-400" />
         </motion.div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-3">404 - Page Not Found</h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent mb-3">404 - Page Not Found</h1>
         <p className="text-neutral-300 mb-8">
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
             onClick={() => navigate('/')}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="bg-violet-600 hover:bg-violet-700 text-white"
           >
             <Home className="w-4 h-4 mr-2" />
             Back to Home

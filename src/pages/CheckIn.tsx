@@ -48,7 +48,7 @@ export default function CheckIn() {
 
       <button
         onClick={onCheckIn}
-        className="mt-6 w-full rounded-xl bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-500"
+        className="mt-6 w-full rounded-xl bg-violet-600 px-4 py-3 font-medium text-white hover:bg-violet-500"
       >
         {checked ? "Re-check in" : "Check in now"}
       </button>

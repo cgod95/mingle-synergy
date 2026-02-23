@@ -259,7 +259,7 @@ export default function CreateProfile() {
             {/* Progress */}
             <div className="flex items-center justify-center mb-6 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
+                <div className="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
                 <div className="w-10 h-0.5 bg-neutral-700 rounded"></div>
                 <div className="w-8 h-8 rounded-full bg-neutral-800 text-neutral-500 flex items-center justify-center text-sm font-semibold">2</div>
               </div>
@@ -277,7 +277,7 @@ export default function CreateProfile() {
                   placeholder="Your name" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
-                  className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl h-12"
+                  className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12"
                 />
               </div>
               
@@ -345,7 +345,7 @@ export default function CreateProfile() {
               <Button
                 onClick={handleSubmit}
                 loading={saving}
-                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl"
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl"
                 disabled={!name.trim() || saving}
               >
                 {saving ? (

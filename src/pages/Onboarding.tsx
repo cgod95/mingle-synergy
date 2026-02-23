@@ -204,14 +204,14 @@ const Onboarding = () => {
     {
       title: 'Enable Location',
       description: 'We use your location to show you venues nearby and auto-detect where you are.',
-      icon: <MapPin className="w-12 h-12 text-indigo-600" />,
+      icon: <MapPin className="w-12 h-12 text-violet-600" />,
       action: requestLocationWithTimeout,
       canSkip: false,
     },
     {
       title: 'Enable Notifications',
       description: 'Get notified when someone likes you or when you match.',
-      icon: <Bell className="w-12 h-12 text-indigo-600" />,
+      icon: <Bell className="w-12 h-12 text-violet-600" />,
       action: handleNotificationPermission,
       canSkip: true,
     },
@@ -239,7 +239,7 @@ const Onboarding = () => {
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                   className="flex justify-center"
                 >
-                  <div className="p-4 rounded-full bg-indigo-900/50">
+                  <div className="p-4 rounded-full bg-violet-900/50">
                     {currentStep.icon}
                   </div>
                 </motion.div>
@@ -276,7 +276,7 @@ const Onboarding = () => {
                 {step < steps.length - 1 && (
                   <Button
                     onClick={currentStep.action}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md"
+                    className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold shadow-md"
                     disabled={step === 1 && locationRequesting}
                   >
                     {step === 1 && (locationDenied || locationError) ? 'Continue Anyway' : 
@@ -310,7 +310,7 @@ const Onboarding = () => {
 
                 {step > 0 && (
                   <button
-                    className="mt-4 text-sm text-neutral-400 flex items-center justify-center w-full hover:text-indigo-400 transition-colors min-h-[44px]"
+                    className="mt-4 text-sm text-neutral-400 flex items-center justify-center w-full hover:text-violet-400 transition-colors min-h-[44px]"
                     onClick={() => {
                       localStorage.setItem('onboarding_last_step', (step - 1).toString());
                       setStep(step - 1);

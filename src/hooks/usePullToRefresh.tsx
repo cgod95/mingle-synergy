@@ -86,7 +86,7 @@ export function PullToRefreshIndicator({
       }}
     >
       <div 
-        className={`w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full ${
+        className={`w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full ${
           isRefreshing ? 'animate-spin' : ''
         }`}
         style={{

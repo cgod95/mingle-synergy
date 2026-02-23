@@ -31,10 +31,10 @@ export default {
           tertiary: "#718096",
         },
         brand: {
-          primary: "#6366F1",  // indigo-600
-          secondary: "#9333EA", // purple-600
-          accent: "#818CF8", // indigo-400
-          muted: "#C7D2FE", // indigo-200
+          primary: "#7C3AED",  // violet-600
+          secondary: "#6D28D9", // violet-700
+          accent: "#A78BFA", // violet-400
+          muted: "#DDD6FE", // violet-200
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

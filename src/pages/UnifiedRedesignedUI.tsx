@@ -42,7 +42,7 @@ export default function UnifiedRedesignedUI() {
               key={to}
               to={to}
               className={`flex flex-col items-center text-xs min-h-[44px] justify-center ${
-                isActive ? 'text-indigo-400' : 'text-neutral-500'
+                isActive ? 'text-violet-400' : 'text-neutral-500'
               }`}
             >
               {icon}

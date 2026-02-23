@@ -40,9 +40,9 @@ export default function DemoWelcome() {
         <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Left Side - Philosophy/Education */}
           <div>
-            <Card className="shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
+            <Card className="shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-violet-700/50 transition-all duration-300">
               <CardHeader className="space-y-4 pb-6">
-                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
+                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
                   What is Mingle
                 </CardTitle>
               </CardHeader>
@@ -56,25 +56,25 @@ export default function DemoWelcome() {
 
           {/* Right Side - Demo Features */}
           <div>
-            <Card className="shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-indigo-700/50 transition-all duration-300">
+            <Card className="shadow-xl bg-neutral-800 h-full hover:shadow-2xl hover:border-violet-700/50 transition-all duration-300">
               <CardHeader className="space-y-4 pb-6">
                 <div className="space-y-2">
-                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">
                     What You'll Experience
                   </CardTitle>
-                  <p className="text-sm text-indigo-300 font-medium">Closed Beta</p>
+                  <p className="text-sm text-violet-300 font-medium">Closed Beta</p>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="mb-4 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700/50">
+                <div className="mb-4 p-3 bg-violet-900/30 rounded-lg border border-violet-700/50">
                   <p className="text-sm text-neutral-200 text-center font-medium">
                     Live venues • Authentic users • Physical connections
                   </p>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
-                      <Zap className="w-6 h-6 text-indigo-400" />
+                    <div className="p-2 rounded-lg bg-violet-900 flex-shrink-0">
+                      <Zap className="w-6 h-6 text-violet-400" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-white mb-1">Full Access</h3>
@@ -85,8 +85,8 @@ export default function DemoWelcome() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-indigo-400" />
+                    <div className="p-2 rounded-lg bg-violet-900 flex-shrink-0">
+                      <MapPin className="w-6 h-6 text-violet-400" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-white mb-1">Populated Venues</h3>
@@ -97,8 +97,8 @@ export default function DemoWelcome() {
                   </div>
                   
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-900 flex-shrink-0">
-                      <MessageCircle className="w-6 h-6 text-indigo-400" />
+                    <div className="p-2 rounded-lg bg-violet-900 flex-shrink-0">
+                      <MessageCircle className="w-6 h-6 text-violet-400" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-white mb-1">In-person Conversations</h3>
@@ -112,7 +112,7 @@ export default function DemoWelcome() {
                 <div className="pt-4 flex justify-center">
                   <Button
                     onClick={handleGetStarted}
-                    className="w-full md:w-auto md:min-w-[200px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg"
+                    className="w-full md:w-auto md:min-w-[200px] bg-gradient-to-r from-violet-600 to-violet-600 text-white hover:from-violet-700 hover:to-violet-700 shadow-lg"
                     size="lg"
                   >
                     Get Started

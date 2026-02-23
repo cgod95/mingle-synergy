@@ -19,25 +19,25 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
       step: '01',
       title: "Check in",
       description: "Walk into a venue. Scan the QR code or tap to check in. We confirm you're actually there.",
-      icon: <QrCode className="h-14 w-14 text-indigo-400" />,
+      icon: <QrCode className="h-14 w-14 text-violet-400" />,
     },
     {
       step: '02',
       title: "Match",
       description: "See who else is here. Like someone? If they like you back, you're matched.",
-      icon: <Heart className="h-14 w-14 text-indigo-400" />,
+      icon: <Heart className="h-14 w-14 text-violet-400" />,
     },
     {
       step: '03',
       title: "Meet",
       description: "You're in the same place. Skip the small talk over text. Go meet them.",
-      icon: <Users className="h-14 w-14 text-indigo-400" />,
+      icon: <Users className="h-14 w-14 text-violet-400" />,
     },
     {
       step: '04',
       title: "The rules",
       description: "Matches expire in 24 hours. You get 10 messages each. No algorithm — you see everyone at the venue.",
-      icon: <ShieldCheck className="h-14 w-14 text-indigo-400" />,
+      icon: <ShieldCheck className="h-14 w-14 text-violet-400" />,
     },
   ];
   
@@ -76,13 +76,13 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
               transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
             >
               <div className="flex justify-center mb-3">
-                <span className="text-xs font-bold tracking-widest text-indigo-400 uppercase">
+                <span className="text-xs font-bold tracking-widest text-violet-400 uppercase">
                   {slides[currentSlide].step}
                 </span>
               </div>
               
               <div className="flex justify-center mb-6">
-                <div className="w-24 h-24 rounded-2xl bg-indigo-600/15 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-2xl bg-violet-600/15 flex items-center justify-center">
                   {slides[currentSlide].icon}
                 </div>
               </div>
@@ -104,7 +104,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-300",
                   index === currentSlide 
-                    ? "bg-indigo-500 w-6" 
+                    ? "bg-violet-500 w-6" 
                     : "bg-neutral-700 w-1.5"
                 )}
               />
@@ -117,7 +117,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
         <div className="max-w-md mx-auto space-y-3">
           <Button
             onClick={handleNext}
-            className="w-full py-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-semibold text-base"
+            className="w-full py-6 bg-violet-600 hover:bg-violet-700 text-white rounded-full font-semibold text-base"
           >
             {currentSlide < slides.length - 1 ? 'Next' : 'Get Started'}
           </Button>

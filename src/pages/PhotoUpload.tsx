@@ -183,12 +183,12 @@ export default function PhotoUpload() {
             {/* Progress Indicator */}
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-indigo-600 rounded"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
+                <div className="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
+                <div className="w-12 h-1 bg-violet-600 rounded"></div>
+                <div className="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
               </div>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent font-bold">
+            <CardTitle className="text-2xl bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent font-bold">
               Upload Your Photo
             </CardTitle>
             <p className="text-sm text-neutral-300">
@@ -199,7 +199,7 @@ export default function PhotoUpload() {
             {/* Photo Preview/Upload Area */}
             <div className="flex justify-center">
               <div className="relative">
-                <label className="relative w-48 h-48 rounded-2xl border-2 border-dashed border-indigo-500/30 flex items-center justify-center cursor-pointer overflow-hidden bg-gradient-to-br from-indigo-500/5 to-indigo-500/10 hover:border-indigo-500/50 hover:bg-gradient-to-br hover:from-indigo-500/10 hover:to-indigo-500/15 transition-all duration-200 group active:scale-98">
+                <label className="relative w-48 h-48 rounded-2xl border-2 border-dashed border-violet-500/30 flex items-center justify-center cursor-pointer overflow-hidden bg-gradient-to-br from-violet-500/5 to-violet-500/10 hover:border-violet-500/50 hover:bg-gradient-to-br hover:from-violet-500/10 hover:to-violet-500/15 transition-all duration-200 group active:scale-98">
                   <AnimatePresence mode="wait">
                     {preview ? (
                       <motion.div
@@ -214,8 +214,8 @@ export default function PhotoUpload() {
                           className="w-full h-full object-cover"
                         />
                         {uploaded && (
-                          <div className="absolute inset-0 bg-indigo-500/20 flex items-center justify-center">
-                            <CheckCircle2 className="w-16 h-16 text-indigo-400" />
+                          <div className="absolute inset-0 bg-violet-500/20 flex items-center justify-center">
+                            <CheckCircle2 className="w-16 h-16 text-violet-400" />
                           </div>
                         )}
                         {file && !uploaded && (
@@ -237,7 +237,7 @@ export default function PhotoUpload() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center space-y-3 text-neutral-400 group-hover:text-indigo-400 transition-colors p-4"
+                        className="flex flex-col items-center justify-center space-y-3 text-neutral-400 group-hover:text-violet-400 transition-colors p-4"
                       >
                         <Camera className="w-14 h-14" />
                         <span className="text-sm font-medium text-center">Tap to take a photo</span>
@@ -266,7 +266,7 @@ export default function PhotoUpload() {
               >
                 <div className="w-full bg-neutral-700 rounded-full h-2.5 overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    className="h-full bg-gradient-to-r from-violet-500 to-violet-500"
                     initial={{ width: 0 }}
                     animate={{ width: `${uploadProgress}%` }}
                     transition={{ duration: 0.3 }}
@@ -305,7 +305,7 @@ export default function PhotoUpload() {
                   <Button
                     onClick={handleUpload}
                     disabled={!file || uploading}
-                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold shadow-lg min-h-[48px] touch-target active:scale-98"
+                    className="flex-1 bg-gradient-to-r from-violet-600 to-violet-600 hover:from-violet-500 hover:to-violet-500 text-white font-semibold shadow-lg min-h-[48px] touch-target active:scale-98"
                   >
                     {uploading ? (
                       <>

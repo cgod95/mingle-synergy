@@ -65,12 +65,12 @@ const Help: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="hover:bg-indigo-900/30 text-indigo-400"
+              className="hover:bg-violet-900/30 text-violet-400"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Help Center</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">Help Center</h1>
               <p className="text-neutral-300 mt-2">Find answers to common questions and get support</p>
             </div>
           </div>
@@ -82,7 +82,7 @@ const Help: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search for help articles..."
-                className="w-full pl-10 pr-4 py-3 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 bg-neutral-800 text-white rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -91,8 +91,8 @@ const Help: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {helpCategories.map((category, index) => (
               <Card key={index} className="bg-neutral-800 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
-                <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-                  <CardTitle className="flex items-center text-indigo-400">
+                <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+                  <CardTitle className="flex items-center text-violet-400">
                     <category.icon className="w-5 h-5 mr-2" />
                     {category.title}
                   </CardTitle>
@@ -111,8 +111,8 @@ const Help: React.FC = () => {
 
           {/* FAQ Section */}
           <Card className="mb-8 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Frequently Asked Questions</CardTitle>
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-violet-400">Frequently Asked Questions</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <Accordion type="single" collapsible className="w-full">
@@ -132,13 +132,13 @@ const Help: React.FC = () => {
 
           {/* Contact Support */}
           <Card className="bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Still Need Help?</CardTitle>
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-violet-400">Still Need Help?</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <Mail className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <Mail className="w-12 h-12 mx-auto mb-4 text-violet-400" />
                   <h3 className="font-semibold mb-2 text-white">Email Support</h3>
                   <p className="text-neutral-300 mb-4">Get a response within 24 hours</p>
                   <Button onClick={() => window.location.href = 'mailto:support@mingle.com'}>
@@ -146,7 +146,7 @@ const Help: React.FC = () => {
                   </Button>
                 </div>
                 <div className="text-center">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-violet-400" />
                   <h3 className="font-semibold mb-2 text-white">Send Feedback</h3>
                   <p className="text-neutral-300 mb-4">Share your thoughts and suggestions</p>
                   <Button variant="outline" onClick={() => navigate('/feedback')}>
@@ -154,7 +154,7 @@ const Help: React.FC = () => {
                   </Button>
                 </div>
                 <div className="text-center">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-violet-400" />
                   <h3 className="font-semibold mb-2 text-white">Contact Support</h3>
                   <p className="text-neutral-300 mb-4">Reach out to our support team</p>
                   <Button variant="outline" onClick={() => navigate('/contact')}>

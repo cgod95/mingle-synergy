@@ -119,13 +119,13 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
                 key={plan.id}
                 className={`relative cursor-pointer transition-all hover:shadow-lg ${
                   selectedPlan === plan.id
-                    ? 'ring-2 ring-indigo-500 bg-indigo-900/30'
+                    ? 'ring-2 ring-violet-500 bg-violet-900/30'
                     : 'hover:bg-neutral-700'
                 }`}
                 onClick={() => setSelectedPlan(plan.id)}
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white">
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-violet-600 text-white">
                     Most Popular
                   </Badge>
                 )}
@@ -213,7 +213,7 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
                 placeholder="Enter promo code"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                className="flex-1 px-4 py-2 border border-neutral-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-neutral-700 text-white placeholder:text-neutral-500 text-base"
+                className="flex-1 px-4 py-2 border border-neutral-600 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-neutral-700 text-white placeholder:text-neutral-500 text-base"
               />
               <Button
                 onClick={handlePromoCode}
@@ -235,7 +235,7 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
             <Button
               onClick={handleSubscribe}
               disabled={isLoading}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 text-lg font-semibold"
+              className="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-3 text-lg font-semibold"
             >
               {isLoading ? 'Processing...' : `Start ${selectedPlan === 'premium_yearly' ? 'Yearly' : 'Monthly'} Plan`}
             </Button>

@@ -11,7 +11,7 @@ export default function Debug() {
           onClick={() => { localStorage.clear(); alert("localStorage cleared"); }}
         >Clear localStorage</button>
         <button
-          className="rounded bg-indigo-600 px-3 py-2 text-white"
+          className="rounded bg-violet-600 px-3 py-2 text-white"
           onClick={() => { resetLikesStore(); ensureDemoLikesSeed(); ensureDemoThreadsSeed(); alert("Demo likes/chats seeded"); }}
         >Seed demo likes & chats</button>
       </div>

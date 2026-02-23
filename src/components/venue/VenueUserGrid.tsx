@@ -73,7 +73,7 @@ const getZoneColor = (zone: string) => {
     case 'bar area':
       return 'bg-blue-100 text-blue-800';
     case 'dance floor':
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-violet-100 text-violet-800';
     case 'outdoor':
       return 'bg-green-100 text-green-800';
     case 'quiet area':

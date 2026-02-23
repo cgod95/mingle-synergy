@@ -2,22 +2,22 @@
 
 :root {
   /* === Colors === */
-  /* Primary Brand Colors - Purple (Brand Primary) */
-  --color-primary: #9333EA; /* purple-600 - Brand Primary */
-  --color-primary-hover: #7E22CE; /* purple-700 */
-  --color-primary-light: #C084FC; /* purple-400 */
-  --color-primary-lighter: #E9D5FF; /* purple-200 */
-  --color-primary-lightest: #F3E8FF; /* purple-50 */
+  /* Primary Brand Colors - Violet (Brand Primary) */
+  --color-primary: #7C3AED; /* violet-600 - Brand Primary */
+  --color-primary-hover: #6D28D9; /* violet-700 */
+  --color-primary-light: #A78BFA; /* violet-400 */
+  --color-primary-lighter: #DDD6FE; /* violet-200 */
+  --color-primary-lightest: #F5F3FF; /* violet-50 */
 
-  /* Secondary Accent - Indigo (use sparingly) */
-  --color-secondary: #6366F1; /* indigo-500 */
-  --color-secondary-light: #818CF8; /* indigo-400 */
-  --color-secondary-lightest: #EEF2FF; /* indigo-50 */
+  /* Secondary Accent - Violet light (use sparingly) */
+  --color-secondary: #8B5CF6; /* violet-500 */
+  --color-secondary-light: #A78BFA; /* violet-400 */
+  --color-secondary-lightest: #EDE9FE; /* violet-100 */
 
   /* Status Colors */
-  --color-success: #9333EA; /* purple-600 - Brand Primary */
-  --color-success-light: #C084FC; /* purple-400 */
-  --color-success-lightest: #F3E8FF; /* purple-50 */
+  --color-success: #22C55E; /* green-500 */
+  --color-success-light: #86EFAC; /* green-300 */
+  --color-success-lightest: #F0FDF4; /* green-50 */
   
   --color-warning: #F97316; /* orange-500 */
   --color-warning-light: #FDBA74; /* orange-300 */
@@ -53,7 +53,7 @@
   /* Border Colors */
   --color-border-default: #E5E5E5; /* neutral-200 */
   --color-border-hover: #D4D4D4; /* neutral-300 */
-  --color-border-focus: #9333EA; /* purple-600 - Brand Primary */
+  --color-border-focus: #7C3AED; /* violet-600 - Brand Primary */
 
   /* === Spacing === */
   --spacing-xs: 0.25rem; /* 4px */

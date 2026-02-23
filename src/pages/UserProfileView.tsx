@@ -163,7 +163,7 @@ export default function UserProfileView() {
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
       </div>
     );
   }
@@ -174,7 +174,7 @@ export default function UserProfileView() {
         <div className="text-center max-w-md">
           <h2 className="text-xl font-semibold text-white mb-2">Profile Not Found</h2>
           <p className="text-neutral-400 mb-4">This user doesn't exist or their profile is unavailable.</p>
-          <Button onClick={() => navigate(-1)} className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+          <Button onClick={() => navigate(-1)} className="bg-violet-600 hover:bg-violet-700 rounded-xl">
             Go Back
           </Button>
         </div>
@@ -229,7 +229,7 @@ export default function UserProfileView() {
                 );
                 if (match) navigate(`/chat/${match.id}`);
               }}
-              className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white py-3 text-base font-semibold"
+              className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white py-3 text-base font-semibold"
               aria-label={`Chat with ${displayName}`}
             >
               Chat with {displayName}

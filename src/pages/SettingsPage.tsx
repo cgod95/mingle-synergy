@@ -543,12 +543,12 @@ const SettingsPage: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate('/profile')}
-              className="hover:bg-indigo-900/30 text-indigo-400"
+              className="hover:bg-violet-900/30 text-violet-400"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">
                 Settings
               </h1>
               <p className="text-neutral-300 mt-2">Manage your account preferences and app settings</p>
@@ -560,10 +560,10 @@ const SettingsPage: React.FC = () => {
             {settingsSections.map((section, sectionIndex) => (
               <div key={sectionIndex}>
                 <Card className="bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
+                  <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
                     <CardTitle className="flex items-center text-heading-3">
-                      <section.icon className="w-5 h-5 mr-2 text-indigo-400" />
-                      <span className="text-indigo-400 font-semibold">
+                      <section.icon className="w-5 h-5 mr-2 text-violet-400" />
+                      <span className="text-violet-400 font-semibold">
                         {section.title}
                       </span>
                     </CardTitle>
@@ -572,12 +572,12 @@ const SettingsPage: React.FC = () => {
                     <div className="space-y-1">
                       {section.items.map((item, itemIndex) => (
                         <div key={itemIndex}>
-                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-indigo-900/30 transition-colors">
+                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-violet-900/30 transition-colors">
                             <div className="flex items-center flex-1 min-w-0">
                               <div className={`p-2 rounded-lg mr-3 ${
                                 'danger' in item && item.danger
                                   ? 'bg-red-900/50 text-red-400' 
-                                  : 'bg-indigo-900/50 text-indigo-400'
+                                  : 'bg-violet-900/50 text-violet-400'
                               }`}>
                                 <item.icon className="w-4 h-4" />
                               </div>
@@ -593,7 +593,7 @@ const SettingsPage: React.FC = () => {
                                       variant={('badgeVariant' in item && item.badgeVariant) as 'default' | 'secondary' | 'destructive' | 'outline'} 
                                       className={
                                         'badgeVariant' in item && item.badgeVariant === 'default' 
-                                          ? 'bg-indigo-600 text-white border-0'
+                                          ? 'bg-violet-600 text-white border-0'
                                           : ''
                                       }
                                     >
@@ -619,7 +619,7 @@ const SettingsPage: React.FC = () => {
                                   className={`${
                                     'danger' in item && item.danger
                                       ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30' 
-                                      : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30'
+                                      : 'text-violet-400 hover:text-violet-300 hover:bg-violet-900/30'
                                   }`}
                                 >
                                   <ChevronRight className="w-5 h-5" />

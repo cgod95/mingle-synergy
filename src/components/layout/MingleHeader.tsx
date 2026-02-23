@@ -18,7 +18,7 @@ export default function MingleHeader() {
           <Link
             to="/checkin"
             aria-label="Mingle - Go to check in"
-            className="group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg p-1.5 -ml-1.5 active:scale-95 transition-transform touch-target"
+            className="group focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 rounded-lg p-1.5 -ml-1.5 active:scale-95 transition-transform touch-target"
           >
             <MingleMLogo size="sm" showText={true} />
           </Link>

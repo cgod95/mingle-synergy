@@ -60,20 +60,20 @@ const About: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="hover:bg-indigo-900/30 text-indigo-400"
+              className="hover:bg-violet-900/30 text-violet-400"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">About Mingle</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">About Mingle</h1>
               <p className="text-neutral-300 mt-2">Connecting people through shared experiences</p>
             </div>
           </div>
 
           {/* App Info */}
           <Card className="mb-6 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="flex items-center text-indigo-400">
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="flex items-center text-violet-400">
                 <Star className="w-5 h-5 mr-2" />
                 App Information
               </CardTitle>
@@ -94,7 +94,7 @@ const About: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-white">Status</h3>
-                  <Badge variant="default" className="bg-indigo-900/50 text-indigo-300 border-indigo-700">
+                  <Badge variant="default" className="bg-violet-900/50 text-violet-300 border-violet-700">
                     Production Ready
                   </Badge>
                 </div>
@@ -104,8 +104,8 @@ const About: React.FC = () => {
 
           {/* Mission */}
           <Card className="mb-6 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Our Mission</CardTitle>
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-violet-400">Our Mission</CardTitle>
               <CardDescription className="text-neutral-300">
                 Building meaningful connections in the real world
               </CardDescription>
@@ -122,8 +122,8 @@ const About: React.FC = () => {
 
           {/* Features */}
           <Card className="mb-6 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Key Features</CardTitle>
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-violet-400">Key Features</CardTitle>
               <CardDescription className="text-neutral-300">
                 What makes Mingle unique
               </CardDescription>
@@ -134,7 +134,7 @@ const About: React.FC = () => {
                   const Icon = feature.icon;
                   return (
                     <div key={index} className="flex items-start space-x-3 p-4 bg-neutral-700/50 rounded-lg">
-                      <Icon className="w-6 h-6 text-indigo-400 mt-1" />
+                      <Icon className="w-6 h-6 text-violet-400 mt-1" />
                       <div>
                         <h3 className="font-semibold text-white">{feature.title}</h3>
                         <p className="text-sm text-neutral-300">{feature.description}</p>
@@ -148,8 +148,8 @@ const About: React.FC = () => {
 
           {/* Team */}
           <Card className="mb-6 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Our Team</CardTitle>
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-violet-400">Our Team</CardTitle>
               <CardDescription className="text-neutral-300">
                 The people behind Mingle
               </CardDescription>
@@ -158,10 +158,10 @@ const About: React.FC = () => {
               <div className="space-y-4">
                 {team.map((member, index) => (
                   <div key={index} className="flex items-start space-x-3 p-4 bg-neutral-700/50 rounded-lg">
-                    <Users className="w-6 h-6 text-indigo-400 mt-1" />
+                    <Users className="w-6 h-6 text-violet-400 mt-1" />
                     <div>
                       <h3 className="font-semibold text-white">{member.name}</h3>
-                      <p className="text-sm font-medium text-indigo-400">{member.role}</p>
+                      <p className="text-sm font-medium text-violet-400">{member.role}</p>
                       <p className="text-sm text-neutral-300 mt-1">{member.description}</p>
                     </div>
                   </div>
@@ -172,8 +172,8 @@ const About: React.FC = () => {
 
           {/* Contact */}
           <Card className="mb-6 bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Get in Touch</CardTitle>
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-violet-400">Get in Touch</CardTitle>
               <CardDescription className="text-neutral-300">
                 We'd love to hear from you
               </CardDescription>
@@ -198,7 +198,7 @@ const About: React.FC = () => {
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-neutral-300">
-                    Email us at: <a href="mailto:support@mingle.com" className="text-indigo-400 hover:underline">support@mingle.com</a>
+                    Email us at: <a href="mailto:support@mingle.com" className="text-violet-400 hover:underline">support@mingle.com</a>
                   </p>
                 </div>
               </div>
@@ -207,8 +207,8 @@ const About: React.FC = () => {
 
           {/* Legal Links */}
           <Card className="bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
-              <CardTitle className="text-indigo-400">Legal</CardTitle>
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+              <CardTitle className="text-violet-400">Legal</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -69,11 +69,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
   return (
     <div className="w-full">
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-indigo-500 hover:-translate-y-1 bg-neutral-800">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-violet-500 hover:-translate-y-1 bg-neutral-800">
         <CardHeader className="pb-4 bg-neutral-800/50">
           <div className="flex items-center space-x-4">
             <div className="relative transition-transform hover:scale-105 active:scale-95">
-              <Avatar className="h-20 w-20 cursor-pointer ring-2 ring-indigo-500/50 shadow-lg" onClick={() => onViewProfile(match.id)}>
+              <Avatar className="h-20 w-20 cursor-pointer ring-2 ring-violet-500/50 shadow-lg" onClick={() => onViewProfile(match.id)}>
                 <AvatarImage 
                   src={match.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop"} 
                   alt={match.name} 
@@ -82,7 +82,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop";
                   }}
                 />
-                <AvatarFallback className="bg-indigo-600 text-white text-xl font-semibold">
+                <AvatarFallback className="bg-violet-600 text-white text-xl font-semibold">
                   {match.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -91,7 +91,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               )}
               {isRematch && (
                 <div className="absolute -top-1 -right-1">
-                  <Badge className="bg-indigo-600 text-white text-xs px-2 py-0.5">
+                  <Badge className="bg-violet-600 text-white text-xs px-2 py-0.5">
                     <Sparkles className="w-3 h-3 mr-1" />
                     Rematch
                   </Badge>
@@ -110,7 +110,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               </div>
               
               <div className="flex items-center space-x-2 text-sm text-neutral-400 mb-2">
-                <MapPin className="w-3.5 h-3.5 text-indigo-500" />
+                <MapPin className="w-3.5 h-3.5 text-violet-500" />
                 <span className="truncate font-medium">{match.venue?.name || 'Unknown venue'}</span>
               </div>
               
@@ -141,9 +141,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
         <CardContent className="pt-4 pb-4">
           {match.lastMessage && (
-            <div className="mb-4 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700/50">
+            <div className="mb-4 p-3 bg-violet-900/30 rounded-lg border border-violet-700/50">
               <div className="flex items-start space-x-2">
-                <MessageCircle className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
+                <MessageCircle className="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-neutral-300 line-clamp-2 font-medium">
                   {match.lastMessage.content}
                 </p>
@@ -157,7 +157,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               <div className="flex flex-wrap gap-2">
                 {match.mutualInterests.slice(0, 3).map((interest, idx) => (
                   <div key={interest} className="transition-transform hover:scale-105">
-                    <Badge className="bg-indigo-600 text-white text-xs px-3 py-1 shadow-sm">
+                    <Badge className="bg-violet-600 text-white text-xs px-3 py-1 shadow-sm">
                       {interest}
                     </Badge>
                   </div>
@@ -177,7 +177,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onViewProfile(match.id)}
-                className="w-full hover:border-indigo-500 hover:bg-indigo-900/30 text-neutral-300 transition-all"
+                className="w-full hover:border-violet-500 hover:bg-violet-900/30 text-neutral-300 transition-all"
               >
                 View Profile
               </Button>
@@ -187,7 +187,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               <Button
                 size="sm"
                 onClick={() => onSendMessage(match.id)}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all"
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Message

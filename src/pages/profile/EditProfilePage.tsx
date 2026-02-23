@@ -19,7 +19,7 @@ export default function EditProfilePage() {
             <div key={i} className="aspect-square rounded-xl bg-neutral-700 p-2 text-xs text-neutral-300 overflow-hidden">{f.name}</div>
           ))}
         </div>
-        <button className="mt-6 w-full rounded-xl bg-indigo-600 px-4 py-2 font-medium text-white">Save</button>
+        <button className="mt-6 w-full rounded-xl bg-violet-600 px-4 py-2 font-medium text-white">Save</button>
       </div>
     </section>
   );

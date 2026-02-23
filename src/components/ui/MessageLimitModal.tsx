@@ -49,9 +49,9 @@ export default function MessageLimitModal({
                   // TODO: Implement request-to-continue signal
                   onClose();
                 }}
-                className="w-full flex items-center gap-3 p-4 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 transition-colors text-left"
+                className="w-full flex items-center gap-3 p-4 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 transition-colors text-left"
               >
-                <RefreshCw className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                <RefreshCw className="w-5 h-5 text-violet-400 flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-white">Request to continue</p>
                   <p className="text-xs text-neutral-400">Ask your match to keep chatting</p>
@@ -93,7 +93,7 @@ export default function MessageLimitModal({
               <p className="text-sm text-neutral-400 text-center">
                 Use your remaining messages to make plans to meet up in person.
               </p>
-              <Button onClick={onClose} className="w-full bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+              <Button onClick={onClose} className="w-full bg-violet-600 hover:bg-violet-700 rounded-xl">
                 Got it
               </Button>
             </>

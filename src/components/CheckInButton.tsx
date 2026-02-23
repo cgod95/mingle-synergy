@@ -160,7 +160,7 @@ export default function CheckInButton({ venueId, venueName, onCheckIn, className
             <Button
               onClick={handleCheckIn}
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white"
             >
               {loading ? "Checking in..." : "Check In"}
             </Button>

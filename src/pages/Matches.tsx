@@ -170,13 +170,13 @@ export default function Matches() {
             {match.avatarUrl ? (
               <img src={match.avatarUrl} alt={match.displayName || "Match"} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-indigo-600 flex items-center justify-center">
+              <div className="w-full h-full bg-violet-600 flex items-center justify-center">
                 <span className="text-white font-bold text-lg">{(match.displayName || "M").charAt(0).toUpperCase()}</span>
               </div>
             )}
           </div>
           {match.unreadCount && match.unreadCount > 0 && !expired && (
-            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center">
               <span className="text-[10px] font-bold text-white">{match.unreadCount > 9 ? '9+' : match.unreadCount}</span>
             </div>
           )}
@@ -269,7 +269,7 @@ export default function Matches() {
             className="flex items-center justify-center overflow-hidden transition-all"
             style={{ height: isRefreshing ? 40 : pullDistance }}
           >
-            <RefreshCw className={`w-5 h-5 text-indigo-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-5 h-5 text-violet-400 ${isRefreshing ? 'animate-spin' : ''}`} />
           </div>
         )}
 

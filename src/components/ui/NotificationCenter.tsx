@@ -36,11 +36,11 @@ const getNotificationIcon = (type: NotificationData['type']) => {
     case 'venue_checkin':
       return <MapPin className="w-4 h-4 text-green-500" />;
     case 'proximity_alert':
-      return <Users className="w-4 h-4 text-purple-500" />;
+      return <Users className="w-4 h-4 text-violet-500" />;
     case 'match_expiring':
       return <Clock className="w-4 h-4 text-orange-500" />;
     case 'reconnect_request':
-      return <RefreshCw className="w-4 h-4 text-indigo-500" />;
+      return <RefreshCw className="w-4 h-4 text-violet-500" />;
     case 'venue_activity':
       return <Zap className="w-4 h-4 text-yellow-500" />;
     default:
@@ -57,11 +57,11 @@ const getNotificationColor = (type: NotificationData['type']) => {
     case 'venue_checkin':
       return 'border-green-200 bg-green-50';
     case 'proximity_alert':
-      return 'border-purple-200 bg-purple-50';
+      return 'border-violet-200 bg-violet-50';
     case 'match_expiring':
       return 'border-orange-200 bg-orange-50';
     case 'reconnect_request':
-      return 'border-indigo-200 bg-indigo-50';
+      return 'border-violet-200 bg-violet-50';
     case 'venue_activity':
       return 'border-yellow-200 bg-yellow-50';
     default:

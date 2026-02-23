@@ -52,7 +52,7 @@ export default function ProfileUpload() {
           <button
             onClick={onSave}
             disabled={!preview}
-            className="flex-1 rounded-xl bg-indigo-600 text-white px-4 py-2 disabled:opacity-50"
+            className="flex-1 rounded-xl bg-violet-600 text-white px-4 py-2 disabled:opacity-50"
           >
             Save
           </button>

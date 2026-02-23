@@ -45,7 +45,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="border border-neutral-700 hover:border-indigo-500 hover:shadow-md transition-all overflow-hidden bg-neutral-800">
+      <Card className="border border-neutral-700 hover:border-violet-500 hover:shadow-md transition-all overflow-hidden bg-neutral-800">
         {/* User Image */}
         <div className="relative h-64 w-full overflow-hidden bg-neutral-200">
           {user.photos && user.photos.length > 0 ? (
@@ -60,7 +60,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Avatar className="h-24 w-24">
-                <AvatarFallback className="bg-indigo-600 text-white text-2xl font-bold">
+                <AvatarFallback className="bg-violet-600 text-white text-2xl font-bold">
                   {user.name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -97,7 +97,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
               "w-full",
               isLiked
                 ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                : "bg-violet-600 hover:bg-violet-700 text-white"
             )}
           >
             {isLiking ? (

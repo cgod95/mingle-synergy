@@ -55,7 +55,7 @@ export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
       demoInfo: "Simulated matching system"
     },
     {
-      icon: <MessageCircle className="w-8 h-8 text-purple-600" />,
+      icon: <MessageCircle className="w-8 h-8 text-violet-600" />,
       title: "Start Chatting",
       description: "Once matched, start a conversation and plan to meet in person",
       action: "View Matches",
@@ -200,7 +200,7 @@ export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
       animate={{ opacity: 1, y: 0 }}
       className={`w-full ${className}`}
     >
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-violet-50 border-blue-200">
         <CardHeader className="text-center pb-4">
           <div className="flex items-center justify-center mb-2">
             <Sparkles className="w-5 h-5 text-blue-600 mr-2" />

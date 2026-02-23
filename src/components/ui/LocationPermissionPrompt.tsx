@@ -39,8 +39,8 @@ export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> =
           >
             {/* Icon */}
             <div className="flex justify-center mb-5">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-600/30 to-purple-600/30 flex items-center justify-center ring-2 ring-indigo-500/20">
-                <MapPin className="w-10 h-10 text-indigo-400" />
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600/30 to-violet-600/30 flex items-center justify-center ring-2 ring-violet-500/20">
+                <MapPin className="w-10 h-10 text-violet-400" />
               </div>
             </div>
 
@@ -57,20 +57,20 @@ export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> =
             {/* Trust signals */}
             <div className="space-y-3 mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-indigo-400" />
+                <div className="w-8 h-8 rounded-full bg-violet-900/50 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-violet-400" />
                 </div>
                 <p className="text-sm text-neutral-300">See venues and people nearby</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-4 h-4 text-indigo-400" />
+                <div className="w-8 h-8 rounded-full bg-violet-900/50 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-4 h-4 text-violet-400" />
                 </div>
                 <p className="text-sm text-neutral-300">Only used while the app is open</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
-                  <Eye className="w-4 h-4 text-indigo-400" strokeWidth={2} />
+                <div className="w-8 h-8 rounded-full bg-violet-900/50 flex items-center justify-center flex-shrink-0">
+                  <Eye className="w-4 h-4 text-violet-400" strokeWidth={2} />
                 </div>
                 <p className="text-sm text-neutral-300">Your exact location is never shown to others</p>
               </div>
@@ -80,7 +80,7 @@ export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> =
             <div className="flex flex-col gap-3">
               <Button
                 onClick={onAllow}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold min-h-[48px] shadow-lg"
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold min-h-[48px] shadow-lg"
               >
                 Enable Location
               </Button>
@@ -142,7 +142,7 @@ export const LocationDeniedBanner: React.FC<LocationDeniedBannerProps> = ({ clas
           </p>
           <button
             onClick={handleOpenSettings}
-            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors"
           >
             Open Settings →
           </button>

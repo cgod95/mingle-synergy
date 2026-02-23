@@ -107,13 +107,13 @@ export default function VenueAnalytics({ venueId, venueName, isPartner = false }
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+      <Card className="bg-gradient-to-r from-violet-50 to-blue-50 border-violet-200">
         <CardHeader>
-          <CardTitle className="flex items-center text-purple-800">
+          <CardTitle className="flex items-center text-violet-800">
             <BarChart3 className="w-6 h-6 mr-2" />
             {venueName} Analytics
             {isPartner && (
-              <Badge className="ml-2 bg-purple-100 text-purple-800">
+              <Badge className="ml-2 bg-violet-100 text-violet-800">
                 <Award className="w-3 h-3 mr-1" />
                 Partner
               </Badge>
@@ -221,8 +221,8 @@ export default function VenueAnalytics({ venueId, venueName, isPartner = false }
                   <p className="text-sm font-medium text-gray-600">Messages Sent</p>
                   <p className="text-2xl font-bold text-gray-900">{metrics.messagesSent}</p>
                 </div>
-                <div className="p-3 bg-purple-100 rounded-full">
-                  <MessageCircle className="w-6 h-6 text-purple-600" />
+                <div className="p-3 bg-violet-100 rounded-full">
+                  <MessageCircle className="w-6 h-6 text-violet-600" />
                 </div>
               </div>
             </CardContent>
@@ -250,7 +250,7 @@ export default function VenueAnalytics({ venueId, venueName, isPartner = false }
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Avg. Session Time</span>
-              <span className="font-semibold text-purple-600">{metrics.averageSessionTime} min</span>
+              <span className="font-semibold text-violet-600">{metrics.averageSessionTime} min</span>
             </div>
           </CardContent>
         </Card>
@@ -299,7 +299,7 @@ export default function VenueAnalytics({ venueId, venueName, isPartner = false }
                 <div className="flex items-center space-x-2">
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full"
+                      className="bg-gradient-to-r from-pink-500 to-violet-500 h-2 rounded-full"
                       style={{ width: `${(zone.count / metrics.popularZones[0].count) * 100}%` }}
                     ></div>
                   </div>
@@ -324,7 +324,7 @@ export default function VenueAnalytics({ venueId, venueName, isPartner = false }
             {metrics.weeklyTrend.map((day) => (
               <div key={day.day} className="flex flex-col items-center flex-1">
                 <div 
-                  className="w-full bg-gradient-to-t from-blue-500 to-purple-500 rounded-t"
+                  className="w-full bg-gradient-to-t from-blue-500 to-violet-500 rounded-t"
                   style={{ height: `${(day.checkIns / 145) * 100}%` }}
                 ></div>
                 <span className="text-xs text-gray-600 mt-2">{day.day}</span>

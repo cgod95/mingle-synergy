@@ -175,7 +175,7 @@ export default function SafetyFeatures({
   return (
     <div className="space-y-6">
       {/* Safety Header */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-violet-50 border-blue-200">
         <CardHeader>
           <CardTitle className="flex items-center text-blue-800">
             <Shield className="w-6 h-6 mr-2" />

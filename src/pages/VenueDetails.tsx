@@ -33,7 +33,7 @@ function Toast({ text }: { text: string }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-6 py-3 text-white text-sm shadow-lg z-50"
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 rounded-full bg-violet-600 px-6 py-3 text-white text-sm shadow-lg z-50"
     >
       {text}
     </motion.div>
@@ -98,7 +98,7 @@ export default function VenueDetails() {
   if (loadingVenue) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500 mx-auto"></div>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export default function VenueDetails() {
           <p className="text-neutral-400 mb-4">
             {venueError?.message || 'The venue you\'re looking for doesn\'t exist.'}
           </p>
-          <Button onClick={() => navigate('/checkin')} className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+          <Button onClick={() => navigate('/checkin')} className="bg-violet-600 hover:bg-violet-700 rounded-xl">
             Back to Venues
           </Button>
         </div>
@@ -237,7 +237,7 @@ export default function VenueDetails() {
                 </div>
               )}
               {visiblePeople.length > 0 && (
-                <span className="text-indigo-300 text-xs font-medium flex-shrink-0">
+                <span className="text-violet-300 text-xs font-medium flex-shrink-0">
                   {visiblePeople.length} here
                 </span>
               )}
@@ -246,7 +246,7 @@ export default function VenueDetails() {
           {checkedIn !== venue.id && (
             <Button
               onClick={handleCheckIn}
-              className="rounded-full px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium flex-shrink-0"
+              className="rounded-full px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium flex-shrink-0"
               size="sm"
             >
               Check In
@@ -276,7 +276,7 @@ export default function VenueDetails() {
             <MapPin className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
             <p className="text-neutral-300 font-medium text-sm mb-1">Couldn't load people</p>
             <p className="text-xs text-neutral-400 mb-3">Something went wrong. Tap to retry.</p>
-            <Button onClick={retryPeople} size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+            <Button onClick={retryPeople} size="sm" className="bg-violet-600 hover:bg-violet-700 rounded-xl">
               Retry
             </Button>
           </div>
@@ -292,7 +292,7 @@ export default function VenueDetails() {
                 if (granted) window.location.reload();
               }}
               size="sm"
-              className="bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+              className="bg-violet-600 hover:bg-violet-700 rounded-xl"
             >
               Enable Location
             </Button>
@@ -311,11 +311,11 @@ export default function VenueDetails() {
         ) : (
           <>
           {checkedIn !== venue.id && (
-            <div className="bg-indigo-600/10 rounded-xl p-3 mb-2 flex items-center justify-between">
+            <div className="bg-violet-600/10 rounded-xl p-3 mb-2 flex items-center justify-between">
               <span className="text-sm text-neutral-300">Check in to let others see you</span>
               <button
                 onClick={handleCheckIn}
-                className="bg-indigo-600 text-white text-xs font-medium px-3 py-1.5 rounded-full active:scale-95 transition-transform"
+                className="bg-violet-600 text-white text-xs font-medium px-3 py-1.5 rounded-full active:scale-95 transition-transform"
               >
                 Check In
               </button>
@@ -351,7 +351,7 @@ export default function VenueDetails() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center">
                         <User className="w-12 h-12 text-white/60" />
                       </div>
                     )}

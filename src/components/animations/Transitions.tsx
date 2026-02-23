@@ -172,7 +172,7 @@ export function ScaleIn({
 // Loading spinner component - CSS-based for performance
 export function LoadingSpinner() {
   return (
-    <div className="w-6 h-6 border-2 border-neutral-300 border-t-purple-600 rounded-full animate-spin" />
+    <div className="w-6 h-6 border-2 border-neutral-300 border-t-violet-600 rounded-full animate-spin" />
   );
 }
 

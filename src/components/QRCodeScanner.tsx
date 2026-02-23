@@ -109,7 +109,7 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
   return (
     <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-neutral-800 border border-neutral-700 shadow-2xl">
-        <div className="p-4 border-b border-neutral-700 flex items-center justify-between bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+        <div className="p-4 border-b border-neutral-700 flex items-center justify-between bg-gradient-to-r from-violet-500/10 to-violet-500/10">
           <h2 className="text-lg font-semibold text-white">Scan QR Code</h2>
           <Button 
             variant="ghost" 
@@ -134,7 +134,7 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
                 </p>
               )}
               <div className="flex gap-2 justify-center">
-                <Button onClick={handleRetry} className="bg-gradient-to-r from-indigo-500 to-purple-500">
+                <Button onClick={handleRetry} className="bg-gradient-to-r from-violet-500 to-violet-500">
                   <Camera className="w-4 h-4 mr-2" />
                   Try Again
                 </Button>

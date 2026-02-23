@@ -96,7 +96,7 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
       {/* Input and send button */}
       <div className="flex items-center gap-2">
         <input
-          className="flex-1 rounded-lg border border-neutral-600 bg-neutral-700 text-white px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 placeholder:text-neutral-500"
+          className="flex-1 rounded-lg border border-neutral-600 bg-neutral-700 text-white px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50 placeholder:text-neutral-500"
           placeholder={canSend ? "Type your message..." : "Message limit reached"}
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -107,7 +107,7 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
         <Button 
           onClick={handleSend} 
           disabled={isDisabled}
-          className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white"
+          className="px-4 py-2 text-sm bg-violet-600 hover:bg-violet-700 text-white"
         >
           {loading ? 'Sending...' : 'Send'}
         </Button>

@@ -317,8 +317,8 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                     ${analyticsData.overview.revenue.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-2 bg-purple-900/50 rounded-lg">
-                  <Zap className="w-5 h-5 text-purple-600" />
+                <div className="p-2 bg-violet-900/50 rounded-lg">
+                  <Zap className="w-5 h-5 text-violet-600" />
                 </div>
               </div>
               <div className="mt-4 flex items-center text-sm text-green-600">
@@ -418,7 +418,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                     <div className="flex items-center space-x-2">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-purple-600 h-2 rounded-full"
+                          className="bg-violet-600 h-2 rounded-full"
                           style={{ width: `${interest.percentage}%` }}
                         />
                       </div>
@@ -454,7 +454,7 @@ const VenueAnalytics: React.FC<VenueAnalyticsProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-neutral-400">Retention Rate</span>
-                  <span className="text-lg font-semibold text-purple-600">
+                  <span className="text-lg font-semibold text-violet-600">
                     {formatPercentage(analyticsData.performance.userRetentionRate)}
                   </span>
                 </div>

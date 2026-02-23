@@ -71,7 +71,7 @@ export default function ProfilePhotoUploader() {
           <div className="mt-3 flex items-center gap-3">
             <button
               onClick={onPick}
-              className="rounded-full bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500"
+              className="rounded-full bg-violet-600 px-4 py-2 text-white hover:bg-violet-500"
               disabled={isUploading}
             >
               {isUploading ? "Uploading…" : "Choose Photo"}

@@ -159,7 +159,7 @@ export default function ChatRoom() {
           <p className="text-neutral-300">Chat not found.</p>
           <Button 
             onClick={() => navigate(-1)} 
-            className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+            className="mt-4 bg-gradient-to-r from-violet-600 to-violet-600 hover:from-violet-700 hover:to-violet-700 text-white"
           >
             Go Back
           </Button>
@@ -223,7 +223,7 @@ export default function ChatRoom() {
             {matchAvatar ? (
               <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-full" />
             ) : null}
-            <AvatarFallback className="bg-indigo-600 text-white text-sm rounded-full">
+            <AvatarFallback className="bg-violet-600 text-white text-sm rounded-full">
               {matchName.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -273,10 +273,10 @@ export default function ChatRoom() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 bg-indigo-900/30 rounded-xl p-3"
+              className="mb-4 bg-violet-900/30 rounded-xl p-3"
             >
               <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
+                <Sparkles className="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-xs font-medium text-neutral-200 mb-1">You have {typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5} messages to make plans</p>
                   <p className="text-xs text-neutral-300">Focus on meeting up in person - that's what Mingle is all about!</p>
@@ -293,7 +293,7 @@ export default function ChatRoom() {
               className="mb-4"
             >
               <div className="flex items-center gap-2 mb-3 px-2">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <Sparkles className="w-4 h-4 text-violet-400" />
                 <p className="text-sm font-medium text-neutral-300">Try a conversation starter</p>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide">
@@ -315,7 +315,7 @@ export default function ChatRoom() {
                         setSending(false);
                       }
                     }}
-                    className="px-4 py-2 text-sm bg-neutral-800 rounded-full text-neutral-200 hover:bg-indigo-900/30 transition-all whitespace-nowrap flex-shrink-0 snap-start"
+                    className="px-4 py-2 text-sm bg-neutral-800 rounded-full text-neutral-200 hover:bg-violet-900/30 transition-all whitespace-nowrap flex-shrink-0 snap-start"
                   >
                     {starter}
                   </motion.button>
@@ -337,12 +337,12 @@ export default function ChatRoom() {
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
                     m.sender === "you"
-                      ? "bg-indigo-600 text-white rounded-br-md"
+                      ? "bg-violet-600 text-white rounded-br-md"
                       : "bg-neutral-800 text-neutral-200 rounded-bl-md"
                   }`}
                 >
                   <p className="text-[15px] leading-relaxed break-words">{m.text}</p>
-                  <p className={`text-[11px] mt-1 ${m.sender === "you" ? "text-indigo-200/60 text-right" : "text-neutral-400"}`}>
+                  <p className={`text-[11px] mt-1 ${m.sender === "you" ? "text-violet-200/60 text-right" : "text-neutral-400"}`}>
                     {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
@@ -364,7 +364,7 @@ export default function ChatRoom() {
               <span className="text-xs text-neutral-500">Message limit reached</span>
               <button
                 onClick={() => setShowMessageLimitModal(true)}
-                className="text-indigo-400 text-xs font-medium"
+                className="text-violet-400 text-xs font-medium"
               >
                 Options
               </button>
@@ -383,7 +383,7 @@ export default function ChatRoom() {
                     : "Type a message..."
                 }
                 disabled={!canSendMsg}
-                className={`w-full rounded-full px-4 py-2.5 text-[15px] focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                className={`w-full rounded-full px-4 py-2.5 text-[15px] focus:outline-none focus:ring-1 focus:ring-violet-500 ${
                   !canSendMsg
                     ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
                     : 'bg-neutral-800 text-white placeholder:text-neutral-500'
@@ -393,7 +393,7 @@ export default function ChatRoom() {
             <Button
               type="submit"
               disabled={!text.trim() || !canSendMsg || sending}
-              className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-30 h-10 w-10 flex-shrink-0"
+              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-30 h-10 w-10 flex-shrink-0"
               size="icon"
             >
               <Send className="w-4 h-4" />

@@ -92,7 +92,7 @@ export default function SignUp() {
                   autoCorrect="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl h-12"
+                  className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12"
                   required
                   disabled={busy}
                 />
@@ -106,7 +106,7 @@ export default function SignUp() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   minLength={6}
-                  className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl h-12"
+                  className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12"
                   required
                   disabled={busy}
                 />
@@ -125,7 +125,7 @@ export default function SignUp() {
               
               <Button 
                 type="submit"
-                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={busy || !email.trim() || !password.trim()}
               >
                 {busy ? (
@@ -143,7 +143,7 @@ export default function SignUp() {
             <div className="text-center mt-8 flex-shrink-0">
               <p className="text-sm text-neutral-400">
                 Already have an account?{' '}
-                <Link to="/signin" className="text-indigo-400 hover:text-indigo-300 font-medium">
+                <Link to="/signin" className="text-violet-400 hover:text-violet-300 font-medium">
                   Sign in
                 </Link>
               </p>

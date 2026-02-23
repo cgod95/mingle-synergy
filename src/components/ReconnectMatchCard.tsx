@@ -14,7 +14,7 @@ const ReconnectMatchCard: React.FC<ReconnectMatchCardProps> = ({ name, onReconne
       </p>
       <button
         onClick={onReconnect}
-        className="w-full py-2 px-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition min-h-[44px]"
+        className="w-full py-2 px-4 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition min-h-[44px]"
       >
         Reconnect now
       </button>

@@ -238,7 +238,7 @@ export const FullPageLoader: React.FC<{ message?: string }> = ({
 }) => (
   <div className="fixed inset-0 bg-neutral-900/95 flex items-center justify-center z-50">
     <div className="text-center space-y-4">
-      <div className="w-12 h-12 border-4 border-neutral-700 border-t-indigo-500 rounded-full mx-auto animate-spin" />
+      <div className="w-12 h-12 border-4 border-neutral-700 border-t-violet-500 rounded-full mx-auto animate-spin" />
       <p className="text-neutral-400">{message}</p>
     </div>
   </div>
@@ -379,7 +379,7 @@ export const PulseLoader: React.FC = () => (
     {[0, 1, 2].map((i) => (
       <div
         key={i}
-        className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"
+        className="w-2 h-2 bg-violet-600 rounded-full animate-pulse"
         style={{
           animationDelay: `${i * 0.2}s`,
           animationDuration: '0.8s',

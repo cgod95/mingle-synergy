@@ -1,6 +1,3 @@
-// Standardized Loading Spinner - Purple M design
-// Based on MingleLoader but flexible for inline use
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -28,21 +25,19 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   const content = (
     <div className={cn('flex flex-col items-center', className)}>
-      {/* M Logo */}
       <div className={cn(sizes.logo, 'mb-4 animate-pulse')}>
-        <div className="w-full h-full rounded-2xl bg-neutral-800 flex items-center justify-center shadow-lg border border-neutral-700">
-          <span className={cn(sizes.text, 'font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent')}>
+        <div className="w-full h-full rounded-2xl bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30">
+          <span className={cn(sizes.text, 'font-bold text-white')}>
             M
           </span>
         </div>
       </div>
       
-      {/* Loading dots */}
       <div className="flex space-x-2">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className={cn(sizes.dots, 'bg-indigo-400 rounded-full animate-pulse')}
+            className={cn(sizes.dots, 'bg-violet-400 rounded-full animate-pulse')}
             style={{
               animationDelay: `${i * 0.2}s`,
               animationDuration: '0.8s',
@@ -51,7 +46,6 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         ))}
       </div>
       
-      {/* Optional message */}
       {message && (
         <p className="mt-4 text-sm text-neutral-400">{message}</p>
       )}
@@ -60,7 +54,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   if (variant === 'fullscreen') {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 flex items-center justify-center z-[9999]">
+      <div className="fixed inset-0 bg-[#0a0a0f] flex items-center justify-center z-[9999]">
         {content}
       </div>
     );
@@ -69,7 +63,6 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return content;
 };
 
-// Simple inline spinner (just the spinning circle) for buttons and small spaces
 export const InlineSpinner: React.FC<{ 
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -81,11 +74,8 @@ export const InlineSpinner: React.FC<{
   };
 
   return (
-    <div className={cn('animate-spin rounded-full border-2 border-purple-600 border-t-transparent', sizeClasses[size], className)} />
+    <div className={cn('animate-spin rounded-full border-2 border-violet-600 border-t-transparent', sizeClasses[size], className)} />
   );
 };
 
 export default LoadingSpinner;
-
-
-

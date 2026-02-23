@@ -225,7 +225,7 @@ const UsageStats: React.FC = () => {
                     <p className="text-sm font-medium text-neutral-300">Venue Check-ins</p>
                     <p className="text-2xl font-bold">{stats.totalCheckins}</p>
                   </div>
-                  <MapPin className="w-8 h-8 text-purple-500" />
+                  <MapPin className="w-8 h-8 text-violet-500" />
                 </div>
                 <div className="mt-2 flex items-center">
                   {getTrendIcon(stats.totalCheckins, 19)}

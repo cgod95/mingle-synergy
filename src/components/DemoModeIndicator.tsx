@@ -135,7 +135,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
               <div className="text-sm text-slate-600">Check in at real locations</div>
             </div>
             <div className="text-center p-3 bg-neutral-800/50 rounded-lg">
-              <MessageCircle className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+              <MessageCircle className="w-8 h-8 text-violet-600 mx-auto mb-2" />
               <div className="text-lg font-semibold text-slate-800">Real Chat</div>
               <div className="text-sm text-slate-600">Real conversations</div>
             </div>

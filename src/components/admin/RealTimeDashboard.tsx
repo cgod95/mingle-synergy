@@ -255,7 +255,7 @@ export const RealTimeDashboard: React.FC = () => {
         <MetricCard
           title="Messages Sent"
           value={metrics.messagesSent}
-          icon={<MessageSquare className="w-6 h-6 text-purple-600" />}
+          icon={<MessageSquare className="w-6 h-6 text-violet-600" />}
           trend="up"
           color="purple"
         />
@@ -269,7 +269,7 @@ export const RealTimeDashboard: React.FC = () => {
         <MetricCard
           title="Avg Session"
           value={`${Math.floor(metrics.averageSessionDuration / 60)}m ${metrics.averageSessionDuration % 60}s`}
-          icon={<Clock className="w-6 h-6 text-indigo-600" />}
+          icon={<Clock className="w-6 h-6 text-violet-600" />}
           trend="up"
           color="indigo"
         />

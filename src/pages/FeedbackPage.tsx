@@ -14,7 +14,7 @@ export default function FeedbackPage() {
         ) : (
           <form onSubmit={onSubmit} className="flex flex-col gap-3">
             <textarea className="rounded-xl border border-neutral-600 bg-neutral-900 text-white px-3 py-2 text-base placeholder:text-neutral-500" rows={5} value={text} onChange={(e)=>setText(e.target.value)} />
-            <button className="rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-white min-h-[44px]">Send</button>
+            <button className="rounded-xl bg-violet-600 hover:bg-violet-700 px-4 py-2 text-white min-h-[44px]">Send</button>
           </form>
         )}
       </div>

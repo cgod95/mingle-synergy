@@ -210,7 +210,7 @@ export default function ProfileEdit() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600 mx-auto mb-4"></div>
           <p className="text-neutral-300">Loading profile...</p>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function ProfileEdit() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/profile')}
-              className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30"
+              className="text-violet-400 hover:text-violet-300 hover:bg-violet-900/30"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Profile
@@ -233,7 +233,7 @@ export default function ProfileEdit() {
           </div>
           <Card className="w-full bg-neutral-800 shadow-xl">
             <CardHeader className="text-center space-y-2 border-b border-neutral-700">
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">
                 Edit Profile
               </CardTitle>
             </CardHeader>
@@ -354,7 +354,7 @@ export default function ProfileEdit() {
               />
             </div>
             <Button 
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold" 
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold" 
               onClick={handleSave}
               disabled={saving || !name.trim() || !bio.trim()}
             >

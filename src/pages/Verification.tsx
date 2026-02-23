@@ -149,7 +149,7 @@ export default function Verification() {
   if (checkingStatus) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
       </div>
     );
   }
@@ -162,7 +162,7 @@ export default function Verification() {
           className="space-y-6"
         >
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent mb-2">
               Verification
             </h1>
             <p className="text-lg text-neutral-400">
@@ -172,11 +172,11 @@ export default function Verification() {
 
           {/* Email Verification */}
           <Card className="bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${emailVerified ? 'bg-green-900/50' : 'bg-indigo-900/50'}`}>
-                    <Mail className={`w-5 h-5 ${emailVerified ? 'text-green-400' : 'text-indigo-400'}`} />
+                  <div className={`p-2 rounded-lg ${emailVerified ? 'bg-green-900/50' : 'bg-violet-900/50'}`}>
+                    <Mail className={`w-5 h-5 ${emailVerified ? 'text-green-400' : 'text-violet-400'}`} />
                   </div>
                   <div>
                     <CardTitle>Email Verification</CardTitle>
@@ -238,7 +238,7 @@ export default function Verification() {
                       Didn't receive the email? Check your spam folder or{' '}
                       <button
                         onClick={handleSendEmailVerification}
-                        className="text-indigo-400 hover:underline"
+                        className="text-violet-400 hover:underline"
                         disabled={isLoading}
                       >
                         resend
@@ -252,11 +252,11 @@ export default function Verification() {
 
           {/* Selfie Verification (Optional) */}
           <Card className="bg-neutral-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-b border-neutral-700">
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${selfieVerified ? 'bg-green-900/50' : 'bg-purple-900/50'}`}>
-                    <Camera className={`w-5 h-5 ${selfieVerified ? 'text-green-400' : 'text-purple-400'}`} />
+                  <div className={`p-2 rounded-lg ${selfieVerified ? 'bg-green-900/50' : 'bg-violet-900/50'}`}>
+                    <Camera className={`w-5 h-5 ${selfieVerified ? 'text-green-400' : 'text-violet-400'}`} />
                   </div>
                   <div>
                     <CardTitle>Selfie Verification (Optional)</CardTitle>
@@ -317,16 +317,16 @@ export default function Verification() {
           </Card>
 
           {/* Info Card */}
-          <Card className="bg-gradient-to-br from-indigo-900/30 via-purple-900/30 to-pink-900/30 border-2 border-indigo-700/50 shadow-lg">
+          <Card className="bg-gradient-to-br from-violet-900/30 via-violet-900/30 to-pink-900/30 border-2 border-violet-700/50 shadow-lg">
             <CardContent className="pt-6">
-              <div className="text-sm text-indigo-200">
+              <div className="text-sm text-violet-200">
                 <p className="font-semibold mb-2">Why verify?</p>
-                <ul className="list-disc list-inside space-y-1 text-indigo-300">
+                <ul className="list-disc list-inside space-y-1 text-violet-300">
                   <li>Improved account security</li>
                   <li>Better matching experience</li>
                   <li>Helps maintain a safe community</li>
                 </ul>
-                <p className="mt-3 text-xs text-indigo-400">
+                <p className="mt-3 text-xs text-violet-400">
                   Note: Verification badges are not displayed publicly. This is for safety purposes only.
                 </p>
               </div>
@@ -343,7 +343,7 @@ export default function Verification() {
             </Button>
             <Button 
               onClick={() => navigate('/profile')} 
-              className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
+              className="flex-1 bg-gradient-to-r from-violet-500 to-violet-500 hover:from-violet-600 hover:to-violet-600 text-white"
             >
               Go to Profile
             </Button>

@@ -51,13 +51,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           transition={{ delay: 0.1, duration: 0.3, type: 'spring', stiffness: 200 }}
           className={cn(
             "mx-auto rounded-full flex items-center justify-center mb-5",
-            "bg-gradient-to-br from-indigo-900/60 to-purple-900/40",
-            "ring-2 ring-indigo-500/20 shadow-lg shadow-indigo-500/10",
+            "bg-gradient-to-br from-violet-900/60 to-violet-900/40",
+            "ring-2 ring-violet-500/20 shadow-lg shadow-violet-500/10",
             isCompact ? 'w-14 h-14' : 'w-20 h-20'
           )}
         >
           <Icon className={cn(
-            "text-indigo-400",
+            "text-violet-400",
             isCompact ? 'w-7 h-7' : 'w-10 h-10'
           )} />
         </motion.div>
@@ -100,10 +100,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             <Button
               onClick={action.onClick}
               className={cn(
-                "bg-gradient-to-r from-indigo-600 to-purple-600",
-                "hover:from-indigo-500 hover:to-purple-500",
-                "text-white font-semibold shadow-lg shadow-indigo-500/25",
-                "transition-all duration-200 hover:shadow-indigo-500/40 hover:scale-[1.02]",
+                "bg-gradient-to-r from-violet-600 to-violet-600",
+                "hover:from-violet-500 hover:to-violet-500",
+                "text-white font-semibold shadow-lg shadow-violet-500/25",
+                "transition-all duration-200 hover:shadow-violet-500/40 hover:scale-[1.02]",
                 "active:scale-[0.98]",
                 isCompact ? 'px-4 py-2 text-sm' : 'px-6 py-2.5'
               )}

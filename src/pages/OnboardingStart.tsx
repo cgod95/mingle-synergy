@@ -12,7 +12,7 @@ export default function OnboardingStart() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="text-3xl font-bold text-center bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent"
+          className="text-3xl font-bold text-center bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent"
         >
           Mingle
         </motion.h1>
@@ -35,7 +35,7 @@ export default function OnboardingStart() {
       <div className="p-6 sticky bottom-0 bg-neutral-900 border-t border-neutral-800" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <button
           onClick={() => navigate('/signup')}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition min-h-[48px]"
+          className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 rounded-xl transition min-h-[48px]"
         >
           Get Started
         </button>

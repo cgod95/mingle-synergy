@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 
 const itemBase = "flex-1 inline-flex items-center justify-center gap-2 py-2 text-sm font-medium";
-const active = "text-indigo-600";
+const active = "text-violet-600";
 const idle = "text-neutral-500 hover:text-neutral-300";
 
 export default function BottomTab() {
