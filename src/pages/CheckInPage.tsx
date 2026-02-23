@@ -283,12 +283,12 @@ export default function CheckInPage() {
                   className="w-full text-left rounded-xl overflow-hidden bg-neutral-800 active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-violet-500"
                   aria-label={isCheckedHere ? `View ${v.name}` : `Check in to ${v.name}`}
                 >
-                  <div className="relative h-32 overflow-hidden">
+                  <div className="relative h-32 overflow-hidden bg-neutral-800">
                     {v.image ? (
                       <img
                         src={v.image}
                         alt={v.name}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                         loading="lazy"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop";

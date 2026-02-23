@@ -12,8 +12,8 @@ import { logError } from '@/utils/errorHandler';
 const KEY = "mingle:checkedVenueId";
 const TS_KEY = "mingle:checkedVenueTs";
 
-/** How long a check-in lasts (12 hours) */
-export const CHECKIN_DURATION_MS = 12 * 60 * 60 * 1000;
+/** How long a check-in lasts (24 hours) */
+export const CHECKIN_DURATION_MS = 24 * 60 * 60 * 1000;
 /** Show "expiring soon" warning when less than 30 min remain */
 export const CHECKIN_WARNING_MS = 30 * 60 * 1000;
 
@@ -60,7 +60,19 @@ export function getCurrentZone(venueId: string): string | null {
 
 export function getCheckedVenueId(): string | null {
   try {
-    return localStorage.getItem(KEY);
+    const venueId = localStorage.getItem(KEY);
+    if (!venueId) return null;
+
+    // Auto-expire: if the check-in is older than CHECKIN_DURATION_MS, clear it
+    const ts = Number(localStorage.getItem(TS_KEY) || '0');
+    if (ts && Date.now() - ts >= CHECKIN_DURATION_MS) {
+      localStorage.removeItem(KEY);
+      localStorage.removeItem(TS_KEY);
+      localStorage.removeItem("mingle:checkin");
+      return null;
+    }
+
+    return venueId;
   } catch {
     return null;
   }

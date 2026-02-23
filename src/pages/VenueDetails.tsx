@@ -95,10 +95,6 @@ export default function VenueDetails() {
     setCheckedIn(getCheckedVenueId());
   }, [venue?.id, currentUser?.uid]);
 
-  // #region agent log
-  console.log('[DBG59ec69] VenueDetails hooks-complete', { loadingVenue, hasVenue: !!venue, hasError: !!venueError, peopleLen: people.length, locFlag: localStorage.getItem('locationPermissionGranted') });
-  // #endregion
-
   // Watch realtimeMatches for new match after liking — open celebration modal
   useEffect(() => {
     if (!pendingLikeRef.current) return;
@@ -219,11 +215,11 @@ export default function VenueDetails() {
   return (
     <div className="max-w-lg mx-auto">
       {/* Venue Header — compact */}
-      <div className="relative h-36 overflow-hidden">
+      <div className="relative h-36 overflow-hidden bg-neutral-800">
         <img
           src={venue.image || "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1200&auto=format&fit=crop"}
           alt={venue.name}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
           loading="lazy"
           onError={(e) => {
             (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1200&auto=format&fit=crop";

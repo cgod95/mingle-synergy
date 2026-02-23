@@ -6,7 +6,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import config from '@/config';
-import { checkInAt, clearCheckIn } from '@/lib/checkinStore';
+import { checkInAt, clearCheckIn, CHECKIN_DURATION_MS } from '@/lib/checkinStore';
 import { logError } from '@/utils/errorHandler';
 
 export function useSyncUserState() {
@@ -38,8 +38,14 @@ export function useSyncUserState() {
         const profile = await userService.getUserProfile(currentUser.uid);
         
         if (profile) {
-          // Sync check-in status
-          if (profile.isCheckedIn && profile.currentVenue) {
+          // Sync check-in status (auto-expire after 24h)
+          const checkedInAt = (profile as any).checkedInAt;
+          const checkedInMs = typeof checkedInAt === 'number' ? checkedInAt
+            : checkedInAt?.toMillis ? checkedInAt.toMillis()
+            : checkedInAt?.toDate ? checkedInAt.toDate().getTime() : 0;
+          const isExpired = checkedInMs > 0 && Date.now() - checkedInMs > CHECKIN_DURATION_MS;
+
+          if (profile.isCheckedIn && profile.currentVenue && !isExpired) {
             checkInAt(profile.currentVenue, currentUser.uid);
           } else {
             clearCheckIn(currentUser.uid);

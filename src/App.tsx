@@ -129,6 +129,9 @@ export default function App() {
       return;
     }
 
+    // Run one-time admin cleanup (expire stale check-ins, update venue images)
+    import('@/lib/adminCleanup').then(m => m.runAdminCleanup()).catch(() => {});
+
     // Simulate app initialization (like Tinder's loader) - only in production
     const timer = setTimeout(() => {
       setIsInitializing(false);
