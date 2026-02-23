@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, Edit, Camera } from 'lucide-react';
 import { logError } from '@/utils/errorHandler';
+import { UserProfileSkeleton } from '@/components/ui/LoadingStates';
 
 export default function Profile() {
   const { currentUser, signOut } = useAuth();

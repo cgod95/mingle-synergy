@@ -52,89 +52,30 @@ if (isNativePlatform) {
 // Additional safeguard: Ensure React DevTools is disabled and check for multiple React instances
 if (typeof window !== 'undefined') {
   try {
-    // @ts-expect-error - React DevTools global hook
-    const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+    const hook = (window as Record<string, unknown>).__REACT_DEVTOOLS_GLOBAL_HOOK__ as Record<string, unknown> | undefined;
     if (hook) {
-      // Check if DevTools tried to inject (renderers size > 0 means it did)
       try {
-        // @ts-expect-error
-        const rendererCount = hook.renderers?.size || 0;
+        const renderers = hook.renderers as Map<unknown, unknown> | undefined;
+        const rendererCount = renderers?.size || 0;
         if (rendererCount > 0) {
-          // DevTools detected React - clear renderers to prevent error #300
           try {
-            // @ts-expect-error
-            hook.renderers.clear();
-          } catch (e) {
-            // Renderers might be frozen, try to disable the hook entirely
-            try {
-              // @ts-expect-error
-              hook.isDisabled = true;
-            } catch (e2) {}
+            renderers?.clear();
+          } catch {
+            try { hook.isDisabled = true; } catch {}
           }
         }
-      } catch (e) {
-        // Hook might not have renderers property, that's okay
-      }
-      
-      // Ensure critical methods are no-ops
+      } catch {}
+
       try {
-        // @ts-expect-error
         if (typeof hook.inject === 'function') {
-          // @ts-expect-error
           hook.inject = function() { return false; };
         }
-        // @ts-expect-error
         if (typeof hook.registerRenderer === 'function') {
-          // @ts-expect-error
           hook.registerRenderer = function() { return -1; };
         }
-      } catch (e) {
-        // Methods might be frozen, that's okay - Proxy in index.html handles it
-      }
+      } catch {}
     }
-    
-    // Check for multiple React instances (React error #300 detection)
-    // Only log warnings in development - suppress in production
-    try {
-      // @ts-expect-error
-      const rendererCount = hook?.renderers?.size || 0;
-      if (rendererCount > 1) {
-        if (!import.meta.env.PROD) {
-          console.warn('Multiple React instances detected! This may cause React error #300.');
-        }
-        // Try to clear extra renderers to prevent error #300
-        try {
-          // @ts-expect-error
-          const renderers = Array.from(hook.renderers.keys());
-          // @ts-expect-error
-          hook.renderers.clear();
-          if (!import.meta.env.PROD) {
-            console.warn('Cleared renderers to prevent error #300:', renderers);
-          }
-        } catch (e) {
-          // Silently ignore if we can't clear (hook is frozen)
-        }
-      }
-    } catch (e) {
-      // Silently ignore if we can't check
-    }
-    
-    // Prevent registerRenderer from being called (blocks DevTools registration)
-    try {
-      // @ts-expect-error
-      if (typeof hook.registerRenderer === 'function') {
-        // @ts-expect-error
-        const originalRegisterRenderer = hook.registerRenderer;
-        // @ts-expect-error
-        hook.registerRenderer = function() {
-          // Prevent DevTools from registering renderers
-          return -1; // Return invalid renderer ID
-        };
-      }
-    } catch (e) {
-      // Silently ignore if we can't override
-    }
-  } catch (e) {
+  } catch {
     // Silently fail if hook is not accessible
   }
 }
@@ -229,7 +170,7 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
     if (import.meta.env.PROD && errorMessage.includes('Minified React error #300')) {
       event.preventDefault();
       event.stopPropagation();
-      return false;
+      return;
     }
     
     // Suppress React Error #300 if it's from DevTools injection
@@ -239,20 +180,19 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
     ) {
       event.preventDefault();
       event.stopPropagation();
-      return false;
+      return;
     }
     
     // Suppress "object is not extensible" errors from DevTools
-    // BUT: Don't suppress "Cannot access before initialization" - that's a real error
     if (
       (errorMessage.includes('object is not extensible') || errorMessage.includes('Cannot add property reactDevtoolsAgent')) &&
       (errorSource.includes('react_devtools') || errorSource.includes('installHook') || errorStack.includes('react_devtools')) &&
-      !errorMessage.includes('Cannot access') && // Don't suppress initialization errors
-      !errorStack.includes('Cannot access') // Don't suppress initialization errors
+      !errorMessage.includes('Cannot access') &&
+      !errorStack.includes('Cannot access')
     ) {
       event.preventDefault();
       event.stopPropagation();
-      return false;
+      return;
     }
   }, true); // Use capture phase to catch errors early
   
@@ -294,11 +234,11 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
       errorStack.includes('react_devtools') ||
       errorStack.includes('installHook') ||
       (errorMessage.includes('Minified React error #300') && (errorStack.includes('react_devtools') || errorStack.includes('installHook')))) &&
-      !errorMessage.includes('Cannot access') && // Don't suppress initialization errors
-      !errorStack.includes('Cannot access') // Don't suppress initialization errors
+      !errorMessage.includes('Cannot access') &&
+      !errorStack.includes('Cannot access')
     ) {
       event.preventDefault();
-      return false;
+      return;
     }
   });
 }

@@ -58,7 +58,6 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
     setOnboardingStepComplete('email');
     setOnboardingStepComplete('profile');
     setOnboardingStepComplete('photo');
-    setOnboardingStepComplete('preferences');
     
     if (onComplete) {
       onComplete();

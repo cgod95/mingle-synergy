@@ -5,15 +5,15 @@ export type Match = {
   venueId: string;
   venueName?: string;
   timestamp: number;
-  // NOTE: Messages are stored in the separate 'messages' collection, not embedded here
+  messages: Array<{ senderId: string; text: string; timestamp: number }>;
   isRematch?: boolean;
   matchExpired?: boolean;
   expiredAt?: number;
   weMetConfirmed?: boolean;
   weMetConfirmedBy?: string;
-  weMetConfirmedAt?: number; // Firestore timestamp as number
-  confirmations?: Record<string, boolean>; // New confirmation structure
-  confirmedAt?: Record<string, string>; // Timestamps for each confirmation
+  weMetConfirmedAt?: number;
+  confirmations?: Record<string, boolean>;
+  confirmedAt?: Record<string, string>;
 };
 
 export type FirestoreMatch = Match;

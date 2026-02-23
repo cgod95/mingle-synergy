@@ -17,7 +17,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { getDB, isFirebaseAvailable } from '@/firebase/safeFirebase';
-import { Match, MatchService } from '@/types/services';
+import { MatchService } from '@/types/services';
 import { localStorageUtils } from '@/utils/localStorageUtils';
 import { FirebaseServiceBase } from './FirebaseServiceBase';
 import services from '..';

@@ -50,7 +50,7 @@ export function useSyncUserState() {
             localStorage.setItem('mingle:userProfile', JSON.stringify({
               id: profile.id,
               name: profile.name,
-              photoURL: profile.photoURL || profile.photos?.[0],
+              photoURL: profile.photos?.[0],
               isCheckedIn: profile.isCheckedIn,
               currentVenue: profile.currentVenue,
               lastSynced: Date.now()

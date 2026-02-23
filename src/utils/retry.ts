@@ -74,7 +74,7 @@ export function isRetryableError(error: unknown): boolean {
 /**
  * Calculate delay with exponential backoff
  */
-function calculateDelay(attempt: number, options: Required<RetryOptions>): number {
+function calculateDelay(attempt: number, options: Pick<Required<RetryOptions>, 'initialDelay' | 'backoffMultiplier' | 'maxDelay'>): number {
   const delay = options.initialDelay * Math.pow(options.backoffMultiplier, attempt);
   return Math.min(delay, options.maxDelay);
 }
