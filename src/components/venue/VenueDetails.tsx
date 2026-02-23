@@ -67,10 +67,19 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
         const usersSnapshot = await getDocs(usersQuery);
         setUserCount(usersSnapshot.size);
 
-        return usersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        return usersSnapshot.docs.map(doc => {
+          const raw = doc.data();
+          return {
+            id: doc.id,
+            displayName: raw.displayName ?? raw.name,
+            name: raw.name,
+            photos: Array.isArray(raw.photos) ? raw.photos : undefined,
+            photo: typeof raw.photo === 'string' ? raw.photo : undefined,
+            age: typeof raw.age === 'number' ? raw.age : undefined,
+            bio: typeof raw.bio === 'string' ? raw.bio : undefined,
+            isVisible: raw.isVisible,
+          };
+        });
       } catch (error) {
         console.error('Error fetching users:', error);
         return [];

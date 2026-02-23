@@ -85,13 +85,12 @@ function AppRoutes() {
         <Route path="/photo-upload" element={<ProtectedRoute><ErrorBoundary stepName="photo"><PhotoUpload /></ErrorBoundary></ProtectedRoute>} />
         {/* App shell */}
         <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
-          <Route path="/checkin" element={<CheckInPage />} />
-          <Route path="/venues/:id" element={<VenueDetails />} />
-          <Route path="/matches" element={<Matches />} />
-          {/* ChatIndex removed - unified into Matches page */}
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/edit" element={<ProfileEdit />} />
-          <Route path="/profile/:userId" element={<UserProfileView />} />
+          <Route path="/checkin" element={<ErrorBoundary><CheckInPage /></ErrorBoundary>} />
+          <Route path="/venues/:id" element={<ErrorBoundary><VenueDetails /></ErrorBoundary>} />
+          <Route path="/matches" element={<ErrorBoundary><Matches /></ErrorBoundary>} />
+          <Route path="/profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+          <Route path="/profile/edit" element={<ErrorBoundary><ProfileEdit /></ErrorBoundary>} />
+          <Route path="/profile/:userId" element={<ErrorBoundary><UserProfileView /></ErrorBoundary>} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/verification" element={<Verification />} />
@@ -104,12 +103,11 @@ function AppRoutes() {
           <Route path="/debug" element={<Debug />} />
         </Route>
         {/* Chat room - full screen, bypasses AppShell */}
-        {/* ChatRoomGuard must be inside Route to have Router context */}
         <Route 
           path="/chat/:id" 
           element={
             <ProtectedRoute>
-              <ChatRoomGuard />
+              <ErrorBoundary><ChatRoomGuard /></ErrorBoundary>
             </ProtectedRoute>
           } 
         />
@@ -155,9 +153,8 @@ export default function App() {
               }}
             >
               <AppRoutes />
+              <Toaster />
             </BrowserRouter>
-            <Toaster />
-            {/* Global network error banner - shows when offline or network errors occur */}
             <NetworkErrorBanner />
           </OnboardingProvider>
         </UserProvider>

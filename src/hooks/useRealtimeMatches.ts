@@ -62,11 +62,19 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
       if (got1 && got2) setLoading(false);
     }
 
+    function toEpochMs(val: unknown): number {
+      if (typeof val === 'number') return val;
+      if (val && typeof (val as any).toMillis === 'function') return (val as any).toMillis();
+      if (val && typeof (val as any).toDate === 'function') return (val as any).toDate().getTime();
+      return 0;
+    }
+
     async function processSnapshot(snapshot: import("firebase/firestore").QuerySnapshot) {
       const results: FirestoreMatch[] = [];
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data() as FirestoreMatch;
-        const matchAge = Date.now() - data.timestamp;
+        const ts = toEpochMs(data.timestamp);
+        const matchAge = Date.now() - ts;
         if (matchAge > MATCH_EXPIRY_MS) {
           try {
             await deleteDoc(doc(db!, "matches", docSnap.id));
@@ -76,7 +84,7 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
             // best-effort cleanup
           }
         } else {
-          results.push({ ...data, id: docSnap.id });
+          results.push({ ...data, id: docSnap.id, timestamp: ts });
         }
       }
       return results;

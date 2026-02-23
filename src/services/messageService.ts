@@ -18,6 +18,13 @@ import { UserProfile } from "@/types/services";
 import { FirestoreMatch } from "@/types/match";
 import { FEATURE_FLAGS } from "@/lib/flags";
 import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
+
+function toMs(v: unknown): number {
+  if (typeof v === 'number') return v;
+  if (v && typeof (v as any).toMillis === 'function') return (v as any).toMillis();
+  if (v && typeof (v as any).toDate === 'function') return (v as any).toDate().getTime();
+  return 0;
+}
 import { logError } from '@/utils/errorHandler';
 
 export interface Message {
@@ -176,7 +183,7 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
   if (!matchDoc.exists()) throw new Error("Match does not exist");
 
   const matchData = matchDoc.data();
-  const createdAt = typeof matchData.timestamp === 'number' ? matchData.timestamp : 0;
+  const createdAt = toMs(matchData.timestamp);
   const now = Date.now();
 
   if (now - createdAt > MATCH_EXPIRY_MS) {
@@ -289,6 +296,8 @@ export const subscribeToMessageLimit = (
     const canSend = messageCount < messageLimit;
     const remaining = Math.max(0, messageLimit - messageCount);
     callback(canSend, remaining);
+  }, (error) => {
+    console.warn('Error in message limit subscription:', error);
   });
 
   return unsubscribe;
@@ -341,10 +350,9 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
       ...snapshot2.docs.map(doc => ({ id: doc.id, ...doc.data() } as FirestoreMatch))
     ];
 
-    // Filter out expired matches using single source of truth
     const now = Date.now();
     const activeMatches = allMatches.filter(match => {
-      const matchTimestamp = match.timestamp || 0;
+      const matchTimestamp = toMs(match.timestamp);
       return now - matchTimestamp < MATCH_EXPIRY_MS;
     });
 
@@ -372,13 +380,13 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
       
       const messagesSnapshot = await getDocs(messagesQuery);
       let lastMessage = "Start a conversation!";
-      let lastMessageTime = new Date(match.timestamp || Date.now());
+      let lastMessageTime = new Date(toMs(match.timestamp) || Date.now());
       
       if (!messagesSnapshot.empty) {
         const lastMessageDoc = messagesSnapshot.docs[0];
         const lastMessageData = lastMessageDoc.data();
         lastMessage = lastMessageData.text || "Start a conversation!";
-        lastMessageTime = lastMessageData.createdAt?.toDate?.() ?? new Date(match.timestamp || Date.now());
+        lastMessageTime = lastMessageData.createdAt?.toDate?.() ?? new Date(toMs(match.timestamp) || Date.now());
       }
 
       // Get unread count (simplified - you might want to track this in the match document)
@@ -436,6 +444,8 @@ export const subscribeToMessages = (
       readBy: doc.data().readBy || [],
     }));
     callback(messages);
+  }, (error) => {
+    console.warn('Error in messages subscription:', error);
   });
 };
 

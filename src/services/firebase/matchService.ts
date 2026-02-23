@@ -27,6 +27,13 @@ import { MATCH_EXPIRY_MS } from '@/lib/matchesCompat';
 import { logError, ErrorSeverity } from '@/utils/errorHandler';
 import { FEATURE_FLAGS } from '@/lib/flags';
 
+function toEpochMs(val: unknown): number {
+  if (typeof val === 'number') return val;
+  if (val && typeof (val as any).toMillis === 'function') return (val as any).toMillis();
+  if (val && typeof (val as any).toDate === 'function') return (val as any).toDate().getTime();
+  return 0;
+}
+
 // Use single source of truth for match expiry (24 hours)
 const MATCH_EXPIRY_TIME = MATCH_EXPIRY_MS;
 
@@ -105,7 +112,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
         );
 
         if (isMatch) {
-          const isExpired = now - match.timestamp > MATCH_EXPIRY_TIME;
+          const isExpired = now - toEpochMs(match.timestamp) > MATCH_EXPIRY_TIME;
 
           if (isExpired) {
             await deleteDoc(doc(firestore, 'matches', docSnap.id));
@@ -189,7 +196,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       
       // Verify match is expired (per spec: reconnect only for expired matches)
       const now = Date.now();
-      const matchTimestamp = matchData.timestamp || 0;
+      const matchTimestamp = toEpochMs(matchData.timestamp);
       if (now - matchTimestamp < MATCH_EXPIRY_TIME) {
         throw new Error('Match is still active. Reconnect is only available for expired matches.');
       }
@@ -282,7 +289,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     const match = matchSnap.data() as FirestoreMatch;
     const now = Date.now();
 
-    const isExpired = now - match.timestamp > MATCH_EXPIRY_TIME;
+    const isExpired = now - toEpochMs(match.timestamp) > MATCH_EXPIRY_TIME;
     if (isExpired) {
       throw new Error('Match has expired');
     }
@@ -536,8 +543,7 @@ export const sendMessage = async (
 
   const matchData = matchSnap.data() as FirestoreMatch;
 
-  // Match expiry logic
-  const matchCreatedAt = matchData.timestamp;
+  const matchCreatedAt = toEpochMs(matchData.timestamp);
   const now = Date.now();
   const expiresAt = matchCreatedAt + MATCH_EXPIRY_TIME;
   if (now > expiresAt) throw new Error("Match has expired");
@@ -564,9 +570,10 @@ export const cleanupExpiredMatches = async (): Promise<void> => {
   const matchRef = collection(firestore, "matches");
   const snapshot = await getDocs(matchRef);
   const now = Date.now();
-  const expired = snapshot.docs.filter(doc => {
-    const data = doc.data();
-    return data.timestamp && (now - data.timestamp) > MATCH_EXPIRY_TIME;
+  const expired = snapshot.docs.filter(d => {
+    const data = d.data();
+    const ts = toEpochMs(data.timestamp);
+    return ts > 0 && (now - ts) > MATCH_EXPIRY_TIME;
   });
 
   await Promise.all(expired.map(doc => deleteDoc(doc.ref)));
@@ -574,11 +581,9 @@ export const cleanupExpiredMatches = async (): Promise<void> => {
 
 // New utility functions for match expiration
 export const isMatchExpired = (match: FirestoreMatch): boolean => {
-  if (!match.timestamp) return true;
-  const now = Date.now();
-  const matchTime = match.timestamp;
-  const diff = now - matchTime;
-  return diff > MATCH_EXPIRY_TIME;
+  const matchTime = toEpochMs(match.timestamp);
+  if (!matchTime) return true;
+  return (Date.now() - matchTime) > MATCH_EXPIRY_TIME;
 };
 
 export const deleteExpiredMatches = async (userId: string) => {

@@ -55,21 +55,29 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
     const q2 = query(matchesRef, where('userId2', '==', userId));
     const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
+    function toEpochMs(val: unknown): number {
+      if (typeof val === 'number') return val;
+      if (val && typeof (val as any).toMillis === 'function') return (val as any).toMillis();
+      if (val && typeof (val as any).toDate === 'function') return (val as any).toDate().getTime();
+      return 0;
+    }
+
     const rawMatches = [
       ...snap1.docs.map(d => ({ id: d.id, ...d.data() })),
       ...snap2.docs.map(d => ({ id: d.id, ...d.data() })),
-    ] as Array<{ id: string; userId1: string; userId2: string; venueId: string; venueName?: string; timestamp: number; matchExpired?: boolean }>;
+    ] as Array<{ id: string; userId1: string; userId2: string; venueId: string; venueName?: string; timestamp: unknown; matchExpired?: boolean }>;
 
     const enriched: Match[] = await Promise.all(
       rawMatches.map(async (raw) => {
         const partnerId = raw.userId1 === userId ? raw.userId2 : raw.userId1;
         const profile = await fetchPartnerProfile(partnerId);
+        const ts = toEpochMs(raw.timestamp);
         return {
           id: raw.id,
           userId,
           partnerId,
-          createdAt: raw.timestamp,
-          expiresAt: raw.timestamp + MATCH_EXPIRY_MS,
+          createdAt: ts,
+          expiresAt: ts + MATCH_EXPIRY_MS,
           displayName: profile.displayName,
           avatarUrl: profile.avatarUrl,
           venueName: raw.venueName,

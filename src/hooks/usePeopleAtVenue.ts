@@ -48,10 +48,19 @@ export function usePeopleAtVenue(venueId: string | undefined): { people: VenueUs
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const users: VenueUser[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as VenueUser[];
+        const users: VenueUser[] = snapshot.docs.map((d) => {
+          const raw = d.data();
+          return {
+            id: d.id,
+            displayName: raw.displayName ?? raw.name,
+            name: raw.name,
+            photos: Array.isArray(raw.photos) ? raw.photos : undefined,
+            photo: typeof raw.photo === 'string' ? raw.photo : undefined,
+            age: typeof raw.age === 'number' ? raw.age : undefined,
+            bio: typeof raw.bio === 'string' ? raw.bio : undefined,
+            isVisible: raw.isVisible,
+          };
+        });
         setPeople(users);
         setError(null);
         setLoading(false);

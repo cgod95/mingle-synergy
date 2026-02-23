@@ -16,6 +16,9 @@ export function useChatNotifications(currentUserId: string) {
       (docSnap) => {
         const data = docSnap.data() as NotificationData | undefined;
         if (data) setNotifications(data.unreadMessages || {});
+      },
+      (error) => {
+        console.warn('Error in chat notifications subscription:', error);
       }
     );
     return () => unsub();

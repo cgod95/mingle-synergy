@@ -74,7 +74,7 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
                   )}
                   <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
-                    <span>{lastMessage.timestamp}</span>
+                    <span>{typeof lastMessage.timestamp === 'string' ? lastMessage.timestamp : ''}</span>
                   </div>
                 </div>
               </div>
