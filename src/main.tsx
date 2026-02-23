@@ -66,163 +66,21 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
 import { initErrorTracking } from "./utils/errorHandler";
 initErrorTracking();
 
-// Global error handler to catch React Error #300 and DevTools errors
-// PRODUCTION ONLY: Suppress these errors as they're harmless when DevTools is disabled
+// Production: only suppress DevTools-specific noise that doesn't affect the app
 if (typeof window !== 'undefined' && import.meta.env.PROD) {
-  // Suppress React DevTools errors - they're harmless but noisy in production
-  const originalError = console.error;
+  const originalConsoleError = console.error;
   console.error = function(...args: unknown[]) {
-    const message = String(args[0] || '');
-    const stack = String(args[1]?.toString() || '');
-    const errorObj = args[0] as Error;
-    const errorStack = errorObj?.stack || '';
-    
-    // NEVER suppress onboarding-related errors
-    const isOnboardingError = 
-      message.includes('onboarding') ||
-      message.includes('CreateProfile') ||
-      message.includes('PhotoUpload') ||
-      message.includes('Preferences') ||
-      message.includes('permission-denied') ||
-      message.includes('Permission denied') ||
-      stack.includes('CreateProfile') ||
-      stack.includes('PhotoUpload') ||
-      stack.includes('Preferences') ||
-      errorStack.includes('CreateProfile') ||
-      errorStack.includes('PhotoUpload') ||
-      errorStack.includes('Preferences');
-    
-    if (isOnboardingError) {
-      // Always log onboarding errors - they're critical
-      originalError.apply(console, args);
-      return;
-    }
-    
-    // Suppress ALL React Error #300 messages in production (harmless when DevTools disabled)
-    if (message.includes('Minified React error #300') || message.includes('React Error #300')) {
-      return; // Completely suppress in production
-    }
-    
-    // Suppress DevTools-related errors
+    const msg = String(args[0] || '');
+    // Only suppress DevTools injection noise - never suppress React rendering errors
     if (
-      message.includes('React DevTools failed to get Console Patching') ||
-      message.includes('reactDevtoolsAgent') ||
-      message.includes('object is not extensible') ||
-      message.includes('Cannot add property reactDevtoolsAgent') ||
-      stack.includes('react_devtools') ||
-      errorStack.includes('react_devtools') ||
-      stack.includes('installHook') ||
-      errorStack.includes('installHook') ||
-      stack.includes('react-vendor') ||
-      errorStack.includes('react-vendor')
+      msg.includes('React DevTools failed to get Console Patching') ||
+      msg.includes('Cannot add property reactDevtoolsAgent') ||
+      (msg.includes('object is not extensible') && msg.includes('reactDevtools'))
     ) {
-      // Silently ignore DevTools errors - they don't affect functionality
       return;
     }
-    // Log other errors normally
-    originalError.apply(console, args);
+    originalConsoleError.apply(console, args);
   };
-
-  // Catch unhandled errors and prevent React Error #300 from crashing the app (PRODUCTION ONLY)
-  window.addEventListener('error', (event) => {
-    const errorMessage = event.message || '';
-    const errorSource = event.filename || '';
-    const errorStack = event.error?.stack || '';
-    
-    // NEVER suppress onboarding-related errors
-    const isOnboardingError = 
-      errorMessage.includes('onboarding') ||
-      errorMessage.includes('CreateProfile') ||
-      errorMessage.includes('PhotoUpload') ||
-      errorMessage.includes('Preferences') ||
-      errorMessage.includes('permission-denied') ||
-      errorSource.includes('CreateProfile') ||
-      errorSource.includes('PhotoUpload') ||
-      errorSource.includes('Preferences') ||
-      errorStack.includes('CreateProfile') ||
-      errorStack.includes('PhotoUpload') ||
-      errorStack.includes('Preferences');
-    
-    if (isOnboardingError) {
-      // Always allow onboarding errors to propagate
-      return;
-    }
-    
-    // In production, suppress ALL React Error #300 messages (harmless when DevTools disabled)
-    if (import.meta.env.PROD && errorMessage.includes('Minified React error #300')) {
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-    
-    // Suppress React Error #300 if it's from DevTools injection
-    if (
-      errorMessage.includes('Minified React error #300') &&
-      (errorSource.includes('react_devtools') || errorSource.includes('installHook') || errorStack.includes('react_devtools'))
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-    
-    // Suppress "object is not extensible" errors from DevTools
-    if (
-      (errorMessage.includes('object is not extensible') || errorMessage.includes('Cannot add property reactDevtoolsAgent')) &&
-      (errorSource.includes('react_devtools') || errorSource.includes('installHook') || errorStack.includes('react_devtools')) &&
-      !errorMessage.includes('Cannot access') &&
-      !errorStack.includes('Cannot access')
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-  }, true); // Use capture phase to catch errors early
-  
-  // Catch unhandled promise rejections (PRODUCTION ONLY)
-  window.addEventListener('unhandledrejection', (event) => {
-    const reason = event.reason;
-    const errorMessage = reason?.message || String(reason || '');
-    const errorStack = reason?.stack || '';
-    
-    // NEVER suppress onboarding-related errors
-    const isOnboardingError = 
-      errorMessage.includes('onboarding') ||
-      errorMessage.includes('CreateProfile') ||
-      errorMessage.includes('PhotoUpload') ||
-      errorMessage.includes('Preferences') ||
-      errorMessage.includes('permission-denied') ||
-      errorStack.includes('CreateProfile') ||
-      errorStack.includes('PhotoUpload') ||
-      errorStack.includes('Preferences');
-    
-    if (isOnboardingError) {
-      // Always allow onboarding errors to propagate
-      return;
-    }
-    
-    // In production, suppress ALL React Error #300 rejections
-    if (import.meta.env.PROD && errorMessage.includes('Minified React error #300')) {
-      event.preventDefault();
-      return;
-    }
-    
-    // Suppress DevTools-related promise rejections
-    // BUT: Don't suppress "Cannot access before initialization" - that's a real error
-    if (
-      (errorMessage.includes('reactDevtoolsAgent') ||
-      errorMessage.includes('React DevTools') ||
-      errorMessage.includes('object is not extensible') ||
-      errorMessage.includes('Cannot add property reactDevtoolsAgent') ||
-      errorStack.includes('react_devtools') ||
-      errorStack.includes('installHook') ||
-      (errorMessage.includes('Minified React error #300') && (errorStack.includes('react_devtools') || errorStack.includes('installHook')))) &&
-      !errorMessage.includes('Cannot access') &&
-      !errorStack.includes('Cannot access')
-    ) {
-      event.preventDefault();
-      return;
-    }
-  });
 }
 
 // Demo data seeding removed for closed beta - using real Firebase data

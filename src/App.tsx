@@ -119,17 +119,6 @@ function AppRoutes() {
 }
 
 export default function App() {
-  // #region agent log
-  useEffect(() => {
-    const handler = (event: ErrorEvent) => {
-      if (event.message?.includes('#310') || event.message?.includes('hooks')) {
-        console.error('[DBG310] GLOBAL ERROR:', event.message, 'file:', event.filename, 'line:', event.lineno, 'stack:', event.error?.stack?.substring(0,800));
-      }
-    };
-    window.addEventListener('error', handler);
-    return () => window.removeEventListener('error', handler);
-  }, []);
-  // #endregion
   // Skip initialization delay in demo mode to prevent flickering
   const [isInitializing, setIsInitializing] = useState(!config.DEMO_MODE);
 

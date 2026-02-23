@@ -41,10 +41,6 @@ function Toast({ text }: { text: string }) {
 }
 
 export default function VenueDetails() {
-  // #region agent log
-  const _renderCount = useRef(0); _renderCount.current++;
-  console.error('[DBG310] VenueDetails render #' + _renderCount.current);
-  // #endregion
   const { id } = useParams<{ id: string }>();
   const [venue, setVenue] = useState<any>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
@@ -88,9 +84,6 @@ export default function VenueDetails() {
   const navigate = useNavigate();
   const { matches: realtimeMatches } = useRealtimeMatches();
   const prefersReducedMotion = useReducedMotion();
-  // #region agent log
-  console.error('[DBG310] hooks-done render#' + _renderCount.current, JSON.stringify({hasId:!!id,loadingVenue,hasVenue:!!venue,hasError:!!venueError,peopleLen:people?.length,uid:currentUser?.uid?.substring(0,8),matchLen:realtimeMatches?.length}));
-  // #endregion
 
   const isMatchedWith = useCallback((userId: string) => {
     return realtimeMatches.some(
