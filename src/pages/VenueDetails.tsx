@@ -96,7 +96,7 @@ export default function VenueDetails() {
   }, [venue?.id, currentUser?.uid]);
 
   // #region agent log
-  console.log('[DBG59ec69] VenueDetails hooks-complete', { loadingVenue, hasVenue: !!venue, hasError: !!venueError, peopleLen: people.length });
+  console.log('[DBG59ec69] VenueDetails hooks-complete', { loadingVenue, hasVenue: !!venue, hasError: !!venueError, peopleLen: people.length, locFlag: localStorage.getItem('locationPermissionGranted') });
   // #endregion
 
   // Watch realtimeMatches for new match after liking — open celebration modal

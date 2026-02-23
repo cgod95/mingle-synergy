@@ -53,9 +53,17 @@ export function canBrowseVenues(): boolean {
 
 /**
  * Check if user can see people at venues (requires location)
+ * Falls back to checking the browser Permissions API if localStorage flag is missing.
  */
 export function canSeePeopleAtVenues(): boolean {
-  return hasLocationPermission();
+  if (hasLocationPermission()) return true;
+
+  // If the flag was never set (null), don't block - the user may have
+  // granted permission in a previous session or via the browser prompt.
+  const stored = localStorage.getItem('locationPermissionGranted');
+  if (stored === null) return true;
+
+  return false;
 }
 
 /**
@@ -166,25 +174,22 @@ export async function requestLocationPermission(): Promise<boolean> {
     
     // Handle specific error codes
     if (errorCode === 1) {
-      // Permission denied by user
+      // Permission denied by user - only this should revoke the flag
       console.warn('User denied geolocation permission');
       localStorage.setItem('locationPermissionGranted', 'false');
       return false;
     } else if (errorCode === 2) {
-      // Position unavailable
-      console.warn('Geolocation position unavailable');
-      localStorage.setItem('locationPermissionGranted', 'false');
+      // Position unavailable - device can't get a fix, but permission was granted
+      console.warn('Geolocation position unavailable (permission still valid)');
       return false;
     } else if (errorCode === 3) {
-      // Timeout
-      console.warn('Geolocation request timed out');
-      localStorage.setItem('locationPermissionGranted', 'false');
+      // Timeout - device too slow, but permission was granted
+      console.warn('Geolocation request timed out (permission still valid)');
       return false;
     }
     
-    // Other error
+    // Other error - don't revoke permission for unknown errors
     console.error('Geolocation error:', error);
-    localStorage.setItem('locationPermissionGranted', 'false');
     return false;
   }
 }

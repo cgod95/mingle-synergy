@@ -142,16 +142,19 @@ export class LocationService {
       
       // Handle specific error codes
       if (errorCode === 1) {
+        // Permission denied by user - only this should revoke the flag
         console.warn('User denied geolocation permission');
+        localStorage.setItem('locationPermissionGranted', 'false');
       } else if (errorCode === 2) {
-        console.warn('Geolocation position unavailable');
+        // Position unavailable - device can't get a fix, but permission was granted
+        console.warn('Geolocation position unavailable (permission still valid)');
       } else if (errorCode === 3) {
-        console.warn('Geolocation request timed out');
+        // Timeout - device too slow, but permission was granted
+        console.warn('Geolocation request timed out (permission still valid)');
       } else {
         console.error('Location permission error:', error);
       }
       
-      localStorage.setItem('locationPermissionGranted', 'false');
       return false;
     }
   }
