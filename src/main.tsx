@@ -49,31 +49,13 @@ if (isNativePlatform) {
   initCapacitor();
 }
 
-// Additional safeguard: Ensure React DevTools is disabled and check for multiple React instances
-if (typeof window !== 'undefined') {
+// DevTools hook: only disable in production builds to avoid noise.
+// In development, leave DevTools intact so hooks tracking works correctly.
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
   try {
     const hook = (window as Record<string, unknown>).__REACT_DEVTOOLS_GLOBAL_HOOK__ as Record<string, unknown> | undefined;
     if (hook) {
-      try {
-        const renderers = hook.renderers as Map<unknown, unknown> | undefined;
-        const rendererCount = renderers?.size || 0;
-        if (rendererCount > 0) {
-          try {
-            renderers?.clear();
-          } catch {
-            try { hook.isDisabled = true; } catch {}
-          }
-        }
-      } catch {}
-
-      try {
-        if (typeof hook.inject === 'function') {
-          hook.inject = function() { return false; };
-        }
-        if (typeof hook.registerRenderer === 'function') {
-          hook.registerRenderer = function() { return -1; };
-        }
-      } catch {}
+      hook.isDisabled = true;
     }
   } catch {
     // Silently fail if hook is not accessible

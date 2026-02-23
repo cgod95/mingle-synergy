@@ -243,10 +243,15 @@ class FirebaseVenueService implements VenueService {
         transformFirestoreVenue(doc.data(), doc.id)
       );
       
-      // Cache venues for offline access
-      saveToStorage(CACHE_KEYS.VENUES, venues);
+      // CLOSED BETA: Only show approved venues (Scarlet Weasel for Thursday test)
+      // TODO: Remove this filter when opening up to more venues
+      const CLOSED_BETA_VENUE_IDS = ['scarlet-weasel-redfern'];
+      const filteredVenues = venues.filter(v => CLOSED_BETA_VENUE_IDS.includes(v.id));
       
-      return venues;
+      // Cache venues for offline access
+      saveToStorage(CACHE_KEYS.VENUES, filteredVenues);
+      
+      return filteredVenues;
     } catch (error: any) {
       // Enhanced error logging with permission details
       const errorCode = error?.code || '';

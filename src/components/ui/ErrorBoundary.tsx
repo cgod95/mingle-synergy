@@ -77,8 +77,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoHome = () => {
-    // Use href assignment for proper navigation (class component workaround)
-    window.location.href = '/';
+    window.location.href = '/checkin';
   };
 
   private handleGoBack = () => {
@@ -91,12 +90,7 @@ export class ErrorBoundary extends Component<Props, State> {
       } else if (stepName === 'profile') {
         window.location.href = '/demo-welcome';
       } else {
-        // Try browser history, fallback to home if no history
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.href = '/';
-        }
+        window.location.href = '/checkin';
       }
     }
   };

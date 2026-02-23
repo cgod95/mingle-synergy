@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { db } from "@/firebase/config";
 import {
   collection,
@@ -19,12 +19,32 @@ interface RealtimeMatchesResult {
   retry: () => void;
 }
 
+/**
+ * Fire-and-forget cleanup of expired matches.
+ * Runs outside the snapshot callback to avoid triggering cascading
+ * onSnapshot events that can cause React re-render loops (error #310).
+ */
+function cleanupExpiredMatches(expiredIds: Array<{ id: string; userId1: string; userId2: string }>) {
+  if (!db || expiredIds.length === 0) return;
+  for (const expired of expiredIds) {
+    deleteDoc(doc(db, "matches", expired.id))
+      .then(async () => {
+        try {
+          const { trackMatchExpired } = await import("@/services/specAnalytics");
+          trackMatchExpired(expired.id, expired.userId1, expired.userId2);
+        } catch { /* best-effort analytics */ }
+      })
+      .catch(() => { /* best-effort cleanup */ });
+  }
+}
+
 export function useRealtimeMatches(): RealtimeMatchesResult {
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState<FirestoreMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const mountedRef = useRef(true);
 
   const retry = useCallback(() => {
     setError(null);
@@ -32,6 +52,8 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
+
     if (!currentUser?.uid) {
       setMatches([]);
       setLoading(false);
@@ -54,6 +76,7 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
     let got2 = false;
 
     function merge() {
+      if (!mountedRef.current) return;
       const combined = [...matches1];
       for (const m of matches2) {
         if (!combined.find((c) => c.id === m.id)) combined.push(m);
@@ -69,24 +92,26 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
       return 0;
     }
 
-    async function processSnapshot(snapshot: import("firebase/firestore").QuerySnapshot) {
+    function processSnapshot(snapshot: import("firebase/firestore").QuerySnapshot): FirestoreMatch[] {
       const results: FirestoreMatch[] = [];
+      const expired: Array<{ id: string; userId1: string; userId2: string }> = [];
+
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data() as FirestoreMatch;
         const ts = toEpochMs(data.timestamp);
         const matchAge = Date.now() - ts;
         if (matchAge > MATCH_EXPIRY_MS) {
-          try {
-            await deleteDoc(doc(db!, "matches", docSnap.id));
-            const { trackMatchExpired } = await import("@/services/specAnalytics");
-            trackMatchExpired(docSnap.id, data.userId1, data.userId2);
-          } catch {
-            // best-effort cleanup
-          }
+          expired.push({ id: docSnap.id, userId1: data.userId1, userId2: data.userId2 });
         } else {
           results.push({ ...data, id: docSnap.id, timestamp: ts });
         }
       }
+
+      // Schedule cleanup outside the synchronous snapshot handler
+      if (expired.length > 0) {
+        setTimeout(() => cleanupExpiredMatches(expired), 0);
+      }
+
       return results;
     }
 
@@ -95,37 +120,38 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
 
     const unsubscribe1 = onSnapshot(
       q1,
-      async (snapshot) => {
-        matches1 = await processSnapshot(snapshot);
+      (snapshot) => {
+        matches1 = processSnapshot(snapshot);
         got1 = true;
-        setError(null);
+        if (mountedRef.current) setError(null);
         merge();
       },
       (err) => {
         console.warn("useRealtimeMatches q1 error:", err);
         got1 = true;
-        setError(err);
+        if (mountedRef.current) setError(err);
         merge();
       }
     );
 
     const unsubscribe2 = onSnapshot(
       q2,
-      async (snapshot) => {
-        matches2 = await processSnapshot(snapshot);
+      (snapshot) => {
+        matches2 = processSnapshot(snapshot);
         got2 = true;
-        setError(null);
+        if (mountedRef.current) setError(null);
         merge();
       },
       (err) => {
         console.warn("useRealtimeMatches q2 error:", err);
         got2 = true;
-        setError(err);
+        if (mountedRef.current) setError(err);
         merge();
       }
     );
 
     return () => {
+      mountedRef.current = false;
       unsubscribe1();
       unsubscribe2();
     };
