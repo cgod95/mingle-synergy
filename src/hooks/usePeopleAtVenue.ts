@@ -19,6 +19,9 @@ interface VenueUser {
  * Uses Firestore onSnapshot so the list updates live as people check in/out.
  */
 export function usePeopleAtVenue(venueId: string | undefined): { people: VenueUser[]; loading: boolean; error: Error | null; retry: () => void } {
+  // #region agent log
+  console.error('[DBG310] usePeopleAtVenue', {venueId, hasFirestore:!!firestore});
+  // #endregion
   const [people, setPeople] = useState<VenueUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);

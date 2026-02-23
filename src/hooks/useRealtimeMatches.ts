@@ -39,6 +39,9 @@ function cleanupExpiredMatches(expiredIds: Array<{ id: string; userId1: string; 
 }
 
 export function useRealtimeMatches(): RealtimeMatchesResult {
+  // #region agent log
+  console.error('[DBG310] useRealtimeMatches', {hasDb:!!db});
+  // #endregion
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState<FirestoreMatch[]>([]);
   const [loading, setLoading] = useState(true);
