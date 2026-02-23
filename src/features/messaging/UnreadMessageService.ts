@@ -139,6 +139,8 @@ export const subscribeToUnreadCounts = (
     ids1.forEach(id => allMatchIds.add(id));
     setupMessagesListener();
     await updateCounts();
+  }, (error) => {
+    console.warn('Error in matches subscription (q1):', error);
   });
 
   const unsubscribe2 = onSnapshot(q2, async (snapshot2) => {
@@ -146,6 +148,8 @@ export const subscribeToUnreadCounts = (
     ids2.forEach(id => allMatchIds.add(id));
     setupMessagesListener();
     await updateCounts();
+  }, (error) => {
+    console.warn('Error in matches subscription (q2):', error);
   });
 
   return () => {

@@ -108,7 +108,7 @@ export default function UserProfileView() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { toast } = useToast();
-  const realtimeMatches = useRealtimeMatches();
+  const { matches: realtimeMatches } = useRealtimeMatches();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiking, setIsLiking] = useState(false);

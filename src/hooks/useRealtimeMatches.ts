@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { db } from "@/firebase/config";
 import {
   collection,
@@ -11,93 +11,117 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { FirestoreMatch } from "@/types/match";
 import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
-import config from "@/config";
 
-export function useRealtimeMatches(): FirestoreMatch[] {
+interface RealtimeMatchesResult {
+  matches: FirestoreMatch[];
+  loading: boolean;
+  error: Error | null;
+  retry: () => void;
+}
+
+export function useRealtimeMatches(): RealtimeMatchesResult {
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState<FirestoreMatch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const retry = useCallback(() => {
+    setError(null);
+    setRetryKey((k) => k + 1);
+  }, []);
 
   useEffect(() => {
-    if (!currentUser?.uid) return;
-    
-    // CRITICAL: Guard against null Firebase in demo mode
-    if (!db) {
-      // In demo mode, Firebase is null - return empty array
+    if (!currentUser?.uid) {
       setMatches([]);
+      setLoading(false);
       return;
     }
 
+    if (!db) {
+      setMatches([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     const matchRef = collection(db, "matches");
-    const q = query(
-      matchRef,
-      where("userId1", "==", currentUser.uid)
-    );
+    let matches1: FirestoreMatch[] = [];
+    let matches2: FirestoreMatch[] = [];
+    let got1 = false;
+    let got2 = false;
 
-    const unsubscribe1 = onSnapshot(q, async (snapshot) => {
+    function merge() {
+      const combined = [...matches1];
+      for (const m of matches2) {
+        if (!combined.find((c) => c.id === m.id)) combined.push(m);
+      }
+      setMatches(combined);
+      if (got1 && got2) setLoading(false);
+    }
+
+    async function processSnapshot(snapshot: import("firebase/firestore").QuerySnapshot) {
       const results: FirestoreMatch[] = [];
-
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data() as FirestoreMatch;
         const matchAge = Date.now() - data.timestamp;
-        const isExpired = matchAge > MATCH_EXPIRY_MS;
-
-            if (isExpired) {
-              await deleteDoc(doc(db, "matches", docSnap.id));
-              
-              // Track match expired event per spec section 9
-              try {
-                const { trackMatchExpired } = await import("@/services/specAnalytics");
-                trackMatchExpired(docSnap.id, data.userId1, data.userId2);
-              } catch (error) {
-                console.warn('Failed to track match_expired event:', error);
-              }
-            } else {
+        if (matchAge > MATCH_EXPIRY_MS) {
+          try {
+            await deleteDoc(doc(db!, "matches", docSnap.id));
+            const { trackMatchExpired } = await import("@/services/specAnalytics");
+            trackMatchExpired(docSnap.id, data.userId1, data.userId2);
+          } catch {
+            // best-effort cleanup
+          }
+        } else {
           results.push({ ...data, id: docSnap.id });
         }
       }
+      return results;
+    }
 
-      setMatches(results);
-    });
+    const q1 = query(matchRef, where("userId1", "==", currentUser.uid));
+    const q2 = query(matchRef, where("userId2", "==", currentUser.uid));
 
-    const q2 = query(
-      matchRef,
-      where("userId2", "==", currentUser.uid)
+    const unsubscribe1 = onSnapshot(
+      q1,
+      async (snapshot) => {
+        matches1 = await processSnapshot(snapshot);
+        got1 = true;
+        setError(null);
+        merge();
+      },
+      (err) => {
+        console.warn("useRealtimeMatches q1 error:", err);
+        got1 = true;
+        setError(err);
+        merge();
+      }
     );
 
-    const unsubscribe2 = onSnapshot(q2, async (snapshot) => {
-      const results: FirestoreMatch[] = [];
-
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data() as FirestoreMatch;
-        const matchAge = Date.now() - data.timestamp;
-        const isExpired = matchAge > MATCH_EXPIRY_MS;
-
-            if (isExpired) {
-              await deleteDoc(doc(db, "matches", docSnap.id));
-              
-              // Track match expired event per spec section 9
-              try {
-                const { trackMatchExpired } = await import("@/services/specAnalytics");
-                trackMatchExpired(docSnap.id, data.userId1, data.userId2);
-              } catch (error) {
-                console.warn('Failed to track match_expired event:', error);
-              }
-            } else {
-          results.push({ ...data, id: docSnap.id });
-        }
+    const unsubscribe2 = onSnapshot(
+      q2,
+      async (snapshot) => {
+        matches2 = await processSnapshot(snapshot);
+        got2 = true;
+        setError(null);
+        merge();
+      },
+      (err) => {
+        console.warn("useRealtimeMatches q2 error:", err);
+        got2 = true;
+        setError(err);
+        merge();
       }
-
-      setMatches((prev) => [
-        ...prev.filter((m) => !results.find((r) => r.id === m.id)),
-        ...results,
-      ]);
-    });
+    );
 
     return () => {
       unsubscribe1();
       unsubscribe2();
     };
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, retryKey]);
 
-  return matches;
+  return { matches, loading, error, retry };
 } 

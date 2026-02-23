@@ -82,7 +82,7 @@ export default function VenueDetails() {
   const pendingLikeRef = useRef<string | null>(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const realtimeMatches = useRealtimeMatches();
+  const { matches: realtimeMatches } = useRealtimeMatches();
   const prefersReducedMotion = useReducedMotion();
 
   const isMatchedWith = useCallback((userId: string) => {

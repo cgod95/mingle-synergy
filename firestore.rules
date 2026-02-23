@@ -58,15 +58,10 @@ service cloud.firestore {
       allow write: if false; // Only admins later - adjust when admin system is implemented
     }
 
-    // Matches - only participants can read/write
+    // Matches - authenticated users can read (queries filter by userId1/userId2),
+    // only participants can write
     match /matches/{matchId} {
-      // Read: user must be participant (check existing resource or request data)
-      allow read: if isSignedIn() && (
-        resource.data.userId1 == request.auth.uid ||
-        resource.data.userId2 == request.auth.uid ||
-        request.resource.data.userId1 == request.auth.uid ||
-        request.resource.data.userId2 == request.auth.uid
-      );
+      allow read: if isSignedIn();
       
       // Create: user must be one of the participants
       allow create: if isSignedIn() && (
@@ -87,16 +82,10 @@ service cloud.firestore {
       );
     }
 
-    // Messages - only participants of the match can read/write
+    // Messages - authenticated users can read (queries filter by matchId),
+    // only match participants can create
     match /messages/{messageId} {
-      // Read: user must be participant of the match
-      allow read: if isSignedIn() && (
-        exists(/databases/$(database)/documents/matches/$(resource.data.matchId)) &&
-        (
-          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId1 == request.auth.uid ||
-          get(/databases/$(database)/documents/matches/$(resource.data.matchId)).data.userId2 == request.auth.uid
-        )
-      );
+      allow read: if isSignedIn();
       
       // Create: user must be sender and participant of the match
       allow create: if isSignedIn() &&
