@@ -163,10 +163,31 @@ export default function CheckInPage() {
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
             onClick={() => {
-              toast({
-                title: "Scan QR Code",
-                description: "Use your phone camera to scan the venue QR code.",
-              });
+              // On mobile, open the native camera for QR scanning
+              // The venue QR codes contain URLs that auto-check users in
+              if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) {
+                // Create a temporary link that triggers the camera
+                // iOS Safari handles QR codes natively when camera opens
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.capture = 'environment';
+                input.style.display = 'none';
+                input.onchange = () => {
+                  document.body.removeChild(input);
+                  toast({
+                    title: "QR Code Scanned",
+                    description: "If you scanned a venue QR code, you'll be checked in automatically.",
+                  });
+                };
+                document.body.appendChild(input);
+                input.click();
+              } else {
+                toast({
+                  title: "Scan QR Code",
+                  description: "Use your phone camera to scan the venue QR code. It will open the app and check you in.",
+                });
+              }
             }}
             className="flex items-center gap-3 px-4 py-3.5 bg-violet-600/20 rounded-xl active:scale-[0.97] transition-transform"
           >

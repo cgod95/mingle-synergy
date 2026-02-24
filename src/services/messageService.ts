@@ -454,34 +454,34 @@ export const subscribeToMessages = (
  */
 export const markMessagesAsRead = async (matchId: string, userId: string): Promise<void> => {
   try {
-    // Check if firestore is available
-    if (!firestore) {
-      return;
-    }
+    if (!firestore) return;
     
     const messagesRef = collection(firestore, "messages");
-    const q = query(
-      messagesRef,
-      where("matchId", "==", matchId),
-      where("senderId", "!=", userId) // Only mark messages from other users as read
-    );
+    const q = query(messagesRef, where("matchId", "==", matchId));
     
     const snapshot = await getDocs(q);
     const batch = writeBatch(firestore);
+    let updated = 0;
     
-    snapshot.docs.forEach((doc) => {
-      const data = doc.data();
+    snapshot.docs.forEach((d) => {
+      const data = d.data();
+      if (data.senderId === userId) return;
       const readBy = data.readBy || [];
-      
       if (!readBy.includes(userId)) {
-        batch.update(doc.ref, {
-          readBy: [...readBy, userId]
-        });
+        batch.update(d.ref, { readBy: [...readBy, userId] });
+        updated++;
       }
     });
     
     await batch.commit();
+
+    // #region agent log
+    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'messageService.ts:markMessagesAsRead',message:'markRead success',data:{matchId,totalDocs:snapshot.size,updated},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+    // #endregion
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'messageService.ts:markMessagesAsRead',message:'markRead ERROR',data:{matchId,error:(error as any)?.message},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+    // #endregion
     logError(error as Error, { source: 'messageService', action: 'markMessagesAsRead', matchId, userId });
   }
 }; 

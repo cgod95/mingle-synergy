@@ -14,6 +14,7 @@ export type Match = {
   avatarUrl?: string;
   venueName?: string;
   venueId?: string;
+  _embeddedMessages?: Array<{ senderId: string; text: string; timestamp: number }>;
 };
 
 export const MATCH_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -65,7 +66,7 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
     const rawMatches = [
       ...snap1.docs.map(d => ({ id: d.id, ...d.data() })),
       ...snap2.docs.map(d => ({ id: d.id, ...d.data() })),
-    ] as Array<{ id: string; userId1: string; userId2: string; venueId: string; venueName?: string; timestamp: unknown; matchExpired?: boolean }>;
+    ] as Array<{ id: string; userId1: string; userId2: string; venueId: string; venueName?: string; timestamp: unknown; matchExpired?: boolean; messages?: Array<{ senderId: string; text: string; timestamp: number }> }>;
 
     const enriched: Match[] = await Promise.all(
       rawMatches.map(async (raw) => {
@@ -82,6 +83,7 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
           avatarUrl: profile.avatarUrl,
           venueName: raw.venueName,
           venueId: raw.venueId,
+          _embeddedMessages: raw.messages,
         };
       })
     );
