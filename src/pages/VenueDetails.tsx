@@ -117,31 +117,18 @@ export default function VenueDetails() {
   // never converted into matches (e.g. from before the detection code was fixed).
   const mutualCheckDone = useRef(false);
   useEffect(() => {
-    // #region agent log
-    console.error('[DBG59ec69] retroactive check:', { done: mutualCheckDone.current, uid: currentUser?.uid, id, likedCount: likedIds.size, peopleCount: people.length });
-    // #endregion
     if (mutualCheckDone.current) return;
     if (!currentUser?.uid || !id || likedIds.size === 0 || people.length === 0) return;
     mutualCheckDone.current = true;
 
     const myUid = currentUser.uid;
     const likedPeopleAtVenue = people.filter(p => p.id !== myUid && likedIds.has(p.id));
-    // #region agent log
-    console.error('[DBG59ec69] retroactive: likedPeopleAtVenue:', likedPeopleAtVenue.map(p => p.id), 'all people:', people.map(p => p.id), 'myUid:', myUid);
-    // #endregion
     if (likedPeopleAtVenue.length === 0) return;
 
     for (const person of likedPeopleAtVenue) {
       const alreadyMatched = isMatchedWith(person.id);
-      // #region agent log
-      console.error('[DBG59ec69] retroactive: checking', person.id, 'alreadyMatched:', alreadyMatched);
-      // #endregion
       if (!alreadyMatched) {
-        likeUserWithMutualDetection(myUid, person.id, id).catch((err) => {
-          // #region agent log
-          console.error('[DBG59ec69] retroactive: ERROR for', person.id, err);
-          // #endregion
-        });
+        likeUserWithMutualDetection(myUid, person.id, id).catch(() => {});
       }
     }
   }, [currentUser?.uid, id, likedIds, people, isMatchedWith]);

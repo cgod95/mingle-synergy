@@ -78,7 +78,7 @@ export const sendMessageWithLimit = async ({
       const messagesRef = collection(firestore, "messages");
       const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
         ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-        : 3;
+        : 10;
 
       const q = query(
         messagesRef,
@@ -156,7 +156,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
     
     const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
       ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-      : 3;
+      : 10;
     const q = query(
       collection(firestore, "messages"),
       where("matchId", "==", matchId),
@@ -242,7 +242,7 @@ export const getMessageCount = async (matchId: string, senderId: string): Promis
 export const getRemainingMessages = async (matchId: string, senderId: string): Promise<number> => {
   const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
     ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 3;
+    : 10;
   const count = await getMessageCount(matchId, senderId);
   return Math.max(0, messageLimit - count);
 };
@@ -290,7 +290,7 @@ export const subscribeToMessageLimit = (
 
   const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
     ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 3;
+    : 10;
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const messageCount = snapshot.docs.length;
     const canSend = messageCount < messageLimit;

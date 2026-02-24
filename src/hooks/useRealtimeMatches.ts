@@ -82,10 +82,6 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
         const effectiveTs = ts || Date.now();
         const matchAge = Date.now() - effectiveTs;
 
-        // #region agent log
-        console.error('[DBG59ec69] useRealtimeMatches doc:', docSnap.id, { rawTs: data.timestamp, parsedTs: ts, effectiveTs, matchAge, expired: matchAge > MATCH_EXPIRY_MS, u1: data.userId1, u2: data.userId2 });
-        // #endregion
-
         if (matchAge > MATCH_EXPIRY_MS) {
           continue;
         }

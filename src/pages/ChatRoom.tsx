@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, MoreVertical, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -24,16 +24,6 @@ import { hapticLight } from "@/lib/haptics";
 import { logError } from "@/utils/errorHandler";
 import { FEATURE_FLAGS } from "@/lib/flags";
 
-const CONVERSATION_STARTERS = [
-  "What brings you here tonight?",
-  "Have you been to this venue before?",
-  "What do you think of the vibe here?",
-  "Are you here with friends?",
-  "What's your favorite spot in this place?",
-  "How's your night going?",
-  "What do you think of the music?",
-];
-
 type Msg = { sender: "you" | "them"; text: string; ts: number; id?: string };
 
 export default function ChatRoom() {
@@ -47,7 +37,6 @@ export default function ChatRoom() {
   const [matchAvatar, setMatchAvatar] = useState<string>("");
   const [matchExpiresAt, setMatchExpiresAt] = useState<number>(0);
   const [otherUserId, setOtherUserId] = useState<string>("");
-  const [showStarters, setShowStarters] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
@@ -73,9 +62,6 @@ export default function ChatRoom() {
           setMatchAvatar(match.avatarUrl || "");
           setMatchExpiresAt(match.expiresAt || 0);
           setOtherUserId(match.partnerId || "");
-          if (msgs.length === 0) {
-            setShowStarters(true);
-          }
         }
       } catch (error) {
         logError(error as Error, { context: 'ChatRoom.loadMatchInfo', matchId });
@@ -99,9 +85,6 @@ export default function ChatRoom() {
         ts: m.createdAt?.getTime?.() || Date.now(),
       }));
       setMsgs(mapped);
-      if (mapped.length === 0) {
-        setShowStarters(true);
-      }
       // Mark new messages as read as they arrive
       if (firebaseMessages.some(m => m.senderId !== currentUser.uid)) {
         markMessagesAsRead(matchId, currentUser.uid).catch(() => {});
@@ -180,7 +163,6 @@ export default function ChatRoom() {
     
     try {
       await firebaseSendMessage(matchId, currentUser.uid, t);
-      setShowStarters(false);
       inputRef.current?.focus();
     } catch (error) {
       logError(error as Error, { context: 'ChatRoom.onSend', matchId, userId: currentUser.uid });
@@ -268,62 +250,6 @@ export default function ChatRoom() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900" aria-live="polite">
-          {/* How Mingle Works Info Banner */}
-          {msgs.length <= 1 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4 bg-violet-900/30 rounded-xl p-3"
-            >
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-violet-400 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-neutral-200 mb-1">You have {typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5} messages to make plans</p>
-                  <p className="text-xs text-neutral-300">Focus on meeting up in person - that's what Mingle is all about!</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Conversation Starters - Show when conversation is new */}
-          {showStarters && msgs.length <= 1 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4"
-            >
-              <div className="flex items-center gap-2 mb-3 px-2">
-                <Sparkles className="w-4 h-4 text-violet-400" />
-                <p className="text-sm font-medium text-neutral-300">Try a conversation starter</p>
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide">
-                {CONVERSATION_STARTERS.slice(0, 4).map((starter, idx) => (
-                  <motion.button
-                    key={idx}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={async () => {
-                      if (!currentUser?.uid || !matchId || sending) return;
-                      setShowStarters(false);
-                      setSending(true);
-                      try {
-                        await firebaseSendMessage(matchId, currentUser.uid, starter);
-                      } catch (error) {
-                        logError(error as Error, { context: 'ChatRoom.conversationStarter', matchId });
-                        setText(starter);
-                      } finally {
-                        setSending(false);
-                      }
-                    }}
-                    className="px-4 py-2 text-sm bg-neutral-800 rounded-full text-neutral-200 hover:bg-violet-900/30 transition-all whitespace-nowrap flex-shrink-0 snap-start"
-                  >
-                    {starter}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
           <AnimatePresence>
             {msgs.map((m, i) => (
               <motion.div

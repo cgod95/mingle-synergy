@@ -286,7 +286,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     }
 
     const messagesFromSender = match.messages.filter(msg => msg.senderId === senderId);
-    const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+    const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
     if (messagesFromSender.length >= messageLimit) {
       throw new Error('Message limit reached');
     }
@@ -447,16 +447,9 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       const allExisting = [...snap1.docs, ...snap2.docs];
       const now = Date.now();
 
-      // #region agent log
-      console.error('[DBG59ec69] createMatchIfMutual existing:', allExisting.length, allExisting.map(d => ({ id: d.id, ts: d.data().timestamp })));
-      // #endregion
-
       for (const existingDoc of allExisting) {
         const ts = toEpochMs(existingDoc.data().timestamp);
         if (ts > 0 && (now - ts) < MATCH_EXPIRY_TIME) {
-          // #region agent log
-          console.error('[DBG59ec69] Returning existing active match:', existingDoc.id);
-          // #endregion
           return existingDoc.id;
         }
       }
@@ -472,9 +465,6 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       };
 
       const docRef = await addDoc(matchRef, newMatch);
-      // #region agent log
-      console.error('[DBG59ec69] NEW match written to Firestore:', docRef.id, newMatch);
-      // #endregion
       return docRef.id;
     } catch (error) {
       logError(error as Error, { source: 'matchService', action: 'createMatchIfMutual', userId1, userId2, venueId });
@@ -509,18 +499,12 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
 
     // Add the like
     await setDoc(fromUserLikesRef, { likes: arrayUnion(toUserId) }, { merge: true });
-    // #region agent log
-    console.error('[DBG59ec69] Like recorded:', fromUserId, '->', toUserId);
-    // #endregion
 
     // Check if the other user already liked this user
     const toUserLikesSnap = await getDoc(toUserLikesRef);
     const toUserLikes = toUserLikesSnap.exists() ? toUserLikesSnap.data()?.likes || [] : [];
 
     const isMutual = toUserLikes.includes(fromUserId);
-    // #region agent log
-    console.error('[DBG59ec69] Mutual check:', { isMutual, toUserLikes, fromUserId });
-    // #endregion
 
     if (isMutual) {
       // Check for any ACTIVE match between these users first
@@ -534,21 +518,12 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
       });
 
       if (existingActive) {
-        // #region agent log
-        console.error('[DBG59ec69] Active match exists, skipping:', existingActive.id);
-        // #endregion
         return;
       }
 
       const matchId = await createMatchIfMutual(fromUserId, toUserId, venueId);
-      // #region agent log
-      console.error('[DBG59ec69] Match created:', matchId);
-      // #endregion
     }
   } catch (error) {
-    // #region agent log
-    console.error('[DBG59ec69] ERROR in likeUserWithMutualDetection:', error);
-    // #endregion
     logError(error as Error, { source: 'matchService', action: 'likeUserWithMutualDetection', fromUserId, toUserId, venueId });
     throw error;
   }
@@ -573,7 +548,7 @@ export const sendMessage = async (
 
   // Message limit per user
   const userMessages = matchData.messages.filter(m => m.senderId === senderId);
-  const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 5;
+  const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
   if (userMessages.length >= messageLimit) throw new Error("Message limit reached");
 
   await updateDoc(matchRef, {

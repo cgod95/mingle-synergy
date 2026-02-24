@@ -31,7 +31,7 @@ export default function MessageInput({ matchId, onMessageSent }: MessageInputPro
       const userMessages = mockMessages.filter(
         msg => msg.matchId === matchId && msg.senderId === currentUser.uid
       );
-      const messageLimit = 5; // Use feature flag in production
+      const messageLimit = 10;
       const remaining = Math.max(0, messageLimit - userMessages.length);
       const canSendMessages = remaining > 0;
       

@@ -67,10 +67,6 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
       ...snap2.docs.map(d => ({ id: d.id, ...d.data() })),
     ] as Array<{ id: string; userId1: string; userId2: string; venueId: string; venueName?: string; timestamp: unknown; matchExpired?: boolean }>;
 
-    // #region agent log
-    console.error('[DBG59ec69] matchesCompat rawMatches:', rawMatches.length, rawMatches.map(r => ({ id: r.id, ts: r.timestamp, u1: r.userId1, u2: r.userId2 })));
-    // #endregion
-
     const enriched: Match[] = await Promise.all(
       rawMatches.map(async (raw) => {
         const partnerId = raw.userId1 === userId ? raw.userId2 : raw.userId1;
@@ -89,10 +85,6 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
         };
       })
     );
-
-    // #region agent log
-    console.error('[DBG59ec69] matchesCompat enriched:', enriched.length, enriched.map(e => ({ id: e.id, createdAt: e.createdAt, expiresAt: e.expiresAt, expired: Date.now() >= e.expiresAt })));
-    // #endregion
 
     return enriched.sort((a, b) => b.createdAt - a.createdAt);
   } catch (error) {
