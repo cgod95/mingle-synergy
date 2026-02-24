@@ -163,6 +163,12 @@ const mockVenues: Venue[] = [
   },
 ];
 
+// Client-side image overrides for venues whose Firestore image field
+// can't be updated (write rules are admin-only).
+const VENUE_IMAGE_OVERRIDES: Record<string, string> = {
+  'scarlet-weasel-redfern': '/venues/scarlet-weasel.png',
+};
+
 // Helper function to transform Firestore data
 const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): Venue => {
   return {
@@ -171,9 +177,9 @@ const transformFirestoreVenue = (firestoreData: DocumentData, venueId: string): 
     type: firestoreData?.type || 'other',
     address: firestoreData?.address || '',
     city: firestoreData?.city || '',
-    image: firestoreData?.image || '',
+    image: VENUE_IMAGE_OVERRIDES[venueId] || firestoreData?.image || '',
     checkInCount: firestoreData?.checkInCount || 0,
-    expiryTime: firestoreData?.expiryTime || 120, // Default 2 hours in minutes
+    expiryTime: firestoreData?.expiryTime || 120,
     zones: firestoreData?.zones || [],
     latitude: firestoreData?.latitude || 0,
     longitude: firestoreData?.longitude || 0,
