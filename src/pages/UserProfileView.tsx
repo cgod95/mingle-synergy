@@ -122,12 +122,14 @@ export default function UserProfileView() {
   const venueId = getCheckedVenueId();
 
   const handleLike = async () => {
-    if (!currentUser?.uid || !userId || !venueId || isLiking || liked || isMatched) return;
+    if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched) return;
     setIsLiking(true);
     hapticMedium();
     try {
       await likeUserWithMutualDetection(currentUser.uid, userId, venueId);
-      toast({ title: "Like sent" });
+      if (!liked) {
+        toast({ title: "Like sent" });
+      }
     } catch (error) {
       logError(error instanceof Error ? error : new Error('Failed to like'), {
         context: 'UserProfileView.handleLike', userId
@@ -238,11 +240,11 @@ export default function UserProfileView() {
           ) : (
             <Button
               onClick={handleLike}
-              disabled={isLiking || liked}
-              aria-label={liked ? 'Already liked' : `Like ${displayName}`}
+              disabled={isLiking}
+              aria-label={liked ? `Liked ${displayName}` : `Like ${displayName}`}
               className={`w-full rounded-xl py-3 text-base font-semibold ${
                 liked
-                  ? 'bg-neutral-700 text-neutral-400'
+                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                   : 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white'
               }`}
             >

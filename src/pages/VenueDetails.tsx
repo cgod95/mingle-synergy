@@ -112,6 +112,28 @@ export default function VenueDetails() {
     }
   }, [realtimeMatches, people]);
 
+  // Retroactive mutual-like detection: when the venue page loads and we have
+  // the user's likes + people at venue, check for any mutual likes that were
+  // never converted into matches (e.g. from before the detection code was fixed).
+  const mutualCheckDone = useRef(false);
+  useEffect(() => {
+    if (mutualCheckDone.current) return;
+    if (!currentUser?.uid || !id || likedIds.size === 0 || people.length === 0) return;
+    mutualCheckDone.current = true;
+
+    const myUid = currentUser.uid;
+    const likedPeopleAtVenue = people.filter(p => p.id !== myUid && likedIds.has(p.id));
+    if (likedPeopleAtVenue.length === 0) return;
+
+    // For each person we've liked who is at this venue, re-run mutual detection
+    // (idempotent: won't duplicate likes or matches)
+    for (const person of likedPeopleAtVenue) {
+      if (!isMatchedWith(person.id)) {
+        likeUserWithMutualDetection(myUid, person.id, id).catch(() => {});
+      }
+    }
+  }, [currentUser?.uid, id, likedIds, people, isMatchedWith]);
+
   if (loadingVenue) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -187,6 +209,9 @@ export default function VenueDetails() {
 
   const handleLike = async (personId: string) => {
     if (isLiking === personId || !currentUser?.uid || !id) return;
+    // Always call likeUserWithMutualDetection even for already-liked users:
+    // the Firestore write is idempotent, and this ensures mutual detection
+    // runs for likes that were recorded before the detection code was fixed.
     setIsLiking(personId);
     hapticMedium();
     
@@ -194,10 +219,10 @@ export default function VenueDetails() {
       await likeUserWithMutualDetection(currentUser.uid, personId, id);
       pendingLikeRef.current = personId;
 
-      // Show "Like sent" immediately; if a match arrives via realtimeMatches,
-      // the useEffect above will override with the match toast
-      setToast("Like sent ❤️");
-      setTimeout(() => setToast(null), 1600);
+      if (!likedIds.has(personId)) {
+        setToast("Like sent ❤️");
+        setTimeout(() => setToast(null), 1600);
+      }
     } catch (error) {
       logError(error instanceof Error ? error : new Error('Failed to like'), {
         context: 'VenueDetails.handleLike', userId: currentUser.uid, personId
@@ -371,8 +396,8 @@ export default function VenueDetails() {
                         e.stopPropagation();
                         handleLike(p.id);
                       }}
-                      disabled={liked || matched || isLiking === p.id}
-                      aria-label={`Like ${personName}`}
+                      disabled={matched || isLiking === p.id}
+                      aria-label={matched ? `Matched with ${personName}` : liked ? `Liked ${personName}` : `Like ${personName}`}
                       className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 touch-target ${
                         matched
                           ? 'bg-rose-500 text-white'
