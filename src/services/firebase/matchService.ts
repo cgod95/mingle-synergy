@@ -448,14 +448,14 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       const now = Date.now();
 
       // #region agent log
-      fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:createMatchIfMutual',message:'Checking existing matches',data:{userId1,userId2,existingCount:allExisting.length,existingIds:allExisting.map(d=>d.id)},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+      console.error('[DBG59ec69] createMatchIfMutual existing:', allExisting.length, allExisting.map(d => ({ id: d.id, ts: d.data().timestamp })));
       // #endregion
 
       for (const existingDoc of allExisting) {
         const ts = toEpochMs(existingDoc.data().timestamp);
         if (ts > 0 && (now - ts) < MATCH_EXPIRY_TIME) {
           // #region agent log
-          fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:createMatchIfMutual',message:'Returning existing active match',data:{existingMatchId:existingDoc.id,ts,age:now-ts},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+          console.error('[DBG59ec69] Returning existing active match:', existingDoc.id);
           // #endregion
           return existingDoc.id;
         }
@@ -473,7 +473,7 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       const docRef = await addDoc(matchRef, newMatch);
       // #region agent log
-      fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:createMatchIfMutual',message:'New match created',data:{matchId:docRef.id,userId1,userId2,venueId},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+      console.error('[DBG59ec69] NEW match written to Firestore:', docRef.id, newMatch);
       // #endregion
       return docRef.id;
     } catch (error) {
@@ -510,7 +510,7 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
     // Add the like
     await setDoc(fromUserLikesRef, { likes: arrayUnion(toUserId) }, { merge: true });
     // #region agent log
-    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Like recorded',data:{fromUserId,toUserId,venueId},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    console.error('[DBG59ec69] Like recorded:', fromUserId, '->', toUserId);
     // #endregion
 
     // Check if the other user already liked this user
@@ -519,7 +519,7 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
 
     const isMutual = toUserLikes.includes(fromUserId);
     // #region agent log
-    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Mutual check',data:{fromUserId,toUserId,isMutual,toUserLikes},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    console.error('[DBG59ec69] Mutual check:', { isMutual, toUserLikes, fromUserId });
     // #endregion
 
     if (isMutual) {
@@ -535,20 +535,19 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
 
       if (existingActive) {
         // #region agent log
-        fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Active match already exists, skipping creation',data:{existingMatchId:existingActive.id},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+        console.error('[DBG59ec69] Active match exists, skipping:', existingActive.id);
         // #endregion
         return;
       }
 
-      // Create a new match (no rematch complexity for now)
       const matchId = await createMatchIfMutual(fromUserId, toUserId, venueId);
       // #region agent log
-      fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Match created',data:{matchId,fromUserId,toUserId},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      console.error('[DBG59ec69] Match created:', matchId);
       // #endregion
     }
   } catch (error) {
     // #region agent log
-    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'ERROR in likeUserWithMutualDetection',data:{error:String(error),fromUserId,toUserId},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    console.error('[DBG59ec69] ERROR in likeUserWithMutualDetection:', error);
     // #endregion
     logError(error as Error, { source: 'matchService', action: 'likeUserWithMutualDetection', fromUserId, toUserId, venueId });
     throw error;

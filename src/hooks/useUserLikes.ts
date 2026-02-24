@@ -29,12 +29,21 @@ export function useUserLikes(): Set<string> {
         if (snapshot.exists()) {
           const data = snapshot.data();
           const likes: string[] = data?.likes || [];
+          // #region agent log
+          console.error('[DBG59ec69] useUserLikes snapshot:', likes.length, 'likes');
+          // #endregion
           setLikedIds(new Set(likes));
         } else {
+          // #region agent log
+          console.error('[DBG59ec69] useUserLikes: no likes doc exists');
+          // #endregion
           setLikedIds(new Set());
         }
       },
-      () => {
+      (err) => {
+        // #region agent log
+        console.error('[DBG59ec69] useUserLikes error:', err);
+        // #endregion
         if (mountedRef.current) setLikedIds(new Set());
       }
     );

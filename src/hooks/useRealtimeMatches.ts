@@ -83,7 +83,7 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
         const matchAge = Date.now() - effectiveTs;
 
         // #region agent log
-        fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'useRealtimeMatches.ts:processSnapshot',message:'Processing match doc',data:{matchId:docSnap.id,rawTs:data.timestamp,parsedTs:ts,effectiveTs,matchAge,expired:matchAge>MATCH_EXPIRY_MS,userId1:data.userId1,userId2:data.userId2},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+        console.error('[DBG59ec69] useRealtimeMatches doc:', docSnap.id, { rawTs: data.timestamp, parsedTs: ts, effectiveTs, matchAge, expired: matchAge > MATCH_EXPIRY_MS, u1: data.userId1, u2: data.userId2 });
         // #endregion
 
         if (matchAge > MATCH_EXPIRY_MS) {
