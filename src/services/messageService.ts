@@ -37,7 +37,7 @@ export interface Message {
 
 /**
  * Send a message with validation for the message limit per user per match
- * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 10)
  */
 export const sendMessageWithLimit = async ({
   matchId,
@@ -121,7 +121,7 @@ export const sendMessageWithLimit = async ({
 
 /**
  * Check if a user can send a message (enforce message limit per user per match)
- * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 3)
+ * Uses feature flag LIMIT_MESSAGES_PER_USER (default: 10)
  */
 export const canSendMessage = async (matchId: string, senderId: string): Promise<boolean> => {
   // Check if user is premium (premium users get unlimited messages)
@@ -166,7 +166,7 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
     return snapshot.size < messageLimit;
   } catch (error) {
     logError(error as Error, { source: 'messageService', action: 'canSendMessage', matchId, senderId });
-    return false;
+    return true; // allow sending on query failure rather than blocking the user
   }
 };
 
@@ -476,11 +476,11 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     await batch.commit();
 
     // #region agent log
-    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'messageService.ts:markMessagesAsRead',message:'markRead success',data:{matchId,totalDocs:snapshot.size,updated},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+    console.error('[DBG59ec69] markRead success', { matchId, totalDocs: snapshot.size, updated });
     // #endregion
   } catch (error) {
     // #region agent log
-    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'messageService.ts:markMessagesAsRead',message:'markRead ERROR',data:{matchId,error:(error as any)?.message},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+    console.error('[DBG59ec69] markRead ERROR', { matchId, error: (error as any)?.message });
     // #endregion
     logError(error as Error, { source: 'messageService', action: 'markMessagesAsRead', matchId, userId });
   }

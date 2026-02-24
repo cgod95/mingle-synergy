@@ -85,7 +85,7 @@ export default function Matches() {
               }
 
               // #region agent log
-              fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'Matches.tsx:getLastFirebaseMessage',message:'lastMsg lookup',data:{matchId,snapCount,collectionError,embeddedCount,result:collectionResult?.text?.substring(0,50)||null},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
+              console.error('[DBG59ec69] lastMsg lookup', { matchId, snapCount, collectionError, embeddedCount, result: collectionResult?.text?.substring(0, 50) || null });
               // #endregion
 
               return collectionResult;
