@@ -120,14 +120,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               >
                 Try Again
               </button>
-              {stepName && (
-                <button
-                  onClick={this.handleGoBack}
-                  className="w-full px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-neutral-200 rounded-lg font-medium transition-colors"
-                >
-                  Go Back
-                </button>
-              )}
               <button
                 onClick={() => window.location.href = '/'}
                 className="w-full px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded-lg font-medium transition-colors"

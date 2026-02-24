@@ -40,10 +40,10 @@ const config: CapacitorConfig = {
     },
   },
   
-  // Server configuration (for development)
   server: {
-    // Enable cleartext for local development
     cleartext: true,
+    hostname: 'app.mingleapp.com',
+    iosScheme: 'https',
   },
 };
 

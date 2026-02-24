@@ -16,8 +16,8 @@ export default function MingleHeader() {
       <div className="max-w-7xl mx-auto px-3">
         <div className="flex items-center justify-between h-11">
           <Link
-            to="/checkin"
-            aria-label="Mingle - Go to check in"
+            to="/about-mingle"
+            aria-label="Mingle - About"
             className="group focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 rounded-lg p-1.5 -ml-1.5 active:scale-95 transition-transform touch-target"
           >
             <MingleMLogo size="sm" showText={true} />

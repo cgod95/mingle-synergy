@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Heart, MapPin, ChevronDown, ChevronUp, RefreshCw, Trash2 } from "lucide-react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { firestore } from "@/firebase/config";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -54,50 +56,30 @@ export default function Matches() {
       const allMatches = await getAllMatches(currentUser.uid);
         const now = Date.now();
 
-        // Fetch last message for each match from Firestore messages collection,
-        // falling back to the match document's embedded messages array
-        let getLastFirebaseMessage: ((matchId: string, matchData?: any) => Promise<{ text: string; ts: number } | null>) | null = null;
-        try {
-          const { collection: col, query: q, where: w, orderBy: ob, limit: lim, getDocs } = await import('firebase/firestore');
-          const { firestore } = await import('@/firebase/config');
-          if (firestore) {
-            getLastFirebaseMessage = async (matchId: string, matchData?: any) => {
-              let collectionResult: { text: string; ts: number } | null = null;
-              let collectionError: string | null = null;
-              let snapCount = 0;
-
-              try {
-                const snap = await getDocs(q(col(firestore, 'messages'), w('matchId', '==', matchId), ob('createdAt', 'desc'), lim(1)));
-                snapCount = snap.size;
-                if (!snap.empty) {
-                  const d = snap.docs[0].data();
-                  collectionResult = { text: d.text || '', ts: d.createdAt?.toDate?.()?.getTime?.() || Date.now() };
-                }
-              } catch (err: any) {
-                collectionError = err?.message || String(err);
-              }
-
-              // Fallback: check embedded messages array on the match document
-              let embeddedCount = matchData?.messages?.length || 0;
-              if (!collectionResult && embeddedCount > 0) {
-                const lastMsg = matchData.messages[matchData.messages.length - 1];
-                collectionResult = { text: lastMsg.text || '', ts: lastMsg.timestamp || Date.now() };
-              }
-
-              // #region agent log
-              console.error('[DBG59ec69] lastMsg lookup', { matchId, snapCount, collectionError, embeddedCount, result: collectionResult?.text?.substring(0, 50) || null });
-              // #endregion
-
-              return collectionResult;
-            };
-          }
-        } catch {}
-
         const enrichedMatches: MatchWithPreview[] = await Promise.all(
           allMatches.map(async (match) => {
-            const lastMsg = getLastFirebaseMessage
-              ? await getLastFirebaseMessage(match.id, { messages: (match as any)._embeddedMessages })
-              : null;
+            let lastMsg: { text: string; ts: number } | null = null;
+            if (firestore) {
+              try {
+                const snap = await getDocs(
+                  query(
+                    collection(firestore, 'messages'),
+                    where('matchId', '==', match.id),
+                    orderBy('createdAt', 'desc'),
+                    limit(1)
+                  )
+                );
+                if (!snap.empty) {
+                  const d = snap.docs[0].data();
+                  lastMsg = {
+                    text: d.text || '',
+                    ts: d.createdAt?.toDate?.()?.getTime?.() || Date.now(),
+                  };
+                }
+              } catch {
+                // query failed, leave lastMsg null
+              }
+            }
             const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
             return {
               ...match,

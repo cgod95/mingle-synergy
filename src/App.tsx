@@ -32,6 +32,7 @@ const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const About = lazy(() => import("./pages/About"));
 const Debug = lazy(() => import("./pages/Debug"));
+const AboutMingle = lazy(() => import("./pages/AboutMingle"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const UserProfileView = lazy(() => import("./pages/UserProfileView"));
 const OnboardingCarousel = lazy(() => import("./components/onboarding/OnboardingCarousel"));
@@ -91,16 +92,17 @@ function AppRoutes() {
           <Route path="/profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
           <Route path="/profile/edit" element={<ErrorBoundary><ProfileEdit /></ErrorBoundary>} />
           <Route path="/profile/:userId" element={<ErrorBoundary><UserProfileView /></ErrorBoundary>} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/verification" element={<Verification />} />
-          <Route path="/billing" element={<Billing />} />
-          <Route path="/usage" element={<UsageStats />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/debug" element={<Debug />} />
+          <Route path="/settings" element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
+          <Route path="/privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
+          <Route path="/verification" element={<ErrorBoundary><Verification /></ErrorBoundary>} />
+          <Route path="/billing" element={<ErrorBoundary><Billing /></ErrorBoundary>} />
+          <Route path="/usage" element={<ErrorBoundary><UsageStats /></ErrorBoundary>} />
+          <Route path="/help" element={<ErrorBoundary><Help /></ErrorBoundary>} />
+          <Route path="/feedback" element={<ErrorBoundary><Feedback /></ErrorBoundary>} />
+          <Route path="/contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
+          <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
+          <Route path="/about-mingle" element={<AboutMingle />} />
+          <Route path="/debug" element={<ErrorBoundary><Debug /></ErrorBoundary>} />
         </Route>
         {/* Chat room - full screen, bypasses AppShell */}
         <Route 

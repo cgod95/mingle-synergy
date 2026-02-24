@@ -1,7 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Home, RefreshCw, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Props {
@@ -141,10 +141,6 @@ class RouteErrorBoundaryClass extends Component<Props & { navigate: (path: strin
                 <Button onClick={this.handleRetry} className="w-full">
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Try Again
-                </Button>
-                <Button variant="outline" onClick={this.handleGoBack} className="w-full">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go Back
                 </Button>
                 <Button variant="outline" onClick={this.handleGoHome} className="w-full">
                   <Home className="w-4 h-4 mr-2" />

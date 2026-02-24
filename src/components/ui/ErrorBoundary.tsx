@@ -150,15 +150,6 @@ export class ErrorBoundary extends Component<Props, State> {
                 
                 <Button 
                   variant="outline" 
-                  onClick={this.handleGoBack}
-                  className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go Back
-                </Button>
-                
-                <Button 
-                  variant="outline" 
                   onClick={this.handleGoHome}
                   className="w-full border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white"
                 >
