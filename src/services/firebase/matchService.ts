@@ -94,33 +94,24 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       }
       
       const matchRef = collection(firestore, 'matches');
-      const q = query(
-        matchRef,
-        where('userId1', 'in', [user1Id, user2Id]),
-        where('userId2', 'in', [user1Id, user2Id])
-      );
 
-      const snapshot = await getDocs(q);
+      // Use two separate queries instead of dual 'in' (unsupported by Firestore)
+      const q1 = query(matchRef, where('userId1', '==', user1Id), where('userId2', '==', user2Id));
+      const q2 = query(matchRef, where('userId1', '==', user2Id), where('userId2', '==', user1Id));
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+      const existingDocs = [...snap1.docs, ...snap2.docs];
       const now = Date.now();
 
-      for (const docSnap of snapshot.docs) {
+      for (const docSnap of existingDocs) {
         const match = docSnap.data() as FirestoreMatch;
+        const isExpired = now - toEpochMs(match.timestamp) > MATCH_EXPIRY_TIME;
 
-        const isMatch = (
-          (match.userId1 === user1Id && match.userId2 === user2Id) ||
-          (match.userId1 === user2Id && match.userId2 === user1Id)
-        );
-
-        if (isMatch) {
-          const isExpired = now - toEpochMs(match.timestamp) > MATCH_EXPIRY_TIME;
-
-          if (isExpired) {
-            await deleteDoc(doc(firestore, 'matches', docSnap.id));
-            break;
-          } else {
-            // Active match already exists
-            return docSnap.id;
-          }
+        if (isExpired) {
+          await deleteDoc(doc(firestore, 'matches', docSnap.id));
+          break;
+        } else {
+          return docSnap.id;
         }
       }
 
@@ -447,31 +438,27 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       }
 
       const matchRef = collection(firestore, 'matches');
-      const matchQuery = query(
-        matchRef,
-        where('userId1', 'in', [userId1, userId2]),
-        where('userId2', 'in', [userId1, userId2]),
-        where('venueId', '==', venueId)
-      );
 
-      const snapshot = await getDocs(matchQuery);
-      if (!snapshot.empty) {
-        return snapshot.docs[0].id; // Match already exists
-      }
+      // Check both orderings with separate queries (Firestore doesn't support
+      // two 'in' filters on different fields in a single query).
+      const q1 = query(matchRef, where('userId1', '==', userId1), where('userId2', '==', userId2));
+      const q2 = query(matchRef, where('userId1', '==', userId2), where('userId2', '==', userId1));
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
+      if (!snap1.empty) return snap1.docs[0].id;
+      if (!snap2.empty) return snap2.docs[0].id;
+
+      const venueName = await this.getVenueName(venueId);
       const newMatch = {
         userId1,
         userId2,
         venueId,
+        venueName,
         timestamp: Date.now(),
         messages: [],
       };
 
-      const docRef = await addDoc(matchRef, {
-        ...newMatch,
-        timestamp: serverTimestamp(),
-      });
-
+      const docRef = await addDoc(matchRef, newMatch);
       return docRef.id;
     } catch (error) {
       logError(error as Error, { source: 'matchService', action: 'createMatchIfMutual', userId1, userId2, venueId });
