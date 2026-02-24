@@ -23,6 +23,7 @@ import { logError } from "@/utils/errorHandler";
 import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
+import { useUserLikes } from "@/hooks/useUserLikes";
 import { NewMatchModal } from "@/components/NewMatchModal";
 
 function Toast({ text }: { text: string }) {
@@ -76,13 +77,13 @@ export default function VenueDetails() {
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState<string | null>(null);
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
   const [matchModal, setMatchModal] = useState<{ matchId: string; partnerName: string; partnerPhoto?: string } | null>(null);
   const pendingLikeRef = useRef<string | null>(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { matches: realtimeMatches } = useRealtimeMatches();
+  const likedIds = useUserLikes();
   const prefersReducedMotion = useReducedMotion();
 
   const isMatchedWith = useCallback((userId: string) => {
@@ -191,7 +192,6 @@ export default function VenueDetails() {
     
     try {
       await likeUserWithMutualDetection(currentUser.uid, personId, id);
-      setLikedIds(prev => new Set(prev).add(personId));
       pendingLikeRef.current = personId;
 
       // Show "Like sent" immediately; if a match arrives via realtimeMatches,

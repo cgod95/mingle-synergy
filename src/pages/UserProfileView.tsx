@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getCheckedVenueId } from "@/lib/checkinStore";
 import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
+import { useUserLikes } from "@/hooks/useUserLikes";
 import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useToast } from "@/hooks/use-toast";
 import useEmblaCarousel from "embla-carousel-react";
@@ -109,11 +110,12 @@ export default function UserProfileView() {
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const { matches: realtimeMatches } = useRealtimeMatches();
+  const firestoreLikedIds = useUserLikes();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiking, setIsLiking] = useState(false);
-  const [liked, setLiked] = useState(false);
 
+  const liked = userId ? firestoreLikedIds.has(userId) : false;
   const isMatched = userId ? realtimeMatches.some(
     m => m.userId1 === userId || m.userId2 === userId
   ) : false;
@@ -125,7 +127,6 @@ export default function UserProfileView() {
     hapticMedium();
     try {
       await likeUserWithMutualDetection(currentUser.uid, userId, venueId);
-      setLiked(true);
       toast({ title: "Like sent" });
     } catch (error) {
       logError(error instanceof Error ? error : new Error('Failed to like'), {

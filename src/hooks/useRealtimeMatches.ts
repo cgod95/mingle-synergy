@@ -5,8 +5,6 @@ import {
   onSnapshot,
   query,
   where,
-  deleteDoc,
-  doc,
 } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { FirestoreMatch } from "@/types/match";
@@ -17,25 +15,6 @@ interface RealtimeMatchesResult {
   loading: boolean;
   error: Error | null;
   retry: () => void;
-}
-
-/**
- * Fire-and-forget cleanup of expired matches.
- * Runs outside the snapshot callback to avoid triggering cascading
- * onSnapshot events that can cause React re-render loops (error #310).
- */
-function cleanupExpiredMatches(expiredIds: Array<{ id: string; userId1: string; userId2: string }>) {
-  if (!db || expiredIds.length === 0) return;
-  for (const expired of expiredIds) {
-    deleteDoc(doc(db, "matches", expired.id))
-      .then(async () => {
-        try {
-          const { trackMatchExpired } = await import("@/services/specAnalytics");
-          trackMatchExpired(expired.id, expired.userId1, expired.userId2);
-        } catch { /* best-effort analytics */ }
-      })
-      .catch(() => { /* best-effort cleanup */ });
-  }
 }
 
 export function useRealtimeMatches(): RealtimeMatchesResult {
@@ -94,22 +73,24 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
 
     function processSnapshot(snapshot: import("firebase/firestore").QuerySnapshot): FirestoreMatch[] {
       const results: FirestoreMatch[] = [];
-      const expired: Array<{ id: string; userId1: string; userId2: string }> = [];
 
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data() as FirestoreMatch;
         const ts = toEpochMs(data.timestamp);
-        const matchAge = Date.now() - ts;
-        if (matchAge > MATCH_EXPIRY_MS) {
-          expired.push({ id: docSnap.id, userId1: data.userId1, userId2: data.userId2 });
-        } else {
-          results.push({ ...data, id: docSnap.id, timestamp: ts });
-        }
-      }
 
-      // Schedule cleanup outside the synchronous snapshot handler
-      if (expired.length > 0) {
-        setTimeout(() => cleanupExpiredMatches(expired), 0);
+        // If timestamp is 0 (not yet resolved), treat as just-created
+        const effectiveTs = ts || Date.now();
+        const matchAge = Date.now() - effectiveTs;
+
+        // #region agent log
+        fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'useRealtimeMatches.ts:processSnapshot',message:'Processing match doc',data:{matchId:docSnap.id,rawTs:data.timestamp,parsedTs:ts,effectiveTs,matchAge,expired:matchAge>MATCH_EXPIRY_MS,userId1:data.userId1,userId2:data.userId2},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
+
+        if (matchAge > MATCH_EXPIRY_MS) {
+          continue;
+        }
+
+        results.push({ ...data, id: docSnap.id, timestamp: effectiveTs });
       }
 
       return results;

@@ -439,14 +439,27 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
 
       const matchRef = collection(firestore, 'matches');
 
-      // Check both orderings with separate queries (Firestore doesn't support
-      // two 'in' filters on different fields in a single query).
+      // Check both orderings with separate queries
       const q1 = query(matchRef, where('userId1', '==', userId1), where('userId2', '==', userId2));
       const q2 = query(matchRef, where('userId1', '==', userId2), where('userId2', '==', userId1));
       const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
-      if (!snap1.empty) return snap1.docs[0].id;
-      if (!snap2.empty) return snap2.docs[0].id;
+      const allExisting = [...snap1.docs, ...snap2.docs];
+      const now = Date.now();
+
+      // #region agent log
+      fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:createMatchIfMutual',message:'Checking existing matches',data:{userId1,userId2,existingCount:allExisting.length,existingIds:allExisting.map(d=>d.id)},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+      // #endregion
+
+      for (const existingDoc of allExisting) {
+        const ts = toEpochMs(existingDoc.data().timestamp);
+        if (ts > 0 && (now - ts) < MATCH_EXPIRY_TIME) {
+          // #region agent log
+          fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:createMatchIfMutual',message:'Returning existing active match',data:{existingMatchId:existingDoc.id,ts,age:now-ts},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+          // #endregion
+          return existingDoc.id;
+        }
+      }
 
       const venueName = await this.getVenueName(venueId);
       const newMatch = {
@@ -459,6 +472,9 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
       };
 
       const docRef = await addDoc(matchRef, newMatch);
+      // #region agent log
+      fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:createMatchIfMutual',message:'New match created',data:{matchId:docRef.id,userId1,userId2,venueId},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+      // #endregion
       return docRef.id;
     } catch (error) {
       logError(error as Error, { source: 'matchService', action: 'createMatchIfMutual', userId1, userId2, venueId });
@@ -493,26 +509,47 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
 
     // Add the like
     await setDoc(fromUserLikesRef, { likes: arrayUnion(toUserId) }, { merge: true });
+    // #region agent log
+    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Like recorded',data:{fromUserId,toUserId,venueId},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
 
     // Check if the other user already liked this user
     const toUserLikesSnap = await getDoc(toUserLikesRef);
     const toUserLikes = toUserLikesSnap.exists() ? toUserLikesSnap.data()?.likes || [] : [];
 
     const isMutual = toUserLikes.includes(fromUserId);
+    // #region agent log
+    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Mutual check',data:{fromUserId,toUserId,isMutual,toUserLikes},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
 
     if (isMutual) {
-      // Check if there's a previous expired match (rematch scenario)
-      const previousMatch = await getPreviousMatch(fromUserId, toUserId);
-      
-      if (previousMatch) {
-        // Create a rematch
-        await createRematch(fromUserId, toUserId, venueId);
-      } else {
-        // Create a new match
-        await createMatchIfMutual(fromUserId, toUserId, venueId);
+      // Check for any ACTIVE match between these users first
+      const matchesRef = collection(firestore, 'matches');
+      const mq1 = query(matchesRef, where('userId1', '==', fromUserId), where('userId2', '==', toUserId));
+      const mq2 = query(matchesRef, where('userId1', '==', toUserId), where('userId2', '==', fromUserId));
+      const [ms1, ms2] = await Promise.all([getDocs(mq1), getDocs(mq2)]);
+      const existingActive = [...ms1.docs, ...ms2.docs].find(d => {
+        const ts = toEpochMs(d.data().timestamp);
+        return ts > 0 && (Date.now() - ts) < MATCH_EXPIRY_TIME;
+      });
+
+      if (existingActive) {
+        // #region agent log
+        fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Active match already exists, skipping creation',data:{existingMatchId:existingActive.id},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+        // #endregion
+        return;
       }
+
+      // Create a new match (no rematch complexity for now)
+      const matchId = await createMatchIfMutual(fromUserId, toUserId, venueId);
+      // #region agent log
+      fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'Match created',data:{matchId,fromUserId,toUserId},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
     }
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7484/ingest/63a340f9-d623-4ad6-bdea-c3267878b19a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'59ec69'},body:JSON.stringify({sessionId:'59ec69',location:'matchService.ts:likeUserWithMutualDetection',message:'ERROR in likeUserWithMutualDetection',data:{error:String(error),fromUserId,toUserId},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
     logError(error as Error, { source: 'matchService', action: 'likeUserWithMutualDetection', fromUserId, toUserId, venueId });
     throw error;
   }
