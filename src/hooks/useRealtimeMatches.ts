@@ -56,11 +56,23 @@ export function useRealtimeMatches(): RealtimeMatchesResult {
 
     function merge() {
       if (!mountedRef.current) return;
-      const combined = [...matches1];
-      for (const m of matches2) {
-        if (!combined.find((c) => c.id === m.id)) combined.push(m);
+      // Combine and deduplicate by document ID
+      const byId = new Map<string, FirestoreMatch>();
+      for (const m of [...matches1, ...matches2]) {
+        if (!byId.has(m.id)) byId.set(m.id, m);
       }
-      setMatches(combined);
+      // Deduplicate by partner: keep only the newest match per user pair
+      const byPartner = new Map<string, FirestoreMatch>();
+      for (const m of byId.values()) {
+        const partnerId = m.userId1 === currentUser!.uid ? m.userId2 : m.userId1;
+        const existing = byPartner.get(partnerId);
+        const mTs = typeof m.timestamp === 'number' ? m.timestamp : 0;
+        const eTs = existing ? (typeof existing.timestamp === 'number' ? existing.timestamp : 0) : 0;
+        if (!existing || mTs > eTs) {
+          byPartner.set(partnerId, m);
+        }
+      }
+      setMatches(Array.from(byPartner.values()));
       if (got1 && got2) setLoading(false);
     }
 

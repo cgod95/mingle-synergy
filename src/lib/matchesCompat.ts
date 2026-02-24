@@ -88,7 +88,16 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
       })
     );
 
-    return enriched.sort((a, b) => b.createdAt - a.createdAt);
+    // Deduplicate: keep only the newest match per partner
+    const byPartner = new Map<string, Match>();
+    for (const m of enriched) {
+      const existing = byPartner.get(m.partnerId);
+      if (!existing || m.createdAt > existing.createdAt) {
+        byPartner.set(m.partnerId, m);
+      }
+    }
+
+    return Array.from(byPartner.values()).sort((a, b) => b.createdAt - a.createdAt);
   } catch (error) {
     logError(error as Error, { source: 'matchesCompat', action: 'fetchMatchesFromFirestore', userId });
     return [];
