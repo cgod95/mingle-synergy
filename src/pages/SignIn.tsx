@@ -68,8 +68,8 @@ export default function SignIn() {
             </Button>
           </div>
 
-          {/* Content — scrollable, not squished */}
-          <div className="flex-1 flex flex-col justify-center w-full max-w-sm mx-auto">
+          {/* Content — upper-third positioning for tall iOS screens */}
+          <div className="flex-1 flex flex-col justify-start pt-[8vh] w-full max-w-sm mx-auto">
             {/* Logo */}
             <div className="text-center mb-8 flex-shrink-0">
               <div className="w-12 h-12 rounded-xl bg-[#7C3AED] flex items-center justify-center mx-auto mb-3">

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, Edit, Camera, ChevronRight, User } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { logError } from '@/utils/errorHandler';
 import { UserProfileSkeleton } from '@/components/ui/LoadingStates';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -145,6 +146,13 @@ export default function Profile() {
   const photos = profileData?.photos || [];
   const displayName = profileData?.displayName || profileData?.name || currentUser?.name || 'User';
 
+  const profileActions: { label: string; description: string; icon: typeof Edit; action: () => void; danger?: boolean }[] = [
+    { label: 'Edit Profile', description: 'Update your name, bio and details', icon: Edit, action: () => navigate('/profile/edit') },
+    { label: 'Edit Photos', description: 'Add or change your photos', icon: Camera, action: () => navigate('/photo-upload', { state: { from: 'profile' } }) },
+    { label: 'Settings', description: 'Manage preferences and account', icon: Settings, action: () => navigate('/settings') },
+    { label: 'Sign Out', description: 'Log out of your account', icon: LogOut, action: () => signOut(), danger: true },
+  ];
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header — gradient title matching Settings */}
@@ -157,8 +165,8 @@ export default function Profile() {
 
       <div className="space-y-4">
         {/* Profile Card with swipeable photos */}
-        <Card className="bg-neutral-800 shadow-lg overflow-hidden">
-          <div className="relative aspect-[3/4] overflow-hidden bg-neutral-700">
+        <Card className="bg-neutral-800 shadow-lg overflow-hidden border-0">
+          <div className="relative aspect-[4/5] max-h-[50vh] overflow-hidden bg-neutral-700">
             <ProfilePhotoCarousel
               photos={photos}
               name={displayName}
@@ -183,22 +191,18 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Actions — styled as a Settings-like card */}
-        <Card className="bg-neutral-800 shadow-lg">
+        {/* Actions — matching Settings page card pattern exactly */}
+        <Card className="bg-neutral-800 shadow-lg hover:shadow-xl transition-all">
           <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-heading-3">
               <User className="w-5 h-5 mr-2 text-violet-400" />
               <span className="text-violet-400 font-semibold">Quick Actions</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="space-y-1">
-              {[
-                { label: 'Edit Profile', description: 'Update your name, bio and details', icon: Edit, action: () => navigate('/profile/edit') },
-                { label: 'Edit Photos', description: 'Add or change your photos', icon: Camera, action: () => navigate('/photo-upload', { state: { from: 'profile' } }) },
-                { label: 'Settings', description: 'Manage preferences and account', icon: Settings, action: () => navigate('/settings') },
-              ].map((item, i, arr) => (
-                <React.Fragment key={item.label}>
+              {profileActions.map((item, i) => (
+                <div key={item.label}>
                   <div
                     className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-violet-900/30 transition-colors cursor-pointer"
                     onClick={item.action}
@@ -207,39 +211,40 @@ export default function Profile() {
                     onKeyDown={(e) => { if (e.key === 'Enter') item.action(); }}
                   >
                     <div className="flex items-center flex-1 min-w-0">
-                      <div className="p-2 rounded-lg mr-3 bg-violet-900/50 text-violet-400">
+                      <div className={`p-2 rounded-lg mr-3 ${
+                        item.danger
+                          ? 'bg-red-900/50 text-red-400'
+                          : 'bg-violet-900/50 text-violet-400'
+                      }`}>
                         <item.icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-base text-white">{item.label}</span>
+                        <span className={`font-semibold text-base ${
+                          item.danger ? 'text-red-400' : 'text-white'
+                        }`}>
+                          {item.label}
+                        </span>
                         <p className="text-sm text-neutral-300 mt-0.5">{item.description}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-violet-400 hover:text-violet-300 hover:bg-violet-900/30">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={
+                        item.danger
+                          ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30'
+                          : 'text-violet-400 hover:text-violet-300 hover:bg-violet-900/30'
+                      }
+                    >
                       <ChevronRight className="w-5 h-5" />
                     </Button>
                   </div>
-                  {i < arr.length - 1 && (
-                    <div className="border-b border-neutral-700 my-1" />
+                  {i < profileActions.length - 1 && (
+                    <Separator className="my-1 bg-neutral-700" />
                   )}
-                </React.Fragment>
+                </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Sign Out — styled like Settings logout */}
-        <Card className="border border-red-700 bg-red-900/30">
-          <CardContent className="pt-6">
-            <Button
-              variant="outline"
-              onClick={signOut}
-              className="w-full text-red-400 border-red-700 hover:bg-red-900/50 hover:border-red-600 font-semibold"
-              aria-label="Sign out"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
           </CardContent>
         </Card>
       </div>

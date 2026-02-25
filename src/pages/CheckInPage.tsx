@@ -51,6 +51,15 @@ export default function CheckInPage() {
   const qrVenueId = params.get("venueId");
   const source = params.get("source");
 
+  // Auto-redirect to venue details if already checked in (skip if QR scan in progress)
+  useEffect(() => {
+    if (source === "qr" && qrVenueId) return;
+    const activeVenueId = getCheckedVenueId();
+    if (activeVenueId) {
+      navigate(`/venues/${activeVenueId}`, { replace: true });
+    }
+  }, []);
+
   const onCheckIn = async (id: string) => {
     hapticSuccess();
     checkInAt(id, currentUser?.uid);

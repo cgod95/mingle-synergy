@@ -34,31 +34,36 @@ const OnboardingProfile: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] bg-neutral-900 px-4">
-      <h1 className="text-2xl font-bold mb-6">Create Your Profile</h1>
+    <div className="flex flex-col items-center justify-start pt-[12vh] min-h-screen min-h-[100dvh] bg-neutral-900 px-4">
+      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">
+        Create Your Profile
+      </h1>
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Name</label>
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-neutral-300">Name</label>
           <input
-            className="w-full border rounded px-3 py-2"
+            className="w-full bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12 px-3"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium">Age</label>
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-neutral-300">Age</label>
           <input
-            className="w-full border rounded px-3 py-2"
+            className="w-full bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12 px-3"
             type="number"
             value={age}
             onChange={(e) => setAge(e.target.value)}
             required
           />
         </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button type="submit" className="w-full bg-black text-white py-2 rounded">
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+        <button
+          type="submit"
+          className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-semibold text-base rounded-2xl transition-colors"
+        >
           Continue
         </button>
       </form>

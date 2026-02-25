@@ -25,7 +25,7 @@ export default function Matches() {
   const [matches, setMatches] = useState<MatchWithPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showExpired, setShowExpired] = useState(false);
+  const [showExpired, setShowExpired] = useState(true);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('mingle_dismissed_matches');
@@ -309,17 +309,23 @@ export default function Matches() {
         ) : (
           <div>
             {/* Active matches */}
-            {activeMatchesList.length > 0 && (
+            {activeMatchesList.length > 0 ? (
               <div className="space-y-1">
                 {activeMatchesList.map((match) => (
                   <SwipeableMatchRow key={match.id} match={match} />
                 ))}
               </div>
-            )}
+            ) : expiredMatchesList.length > 0 ? (
+              <div className="text-center py-6">
+                <Heart className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
+                <p className="text-neutral-400 text-sm">No active matches right now</p>
+                <p className="text-neutral-500 text-xs mt-1">Check in to a venue to meet new people</p>
+              </div>
+            ) : null}
 
             {/* Expired matches */}
             {expiredMatchesList.length > 0 && (
-              <div className="mt-6">
+              <div className={activeMatchesList.length > 0 ? "mt-6" : "mt-2"}>
                 <button
                   onClick={() => setShowExpired(!showExpired)}
                   className="flex items-center justify-between w-full px-4 py-2 text-neutral-400 text-sm"

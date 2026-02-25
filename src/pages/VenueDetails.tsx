@@ -3,7 +3,7 @@ import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, User } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, User, ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -233,8 +233,7 @@ export default function VenueDetails() {
     clearCheckIn(currentUser?.uid);
     setCheckedIn(null);
     setShowCheckoutConfirm(false);
-    setToast("Checked out");
-    setTimeout(() => setToast(null), 1600);
+    navigate('/checkin', { replace: true });
   };
 
   const handleLike = async (personId: string, clickEvent?: React.MouseEvent) => {
@@ -272,7 +271,7 @@ export default function VenueDetails() {
   return (
     <div className="max-w-lg mx-auto">
       {/* Venue Header — compact */}
-      <div className="relative h-36 overflow-hidden bg-neutral-800">
+      <div className="relative h-36 overflow-hidden bg-neutral-800 rounded-b-xl">
         <img
           src={venue.image || "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1200&auto=format&fit=crop"}
           alt={venue.name}
@@ -283,34 +282,52 @@ export default function VenueDetails() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent" />
-        <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
-          <div className="min-w-0 flex-1 mr-3">
-            <h1 className="text-xl font-bold text-white leading-tight truncate">{venue.name}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              {venue.address && (
-                <div className="flex items-center gap-1 text-neutral-300 text-xs min-w-0">
-                  <MapPin className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{venue.address}</span>
-                </div>
-              )}
-              {visiblePeople.length > 0 && (
-                <span className="text-violet-300 text-xs font-medium flex-shrink-0">
-                  {visiblePeople.length} here
-                </span>
-              )}
-            </div>
+        <div className="absolute bottom-2.5 left-3 right-3">
+          <h1 className="text-xl font-bold text-white leading-tight truncate">{venue.name}</h1>
+          <div className="flex items-center gap-2 mt-0.5">
+            {venue.address && (
+              <div className="flex items-center gap-1 text-neutral-300 text-xs min-w-0">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{venue.address}</span>
+              </div>
+            )}
+            {visiblePeople.length > 0 && (
+              <span className="text-violet-300 text-xs font-medium flex-shrink-0">
+                {visiblePeople.length} here
+              </span>
+            )}
           </div>
-          {checkedIn === venue.id && (
-            <button onClick={handleCheckOut} className="flex items-center gap-1 text-green-400 text-xs font-medium flex-shrink-0">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Checked In</span>
-            </button>
-          )}
         </div>
       </div>
 
+      {/* Action bar — Back to Venues + Check Out */}
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        <button
+          onClick={() => navigate('/checkin')}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          All Venues
+        </button>
+        <div className="flex-1" />
+        {checkedIn === venue.id ? (
+          <button
+            onClick={handleCheckOut}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-900/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 text-sm font-medium transition-colors border border-red-800/50"
+          >
+            <LogOut className="w-4 h-4" />
+            Check Out
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-900/30 text-green-400 text-sm font-medium border border-green-800/40">
+            <CheckCircle2 className="w-4 h-4" />
+            Viewing
+          </div>
+        )}
+      </div>
+
       {/* People Grid — tight */}
-      <div className="px-3 pt-3 pb-2">
+      <div className="px-3 pt-1 pb-2">
         {peopleLoading ? (
           <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-2">
             {[1, 2, 3, 4].map(i => (
