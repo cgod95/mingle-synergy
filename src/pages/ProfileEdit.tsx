@@ -115,25 +115,11 @@ export default function ProfileEdit() {
 
     try {
       const { userService } = await import('@/services');
-      
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + (prev < 60 ? 10 : 5);
-        });
-      }, 300);
 
-      const uploadPromise = userService.uploadProfilePhoto(currentUser.uid, file);
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Upload took too long')), 30000);
+      const photoUrl = await userService.uploadProfilePhoto(currentUser.uid, file, (pct) => {
+        setUploadProgress(pct);
       });
 
-      const photoUrl = await Promise.race([uploadPromise, timeoutPromise]);
-      
-      clearInterval(progressInterval);
       setUploadProgress(100);
       
       // Replace photo (only one photo allowed)
@@ -230,12 +216,11 @@ export default function ProfileEdit() {
           <div className="mb-4">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => navigate('/profile')}
               className="text-violet-400 hover:text-violet-300 hover:bg-violet-900/30"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Profile
+              <ArrowLeft className="w-5 h-5" />
             </Button>
           </div>
           <Card className="w-full bg-neutral-800 shadow-xl">
@@ -340,28 +325,28 @@ export default function ProfileEdit() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Name</label>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-neutral-300">Name</label>
               <Input
                 type="text"
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
+                className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12"
               />
             </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white">Bio</label>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-neutral-300">Bio</label>
               <Input
                 type="text"
                 placeholder="Short bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-400"
+                className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12"
               />
             </div>
             <Button 
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold" 
+              className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-semibold text-base rounded-2xl" 
               onClick={handleSave}
               disabled={saving || !name.trim() || !bio.trim()}
             >

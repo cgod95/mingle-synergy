@@ -61,11 +61,10 @@ export default function SignIn() {
                   navigate(-1);
                 }
               }}
-              className="text-neutral-400 hover:text-white -ml-2"
-              size="sm"
+              className="text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-2"
+              size="icon"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              <ArrowLeft className="w-5 h-5" />
             </Button>
           </div>
 
@@ -76,8 +75,8 @@ export default function SignIn() {
               <div className="w-12 h-12 rounded-xl bg-[#7C3AED] flex items-center justify-center mx-auto mb-3">
                 <span className="text-white font-bold text-xl">M</span>
               </div>
-              <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-              <p className="text-sm text-neutral-400 mt-1">Sign in to continue</p>
+              <h1 className="text-3xl font-bold text-white">Welcome back</h1>
+              <p className="text-base text-neutral-300 mt-2">Sign in to continue</p>
             </div>
 
             {/* Form */}
@@ -122,7 +121,7 @@ export default function SignIn() {
               )}
               <Button 
                 type="submit"
-                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-semibold text-base rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={busy || !email.trim() || !password.trim()}
               >
                 {busy ? (

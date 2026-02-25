@@ -11,7 +11,7 @@ import {
   arrayUnion,
   deleteDoc,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from '../../firebase';
 import { UserProfile, UserService } from '@/types/services';
 import { logError } from '@/utils/errorHandler';
@@ -201,33 +201,50 @@ class FirebaseUserService implements UserService {
     }
   }
 
-  async uploadProfilePhoto(userId: string, file: File): Promise<string> {
-    try {
-      // Create a unique filename
-      const fileExtension = file.name.split('.').pop();
-      const fileName = `profile-photos/${userId}/${Date.now()}.${fileExtension}`;
-      
-      // Upload to Firebase Storage
-      const storageRef = ref(storage, fileName);
-      const snapshot = await uploadBytes(storageRef, file);
-      
-      // Get the download URL
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      // Get current user profile to update photos array
-      const currentProfile = await this.getUserProfile(userId);
-      const currentPhotos = currentProfile?.photos || [];
-      
-      // Update user profile with the new photo URL
-      await this.updateUserProfile(userId, {
-        photos: [...currentPhotos, downloadURL]
+  async uploadProfilePhoto(userId: string, file: File, onProgress?: (percent: number) => void): Promise<string> {
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `profile-photos/${userId}/${Date.now()}.${fileExtension}`;
+    const storageRef = ref(storage, fileName);
+
+    return new Promise<string>((resolve, reject) => {
+      const task = uploadBytesResumable(storageRef, file, {
+        contentType: file.type || 'image/jpeg',
       });
-      
-      return downloadURL;
-    } catch (error) {
-      logError(error as Error, { source: 'userService', action: 'uploadProfilePhoto', userId });
-      throw error;
-    }
+
+      const timeout = setTimeout(() => {
+        task.cancel();
+        reject(new Error('Upload took too long'));
+      }, 60_000);
+
+      task.on(
+        'state_changed',
+        (snap) => {
+          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+          onProgress?.(pct);
+        },
+        (err) => {
+          clearTimeout(timeout);
+          logError(err as Error, { source: 'userService', action: 'uploadProfilePhoto', userId });
+          reject(err);
+        },
+        async () => {
+          clearTimeout(timeout);
+          try {
+            const downloadURL = await getDownloadURL(task.snapshot.ref);
+            const currentProfile = await this.getUserProfile(userId);
+            const currentPhotos = currentProfile?.photos || [];
+            await this.updateUserProfile(userId, {
+              photos: [...currentPhotos, downloadURL],
+            });
+            onProgress?.(100);
+            resolve(downloadURL);
+          } catch (err) {
+            logError(err as Error, { source: 'userService', action: 'uploadProfilePhoto', userId });
+            reject(err);
+          }
+        },
+      );
+    });
   }
 }
 

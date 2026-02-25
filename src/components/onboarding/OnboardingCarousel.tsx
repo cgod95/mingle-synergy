@@ -87,11 +87,11 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
                 </div>
               </div>
               
-              <h1 className="text-2xl font-bold text-white mb-3">
+              <h1 className="text-3xl font-bold text-white mb-3">
                 {slides[currentSlide].title}
               </h1>
               
-              <p className="text-neutral-400 text-base leading-relaxed max-w-xs mx-auto">
+              <p className="text-neutral-300 text-base leading-relaxed max-w-xs mx-auto">
                 {slides[currentSlide].description}
               </p>
             </motion.div>
@@ -117,7 +117,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
         <div className="max-w-md mx-auto space-y-3">
           <Button
             onClick={handleNext}
-            className="w-full py-6 bg-violet-600 hover:bg-violet-700 text-white rounded-full font-semibold text-base"
+            className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl font-semibold text-base"
           >
             {currentSlide < slides.length - 1 ? 'Next' : 'Get Started'}
           </Button>
@@ -126,7 +126,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
             <Button
               onClick={handleSkip}
               variant="ghost"
-              className="w-full py-4 text-neutral-500 hover:text-neutral-300 font-medium text-sm"
+              className="w-full h-12 text-neutral-400 hover:text-neutral-200 font-medium text-base"
             >
               Skip
             </Button>

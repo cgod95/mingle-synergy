@@ -23,7 +23,7 @@ export interface UserService {
   getReconnectRequests: (userId: string) => Promise<string[]>;
   acceptReconnectRequest: (userId: string, requesterId: string) => Promise<void>;
   sendReconnectRequest: (fromUserId: string, toUserId: string) => Promise<void>;
-  uploadProfilePhoto: (userId: string, file: File) => Promise<string>;
+  uploadProfilePhoto: (userId: string, file: File, onProgress?: (percent: number) => void) => Promise<string>;
 }
 
 // Define the Venue type directly in services.ts

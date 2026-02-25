@@ -10,7 +10,7 @@ interface QRScannerOverlayProps {
   venues: Array<{ id: string; name: string }>;
 }
 
-type ScanPhase = "scanning" | "found" | "checking-in";
+type ScanPhase = "scanning" | "aligning" | "found" | "checking-in";
 
 export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }: QRScannerOverlayProps) {
   const [phase, setPhase] = useState<ScanPhase>("scanning");
@@ -32,26 +32,36 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
     startCamera();
     hapticLight();
 
+    // Phase 1: scanning (scan line sweeps) — 3s
     timers.push(setTimeout(() => {
       if (cancelled) return;
-      hapticMedium();
-      const venue = venues[0];
-      if (venue) {
-        setFoundVenue(venue);
-        setPhase("found");
+      hapticLight();
+      setPhase("aligning");
 
-        timers.push(setTimeout(() => {
-          if (cancelled) return;
-          hapticSuccess();
-          setPhase("checking-in");
+      // Phase 2: aligning / locking on — 1.5s
+      timers.push(setTimeout(() => {
+        if (cancelled) return;
+        hapticMedium();
+        const venue = venues[0];
+        if (venue) {
+          setFoundVenue(venue);
+          setPhase("found");
 
+          // Phase 3: found — show venue name — 1.5s
           timers.push(setTimeout(() => {
             if (cancelled) return;
-            onVenueFound(venue.id, venue.name);
-          }, 800));
-        }, 1200));
-      }
-    }, 2200));
+            hapticSuccess();
+            setPhase("checking-in");
+
+            // Phase 4: checking-in — 1.2s then navigate
+            timers.push(setTimeout(() => {
+              if (cancelled) return;
+              onVenueFound(venue.id, venue.name);
+            }, 1200));
+          }, 1500));
+        }
+      }, 1500));
+    }, 3000));
 
     return () => {
       cancelled = true;
@@ -122,7 +132,17 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
                 className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-violet-400 to-transparent"
                 initial={{ top: "10%" }}
                 animate={{ top: ["10%", "90%", "10%"] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              />
+            )}
+
+            {/* Aligning pulse — scanner locks onto the QR */}
+            {phase === "aligning" && (
+              <motion.div
+                className="absolute inset-0 rounded-2xl border-2 border-violet-400"
+                initial={{ opacity: 0.3 }}
+                animate={{ opacity: [0.3, 0.8, 0.3] }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
               />
             )}
 
@@ -174,6 +194,21 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
                 </p>
                 <p className="text-white/50 text-sm mt-1">
                   Hold steady while we scan
+                </p>
+              </motion.div>
+            )}
+            {phase === "aligning" && (
+              <motion.div
+                key="aligning"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <p className="text-violet-300 text-base font-medium">
+                  QR code detected...
+                </p>
+                <p className="text-white/50 text-sm mt-1">
+                  Verifying venue
                 </p>
               </motion.div>
             )}

@@ -247,11 +247,10 @@ export default function CreateProfile() {
             <Button
               variant="ghost"
               onClick={() => navigate('/signup')}
-              className="text-neutral-400 hover:text-white -ml-2"
-              size="sm"
+              className="text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-2"
+              size="icon"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              <ArrowLeft className="w-5 h-5" />
             </Button>
           </div>
 
@@ -266,8 +265,8 @@ export default function CreateProfile() {
             </div>
 
             <div className="text-center mb-6 flex-shrink-0">
-              <h1 className="text-2xl font-bold text-white">Create your profile</h1>
-              <p className="text-sm text-neutral-400 mt-1">Tell us about yourself</p>
+              <h1 className="text-3xl font-bold text-white">Create your profile</h1>
+              <p className="text-base text-neutral-300 mt-2">Tell us about yourself</p>
             </div>
 
             <div className="space-y-4 flex-shrink-0">
@@ -345,7 +344,7 @@ export default function CreateProfile() {
               <Button
                 onClick={handleSubmit}
                 loading={saving}
-                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl"
+                className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-semibold text-base rounded-2xl"
                 disabled={!name.trim() || saving}
               >
                 {saving ? (

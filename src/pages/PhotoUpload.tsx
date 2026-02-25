@@ -4,7 +4,7 @@ import { Camera, Upload, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// Card imports removed -- page now uses a flat full-screen layout
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -96,28 +96,13 @@ export default function PhotoUpload() {
 
     setUploading(true);
     setUploadProgress(0);
-    let progressInterval: NodeJS.Timeout | null = null;
 
     try {
-      progressInterval = setInterval(() => {
-        setUploadProgress((prev) => prev >= 90 ? 90 : prev + 10);
-      }, 200);
-
-      const uploadPromise = (async () => {
-        const { userService } = await import('@/services');
-        return await userService.uploadProfilePhoto(currentUser.uid, file);
-      })();
-
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Upload timeout. Please try again.')), 30000);
+      const { userService } = await import('@/services');
+      await userService.uploadProfilePhoto(currentUser.uid, file, (pct) => {
+        setUploadProgress(pct);
       });
 
-      await Promise.race([uploadPromise, timeoutPromise]);
-      
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-      }
       setUploadProgress(100);
       setUploaded(true);
       
@@ -139,11 +124,6 @@ export default function PhotoUpload() {
         navigate(fromProfile ? '/profile' : '/checkin', { replace: true });
       }, 800);
     } catch (error: any) {
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-      }
-      
       logError(error as Error, { 
         context: 'PhotoUpload.handleUpload', 
         userId: currentUser?.uid || 'unknown',
@@ -177,84 +157,85 @@ export default function PhotoUpload() {
 
   return (
     <Layout showBottomNav={false}>
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex flex-col justify-center p-4 safe-y">
-        <Card className="w-full max-w-md mx-auto bg-neutral-800 shadow-xl">
-          <CardHeader className="text-center space-y-2 border-b border-neutral-700 pb-4">
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center mb-2">
-              <div className="flex items-center space-x-2">
+      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 overflow-y-auto safe-y">
+        <div className="flex flex-col min-h-screen min-h-[100dvh] px-4 py-8">
+          {/* Back */}
+          <div className="flex-shrink-0 mb-4">
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              disabled={uploading || uploaded}
+              className="text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-2"
+              size="icon"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center w-full max-w-sm mx-auto">
+            {/* Progress */}
+            <div className="flex items-center justify-center mb-6 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                <div className="w-12 h-1 bg-violet-600 rounded"></div>
+                <div className="w-10 h-0.5 bg-violet-600 rounded"></div>
                 <div className="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
               </div>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent font-bold">
-              Upload Your Photo
-            </CardTitle>
-            <p className="text-sm text-neutral-300">
-              Step 2 of 2: Photos help others recognize you
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-6 pt-6">
+
+            <div className="text-center mb-6 flex-shrink-0">
+              <h1 className="text-3xl font-bold text-white">Upload your photo</h1>
+              <p className="text-base text-neutral-300 mt-2">Photos help others recognise you</p>
+            </div>
+
             {/* Photo Preview/Upload Area */}
-            <div className="flex justify-center">
-              <div className="relative">
-                <label className="relative w-48 h-48 rounded-2xl border-2 border-dashed border-violet-500/30 flex items-center justify-center cursor-pointer overflow-hidden bg-gradient-to-br from-violet-500/5 to-violet-500/10 hover:border-violet-500/50 hover:bg-gradient-to-br hover:from-violet-500/10 hover:to-violet-500/15 transition-all duration-200 group active:scale-98">
-                  <AnimatePresence mode="wait">
-                    {preview ? (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="relative w-full h-full"
-                      >
-                        <img 
-                          src={preview} 
-                          alt="Preview" 
-                          className="w-full h-full object-cover"
-                        />
-                        {uploaded && (
-                          <div className="absolute inset-0 bg-violet-500/20 flex items-center justify-center">
-                            <CheckCircle2 className="w-16 h-16 text-violet-400" />
-                          </div>
-                        )}
-                        {file && !uploaded && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleRemovePhoto();
-                            }}
-                            className="absolute top-2 right-2 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 active:scale-95 transition-all shadow-lg touch-target"
-                            type="button"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        )}
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center space-y-3 text-neutral-400 group-hover:text-violet-400 transition-colors p-4"
-                      >
-                        <Camera className="w-14 h-14" />
-                        <span className="text-sm font-medium text-center">Tap to take a photo</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    disabled={uploading || uploaded}
-                  />
-                </label>
-              </div>
+            <div className="flex justify-center mb-6 flex-shrink-0">
+              <label className="relative w-48 h-48 rounded-2xl border-2 border-dashed border-violet-500/30 flex items-center justify-center cursor-pointer overflow-hidden bg-gradient-to-br from-violet-500/5 to-violet-500/10 hover:border-violet-500/50 transition-all duration-200 group active:scale-[0.98]">
+                <AnimatePresence mode="wait">
+                  {preview ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="relative w-full h-full"
+                    >
+                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                      {uploaded && (
+                        <div className="absolute inset-0 bg-violet-500/20 flex items-center justify-center">
+                          <CheckCircle2 className="w-16 h-16 text-violet-400" />
+                        </div>
+                      )}
+                      {file && !uploaded && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemovePhoto(); }}
+                          className="absolute top-2 right-2 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 active:scale-95 transition-all shadow-lg"
+                          type="button"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex flex-col items-center justify-center space-y-3 text-neutral-400 group-hover:text-violet-400 transition-colors p-4"
+                    >
+                      <Camera className="w-14 h-14" />
+                      <span className="text-sm font-medium text-center">Tap to take a photo</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  disabled={uploading || uploaded}
+                />
+              </label>
             </div>
 
             {/* Upload Progress */}
@@ -262,11 +243,11 @@ export default function PhotoUpload() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="space-y-2"
+                className="space-y-2 mb-6 flex-shrink-0"
               >
                 <div className="w-full bg-neutral-700 rounded-full h-2.5 overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-violet-500 to-violet-500"
+                    className="h-full bg-violet-500"
                     initial={{ width: 0 }}
                     animate={{ width: `${uploadProgress}%` }}
                     transition={{ duration: 0.3 }}
@@ -279,51 +260,39 @@ export default function PhotoUpload() {
             )}
 
             {/* Action Buttons */}
-            <div className="space-y-3">
-              {/* Back button - fixed to not get stuck */}
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                disabled={uploading || uploaded}
-                className="w-full hover:bg-neutral-700 text-neutral-300 hover:text-white min-h-[48px] touch-target"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back
-              </Button>
-
+            <div className="space-y-3 flex-shrink-0">
               {preview && !uploaded && (
-                <div className="flex space-x-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleRemovePhoto}
-                    disabled={uploading}
-                    className="flex-1 hover:bg-neutral-700 text-neutral-300 hover:text-white min-h-[48px] touch-target"
-                  >
-                    <X className="w-5 h-5 mr-2" />
-                    Retake
-                  </Button>
+                <>
                   <Button
                     onClick={handleUpload}
                     disabled={!file || uploading}
-                    className="flex-1 bg-gradient-to-r from-violet-600 to-violet-600 hover:from-violet-500 hover:to-violet-500 text-white font-semibold shadow-lg min-h-[48px] touch-target active:scale-98"
+                    className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-semibold text-base rounded-2xl"
                   >
                     {uploading ? (
-                      <>
+                      <span className="flex items-center justify-center">
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                           className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full"
                         />
                         Uploading...
-                      </>
+                      </span>
                     ) : (
-                      <>
+                      <span className="flex items-center justify-center">
                         <Upload className="w-5 h-5 mr-2" />
-                        Upload
-                      </>
+                        Upload Photo
+                      </span>
                     )}
                   </Button>
-                </div>
+                  <Button
+                    variant="ghost"
+                    onClick={handleRemovePhoto}
+                    disabled={uploading}
+                    className="w-full h-12 text-neutral-400 hover:text-neutral-200 font-medium text-base rounded-xl"
+                  >
+                    Retake
+                  </Button>
+                </>
               )}
 
               {uploaded && (
@@ -332,17 +301,13 @@ export default function PhotoUpload() {
                   animate={{ opacity: 1, y: 0 }}
                   className="text-center py-4"
                 >
-                  <p className="text-base text-green-400 font-medium mb-1">
-                    ✓ Photo uploaded!
-                  </p>
-                  <p className="text-sm text-neutral-400">
-                    Redirecting...
-                  </p>
+                  <p className="text-base text-green-400 font-medium mb-1">Photo uploaded!</p>
+                  <p className="text-sm text-neutral-400">Redirecting...</p>
                 </motion.div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </Layout>
   );
