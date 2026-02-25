@@ -26,29 +26,36 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
       return;
     }
 
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
     startCamera();
     hapticLight();
 
-    const scanTimer = setTimeout(() => {
+    timers.push(setTimeout(() => {
+      if (cancelled) return;
       hapticMedium();
       const venue = venues[0];
       if (venue) {
         setFoundVenue(venue);
         setPhase("found");
 
-        setTimeout(() => {
+        timers.push(setTimeout(() => {
+          if (cancelled) return;
           hapticSuccess();
           setPhase("checking-in");
 
-          setTimeout(() => {
+          timers.push(setTimeout(() => {
+            if (cancelled) return;
             onVenueFound(venue.id, venue.name);
-          }, 800);
-        }, 1200);
+          }, 800));
+        }, 1200));
       }
-    }, 2200);
+    }, 2200));
 
     return () => {
-      clearTimeout(scanTimer);
+      cancelled = true;
+      timers.forEach(clearTimeout);
       stopCamera();
     };
   }, [open]);
@@ -104,10 +111,10 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
             <div className="absolute inset-0 border-2 border-white/30 rounded-2xl" />
 
             {/* Animated corner brackets */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-3 border-l-3 border-violet-400 rounded-tl-xl" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-3 border-r-3 border-violet-400 rounded-tr-xl" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-3 border-l-3 border-violet-400 rounded-bl-xl" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-3 border-r-3 border-violet-400 rounded-br-xl" />
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-violet-400 rounded-tl-xl" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-violet-400 rounded-tr-xl" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-violet-400 rounded-bl-xl" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-violet-400 rounded-br-xl" />
 
             {/* Scan line animation */}
             {phase === "scanning" && (
