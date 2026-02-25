@@ -516,6 +516,12 @@ const SettingsPage: React.FC = () => {
       icon: HelpCircle,
       items: [
         {
+          label: 'How It Works',
+          description: 'Learn how Mingle works',
+          action: () => navigate('/about-mingle'),
+          icon: Info
+        },
+        {
           label: 'Help Center',
           description: 'Get help and find answers',
           action: () => navigate('/help'),

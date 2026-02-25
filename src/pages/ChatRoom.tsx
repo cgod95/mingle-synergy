@@ -193,24 +193,24 @@ export default function ChatRoom() {
       <div className="max-w-lg mx-auto w-full h-full flex flex-col bg-neutral-900">
         <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
 
-        {/* Header — single clean bar */}
+        {/* Header */}
         <div 
-          className="bg-neutral-900 px-3 py-2.5 flex items-center gap-3 flex-shrink-0"
-          style={{ paddingTop: 'max(0.625rem, env(safe-area-inset-top, 0px))' }}
+          className="bg-neutral-900 border-b border-neutral-800 px-4 py-3.5 flex items-center gap-3 flex-shrink-0"
+          style={{ paddingTop: 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
         >
           <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="rounded-full text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-1">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Avatar className="h-9 w-9 rounded-full">
+          <Avatar className="h-12 w-12 rounded-xl">
             {matchAvatar ? (
-              <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-full" />
+              <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-xl" />
             ) : null}
-            <AvatarFallback className="bg-violet-600 text-white text-sm rounded-full">
+            <AvatarFallback className="bg-violet-600 text-white text-base font-semibold rounded-xl">
               {matchName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-white text-sm truncate">{matchName}</h2>
+            <h2 className="font-semibold text-white text-base truncate">{matchName}</h2>
             {matchExpiresAt && getRemainingTime() && (
               <p className="text-xs text-neutral-400">
                 {getRemainingTime()} left
@@ -218,28 +218,28 @@ export default function ChatRoom() {
             )}
           </div>
           {otherUserId && (
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full text-neutral-400 hover:text-white">
+                <Button variant="ghost" size="icon" className="rounded-full text-neutral-400 hover:text-white h-10 w-10">
                   <MoreVertical className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-neutral-800 border-neutral-700">
+              <DropdownMenuContent align="end" sideOffset={8} className="bg-neutral-800 border-neutral-700 z-[9999] min-w-[180px]">
                 <DropdownMenuItem 
                   onClick={() => navigate(`/profile/${otherUserId}`)}
-                  className="text-neutral-200 focus:bg-neutral-700"
+                  className="text-neutral-200 focus:bg-neutral-700 py-3 text-base"
                 >
                   View Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setShowBlockDialog(true)}
-                  className="text-red-400 focus:bg-neutral-700"
+                  className="text-red-400 focus:bg-neutral-700 py-3 text-base"
                 >
                   Block User
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setShowReportDialog(true)}
-                  className="text-neutral-300 focus:bg-neutral-700"
+                  className="text-neutral-300 focus:bg-neutral-700 py-3 text-base"
                 >
                   Report
                 </DropdownMenuItem>
@@ -249,7 +249,7 @@ export default function ChatRoom() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-3 bg-neutral-900" aria-live="polite">
+        <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-4 bg-neutral-900" aria-live="polite">
           <AnimatePresence>
             {msgs.map((m, i) => (
               <motion.div
@@ -261,14 +261,14 @@ export default function ChatRoom() {
                 className={`flex ${m.sender === "you" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                     m.sender === "you"
                       ? "bg-violet-600 text-white rounded-br-md"
                       : "bg-neutral-800 text-neutral-200 rounded-bl-md"
                   }`}
                 >
-                  <p className="text-[15px] leading-relaxed break-words">{m.text}</p>
-                  <p className={`text-[11px] mt-1 ${m.sender === "you" ? "text-violet-200/60 text-right" : "text-neutral-400"}`}>
+                  <p className="text-base leading-relaxed break-words">{m.text}</p>
+                  <p className={`text-xs mt-1 ${m.sender === "you" ? "text-violet-200/60 text-right" : "text-neutral-400"}`}>
                     {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
@@ -281,23 +281,23 @@ export default function ChatRoom() {
 
         {/* Input */}
         <div
-          className="bg-neutral-900 px-4 py-3 flex-shrink-0"
-          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
+          className="bg-neutral-900 border-t border-neutral-800 px-4 py-4 flex-shrink-0"
+          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
         >
           {/* Message limit indicator */}
           {remainingMessages === 0 && (
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs text-neutral-400">Message limit reached</span>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm text-neutral-400">Message limit reached</span>
               <button
                 onClick={() => setShowMessageLimitModal(true)}
-                className="text-violet-400 text-xs font-medium"
+                className="text-violet-400 text-sm font-medium"
               >
                 Options
               </button>
             </div>
           )}
 
-          <form onSubmit={onSend} className="flex gap-2 items-end">
+          <form onSubmit={onSend} className="flex gap-3 items-end">
             <div className="flex-1">
               <input
                 ref={inputRef}
@@ -309,7 +309,7 @@ export default function ChatRoom() {
                     : "Type a message..."
                 }
                 disabled={!canSendMsg}
-                className={`w-full rounded-full px-4 py-2.5 text-[15px] focus:outline-none focus:ring-1 focus:ring-violet-500 ${
+                className={`w-full rounded-full px-5 py-3.5 text-base focus:outline-none focus:ring-1 focus:ring-violet-500 ${
                   !canSendMsg
                     ? 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
                     : 'bg-neutral-800 text-white placeholder:text-neutral-400'
@@ -319,10 +319,10 @@ export default function ChatRoom() {
             <Button
               type="submit"
               disabled={!text.trim() || !canSendMsg || sending}
-              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-30 h-10 w-10 flex-shrink-0"
+              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-30 h-12 w-12 flex-shrink-0"
               size="icon"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5" />
             </Button>
           </form>
         </div>

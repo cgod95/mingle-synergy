@@ -77,13 +77,30 @@ export default function Matches() {
                   };
                 }
               } catch (err) {
-                console.error('[Matches] messages query failed for', match.id, err);
+                console.error('[Matches] indexed query failed for', match.id, '— falling back to simple query', err);
+                // Fallback: query without orderBy (no composite index needed), sort client-side
+                try {
+                  const fallbackSnap = await getDocs(
+                    query(
+                      collection(firestore, 'messages'),
+                      where('matchId', '==', match.id)
+                    )
+                  );
+                  if (!fallbackSnap.empty) {
+                    let latest: { text: string; ts: number } | null = null;
+                    fallbackSnap.docs.forEach(doc => {
+                      const d = doc.data();
+                      const ts = d.createdAt?.toDate?.()?.getTime?.() || 0;
+                      if (!latest || ts > latest.ts) {
+                        latest = { text: d.text || '', ts };
+                      }
+                    });
+                    lastMsg = latest;
+                  }
+                } catch (fallbackErr) {
+                  console.error('[Matches] fallback query also failed for', match.id, fallbackErr);
+                }
               }
-            }
-            // Fallback: use embedded messages from the match document itself
-            if (!lastMsg && match._embeddedMessages && match._embeddedMessages.length > 0) {
-              const last = match._embeddedMessages[match._embeddedMessages.length - 1];
-              lastMsg = { text: last.text || '', ts: last.timestamp || match.createdAt };
             }
             const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
             return {
@@ -215,7 +232,7 @@ export default function Matches() {
                 : 'text-neutral-400'
               : 'text-neutral-400 italic'
           }`}>
-            {match.lastMessage || "Start a conversation..."}
+            {match.lastMessage || "Say hello..."}
           </p>
           
           {match.venueName && (
@@ -286,7 +303,7 @@ export default function Matches() {
 
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-page-title">Matches</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">Matches</h1>
           {activeMatchesList.length > 0 && (
             <p className="text-sm text-neutral-300 mt-1">
               {activeMatchesList.length} active {activeMatchesList.length === 1 ? 'conversation' : 'conversations'}

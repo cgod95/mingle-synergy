@@ -165,7 +165,7 @@ export default function CheckInPage() {
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-page-title mb-0.5">Venues</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent mb-0.5">Venues</h1>
           <p className="text-page-subtitle">Check in to see who's here</p>
         </div>
 

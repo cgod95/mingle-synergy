@@ -160,13 +160,12 @@ export default function Profile() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">
           Profile
         </h1>
-        <p className="text-neutral-300 mt-2">{displayName}</p>
       </div>
 
       <div className="space-y-4">
         {/* Profile Card with swipeable photos */}
         <Card className="bg-neutral-800 shadow-lg overflow-hidden border-0">
-          <div className="relative aspect-[4/5] max-h-[50vh] overflow-hidden bg-neutral-700">
+          <div className="relative aspect-[4/5] max-h-[60vh] overflow-hidden bg-neutral-700">
             <ProfilePhotoCarousel
               photos={photos}
               name={displayName}
@@ -181,12 +180,24 @@ export default function Profile() {
             {profileData?.bio ? (
               <p className="text-base text-neutral-300 leading-relaxed">{profileData.bio}</p>
             ) : (
-              <button 
+              <div
+                className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-violet-900/30 transition-colors cursor-pointer"
                 onClick={() => navigate('/profile/edit')}
-                className="text-sm text-violet-400 hover:text-violet-300"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate('/profile/edit'); }}
               >
-                + Add a bio
-              </button>
+                <div className="flex items-center flex-1 min-w-0">
+                  <div className="p-2 rounded-lg mr-3 bg-violet-900/50 text-violet-400">
+                    <Edit className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-base text-white">Add a bio</span>
+                    <p className="text-sm text-neutral-300 mt-0.5">Tell people about yourself</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-violet-400" />
+              </div>
             )}
           </CardContent>
         </Card>

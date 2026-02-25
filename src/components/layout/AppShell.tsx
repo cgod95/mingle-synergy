@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import BottomNav from "../BottomNav";
-import MingleHeader from "./MingleHeader";
 import { useSyncUserState } from "@/hooks/useSyncUserState";
 import { useMatchNotifications } from "@/hooks/useMatchNotifications";
 import { useMessageNotifications } from "@/hooks/useMessageNotifications";
@@ -67,7 +66,6 @@ export default function AppShell() {
           : 'calc(80px + env(safe-area-inset-bottom, 0px))',
       }}
     >
-      <MingleHeader />
       <AnimatePresence>
         {!isOnline && (
           <motion.div
