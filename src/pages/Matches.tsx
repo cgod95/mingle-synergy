@@ -76,9 +76,14 @@ export default function Matches() {
                     ts: d.createdAt?.toDate?.()?.getTime?.() || Date.now(),
                   };
                 }
-              } catch {
-                // query failed, leave lastMsg null
+              } catch (err) {
+                console.error('[Matches] messages query failed for', match.id, err);
               }
+            }
+            // Fallback: use embedded messages from the match document itself
+            if (!lastMsg && match._embeddedMessages && match._embeddedMessages.length > 0) {
+              const last = match._embeddedMessages[match._embeddedMessages.length - 1];
+              lastMsg = { text: last.text || '', ts: last.timestamp || match.createdAt };
             }
             const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
             return {

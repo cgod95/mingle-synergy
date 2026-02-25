@@ -41,7 +41,6 @@ export default function CheckInPage() {
   const { toast } = useToast();
   const [loadingVenues, setLoadingVenues] = useState(true);
   const [venueError, setVenueError] = useState<Error | null>(null);
-  const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string>(getLocationPermissionStatus());
   const [showScanner, setShowScanner] = useState(false);
@@ -161,60 +160,14 @@ export default function CheckInPage() {
           <p className="text-page-subtitle">Check in to see who's here</p>
         </div>
 
-        {/* Quick Actions — compact row */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <button
-            onClick={() => setShowScanner(true)}
-            className="flex items-center gap-3 px-4 py-3.5 bg-violet-600/20 rounded-xl active:scale-[0.97] transition-transform"
-          >
-            <QrCode className="w-5 h-5 text-violet-400 flex-shrink-0" />
-            <span className="text-sm font-medium text-white">Scan QR Code</span>
-          </button>
-          
-          <button
-            onClick={async () => {
-              if (locationStatus === 'prompt') {
-                setShowLocationPrompt(true);
-                return;
-              }
-              if (locationStatus === 'denied') {
-                toast({ title: "Location needed", description: "Enable location in Settings." });
-                return;
-              }
-              setIsCheckingIn(true);
-              try {
-                const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                  navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
-                });
-                const nearbyVenue = venues.find(v => {
-                  if (!v.latitude || !v.longitude) return false;
-                  return calculateDistance(
-                    { latitude: position.coords.latitude, longitude: position.coords.longitude },
-                    { latitude: v.latitude, longitude: v.longitude }
-                  ) < 0.5;
-                });
-                if (nearbyVenue) {
-                  await onCheckIn(nearbyVenue.id);
-                } else {
-                  toast({ title: "No venue nearby", description: "Select a venue manually.", variant: "destructive" });
-                }
-              } catch (error) {
-                toast({ title: "Location error", description: "Could not detect location.", variant: "destructive" });
-              } finally {
-                setIsCheckingIn(false);
-              }
-            }}
-            className="flex items-center gap-3 px-4 py-3.5 bg-violet-600/20 rounded-xl active:scale-[0.97] transition-transform relative"
-          >
-            <MapPin className="w-5 h-5 text-violet-400 flex-shrink-0" />
-            <span className="text-sm font-medium text-white">I'm Here</span>
-            {isCheckingIn && (
-              <div className="absolute inset-0 bg-violet-600/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              </div>
-            )}
-          </button>
-        </div>
+        {/* Scan QR Code — primary action */}
+        <button
+          onClick={() => setShowScanner(true)}
+          className="w-full flex items-center justify-center gap-3 px-6 py-5 mb-6 bg-violet-600 hover:bg-violet-700 rounded-2xl active:scale-[0.97] transition-all shadow-lg shadow-violet-600/20"
+        >
+          <QrCode className="w-7 h-7 text-white flex-shrink-0" />
+          <span className="text-base font-semibold text-white">Scan QR Code to Check In</span>
+        </button>
 
         {/* QR scan notification */}
         {source === "qr" && qrVenueId && (

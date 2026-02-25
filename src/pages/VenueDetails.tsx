@@ -267,15 +267,6 @@ export default function VenueDetails() {
               )}
             </div>
           </div>
-          {checkedIn !== venue.id && (
-            <Button
-              onClick={handleCheckIn}
-              className="rounded-full px-4 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium flex-shrink-0"
-              size="sm"
-            >
-              Check In
-            </Button>
-          )}
           {checkedIn === venue.id && (
             <button onClick={handleCheckOut} className="flex items-center gap-1 text-green-400 text-xs font-medium flex-shrink-0">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -334,17 +325,6 @@ export default function VenueDetails() {
           </div>
         ) : (
           <>
-          {checkedIn !== venue.id && (
-            <div className="bg-violet-600/10 rounded-xl p-3 mb-2 flex items-center justify-between">
-              <span className="text-sm text-neutral-300">Check in to let others see you</span>
-              <button
-                onClick={handleCheckIn}
-                className="bg-violet-600 text-white text-xs font-medium px-3 py-1.5 rounded-full active:scale-95 transition-transform"
-              >
-                Check In
-              </button>
-            </div>
-          )}
           <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-2" aria-live="polite" aria-relevant="additions removals">
             {visiblePeople.map((p) => {
               const personAge = (p as any).age;
