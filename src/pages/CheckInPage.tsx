@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LocationPermissionPrompt, LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
 import { checkInAt, getCheckedVenueId } from "@/lib/checkinStore";
+import QRScannerOverlay from "@/components/QRScannerOverlay";
 
 interface VenueWithDistance {
   id: string;
@@ -43,6 +44,7 @@ export default function CheckInPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string>(getLocationPermissionStatus());
+  const [showScanner, setShowScanner] = useState(false);
   
   const loadingRef = useRef(false);
   const lastLoadKeyRef = useRef<string>("");
@@ -162,33 +164,7 @@ export default function CheckInPage() {
         {/* Quick Actions — compact row */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
-            onClick={() => {
-              // On mobile, open the native camera for QR scanning
-              // The venue QR codes contain URLs that auto-check users in
-              if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) {
-                // Create a temporary link that triggers the camera
-                // iOS Safari handles QR codes natively when camera opens
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.capture = 'environment';
-                input.style.display = 'none';
-                input.onchange = () => {
-                  document.body.removeChild(input);
-                  toast({
-                    title: "QR Code Scanned",
-                    description: "If you scanned a venue QR code, you'll be checked in automatically.",
-                  });
-                };
-                document.body.appendChild(input);
-                input.click();
-              } else {
-                toast({
-                  title: "Scan QR Code",
-                  description: "Use your phone camera to scan the venue QR code. It will open the app and check you in.",
-                });
-              }
-            }}
+            onClick={() => setShowScanner(true)}
             className="flex items-center gap-3 px-4 py-3.5 bg-violet-600/20 rounded-xl active:scale-[0.97] transition-transform"
           >
             <QrCode className="w-5 h-5 text-violet-400 flex-shrink-0" />
@@ -377,6 +353,17 @@ export default function CheckInPage() {
           }
         }}
         onDismiss={() => setShowLocationPrompt(false)}
+      />
+
+      {/* QR Scanner Overlay */}
+      <QRScannerOverlay
+        open={showScanner}
+        onClose={() => setShowScanner(false)}
+        venues={venues}
+        onVenueFound={(venueId, venueName) => {
+          setShowScanner(false);
+          onCheckIn(venueId);
+        }}
       />
     </div>
   );

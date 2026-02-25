@@ -474,14 +474,7 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     });
     
     await batch.commit();
-
-    // #region agent log
-    console.error('[DBG59ec69] markRead success', { matchId, totalDocs: snapshot.size, updated });
-    // #endregion
   } catch (error) {
-    // #region agent log
-    console.error('[DBG59ec69] markRead ERROR', { matchId, error: (error as any)?.message });
-    // #endregion
     logError(error as Error, { source: 'messageService', action: 'markMessagesAsRead', matchId, userId });
   }
 }; 
