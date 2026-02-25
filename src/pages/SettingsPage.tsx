@@ -29,10 +29,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { subscriptionService } from '@/services';
-import { analytics } from '@/services/analytics';
-import { notificationService } from '@/services/notificationService';
-import { realtimeService } from '@/services/realtimeService';
+// These services are loaded lazily to prevent module-level crashes
+let subscriptionService: any = null;
+let analyticsService: any = null;
+let notificationSvc: any = null;
+let realtimeSvc: any = null;
 import PremiumUpgradeModal from '@/components/ui/PremiumUpgradeModal';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +58,28 @@ const SettingsPage: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Load user preferences from localStorage
+    const loadServices = async () => {
+      try {
+        const svcModule = await import('@/services');
+        subscriptionService = svcModule.subscriptionService ?? null;
+      } catch { /* non-critical */ }
+      try {
+        const analyticsModule = await import('@/services/analytics');
+        analyticsService = analyticsModule.analytics ?? null;
+      } catch { /* non-critical */ }
+      try {
+        const notifModule = await import('@/services/notificationService');
+        notificationSvc = notifModule.notificationService ?? null;
+      } catch { /* non-critical */ }
+      try {
+        const rtModule = await import('@/services/realtimeService');
+        realtimeSvc = rtModule.realtimeService ?? null;
+      } catch { /* non-critical */ }
+    };
+    loadServices();
+  }, []);
+
+  useEffect(() => {
     try {
       const prefs = localStorage.getItem('user_preferences');
       if (prefs) {
@@ -126,14 +148,11 @@ const SettingsPage: React.FC = () => {
     };
     loadSubscription();
 
-    // Track page view
     try {
-      if (analytics && typeof analytics.trackPageView === 'function') {
-        analytics.trackPageView('/settings');
+      if (analyticsService && typeof analyticsService.trackPageView === 'function') {
+        analyticsService.trackPageView('/settings');
       }
-    } catch (error) {
-      // Failed to track page view - non-critical, silently fail
-    }
+    } catch { /* non-critical */ }
   }, [currentUser]);
 
   // Apply dark mode to document
@@ -182,13 +201,10 @@ const SettingsPage: React.FC = () => {
 
   const handleNotificationToggle = async (enabled: boolean) => {
     setNotificationsEnabled(enabled);
-    if (enabled && notificationService && typeof notificationService.requestPermission === 'function') {
+    if (enabled && notificationSvc && typeof notificationSvc.requestPermission === 'function') {
       try {
-        await notificationService.requestPermission();
-      } catch (error) {
-        // Failed to request permission - user can still toggle the setting
-        // Silently fail - preference is still saved
-      }
+        await notificationSvc.requestPermission();
+      } catch { /* non-critical */ }
     }
     savePreferences();
   };
@@ -198,30 +214,22 @@ const SettingsPage: React.FC = () => {
     // Analytics service handles enable/disable internally via config
     // Just track the preference change
     try {
-      if (analytics && typeof analytics.track === 'function') {
-        if (enabled) {
-          analytics.track('analytics_enabled');
-        } else {
-          analytics.track('analytics_disabled');
-        }
+      if (analyticsService && typeof analyticsService.track === 'function') {
+        analyticsService.track(enabled ? 'analytics_enabled' : 'analytics_disabled');
       }
-    } catch (error) {
-      // Failed to track analytics toggle - non-critical, silently fail
-    }
+    } catch { /* non-critical */ }
     savePreferences();
   };
 
   const handleRealtimeToggle = (enabled: boolean) => {
     setRealtimeEnabled(enabled);
     try {
-      if (enabled && realtimeService && typeof realtimeService.connect === 'function') {
-        realtimeService.connect();
-      } else if (!enabled && realtimeService && typeof realtimeService.disconnect === 'function') {
-        realtimeService.disconnect();
+      if (enabled && realtimeSvc && typeof realtimeSvc.connect === 'function') {
+        realtimeSvc.connect();
+      } else if (!enabled && realtimeSvc && typeof realtimeSvc.disconnect === 'function') {
+        realtimeSvc.disconnect();
       }
-    } catch (error) {
-      // Failed to toggle realtime - silently fail, preference still saved
-    }
+    } catch { /* non-critical */ }
     savePreferences();
   };
 
@@ -252,8 +260,8 @@ const SettingsPage: React.FC = () => {
       a.click();
       URL.revokeObjectURL(url);
 
-      if (analytics && typeof analytics.track === 'function') {
-        analytics.track('data_exported');
+      if (analyticsService && typeof analyticsService.track === 'function') {
+        analyticsService.track('data_exported');
       }
     } catch (error) {
       console.error('Failed to export data:', error);
@@ -269,8 +277,8 @@ const SettingsPage: React.FC = () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       try {
         // In a real app, this would call your backend to delete the account
-        if (analytics && typeof analytics.track === 'function') {
-          analytics.track('account_deleted');
+        if (analyticsService && typeof analyticsService.track === 'function') {
+          analyticsService.track('account_deleted');
         }
         localStorage.clear();
         navigate('/');

@@ -116,18 +116,22 @@ export default function ProfileEdit() {
     try {
       const { userService } = await import('@/services');
       
-      // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
             clearInterval(progressInterval);
             return 90;
           }
-          return prev + 10;
+          return prev + (prev < 60 ? 10 : 5);
         });
-      }, 200);
+      }, 300);
 
-      const photoUrl = await userService.uploadProfilePhoto(currentUser.uid, file);
+      const uploadPromise = userService.uploadProfilePhoto(currentUser.uid, file);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Upload took too long')), 30000);
+      });
+
+      const photoUrl = await Promise.race([uploadPromise, timeoutPromise]);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -146,9 +150,12 @@ export default function ProfileEdit() {
       });
     } catch (error) {
       logError(error as Error, { context: 'ProfileEdit.handleUploadPhoto', userId: currentUser?.uid || 'unknown' });
+      const isTimeout = error instanceof Error && error.message === 'Upload took too long';
       toast({
         title: 'Upload failed',
-        description: 'Failed to upload photo. Please try again.',
+        description: isTimeout
+          ? 'Upload took too long. Please check your connection and try again.'
+          : 'Failed to upload photo. Please try again.',
         variant: 'destructive',
       });
       setUploadProgress(0);

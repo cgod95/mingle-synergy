@@ -70,11 +70,6 @@ export default function AboutMingle() {
         ))}
       </div>
 
-      <div className="mt-8 text-center">
-        <p className="text-xs text-neutral-500">
-          Mingle brings dating back to the real world.
-        </p>
-      </div>
     </div>
   );
 }

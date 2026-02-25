@@ -74,9 +74,9 @@ const BottomNav: React.FC = () => {
   }
 
   const navItems = [
-    { path: '/checkin', icon: MapPin, label: 'Venues', activeColor: 'text-violet-400' },
-    { path: '/matches', icon: Heart, label: 'Matches', showBadge: true, activeColor: 'text-rose-400' },
-    { path: '/profile', icon: User, label: 'Profile', activeColor: 'text-violet-400' },
+    { path: '/checkin', icon: MapPin, label: 'Venues', activeColor: 'text-violet-500' },
+    { path: '/matches', icon: Heart, label: 'Matches', showBadge: true, activeColor: 'text-rose-500' },
+    { path: '/profile', icon: User, label: 'Profile', activeColor: 'text-violet-500' },
   ];
 
   const isActive = (path: string) => {
@@ -88,14 +88,17 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 nav-blur-ios shadow-2xl z-50 hide-on-keyboard"
+      className="fixed bottom-0 left-0 right-0 shadow-2xl z-50 hide-on-keyboard border-t border-neutral-800/60"
       style={{ 
         paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'env(safe-area-inset-left, 0px)',
         paddingRight: 'env(safe-area-inset-right, 0px)',
+        background: 'linear-gradient(to bottom, rgba(23,23,23,0.92), rgba(23,23,23,0.98))',
+        backdropFilter: 'saturate(180%) blur(20px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
       }}
     >
-      <div className="flex justify-around items-center max-w-md mx-auto px-2 pt-1.5">
+      <div className="flex justify-around items-center max-w-md mx-auto px-2 pt-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -107,21 +110,21 @@ const BottomNav: React.FC = () => {
               onClick={() => handleNavigate(item.path)}
               aria-label={`Navigate to ${item.label}${showBadge ? ` (${unreadCount} unread)` : ''}`}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-col items-center justify-center py-1.5 px-4 min-w-[64px] min-h-[48px] rounded-xl transition-all duration-200 active:scale-95 touch-target"
+              className="relative flex flex-col items-center justify-center py-2 px-5 min-w-[72px] min-h-[52px] rounded-xl transition-all duration-200 active:scale-95 touch-target"
             >
-              <div className={`relative ${active ? (item.activeColor || 'text-violet-400') : 'text-neutral-400'}`}>
-                <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+              <div className={`relative ${active ? (item.activeColor || 'text-violet-500') : 'text-neutral-400'}`}>
+                <Icon size={24} strokeWidth={active ? 2.5 : 2} />
                 {showBadge && (
                   <div role="status" aria-live="polite" className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-0.5 shadow-lg border-2 border-neutral-800">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </div>
                 )}
               </div>
-              <span className={`text-[10px] mt-0.5 ${active ? `font-semibold ${item.activeColor || 'text-violet-400'}` : 'font-medium text-neutral-400'}`}>
+              <span className={`text-xs mt-1 ${active ? `font-semibold ${item.activeColor || 'text-violet-500'}` : 'font-medium text-neutral-400'}`}>
                 {item.label}
               </span>
               {active && (
-                <div className={`absolute bottom-0.5 w-5 h-0.5 rounded-full ${item.path === '/matches' ? 'bg-rose-500' : 'bg-violet-500'}`} />
+                <div className={`absolute bottom-0.5 w-6 h-[3px] rounded-full ${item.path === '/matches' ? 'bg-rose-500' : 'bg-violet-500'}`} />
               )}
             </button>
           );

@@ -14,7 +14,7 @@ export default function MingleHeader() {
       }}
     >
       <div className="max-w-7xl mx-auto px-3">
-        <div className="flex items-center justify-between h-11">
+        <div className="flex items-center justify-between h-12">
           <Link
             to="/about-mingle"
             aria-label="Mingle - About"

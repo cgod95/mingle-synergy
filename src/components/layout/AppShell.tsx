@@ -60,11 +60,9 @@ export default function AppShell() {
     <div 
       className="min-h-screen min-h-[100dvh] bg-neutral-900"
       style={{
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        // When keyboard is open the BottomNav hides, so drop the 80px nav padding
         paddingBottom: keyboardOpen
           ? '0px'
-          : 'calc(72px + env(safe-area-inset-bottom, 0px))',
+          : 'calc(80px + env(safe-area-inset-bottom, 0px))',
       }}
     >
       <MingleHeader />
