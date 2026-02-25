@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Heart, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { logError } from "@/utils/errorHandler";
 import { useAuth } from "@/context/AuthContext";
@@ -8,6 +9,7 @@ import { getCheckedVenueId } from "@/lib/checkinStore";
 import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
 import { useUserLikes } from "@/hooks/useUserLikes";
+import { NewMatchModal } from "@/components/NewMatchModal";
 import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useToast } from "@/hooks/use-toast";
 import useEmblaCarousel from "embla-carousel-react";
@@ -114,6 +116,9 @@ export default function UserProfileView() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiking, setIsLiking] = useState(false);
+  const [heartBurst, setHeartBurst] = useState<{ x: number; y: number; key: number } | null>(null);
+  const [matchModal, setMatchModal] = useState<{ matchId: string; partnerName: string; partnerPhoto?: string } | null>(null);
+  const prevMatchedRef = useState(false);
 
   const liked = userId ? firestoreLikedIds.has(userId) : false;
   const isMatched = userId ? realtimeMatches.some(
@@ -121,14 +126,20 @@ export default function UserProfileView() {
   ) : false;
   const venueId = getCheckedVenueId();
 
-  const handleLike = async () => {
+  const handleLike = async (clickEvent?: React.MouseEvent) => {
     if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched) return;
     setIsLiking(true);
     hapticMedium();
+
+    if (clickEvent) {
+      setHeartBurst({ x: clickEvent.clientX, y: clickEvent.clientY, key: Date.now() });
+      setTimeout(() => setHeartBurst(null), 800);
+    }
+
     try {
       await likeUserWithMutualDetection(currentUser.uid, userId, venueId);
       if (!liked) {
-        toast({ title: "Like sent" });
+        toast({ title: "Like sent ❤️" });
       }
     } catch (error) {
       logError(error instanceof Error ? error : new Error('Failed to like'), {
@@ -141,9 +152,16 @@ export default function UserProfileView() {
   };
 
   useEffect(() => {
-    if (isMatched && liked) {
+    if (isMatched && liked && !matchModal) {
       hapticSuccess();
-      toast({ title: "It's a match!", description: "You can now chat with this person" });
+      const match = realtimeMatches.find(
+        m => m.userId1 === userId || m.userId2 === userId
+      );
+      if (match) {
+        const displayName = profile?.displayName || profile?.name || 'Someone';
+        const partnerPhoto = profile?.photos?.[0];
+        setMatchModal({ matchId: match.id, partnerName: displayName, partnerPhoto });
+      }
     }
   }, [isMatched]);
 
@@ -239,7 +257,7 @@ export default function UserProfileView() {
             </Button>
           ) : (
             <Button
-              onClick={handleLike}
+              onClick={(e) => handleLike(e)}
               disabled={isLiking}
               aria-label={liked ? `Liked ${displayName}` : `Like ${displayName}`}
               className={`w-full rounded-xl py-3 text-base font-semibold ${
@@ -258,6 +276,41 @@ export default function UserProfileView() {
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {heartBurst && (
+          <div className="fixed inset-0 pointer-events-none z-[100]">
+            {Array.from({ length: 6 }, (_, i) => {
+              const angle = (i / 6) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+              const distance = 40 + Math.random() * 30;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 1, scale: 0, x: heartBurst.x, y: heartBurst.y }}
+                  animate={{
+                    opacity: 0,
+                    scale: 0.6 + Math.random() * 0.6,
+                    x: heartBurst.x + Math.cos(angle) * distance,
+                    y: heartBurst.y + Math.sin(angle) * distance - 30,
+                  }}
+                  transition={{ duration: 0.7, ease: "easeOut" }}
+                  className="absolute"
+                >
+                  <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </AnimatePresence>
+
+      <NewMatchModal
+        isOpen={!!matchModal}
+        onClose={() => setMatchModal(null)}
+        matchId={matchModal?.matchId || ''}
+        partnerName={matchModal?.partnerName || ''}
+        partnerPhoto={matchModal?.partnerPhoto}
+      />
     </div>
   );
 }

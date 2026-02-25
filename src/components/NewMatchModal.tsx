@@ -4,12 +4,51 @@
  * Displays a celebratory modal when users get a new match
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, MessageCircle, Heart, Sparkles, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { hapticHeavy } from '@/lib/haptics';
+
+function FloatingHearts() {
+  const particles = useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      delay: Math.random() * 2,
+      duration: 2.5 + Math.random() * 2,
+      size: 12 + Math.random() * 14,
+      opacity: 0.3 + Math.random() * 0.4,
+    })), []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ y: '110%', x: `${p.x}%`, opacity: 0, scale: 0.5 }}
+          animate={{
+            y: '-10%',
+            opacity: [0, p.opacity, p.opacity, 0],
+            scale: [0.5, 1, 1, 0.7],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            ease: 'easeOut',
+            repeat: Infinity,
+            repeatDelay: Math.random() * 3,
+          }}
+          className="absolute"
+          style={{ fontSize: p.size }}
+        >
+          <Heart className="text-pink-400/60 fill-pink-400/40" style={{ width: p.size, height: p.size }} />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
 
 interface NewMatchModalProps {
   isOpen: boolean;
@@ -88,6 +127,8 @@ export function NewMatchModal({
                 <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-violet-500/20 rounded-full blur-3xl" />
               </div>
 
+              {!prefersReducedMotion && <FloatingHearts />}
+
               <AnimatePresence>
                 {showContent && (
                   <motion.div
@@ -99,12 +140,12 @@ export function NewMatchModal({
                     {/* Match celebration header */}
                     <div className="text-center mb-6">
                       <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", delay: 0.2, damping: 15 }}
-                        className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 mb-4"
+                        initial={{ scale: 0, rotate: -20 }}
+                        animate={{ scale: [0, 1.3, 1], rotate: [-20, 10, 0] }}
+                        transition={{ type: "spring", delay: 0.2, damping: 12, stiffness: 200 }}
+                        className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 mb-4 shadow-lg shadow-pink-500/30"
                       >
-                        <Heart className="w-8 h-8 text-white fill-white" />
+                        <Heart className="w-10 h-10 text-white fill-white" />
                       </motion.div>
                       
                       <motion.h2

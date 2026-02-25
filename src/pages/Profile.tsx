@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Settings, LogOut, Edit, Camera } from 'lucide-react';
+import { Settings, LogOut, Edit, Camera, ChevronRight, User } from 'lucide-react';
 import { logError } from '@/utils/errorHandler';
 import { UserProfileSkeleton } from '@/components/ui/LoadingStates';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -145,76 +146,102 @@ export default function Profile() {
   const displayName = profileData?.displayName || profileData?.name || currentUser?.name || 'User';
 
   return (
-    <div>
-      <div className="max-w-4xl mx-auto">
-        <div className="space-y-3">
-          {/* Profile Card with swipeable photos */}
-          <div className="relative rounded-2xl overflow-hidden bg-neutral-800">
-            <div className="relative aspect-[3/4] max-h-[340px] overflow-hidden bg-neutral-700">
-              <ProfilePhotoCarousel
-                photos={photos}
-                name={displayName}
-                onUpload={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
-                <h1 className="text-2xl font-bold text-white">{displayName}</h1>
-              </div>
-            </div>
+    <div className="max-w-4xl mx-auto">
+      {/* Header — gradient title matching Settings */}
+      <div className="mb-4">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">
+          Profile
+        </h1>
+        <p className="text-neutral-300 mt-2">{displayName}</p>
+      </div>
 
-            <div className="p-4">
-              {profileData?.bio ? (
-                <p className="text-base text-neutral-300 leading-relaxed">{profileData.bio}</p>
-              ) : (
-                <button 
-                  onClick={() => navigate('/profile/edit')}
-                  className="text-sm text-violet-400 hover:text-violet-300"
-                >
-                  + Add a bio
-                </button>
-              )}
+      <div className="space-y-4">
+        {/* Profile Card with swipeable photos */}
+        <Card className="bg-neutral-800 shadow-lg overflow-hidden">
+          <div className="relative aspect-[3/4] overflow-hidden bg-neutral-700">
+            <ProfilePhotoCarousel
+              photos={photos}
+              name={displayName}
+              onUpload={() => navigate('/photo-upload', { state: { from: 'profile' } })}
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+              <h2 className="text-2xl font-bold text-white">{displayName}</h2>
             </div>
           </div>
 
-          {/* Actions — tighter spacing */}
-          <div className="space-y-1.5">
+          <CardContent className="pt-4">
+            {profileData?.bio ? (
+              <p className="text-base text-neutral-300 leading-relaxed">{profileData.bio}</p>
+            ) : (
+              <button 
+                onClick={() => navigate('/profile/edit')}
+                className="text-sm text-violet-400 hover:text-violet-300"
+              >
+                + Add a bio
+              </button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Actions — styled as a Settings-like card */}
+        <Card className="bg-neutral-800 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700">
+            <CardTitle className="flex items-center">
+              <User className="w-5 h-5 mr-2 text-violet-400" />
+              <span className="text-violet-400 font-semibold">Quick Actions</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="space-y-1">
+              {[
+                { label: 'Edit Profile', description: 'Update your name, bio and details', icon: Edit, action: () => navigate('/profile/edit') },
+                { label: 'Edit Photos', description: 'Add or change your photos', icon: Camera, action: () => navigate('/photo-upload', { state: { from: 'profile' } }) },
+                { label: 'Settings', description: 'Manage preferences and account', icon: Settings, action: () => navigate('/settings') },
+              ].map((item, i, arr) => (
+                <React.Fragment key={item.label}>
+                  <div
+                    className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-violet-900/30 transition-colors cursor-pointer"
+                    onClick={item.action}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') item.action(); }}
+                  >
+                    <div className="flex items-center flex-1 min-w-0">
+                      <div className="p-2 rounded-lg mr-3 bg-violet-900/50 text-violet-400">
+                        <item.icon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold text-base text-white">{item.label}</span>
+                        <p className="text-sm text-neutral-300 mt-0.5">{item.description}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-violet-400 hover:text-violet-300 hover:bg-violet-900/30">
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div className="border-b border-neutral-700 my-1" />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sign Out — styled like Settings logout */}
+        <Card className="border border-red-700 bg-red-900/30">
+          <CardContent className="pt-6">
             <Button
-              onClick={() => navigate('/profile/edit')}
-              className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl"
-              variant="default"
-              aria-label="Edit profile"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-              className="w-full h-10 text-neutral-300 hover:bg-violet-900/30 hover:text-white rounded-xl"
-              aria-label="Edit photos"
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Edit Photos
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/settings')}
-              className="w-full h-10 text-neutral-300 hover:bg-violet-900/30 hover:text-white rounded-xl"
-              aria-label="Open settings"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-            <Button
-              variant="ghost"
+              variant="outline"
               onClick={signOut}
-              className="w-full h-10 text-red-400 hover:bg-red-900/30 hover:text-red-300 rounded-xl"
+              className="w-full text-red-400 border-red-700 hover:bg-red-900/50 hover:border-red-600 font-semibold"
               aria-label="Sign out"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
             </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

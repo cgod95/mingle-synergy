@@ -222,7 +222,7 @@ export default function PhotoUpload() {
                       className="flex flex-col items-center justify-center space-y-3 text-neutral-400 group-hover:text-violet-400 transition-colors p-4"
                     >
                       <Camera className="w-14 h-14" />
-                      <span className="text-sm font-medium text-center">Tap to take a photo</span>
+                      <span className="text-sm font-medium text-center">Tap to add a photo</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -230,7 +230,6 @@ export default function PhotoUpload() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={handleFileChange}
                   className="hidden"
                   disabled={uploading || uploaded}

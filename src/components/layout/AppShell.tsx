@@ -4,6 +4,7 @@ import BottomNav from "../BottomNav";
 import MingleHeader from "./MingleHeader";
 import { useSyncUserState } from "@/hooks/useSyncUserState";
 import { useMatchNotifications } from "@/hooks/useMatchNotifications";
+import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { PageTransition } from "@/components/ui/PageTransition";
@@ -38,6 +39,7 @@ export default function AppShell() {
 
   useSyncUserState();
   useMatchNotifications();
+  useMessageNotifications();
 
   const keyboardHeight = useKeyboardHeight();
   const keyboardOpen = keyboardHeight > 0;

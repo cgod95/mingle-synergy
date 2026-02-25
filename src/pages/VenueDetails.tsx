@@ -3,7 +3,7 @@ import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, User, Loader2 } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -38,6 +38,36 @@ function Toast({ text }: { text: string }) {
     >
       {text}
     </motion.div>
+  );
+}
+
+function HeartBurst({ x, y }: { x: number; y: number }) {
+  const hearts = Array.from({ length: 6 }, (_, i) => {
+    const angle = (i / 6) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+    const distance = 40 + Math.random() * 30;
+    return {
+      id: i,
+      dx: Math.cos(angle) * distance,
+      dy: Math.sin(angle) * distance - 30,
+      scale: 0.6 + Math.random() * 0.6,
+      delay: Math.random() * 0.1,
+    };
+  });
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[100]" style={{ left: 0, top: 0 }}>
+      {hearts.map((h) => (
+        <motion.div
+          key={h.id}
+          initial={{ opacity: 1, scale: 0, x, y }}
+          animate={{ opacity: 0, scale: h.scale, x: x + h.dx, y: y + h.dy }}
+          transition={{ duration: 0.7, delay: h.delay, ease: "easeOut" }}
+          className="absolute"
+        >
+          <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
@@ -79,6 +109,7 @@ export default function VenueDetails() {
   const [isLiking, setIsLiking] = useState<string | null>(null);
   const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
   const [matchModal, setMatchModal] = useState<{ matchId: string; partnerName: string; partnerPhoto?: string } | null>(null);
+  const [heartBurst, setHeartBurst] = useState<{ x: number; y: number; key: number } | null>(null);
   const pendingLikeRef = useRef<string | null>(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -206,13 +237,15 @@ export default function VenueDetails() {
     setTimeout(() => setToast(null), 1600);
   };
 
-  const handleLike = async (personId: string) => {
+  const handleLike = async (personId: string, clickEvent?: React.MouseEvent) => {
     if (isLiking === personId || !currentUser?.uid || !id) return;
-    // Always call likeUserWithMutualDetection even for already-liked users:
-    // the Firestore write is idempotent, and this ensures mutual detection
-    // runs for likes that were recorded before the detection code was fixed.
     setIsLiking(personId);
     hapticMedium();
+
+    if (clickEvent) {
+      setHeartBurst({ x: clickEvent.clientX, y: clickEvent.clientY, key: Date.now() });
+      setTimeout(() => setHeartBurst(null), 800);
+    }
     
     try {
       await likeUserWithMutualDetection(currentUser.uid, personId, id);
@@ -368,31 +401,10 @@ export default function VenueDetails() {
                       {matched && (
                         <p className="text-rose-300 text-[10px] font-medium mt-0.5">Matched</p>
                       )}
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLike(p.id);
-                      }}
-                      disabled={matched || isLiking === p.id}
-                      aria-label={matched ? `Matched with ${personName}` : liked ? `Liked ${personName}` : `Like ${personName}`}
-                      className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 touch-target ${
-                        matched
-                          ? 'bg-rose-500 text-white'
-                          : liked
-                          ? 'bg-rose-500/20 text-rose-400'
-                          : isLiking === p.id
-                          ? 'bg-white/70 text-neutral-500'
-                          : 'bg-white/90 text-rose-500 hover:bg-white'
-                      }`}
-                    >
-                      {isLiking === p.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Heart className={`w-4 h-4 ${liked || matched ? 'fill-current' : ''}`} />
+                      {liked && !matched && (
+                        <p className="text-rose-300 text-[10px] font-medium mt-0.5">Liked</p>
                       )}
-                    </button>
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -404,6 +416,10 @@ export default function VenueDetails() {
 
       <AnimatePresence>
         {toast && <Toast text={toast} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {heartBurst && <HeartBurst key={heartBurst.key} x={heartBurst.x} y={heartBurst.y} />}
       </AnimatePresence>
 
       {/* Match celebration modal */}
