@@ -32,7 +32,7 @@ function ProfilePhotoCarousel({ photos, name, onUpload }: { photos: string[]; na
   if (photos.length === 0) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800">
-        <Camera className="w-16 h-16 text-neutral-500 mb-3" />
+        <Camera className="w-16 h-16 text-neutral-400 mb-3" />
         <p className="text-neutral-400 font-medium">Add a photo</p>
         <Button
           variant="ghost"
@@ -189,7 +189,7 @@ export default function Profile() {
             <Button
               variant="ghost"
               onClick={() => navigate('/photo-upload', { state: { from: 'profile' } })}
-              className="w-full h-10 text-neutral-300 hover:bg-neutral-800 hover:text-white rounded-xl"
+              className="w-full h-10 text-neutral-300 hover:bg-violet-900/30 hover:text-white rounded-xl"
               aria-label="Edit photos"
             >
               <Camera className="w-4 h-4 mr-2" />
@@ -198,7 +198,7 @@ export default function Profile() {
             <Button
               variant="ghost"
               onClick={() => navigate('/settings')}
-              className="w-full h-10 text-neutral-300 hover:bg-neutral-800 hover:text-white rounded-xl"
+              className="w-full h-10 text-neutral-300 hover:bg-violet-900/30 hover:text-white rounded-xl"
               aria-label="Open settings"
             >
               <Settings className="w-4 h-4 mr-2" />
@@ -207,7 +207,7 @@ export default function Profile() {
             <Button
               variant="ghost"
               onClick={signOut}
-              className="w-full h-10 text-red-400 hover:bg-red-900/20 hover:text-red-300 rounded-xl"
+              className="w-full h-10 text-red-400 hover:bg-red-900/30 hover:text-red-300 rounded-xl"
               aria-label="Sign out"
             >
               <LogOut className="w-4 h-4 mr-2" />

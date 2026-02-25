@@ -198,7 +198,7 @@ export default function ChatRoom() {
           className="bg-neutral-900 px-3 py-2.5 flex items-center gap-3 flex-shrink-0"
           style={{ paddingTop: 'max(0.625rem, env(safe-area-inset-top, 0px))' }}
         >
-          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="rounded-full text-neutral-300 hover:text-white -ml-1">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="rounded-full text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-1">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <Avatar className="h-9 w-9 rounded-full">
@@ -287,7 +287,7 @@ export default function ChatRoom() {
           {/* Message limit indicator */}
           {remainingMessages === 0 && (
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs text-neutral-500">Message limit reached</span>
+              <span className="text-xs text-neutral-400">Message limit reached</span>
               <button
                 onClick={() => setShowMessageLimitModal(true)}
                 className="text-violet-400 text-xs font-medium"
@@ -311,8 +311,8 @@ export default function ChatRoom() {
                 disabled={!canSendMsg}
                 className={`w-full rounded-full px-4 py-2.5 text-[15px] focus:outline-none focus:ring-1 focus:ring-violet-500 ${
                   !canSendMsg
-                    ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
-                    : 'bg-neutral-800 text-white placeholder:text-neutral-500'
+                    ? 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
+                    : 'bg-neutral-800 text-white placeholder:text-neutral-400'
                 }`}
               />
             </div>

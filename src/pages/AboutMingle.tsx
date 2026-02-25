@@ -39,7 +39,7 @@ export default function AboutMingle() {
         <div className="flex justify-center mb-4">
           <MingleMLogo size="lg" showText={true} />
         </div>
-        <p className="text-neutral-400 text-base">
+        <p className="text-neutral-300 text-base">
           No more swiping. No more noise. Just meet people.
         </p>
       </div>
@@ -48,7 +48,7 @@ export default function AboutMingle() {
         {steps.map((s) => (
           <div
             key={s.step}
-            className="flex items-start gap-4 bg-neutral-800/60 rounded-xl p-4"
+            className="flex items-start gap-4 bg-neutral-800 rounded-xl p-4 shadow-lg"
           >
             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center">
               {s.icon}

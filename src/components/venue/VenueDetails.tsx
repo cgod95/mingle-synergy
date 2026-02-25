@@ -93,63 +93,57 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({
   }, [venue.id]);
 
   return (
-    <div className="mb-6">
-      {/* Existing JSX logic here */}
-      <div className="flex items-start justify-between mb-2">
+    <div className="mb-6 space-y-4">
+      {/* Venue header */}
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold">{venue.name}</h1>
-          <p className="text-gray-600 text-sm">
+          <h1 className="text-xl font-bold text-white">{venue.name}</h1>
+          <p className="text-neutral-300 text-sm">
             {venue.address || venue.city || ''}
           </p>
-          <div className="flex items-center text-sm text-gray-500 mt-1">
-            <Users className="w-4 h-4 mr-1" />
+          <div className="flex items-center text-sm text-neutral-400 mt-1">
+            <Users className="w-4 h-4 mr-1 text-violet-400" />
             {userCount} people here now
           </div>
         </div>
         <div className="text-right">
-          <div className="text-sm text-gray-600">Expires at {expiryTime}</div>
-          <button 
-            onClick={onCheckOut}
-            className="text-red-500 text-sm font-medium mt-1"
-          >
-            Check Out
-          </button>
+          <div className="text-sm text-neutral-400">Expires at {expiryTime}</div>
         </div>
       </div>
       
-      {/* Prominent Check-out Box */}
-      <div className="bg-neutral-800 shadow-md rounded-lg p-4 mb-4 flex justify-between items-center border-l-4 border-violet-500">
+      {/* Check-in status card */}
+      <div className="bg-neutral-800 shadow-lg rounded-xl p-4 flex justify-between items-center border-l-4 border-violet-500">
         <div>
-          <span className="text-violet-400 font-medium">You are checked in</span>
-          <p className="text-xs text-neutral-400">Other users can see you here</p>
+          <span className="text-violet-400 font-semibold">You are checked in</span>
+          <p className="text-sm text-neutral-300 mt-0.5">Other users can see you here</p>
         </div>
         <button 
           onClick={onCheckOut}
-          className="px-4 py-2 bg-coral-500 text-white rounded-lg shadow-sm hover:bg-coral-600 transition-colors"
+          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors"
         >
           Check Out
         </button>
       </div>
       
-      {/* Specials & Offers Section */}
-      <div className="mt-2 mb-3">
-        <h3 className="text-sm font-medium text-gray-700 mb-1">Specials & Offers</h3>
-        {venue.specials && venue.specials.length > 0 ? (
-          <div className="bg-coral-50 p-2 rounded border border-coral-100 text-sm">
+      {/* Specials & Offers */}
+      {venue.specials && venue.specials.length > 0 && (
+        <div className="bg-neutral-800 shadow-lg rounded-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-violet-500/10 via-violet-500/10 to-pink-500/10 border-b border-neutral-700 px-4 py-3">
+            <h3 className="text-violet-400 font-semibold text-sm">Specials & Offers</h3>
+          </div>
+          <div className="p-4 space-y-3">
             {venue.specials.map((special, index) => (
-              <div key={index} className={index > 0 ? "mt-1 pt-1 border-t border-coral-100" : ""}>
-                <p className="font-medium text-coral-700">{special.title}</p>
-                <p className="text-xs text-gray-600">{special.description}</p>
+              <div key={index} className={index > 0 ? "pt-3 border-t border-neutral-700" : ""}>
+                <p className="font-semibold text-white text-base">{special.title}</p>
+                <p className="text-sm text-neutral-300 mt-0.5">{special.description}</p>
               </div>
             ))}
           </div>
-        ) : (
-          <p className="text-xs text-gray-500 italic">No current specials</p>
-        )}
-      </div>
+        </div>
+      )}
       
       {onToggleVisibility && (
-        <div className="mt-4">
+        <div className="mt-2">
           <ToggleButton 
             isVisible={isVisible}
             onToggle={onToggleVisibility}

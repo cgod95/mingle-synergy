@@ -288,7 +288,7 @@ export default function Matches() {
         <div className="mb-4">
           <h1 className="text-page-title">Matches</h1>
           {activeMatchesList.length > 0 && (
-            <p className="text-sm text-neutral-400 mt-1">
+            <p className="text-sm text-neutral-300 mt-1">
               {activeMatchesList.length} active {activeMatchesList.length === 1 ? 'conversation' : 'conversations'}
             </p>
           )}
@@ -322,7 +322,7 @@ export default function Matches() {
               <div className="mt-6">
                 <button
                   onClick={() => setShowExpired(!showExpired)}
-                  className="flex items-center justify-between w-full px-4 py-2 text-neutral-500 text-sm"
+                  className="flex items-center justify-between w-full px-4 py-2 text-neutral-400 text-sm"
                 >
                   <span>Expired ({expiredMatchesList.length})</span>
                   {showExpired ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

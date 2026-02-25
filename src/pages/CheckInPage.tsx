@@ -184,7 +184,7 @@ export default function CheckInPage() {
         {/* Error state */}
         {venueError && venues.length === 0 && (
           <div className="text-center py-12">
-            <MapPin className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
+            <MapPin className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-white mb-1">Failed to load venues</h3>
             <p className="text-sm text-neutral-400 mb-4">
               {isNetworkError(venueError) ? 'Check your connection.' : 'Something went wrong.'}
@@ -205,7 +205,7 @@ export default function CheckInPage() {
         {/* Empty state */}
         {!loadingVenues && !venueError && venues.length === 0 && (
           <div className="text-center py-12">
-            <MapPin className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
+            <MapPin className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-white mb-1">No venues nearby</h3>
             <p className="text-sm text-neutral-400 mb-4">Try scanning a QR code at a venue.</p>
             <Button onClick={() => loadVenues()} variant="outline" size="sm" className="rounded-xl">
