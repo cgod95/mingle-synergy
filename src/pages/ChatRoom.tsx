@@ -133,10 +133,6 @@ export default function ChatRoom() {
     }
   }, [keyboardHeight]);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
   if (!matchId) {
     return (
       <div className="min-h-screen min-h-[100dvh] bg-neutral-900 p-4 flex items-center justify-center">
@@ -204,20 +200,20 @@ export default function ChatRoom() {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
-      {/* Capacitor Keyboard plugin with resize:'native' already shrinks the
-          WebView when the keyboard opens — no manual bottom offset needed. */}
+      {/* Capacitor Keyboard plugin with resize:'body' shrinks the body
+          above the keyboard — no manual bottom offset needed. */}
       <div className="max-w-lg mx-auto w-full h-full flex flex-col bg-neutral-900">
         <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
 
         {/* Header */}
         <div 
-          className="bg-neutral-900 border-b border-neutral-800 px-4 py-3.5 flex items-center gap-3 flex-shrink-0"
-          style={{ paddingTop: 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
+          className={`bg-neutral-900 border-b border-neutral-800 px-4 flex items-center gap-3 flex-shrink-0 transition-all duration-200 ${keyboardHeight > 0 ? 'py-2' : 'py-3.5'}`}
+          style={{ paddingTop: keyboardHeight > 0 ? undefined : 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
         >
           <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="rounded-full text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-1">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Avatar className="h-14 w-14 rounded-xl">
+          <Avatar className={`rounded-xl transition-all duration-200 ${keyboardHeight > 0 ? 'h-10 w-10' : 'h-14 w-14'}`}>
             {matchAvatar ? (
               <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-xl" />
             ) : null}
@@ -234,7 +230,7 @@ export default function ChatRoom() {
                 </span>
               )}
             </div>
-            {!isMatchExpired && matchExpiresAt && getRemainingTime() && (
+            {keyboardHeight === 0 && !isMatchExpired && matchExpiresAt && getRemainingTime() && (
               <p className="text-sm text-neutral-400">
                 {getRemainingTime()} left
               </p>
@@ -310,7 +306,7 @@ export default function ChatRoom() {
 
         {/* Input */}
         <div
-          className="bg-neutral-900 border-t border-neutral-800 px-4 py-4 flex-shrink-0"
+          className="bg-neutral-900 border-t border-neutral-800 px-4 py-3 flex-shrink-0"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
         >
           {isMatchExpired ? (
@@ -353,7 +349,7 @@ export default function ChatRoom() {
                         : "Type a message..."
                     }
                     disabled={!canSendMsg}
-                    className={`w-full rounded-full px-6 py-4 text-lg focus:outline-none focus:ring-1 focus:ring-violet-500 ${
+                    className={`w-full rounded-full px-6 py-3 text-lg focus:outline-none focus:ring-1 focus:ring-violet-500 ${
                       !canSendMsg
                         ? 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
                         : 'bg-neutral-800 text-white placeholder:text-neutral-400'
