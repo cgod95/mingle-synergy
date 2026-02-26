@@ -441,7 +441,7 @@ export const subscribeToMessages = (
     limitToLast(messageLimit)
   );
 
-  return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
+  return onSnapshot(q, (snapshot) => {
     const messages: Message[] = snapshot.docs.map((d) => ({
       id: d.id,
       senderId: d.data().senderId,
@@ -451,7 +451,7 @@ export const subscribeToMessages = (
     }));
     callback(messages);
   }, (error) => {
-    console.warn('Error in messages subscription:', error);
+    logError(error as Error, { source: 'messageService', action: 'subscribeToMessages', matchId });
   });
 };
 
