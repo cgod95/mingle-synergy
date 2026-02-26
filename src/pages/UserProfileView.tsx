@@ -214,7 +214,7 @@ export default function UserProfileView() {
 
   useEffect(() => {
     if (wasMatchedOnMount.current) return;
-    if (!isMatched || !liked || matchModal) return;
+    if (!isMatched || matchModal) return;
     const match = realtimeMatches.find(
       m => m.userId1 === userId || m.userId2 === userId
     );
@@ -226,7 +226,7 @@ export default function UserProfileView() {
     const displayName = profile?.displayName || profile?.name || "Someone";
     const partnerPhoto = profile?.photos?.[0];
     setMatchModal({ matchId: match.id, partnerName: displayName, partnerPhoto });
-  }, [isMatched, liked, matchModal, realtimeMatches, userId, profile?.displayName, profile?.name, profile?.photos]);
+  }, [isMatched, matchModal, realtimeMatches, userId, profile?.displayName, profile?.name, profile?.photos]);
 
   useEffect(() => {
     if (!userId) return;

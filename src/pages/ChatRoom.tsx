@@ -67,6 +67,7 @@ export default function ChatRoom() {
 
   const markReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
   const isNearBottomRef = useRef(true);
 
   // Pull-to-refresh state
@@ -74,7 +75,16 @@ export default function ChatRoom() {
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const allMessages = [...olderMsgs, ...msgs];
+  const allMessages = (() => {
+    const combined = [...olderMsgs, ...msgs];
+    const seen = new Set<string>();
+    return combined.filter(m => {
+      if (!m.id || m.id.startsWith('optimistic-')) return true;
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return true;
+    });
+  })();
 
   const isNearBottom = useCallback(() => {
     const el = scrollContainerRef.current;
@@ -252,9 +262,13 @@ export default function ChatRoom() {
     setText(e.target.value);
     if (!matchId || !currentUser?.uid) return;
 
-    setTypingStatus(matchId, currentUser.uid, true);
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      setTypingStatus(matchId, currentUser.uid, true);
+    }
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     typingTimerRef.current = setTimeout(() => {
+      isTypingRef.current = false;
       setTypingStatus(matchId, currentUser.uid, false);
     }, 3000);
   }, [matchId, currentUser?.uid]);
@@ -351,6 +365,9 @@ export default function ChatRoom() {
       setTypingStatus(matchId, currentUser.uid, false);
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     }
+
+    const optimisticMsg: Msg = { id: `optimistic-${Date.now()}`, sender: "you", text: t, ts: Date.now() };
+    setMsgs(prev => [...prev, optimisticMsg]);
     
     try {
       await firebaseSendMessage(matchId, currentUser.uid, t);
@@ -360,6 +377,7 @@ export default function ChatRoom() {
       const errorObj = error instanceof Error ? error : new Error('Failed to send message');
       setSendError(errorObj);
       setText(t);
+      setMsgs(prev => prev.filter(m => m.id !== optimisticMsg.id));
       
       if (errorObj.message.includes('limit')) {
         setShowMessageLimitModal(true);

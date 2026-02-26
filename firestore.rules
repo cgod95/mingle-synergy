@@ -33,10 +33,12 @@ service cloud.firestore {
       allow write: if false; // Only admins later - adjust when admin system is implemented
     }
 
-    // Matches - authenticated users can read (queries filter by userId1/userId2),
-    // only participants can write
+    // Matches - only participants can read/write
     match /matches/{matchId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (
+        resource.data.userId1 == request.auth.uid ||
+        resource.data.userId2 == request.auth.uid
+      );
       
       // Create: user must be one of the participants
       allow create: if isSignedIn() && (

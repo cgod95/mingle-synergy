@@ -13,6 +13,7 @@ import {
   DocumentData,
   deleteDoc,
   arrayUnion,
+  arrayRemove,
   setDoc,
   writeBatch
 } from 'firebase/firestore';
@@ -70,13 +71,13 @@ class FirebaseMatchService extends FirebaseServiceBase implements MatchService {
     ];
 
     const activeMatches = allMatches.filter(
-      (match: FirestoreMatch) =>
-        match.timestamp &&
-        typeof match.timestamp === "number" &&
-        now - match.timestamp < MATCH_EXPIRY_TIME
+      (match: FirestoreMatch) => {
+        const ts = toEpochMs(match.timestamp);
+        return ts > 0 && (now - ts) < MATCH_EXPIRY_TIME;
+      }
     );
 
-    return activeMatches.sort((a, b) => b.timestamp - a.timestamp);
+    return activeMatches.sort((a, b) => toEpochMs(b.timestamp) - toEpochMs(a.timestamp));
   }
   
   /**
@@ -551,33 +552,19 @@ export const likeUserWithMutualDetection = async (
   }
 };
 
-async function propagateIntroMessages(matchId: string, userId1: string, userId2: string): Promise<void> {
+async function propagateIntroMessages(matchId: string, currentUserId: string, otherUserId: string): Promise<void> {
   try {
-    const introRef1 = doc(firestore, "introMessages", `${userId1}_${userId2}`);
-    const introRef2 = doc(firestore, "introMessages", `${userId2}_${userId1}`);
-    const [snap1, snap2] = await Promise.all([getDoc(introRef1), getDoc(introRef2)]);
+    const myIntroRef = doc(firestore, "introMessages", `${currentUserId}_${otherUserId}`);
+    const myIntroSnap = await getDoc(myIntroRef);
 
-    const intros: Array<{ senderId: string; text: string; timestamp: number }> = [];
-
-    if (snap2.exists()) {
-      const data = snap2.data();
-      intros.push({ senderId: userId2, text: data.message, timestamp: data.timestamp });
-    }
-    if (snap1.exists()) {
-      const data = snap1.data();
-      intros.push({ senderId: userId1, text: data.message, timestamp: data.timestamp });
-    }
-
-    intros.sort((a, b) => a.timestamp - b.timestamp);
-
-    const messagesRef = collection(firestore, "messages");
-    for (const intro of intros) {
-      await addDoc(messagesRef, {
+    if (myIntroSnap.exists()) {
+      const data = myIntroSnap.data();
+      await addDoc(collection(firestore, "messages"), {
         matchId,
-        senderId: intro.senderId,
-        text: intro.text,
-        createdAt: Timestamp.fromMillis(intro.timestamp),
-        readBy: [intro.senderId],
+        senderId: currentUserId,
+        text: data.message,
+        createdAt: Timestamp.fromMillis(data.timestamp),
+        readBy: [currentUserId],
       });
     }
   } catch (error) {
@@ -613,36 +600,7 @@ export const rematchUsers = async (userId1: string, userId2: string, venueId: st
   return docRef.id;
 };
 
-export const sendMessage = async (
-  matchId: string,
-  senderId: string,
-  text: string
-): Promise<void> => {
-  const matchRef = doc(firestore, "matches", matchId);
-  const matchSnap = await getDoc(matchRef);
-
-  if (!matchSnap.exists()) throw new Error("Match not found");
-
-  const matchData = matchSnap.data() as FirestoreMatch;
-
-  const matchCreatedAt = toEpochMs(matchData.timestamp);
-  const now = Date.now();
-  const expiresAt = matchCreatedAt + MATCH_EXPIRY_TIME;
-  if (now > expiresAt) throw new Error("Match has expired");
-
-  // Message limit per user
-  const userMessages = matchData.messages.filter(m => m.senderId === senderId);
-  const messageLimit = typeof FEATURE_FLAGS?.LIMIT_MESSAGES_PER_USER === 'number' && FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER > 0 ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER : 10;
-  if (userMessages.length >= messageLimit) throw new Error("Message limit reached");
-
-  await updateDoc(matchRef, {
-    messages: arrayUnion({
-      senderId,
-      text,
-      timestamp: now,
-    }),
-  });
-};
+// sendMessage removed — use messageService.sendMessage instead (writes to messages collection)
 
 export const cleanupExpiredMatches = async (): Promise<void> => {
   if (!firestore) {
@@ -673,13 +631,15 @@ export const deleteExpiredMatches = async (userId: string) => {
     return;
   }
   
-  const q = query(collection(firestore, "matches"), where("userId1", "==", userId));
-  const snapshot = await getDocs(q);
+  const q1 = query(collection(firestore, "matches"), where("userId1", "==", userId));
+  const q2 = query(collection(firestore, "matches"), where("userId2", "==", userId));
+  const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+  const allDocs = [...snap1.docs, ...snap2.docs];
 
-  const deletions = snapshot.docs.map(async (doc) => {
-    const data = doc.data() as FirestoreMatch;
+  const deletions = allDocs.map(async (d) => {
+    const data = d.data() as FirestoreMatch;
     if (isMatchExpired(data)) {
-      await deleteDoc(doc.ref);
+      await deleteDoc(d.ref);
     }
   });
 
@@ -708,20 +668,25 @@ export const getActiveMatches = async (userId: string): Promise<FirestoreMatch[]
   ];
 
   const activeMatches = allMatches.filter(
-    (match: FirestoreMatch) =>
-      match.timestamp &&
-      typeof match.timestamp === "number" &&
-      now - match.timestamp < MATCH_EXPIRY_TIME
+    (match: FirestoreMatch) => {
+      const ts = toEpochMs(match.timestamp);
+      return ts > 0 && (now - ts) < MATCH_EXPIRY_TIME;
+    }
   );
 
-  return activeMatches.sort((a, b) => b.timestamp - a.timestamp);
+  return activeMatches.sort((a, b) => toEpochMs(b.timestamp) - toEpochMs(a.timestamp));
 };
 
 export const removeLikeBetweenUsers = async (uid1: string, uid2: string) => {
-  const ids = [`${uid1}_${uid2}`, `${uid2}_${uid1}`];
-  await Promise.all(
-    ids.map(id => deleteDoc(doc(firestore, "likes", id)))
-  );
+  if (!firestore) return;
+  try {
+    await Promise.all([
+      updateDoc(doc(firestore, "likes", uid1), { likes: arrayRemove(uid2) }),
+      updateDoc(doc(firestore, "likes", uid2), { likes: arrayRemove(uid1) }),
+    ]);
+  } catch (error) {
+    logError(error as Error, { source: 'matchService', action: 'removeLikeBetweenUsers', uid1, uid2 });
+  }
 };
 
 export const getPreviousMatch = async (uid1: string, uid2: string): Promise<FirestoreMatch | null> => {
@@ -752,11 +717,11 @@ export const getPreviousMatch = async (uid1: string, uid2: string): Promise<Fire
       (match.userId1 === uid2 && match.userId2 === uid1)
     );
 
+    const ts = toEpochMs(match.timestamp);
     if (
       involvesBothUsers &&
-      match.timestamp &&
-      typeof match.timestamp === "number" &&
-      now - match.timestamp >= MATCH_EXPIRY_TIME
+      ts > 0 &&
+      (now - ts) >= MATCH_EXPIRY_TIME
     ) {
       return match;
     }
@@ -857,7 +822,7 @@ export const getActiveMatchesForUser = async (userId: string) => {
 
   for (const match of allMatches) {
     const data = match.data();
-    const createdAt = typeof data.timestamp === 'number' ? data.timestamp : 0;
+    const createdAt = toEpochMs(data.timestamp);
     if (now - createdAt <= expiryMs) {
       activeMatches.push({ id: match.id, ...data });
     } else {

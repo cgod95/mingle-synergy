@@ -15,7 +15,8 @@ import {
   endBefore,
   writeBatch,
   updateDoc,
-  deleteField
+  deleteField,
+  arrayUnion
 } from 'firebase/firestore';
 import { firestore } from '@/firebase/config';
 import { UserProfile } from "@/types/services";
@@ -440,7 +441,7 @@ export const subscribeToMessages = (
     limitToLast(messageLimit)
   );
 
-  return onSnapshot(q, (snapshot) => {
+  return onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     const messages: Message[] = snapshot.docs.map((d) => ({
       id: d.id,
       senderId: d.data().senderId,
@@ -544,20 +545,22 @@ export const markMessagesAsRead = async (matchId: string, userId: string): Promi
     const q = query(messagesRef, where("matchId", "==", matchId));
     
     const snapshot = await getDocs(q);
-    const batch = writeBatch(firestore);
-    let updated = 0;
-    
-    snapshot.docs.forEach((d) => {
+    const toUpdate = snapshot.docs.filter(d => {
       const data = d.data();
-      if (data.senderId === userId) return;
-      const readBy = data.readBy || [];
-      if (!readBy.includes(userId)) {
-        batch.update(d.ref, { readBy: [...readBy, userId] });
-        updated++;
-      }
+      if (data.senderId === userId) return false;
+      const readBy: string[] = data.readBy || [];
+      return !readBy.includes(userId);
     });
-    
-    await batch.commit();
+
+    const BATCH_LIMIT = 450;
+    for (let i = 0; i < toUpdate.length; i += BATCH_LIMIT) {
+      const chunk = toUpdate.slice(i, i + BATCH_LIMIT);
+      const batch = writeBatch(firestore);
+      for (const d of chunk) {
+        batch.update(d.ref, { readBy: arrayUnion(userId) });
+      }
+      await batch.commit();
+    }
   } catch (error) {
     logError(error as Error, { source: 'messageService', action: 'markMessagesAsRead', matchId, userId });
   }

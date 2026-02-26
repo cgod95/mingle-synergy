@@ -307,15 +307,12 @@ export default function CheckInPage() {
         open={showLocationPrompt}
         onAllow={async () => {
           setShowLocationPrompt(false);
-          setIsCheckingIn(true);
           try {
             const { requestLocationPermission } = await import("@/utils/locationPermission");
             const granted = await requestLocationPermission();
             setLocationStatus(granted ? 'granted' : 'denied');
           } catch {
             setLocationStatus('denied');
-          } finally {
-            setIsCheckingIn(false);
           }
         }}
         onDismiss={() => setShowLocationPrompt(false)}

@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, firestore } from '@/firebase';
+import { firestore } from '@/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useAuth } from '@/context/AuthContext';
 import Layout from '@/components/Layout';
 import { ArrowLeft } from 'lucide-react';
 import analytics from '@/services/appAnalytics';
@@ -35,19 +36,19 @@ export default function CreateProfile() {
   const [isReady, setIsReady] = useState(false);
   const navigate = useNavigate();
   const { setOnboardingStepComplete, onboardingProgress } = useOnboarding();
+  const { currentUser } = useAuth();
 
-  // Ensure Firebase is initialized before rendering
   useEffect(() => {
-    if (!auth || !firestore) {
+    if (!firestore) {
       setError('Firebase is not initialized. Please refresh the page.');
       return;
     }
-    if (!auth.currentUser) {
+    if (!currentUser?.uid) {
       navigate('/signin');
       return;
     }
     setIsReady(true);
-  }, [navigate]);
+  }, [navigate, currentUser?.uid]);
 
   // Resume onboarding - load saved data if available
   useEffect(() => {
@@ -91,12 +92,12 @@ export default function CreateProfile() {
   }, [name, bio, gender, interestedIn, age]);
 
   const handleSubmit = async () => {
-    // Pre-flight checks
-    if (!auth.currentUser || !auth.currentUser.uid) {
+    if (!currentUser?.uid) {
       setError('User not authenticated. Please sign in again.');
       navigate('/signin');
       return;
     }
+    const uid = currentUser.uid;
     
     if (!firestore) {
       setError('Firebase is not initialized. Please refresh the page.');
@@ -117,7 +118,7 @@ export default function CreateProfile() {
     
     try {
         const profileData = {
-          id: auth.currentUser.uid,
+          id: uid,
           name,
           bio: bio.trim() || '',
           photos: [],
@@ -133,36 +134,26 @@ export default function CreateProfile() {
         blockedUsers: []
       };
 
-      // Use retry utility for network resilience
-      // Verify auth state before operations
-      if (!auth.currentUser || !auth.currentUser.uid) {
-        throw new Error('User not authenticated. Please sign in again.');
-      }
-      
       await retryWithMessage(
         async () => {
-          const ref = doc(firestore, 'users', auth.currentUser!.uid);
+          const ref = doc(firestore, 'users', uid);
           
-          // Check if document exists - handle permission errors gracefully
           let userDocExists = false;
           try {
             const userDoc = await getDoc(ref);
             userDocExists = userDoc.exists();
           } catch (error: any) {
-            // If getDoc fails with permission denied, assume document doesn't exist
             if (error?.code === 'permission-denied') {
               userDocExists = false;
             } else {
-              throw error; // Re-throw other errors
+              throw error;
             }
           }
           
           if (!userDocExists) {
-            // Document doesn't exist - create it WITHOUT merge (treats as CREATE operation)
-            // This handles the case where sign-up didn't create the document
             await setDoc(ref, {
-              email: auth.currentUser!.email || '',
-              id: auth.currentUser!.uid,
+              email: currentUser.email || '',
+              id: uid,
               createdAt: new Date().toISOString(),
               photos: [],
               isCheckedIn: false,

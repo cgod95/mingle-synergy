@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { DisplayMatch } from "@/types/match";
 import { useAuth } from "@/context/AuthContext";
-import { sendMessage, confirmWeMet } from "@/services/firebase/matchService";
+import { confirmWeMet } from "@/services/firebase/matchService";
 import WeMetConfirmationModal from "@/components/WeMetConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
