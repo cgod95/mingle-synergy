@@ -79,28 +79,31 @@ export default function VenueDetails() {
   const [venueError, setVenueError] = useState<Error | null>(null);
   
   useEffect(() => {
-    if (id) {
-      setLoadingVenue(true);
-      setVenueError(null);
-      getVenue(id)
-        .then(venue => {
-          setVenue(venue);
-          if (!venue) {
-            setVenueError(new Error('Venue not found'));
-          }
-        })
-        .catch(error => {
-          logError(error instanceof Error ? error : new Error('Failed to load venue'), { 
-            context: 'VenueDetails.loadVenue', 
-            venueId: id 
-          });
-          setVenueError(error instanceof Error ? error : new Error('Failed to load venue'));
-          setVenue(null);
-        })
-        .finally(() => {
-          setLoadingVenue(false);
+    if (!id) return;
+    let alive = true;
+    setLoadingVenue(true);
+    setVenueError(null);
+    getVenue(id)
+      .then(venue => {
+        if (!alive) return;
+        setVenue(venue);
+        if (!venue) {
+          setVenueError(new Error('Venue not found'));
+        }
+      })
+      .catch(error => {
+        logError(error instanceof Error ? error : new Error('Failed to load venue'), {
+          context: 'VenueDetails.loadVenue',
+          venueId: id,
         });
-    }
+        if (!alive) return;
+        setVenueError(error instanceof Error ? error : new Error('Failed to load venue'));
+        setVenue(null);
+      })
+      .finally(() => {
+        if (alive) setLoadingVenue(false);
+      });
+    return () => { alive = false; };
   }, [id]);
 
   const { people, loading: peopleLoading, error: peopleError, retry: retryPeople } = usePeopleAtVenue(id);

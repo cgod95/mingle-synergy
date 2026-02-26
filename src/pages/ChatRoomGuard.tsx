@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getActiveMatches } from "@/lib/matchesCompat";
+import { getAllMatches, isExpired } from "@/lib/matchesCompat";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -40,30 +40,39 @@ export default function ChatRoomGuard() {
     let alive = true;
     (async () => {
       try {
-        const all = await getActiveMatches(userId);
-        const match = all.find(m => m.id === id);
+        const allMatches = await getAllMatches(userId);
         if (!alive) return;
-        if (!match) {
-          if (all.length) {
-            toast({
-              title: "Chat unavailable",
-              description: "Opening your most recent chat instead.",
-            });
-            navigate(`/chat/${all[0].id}`, { replace: true });
-            setOk(true);
-          } else {
-            toast({
-              title: "No active chats",
-              description: "You don't have any active matches right now.",
-            });
-            navigate("/matches", { replace: true });
-            setOk(false);
-          }
-        } else {
+        const match = allMatches.find(m => m.id === id);
+        if (match) {
+          // Valid match (active or expired): show ChatRoom
+          if (!alive) return;
           setOk(true);
+          setReady(true);
+          return;
         }
+        // Requested id not found: redirect to first active chat or matches
+        const activeMatches = allMatches.filter(m => !isExpired(m));
+        if (!alive) return;
+        if (activeMatches.length > 0) {
+          toast({
+            title: "Chat unavailable",
+            description: "Opening your most recent chat instead.",
+          });
+          navigate(`/chat/${activeMatches[0].id}`, { replace: true });
+          setOk(true);
+        } else {
+          toast({
+            title: "No active chats",
+            description: "You don't have any active matches right now.",
+          });
+          navigate("/matches", { replace: true });
+          setOk(false);
+        }
+        if (!alive) return;
+        setReady(true);
       } catch (error) {
         logError(error instanceof Error ? error : new Error('Error loading chat'), { source: 'ChatRoomGuard', matchId: id });
+        if (!alive) return;
         toast({
           title: "Error loading chat",
           description: "Please try again.",
@@ -71,10 +80,7 @@ export default function ChatRoomGuard() {
         });
         navigate("/matches", { replace: true });
         setOk(false);
-      } finally {
-        if (alive) {
-          setReady(true);
-        }
+        setReady(true);
       }
     })();
     return () => { alive = false; };

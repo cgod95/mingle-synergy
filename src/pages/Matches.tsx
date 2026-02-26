@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, MapPin, ChevronDown, RefreshCw, Trash2, CheckCircle, MessageCircle, Undo2 } from "lucide-react";
+import { Heart, MapPin, ChevronDown, RefreshCw, Trash2, CheckCircle, MessageCircle, Undo2, Loader2 } from "lucide-react";
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from "framer-motion";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
@@ -39,6 +39,40 @@ export default function Matches() {
     } catch { return new Set(); }
   });
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [acceptingRematchId, setAcceptingRematchId] = useState<string | null>(null);
+  const [requestingRematchId, setRequestingRematchId] = useState<string | null>(null);
+
+  const handleAcceptRematch = useCallback(async (matchId: string) => {
+    if (!currentUser?.uid) return;
+    setAcceptingRematchId(matchId);
+    try {
+      const { matchService } = await import("@/services");
+      await matchService.requestReconnect(matchId, currentUser.uid);
+      await fetchMatches(true);
+      toast({ title: "You're back in touch!", description: "Open your new chat from the list." });
+    } catch (error) {
+      logError(error as Error, { context: "Matches.handleAcceptRematch", matchId });
+      toast({ title: "Couldn't accept rematch", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setAcceptingRematchId(null);
+    }
+  }, [currentUser?.uid, fetchMatches, toast]);
+
+  const handleRequestRematch = useCallback(async (matchId: string) => {
+    if (!currentUser?.uid) return;
+    setRequestingRematchId(matchId);
+    try {
+      const { matchService } = await import("@/services");
+      await matchService.requestReconnect(matchId, currentUser.uid);
+      await fetchMatches(true);
+      toast({ title: "Rematch requested", description: "They'll see it in Matches. If they accept, you'll get a new chat." });
+    } catch (error) {
+      logError(error as Error, { context: "Matches.handleRequestRematch", matchId });
+      toast({ title: "Couldn't request rematch", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setRequestingRematchId(null);
+    }
+  }, [currentUser?.uid, fetchMatches, toast]);
 
   const persistDismissed = useCallback((ids: Set<string>) => {
     localStorage.setItem('mingle_dismissed_matches', JSON.stringify([...ids]));
@@ -226,24 +260,33 @@ export default function Matches() {
   const unreadMatches = activeNonDismissed.filter(m => (unreadCounts[m.id] || 0) > 0);
   const readMatches = activeNonDismissed.filter(m => (unreadCounts[m.id] || 0) === 0);
 
-  const MatchRow = ({ match, expired = false }: { match: MatchWithPreview; expired?: boolean }) => {
+  const MatchRow = ({
+    match,
+    expired = false,
+    onAcceptRematch,
+    onRequestRematch,
+    acceptingRematchId,
+    requestingRematchId,
+  }: {
+    match: MatchWithPreview;
+    expired?: boolean;
+    onAcceptRematch?: (matchId: string) => void;
+    onRequestRematch?: (matchId: string) => void;
+    acceptingRematchId?: string | null;
+    requestingRematchId?: string | null;
+  }) => {
     const remainingTime = formatRemainingTime(match.expiresAt);
     const remainingSeconds = getRemainingSeconds(match);
     const isUrgent = remainingSeconds < 30 * 60 && !expired;
     const matchUnread = !expired && (unreadCounts[match.id] || 0) > 0;
+    const otherWantsRematch = expired && match.otherUserRequestedReconnect;
+    const iRequestedRematch = expired && match.iRequestedReconnect;
+    const canRequestRematch = expired && !match.iRequestedReconnect;
+    const isAccepting = acceptingRematchId === match.id;
+    const isRequesting = requestingRematchId === match.id;
 
-    return (
-      <button
-        onClick={() => handleMatchClick(match.id)}
-        aria-label={`Chat with ${match.displayName || 'Match'}`}
-        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl active:scale-[0.98] transition-all text-left ${
-          expired
-            ? 'bg-neutral-800/20 hover:bg-neutral-800/40'
-            : matchUnread
-              ? 'bg-neutral-800/50 border border-violet-500/30 border-l-2 border-l-violet-500 hover:bg-neutral-800/70'
-              : 'bg-neutral-800/30 border border-neutral-700/20 hover:bg-neutral-800/50'
-        }`}
-      >
+    const rowContent = (
+      <>
         <div className="relative flex-shrink-0">
           <div className="h-14 w-14 rounded-xl overflow-hidden bg-neutral-700">
             {match.avatarUrl ? (
@@ -275,15 +318,51 @@ export default function Matches() {
             </div>
           </div>
 
-          <p className={`text-base truncate ${
-            match.lastMessage
-              ? matchUnread
-                ? 'text-white font-semibold'
-                : expired ? 'text-neutral-500' : 'text-neutral-400'
-              : expired ? 'text-neutral-500 italic' : 'text-neutral-400 italic'
-          }`}>
-            {match.lastMessage || "Say hello..."}
-          </p>
+          {expired && otherWantsRematch ? (
+            <p className="text-sm text-violet-300 mt-0.5">
+              {match.displayName ? `${match.displayName} wants` : "They want"} to rematch – accept within 24 hours
+            </p>
+          ) : expired && iRequestedRematch ? (
+            <p className="text-sm text-neutral-500 italic mt-0.5">Rematch requested – waiting for them</p>
+          ) : (
+            <p className={`text-base truncate ${
+              match.lastMessage
+                ? matchUnread
+                  ? 'text-white font-semibold'
+                  : expired ? 'text-neutral-500' : 'text-neutral-400'
+                : expired ? 'text-neutral-500 italic' : 'text-neutral-400 italic'
+            }`}>
+              {match.lastMessage || "Say hello..."}
+            </p>
+          )}
+
+          {expired && (otherWantsRematch || canRequestRematch) && (onAcceptRematch || onRequestRematch) && (
+            <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+              {otherWantsRematch && onAcceptRematch && (
+                <Button
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); onAcceptRematch(match.id); }}
+                  disabled={!!isAccepting}
+                  className="bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm"
+                >
+                  {isAccepting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isAccepting ? "Accepting…" : "Accept"}
+                </Button>
+              )}
+              {canRequestRematch && onRequestRematch && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => { e.stopPropagation(); onRequestRematch(match.id); }}
+                  disabled={!!isRequesting}
+                  className="border-neutral-600 text-neutral-300 rounded-lg text-sm"
+                >
+                  {isRequesting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isRequesting ? "Sending…" : "Request rematch"}
+                </Button>
+              )}
+            </div>
+          )}
 
           {match.venueName && (
             <div className="flex items-center gap-1 mt-1">
@@ -292,7 +371,26 @@ export default function Matches() {
             </div>
           )}
         </div>
-      </button>
+      </>
+    );
+
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => handleMatchClick(match.id)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMatchClick(match.id); } }}
+        aria-label={`Chat with ${match.displayName || 'Match'}`}
+        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl active:scale-[0.98] transition-all text-left cursor-pointer ${
+          expired
+            ? 'bg-neutral-800/20 hover:bg-neutral-800/40'
+            : matchUnread
+              ? 'bg-neutral-800/50 border border-violet-500/30 border-l-2 border-l-violet-500 hover:bg-neutral-800/70'
+              : 'bg-neutral-800/30 border border-neutral-700/20 hover:bg-neutral-800/50'
+        }`}
+      >
+        {rowContent}
+      </div>
     );
   };
 
@@ -505,7 +603,15 @@ export default function Matches() {
                     >
                       <div className="space-y-2 pb-2">
                         {expiredMatchesList.map((match) => (
-                          <MatchRow key={match.id} match={match} expired />
+                          <MatchRow
+                            key={match.id}
+                            match={match}
+                            expired
+                            onAcceptRematch={handleAcceptRematch}
+                            onRequestRematch={handleRequestRematch}
+                            acceptingRematchId={acceptingRematchId}
+                            requestingRematchId={requestingRematchId}
+                          />
                         ))}
                       </div>
                     </motion.div>

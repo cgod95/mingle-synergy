@@ -15,6 +15,10 @@ export type Match = {
   venueName?: string;
   venueId?: string;
   _embeddedMessages?: Array<{ senderId: string; text: string; timestamp: number }>;
+  /** True when the other user has requested reconnect (rematch) */
+  otherUserRequestedReconnect?: boolean;
+  /** True when the current user has already requested reconnect */
+  iRequestedReconnect?: boolean;
 };
 
 export const MATCH_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -63,7 +67,7 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
     const rawMatches = [
       ...snap1.docs.map(d => ({ id: d.id, ...d.data() })),
       ...snap2.docs.map(d => ({ id: d.id, ...d.data() })),
-    ] as Array<{ id: string; userId1: string; userId2: string; venueId: string; venueName?: string; timestamp: unknown; matchExpired?: boolean; messages?: Array<{ senderId: string; text: string; timestamp: number }> }>;
+    ] as Array<{ id: string; userId1: string; userId2: string; venueId: string; venueName?: string; timestamp: unknown; matchExpired?: boolean; userRequestedReconnect?: boolean; matchedUserRequestedReconnect?: boolean; reconnectRequestedAt?: unknown; messages?: Array<{ senderId: string; text: string; timestamp: number }> }>;
 
     const profileCache = new Map<string, Promise<{ displayName?: string; avatarUrl?: string }>>();
 
@@ -83,6 +87,9 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
           console.warn('[matchesCompat] Match has invalid timestamp, skipping:', raw.id);
           return null;
         }
+        const isUser1 = raw.userId1 === userId;
+        const otherUserRequestedReconnect = isUser1 ? !!raw.matchedUserRequestedReconnect : !!raw.userRequestedReconnect;
+        const iRequestedReconnect = isUser1 ? !!raw.userRequestedReconnect : !!raw.matchedUserRequestedReconnect;
         return {
           id: raw.id,
           userId,
@@ -94,6 +101,8 @@ async function fetchMatchesFromFirestore(userId: string): Promise<Match[]> {
           venueName: raw.venueName,
           venueId: raw.venueId,
           _embeddedMessages: raw.messages,
+          otherUserRequestedReconnect,
+          iRequestedReconnect,
         };
       })
     )).filter((m): m is Match => m !== null);

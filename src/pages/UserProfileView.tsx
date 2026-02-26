@@ -18,6 +18,27 @@ import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/lib/utils";
 
 const INTRO_MESSAGE_MAX_LENGTH = 150;
+const SHOWN_MATCH_CELEBRATION_KEY = "mingle_shown_match_celebration";
+
+function getShownMatchCelebrationIds(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(SHOWN_MATCH_CELEBRATION_KEY);
+    const arr = raw ? (JSON.parse(raw) as string[]) : [];
+    return new Set(arr);
+  } catch {
+    return new Set();
+  }
+}
+
+function addShownMatchCelebrationId(matchId: string): void {
+  const set = getShownMatchCelebrationIds();
+  set.add(matchId);
+  try {
+    sessionStorage.setItem(SHOWN_MATCH_CELEBRATION_KEY, JSON.stringify([...set]));
+  } catch {
+    // ignore
+  }
+}
 
 interface ProfileData {
   displayName?: string;
@@ -172,10 +193,10 @@ export default function UserProfileView() {
         toast({ title: "Like sent ❤️" });
       }
     } catch (error) {
-      logError(error instanceof Error ? error : new Error('Failed to like'), {
-        context: 'UserProfileView.handleLike', userId
-      });
-      toast({ title: "Something went wrong", variant: "destructive" });
+      const err = error instanceof Error ? error : new Error("Failed to like");
+      logError(err, { context: "UserProfileView.submitLike", userId });
+      const msg = err.message && err.message.length < 80 ? err.message : "Something went wrong";
+      toast({ title: msg, variant: "destructive" });
     } finally {
       setIsLiking(false);
       setIntroText("");
@@ -184,34 +205,38 @@ export default function UserProfileView() {
 
   useEffect(() => {
     if (wasMatchedOnMount.current) return;
-    if (isMatched && liked && !matchModal) {
-      wasMatchedOnMount.current = true;
-      hapticSuccess();
-      const match = realtimeMatches.find(
-        m => m.userId1 === userId || m.userId2 === userId
-      );
-      if (match) {
-        const displayName = profile?.displayName || profile?.name || 'Someone';
-        const partnerPhoto = profile?.photos?.[0];
-        setMatchModal({ matchId: match.id, partnerName: displayName, partnerPhoto });
-      }
-    }
-  }, [isMatched]);
+    if (!isMatched || !liked || matchModal) return;
+    const match = realtimeMatches.find(
+      m => m.userId1 === userId || m.userId2 === userId
+    );
+    if (!match) return;
+    wasMatchedOnMount.current = true;
+    if (getShownMatchCelebrationIds().has(match.id)) return;
+    addShownMatchCelebrationId(match.id);
+    hapticSuccess();
+    const displayName = profile?.displayName || profile?.name || "Someone";
+    const partnerPhoto = profile?.photos?.[0];
+    setMatchModal({ matchId: match.id, partnerName: displayName, partnerPhoto });
+  }, [isMatched, liked, matchModal, realtimeMatches, userId, profile?.displayName, profile?.name, profile?.photos]);
 
   useEffect(() => {
     if (!userId) return;
+    let alive = true;
     setLoading(true);
     (async () => {
       try {
         const { userService } = await import("@/services");
         const data = await userService.getUserProfile(userId);
+        if (!alive) return;
         setProfile(data as ProfileData | null);
       } catch (error) {
         logError(error as Error, { context: "UserProfileView", userId });
+        if (!alive) return;
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     })();
+    return () => { alive = false; };
   }, [userId]);
 
   if (loading) {
