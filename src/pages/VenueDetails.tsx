@@ -111,6 +111,7 @@ export default function VenueDetails() {
   const [matchModal, setMatchModal] = useState<{ matchId: string; partnerName: string; partnerPhoto?: string } | null>(null);
   const [heartBurst, setHeartBurst] = useState<{ x: number; y: number; key: number } | null>(null);
   const pendingLikeRef = useRef<string | null>(null);
+  const shownMatchIds = useRef<Set<string>>(new Set());
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { matches: realtimeMatches } = useRealtimeMatches();
@@ -127,6 +128,16 @@ export default function VenueDetails() {
     setCheckedIn(getCheckedVenueId());
   }, [venue?.id, currentUser?.uid]);
 
+  // Seed shownMatchIds with existing matches on first load so we never re-show their animation
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current || realtimeMatches.length === 0) return;
+    seededRef.current = true;
+    for (const m of realtimeMatches) {
+      shownMatchIds.current.add(m.id);
+    }
+  }, [realtimeMatches]);
+
   // Watch realtimeMatches for new match after liking — open celebration modal
   useEffect(() => {
     if (!pendingLikeRef.current) return;
@@ -134,8 +145,9 @@ export default function VenueDetails() {
     const match = realtimeMatches.find(
       m => m.userId1 === personId || m.userId2 === personId
     );
-    if (match) {
+    if (match && !shownMatchIds.current.has(match.id)) {
       pendingLikeRef.current = null;
+      shownMatchIds.current.add(match.id);
       const person = people.find(p => p.id === personId);
       const partnerName = (person as any)?.displayName || (person as any)?.name || 'Someone';
       const partnerPhoto = (person as any)?.photos?.[0] || (person as any)?.photo;
@@ -238,6 +250,7 @@ export default function VenueDetails() {
 
   const handleLike = async (personId: string, clickEvent?: React.MouseEvent) => {
     if (isLiking === personId || !currentUser?.uid || !id) return;
+    if (isMatchedWith(personId)) return;
     setIsLiking(personId);
     hapticMedium();
 
@@ -292,7 +305,7 @@ export default function VenueDetails() {
               </div>
             )}
             {visiblePeople.length > 0 && (
-              <span className="text-violet-300 text-xs font-medium flex-shrink-0">
+              <span className="text-violet-300 text-sm font-medium flex-shrink-0">
                 {visiblePeople.length} here
               </span>
             )}
@@ -303,8 +316,8 @@ export default function VenueDetails() {
       {/* Action bar — Back to Venues + Check Out */}
       <div className="flex items-center gap-2 px-3 py-2.5">
         <button
-          onClick={() => navigate('/checkin')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-sm font-medium transition-colors"
+          onClick={() => navigate('/checkin?showAll=true')}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-base font-medium transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           All Venues
@@ -313,13 +326,13 @@ export default function VenueDetails() {
         {checkedIn === venue.id ? (
           <button
             onClick={handleCheckOut}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-900/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 text-sm font-medium transition-colors border border-red-800/50"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-900/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 text-base font-medium transition-colors border border-red-800/50"
           >
             <LogOut className="w-4 h-4" />
             Check Out
           </button>
         ) : (
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-900/30 text-green-400 text-sm font-medium border border-green-800/40">
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-900/30 text-green-400 text-base font-medium border border-green-800/40">
             <CheckCircle2 className="w-4 h-4" />
             Viewing
           </div>
@@ -412,7 +425,7 @@ export default function VenueDetails() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     
                     <div className="absolute bottom-0 left-0 right-0 p-2">
-                      <p className="text-white font-semibold text-sm leading-tight">
+                      <p className="text-white font-semibold text-base leading-tight">
                         {personName}{personAge ? `, ${personAge}` : ''}
                       </p>
                       {matched && (

@@ -51,9 +51,10 @@ export default function CheckInPage() {
   const qrVenueId = params.get("venueId");
   const source = params.get("source");
 
-  // Auto-redirect to venue details if already checked in (skip if QR scan in progress)
+  // Auto-redirect to venue details if already checked in (skip if QR scan in progress or showAll)
   useEffect(() => {
     if (source === "qr" && qrVenueId) return;
+    if (params.get('showAll') === 'true') return;
     const activeVenueId = getCheckedVenueId();
     if (activeVenueId) {
       navigate(`/venues/${activeVenueId}`, { replace: true });

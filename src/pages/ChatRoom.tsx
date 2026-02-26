@@ -1,20 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, MoreVertical } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { BlockReportDialog } from "@/components/BlockReportDialog";
 
-import { getActiveMatches } from "@/lib/matchesCompat";
+import { getAllMatches } from "@/lib/matchesCompat";
+import { rematchUsers } from "@/services/firebase/matchService";
 import { subscribeToMessages, sendMessage as firebaseSendMessage, canSendMessage as firebaseCanSendMessage, getRemainingMessages as firebaseGetRemaining, markMessagesAsRead, type Message } from "@/services/messageService";
 import MessageLimitModal from "@/components/ui/MessageLimitModal";
 import { useToast } from "@/hooks/use-toast";
@@ -41,27 +36,34 @@ export default function ChatRoom() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const [showMessageLimitModal, setShowMessageLimitModal] = useState(false);
   const [remainingMessages, setRemainingMessages] = useState(10);
   const [canSendMsg, setCanSendMsg] = useState(true);
   const [sendError, setSendError] = useState<Error | null>(null);
   const [sending, setSending] = useState(false);
+  const [isMatchExpired, setIsMatchExpired] = useState(false);
+  const [matchVenueId, setMatchVenueId] = useState<string>("");
+  const [rematching, setRematching] = useState(false);
   const { toast } = useToast();
   const keyboardHeight = useKeyboardHeight();
   const prefersReducedMotion = useReducedMotion();
 
-  // Load match info (partner name, avatar, expiry)
+  // Load match info (partner name, avatar, expiry) — includes expired matches
   useEffect(() => {
     const loadMatchInfo = async () => {
       if (!matchId || !currentUser?.uid) return;
       try {
-        const matches = await getActiveMatches(currentUser.uid);
+        const matches = await getAllMatches(currentUser.uid);
         const match = matches.find(m => m.id === matchId);
         if (match) {
           setMatchName(match.displayName || "Chat");
           setMatchAvatar(match.avatarUrl || "");
           setMatchExpiresAt(match.expiresAt || 0);
           setOtherUserId(match.partnerId || "");
+          setMatchVenueId(match.venueId || "");
+          setIsMatchExpired(match.expiresAt < Date.now());
         }
       } catch (error) {
         logError(error as Error, { context: 'ChatRoom.loadMatchInfo', matchId });
@@ -151,6 +153,20 @@ export default function ChatRoom() {
     );
   }
 
+  const handleRematch = async () => {
+    if (!currentUser?.uid || !otherUserId || !matchVenueId || rematching) return;
+    setRematching(true);
+    try {
+      const newMatchId = await rematchUsers(currentUser.uid, otherUserId, matchVenueId);
+      navigate(`/chat/${newMatchId}`, { replace: true });
+    } catch (error) {
+      logError(error as Error, { context: 'ChatRoom.handleRematch' });
+      toast({ title: "Couldn't rematch", description: "Something went wrong. Try again.", variant: "destructive" });
+    } finally {
+      setRematching(false);
+    }
+  };
+
   const onSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const t = text.trim();
@@ -201,50 +217,63 @@ export default function ChatRoom() {
           <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="rounded-full text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-1">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Avatar className="h-12 w-12 rounded-xl">
+          <Avatar className="h-14 w-14 rounded-xl">
             {matchAvatar ? (
               <AvatarImage src={matchAvatar} alt={matchName} className="object-cover rounded-xl" />
             ) : null}
-            <AvatarFallback className="bg-violet-600 text-white text-base font-semibold rounded-xl">
+            <AvatarFallback className="bg-violet-600 text-white text-lg font-semibold rounded-xl">
               {matchName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-white text-base truncate">{matchName}</h2>
-            {matchExpiresAt && getRemainingTime() && (
-              <p className="text-xs text-neutral-400">
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-white text-lg truncate">{matchName}</h2>
+              {isMatchExpired && (
+                <span className="flex-shrink-0 px-2 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white uppercase">
+                  Expired
+                </span>
+              )}
+            </div>
+            {!isMatchExpired && matchExpiresAt && getRemainingTime() && (
+              <p className="text-sm text-neutral-400">
                 {getRemainingTime()} left
               </p>
             )}
           </div>
           {otherUserId && (
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full text-neutral-400 hover:text-white h-10 w-10">
-                  <MoreVertical className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={8} className="bg-neutral-800 border-neutral-700 z-[9999] min-w-[180px]">
-                <DropdownMenuItem 
-                  onClick={() => navigate(`/profile/${otherUserId}`)}
-                  className="text-neutral-200 focus:bg-neutral-700 py-3 text-base"
-                >
-                  View Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowBlockDialog(true)}
-                  className="text-red-400 focus:bg-neutral-700 py-3 text-base"
-                >
-                  Block User
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowReportDialog(true)}
-                  className="text-neutral-300 focus:bg-neutral-700 py-3 text-base"
-                >
-                  Report
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowMenu(prev => !prev)}
+                className="rounded-full text-neutral-400 hover:text-white h-10 w-10 flex items-center justify-center transition-colors"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </button>
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-[9998]" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 top-full mt-2 z-[9999] min-w-[200px] bg-neutral-800 border border-neutral-700 rounded-xl shadow-2xl overflow-hidden">
+                    <button
+                      onClick={() => { setShowMenu(false); navigate(`/profile/${otherUserId}`); }}
+                      className="w-full text-left px-4 py-3.5 text-base text-neutral-200 hover:bg-neutral-700 active:bg-neutral-700 transition-colors"
+                    >
+                      View Profile
+                    </button>
+                    <button
+                      onClick={() => { setShowMenu(false); setShowBlockDialog(true); }}
+                      className="w-full text-left px-4 py-3.5 text-base text-red-400 hover:bg-neutral-700 active:bg-neutral-700 transition-colors"
+                    >
+                      Block User
+                    </button>
+                    <button
+                      onClick={() => { setShowMenu(false); setShowReportDialog(true); }}
+                      className="w-full text-left px-4 py-3.5 text-base text-neutral-300 hover:bg-neutral-700 active:bg-neutral-700 transition-colors"
+                    >
+                      Report
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
 
@@ -261,13 +290,13 @@ export default function ChatRoom() {
                 className={`flex ${m.sender === "you" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[85%] rounded-2xl px-5 py-3.5 ${
                     m.sender === "you"
                       ? "bg-violet-600 text-white rounded-br-md"
                       : "bg-neutral-800 text-neutral-200 rounded-bl-md"
                   }`}
                 >
-                  <p className="text-base leading-relaxed break-words">{m.text}</p>
+                  <p className="text-[17px] leading-relaxed break-words">{m.text}</p>
                   <p className={`text-xs mt-1 ${m.sender === "you" ? "text-violet-200/60 text-right" : "text-neutral-400"}`}>
                     {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
@@ -284,47 +313,64 @@ export default function ChatRoom() {
           className="bg-neutral-900 border-t border-neutral-800 px-4 py-4 flex-shrink-0"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
         >
-          {/* Message limit indicator */}
-          {remainingMessages === 0 && (
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm text-neutral-400">Message limit reached</span>
-              <button
-                onClick={() => setShowMessageLimitModal(true)}
-                className="text-violet-400 text-sm font-medium"
+          {isMatchExpired ? (
+            <div className="text-center py-2 space-y-3">
+              <p className="text-neutral-400 text-base">This match has expired</p>
+              <Button
+                onClick={handleRematch}
+                disabled={rematching}
+                className="w-full py-5 bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white font-semibold rounded-xl text-base"
               >
-                Options
-              </button>
+                {rematching ? (
+                  <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+                ) : null}
+                {rematching ? 'Rematching...' : 'Re-match'}
+              </Button>
             </div>
-          )}
+          ) : (
+            <>
+              {remainingMessages === 0 && (
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-sm text-neutral-400">Message limit reached</span>
+                  <button
+                    onClick={() => setShowMessageLimitModal(true)}
+                    className="text-violet-400 text-sm font-medium"
+                  >
+                    Options
+                  </button>
+                </div>
+              )}
 
-          <form onSubmit={onSend} className="flex gap-3 items-end">
-            <div className="flex-1">
-              <input
-                ref={inputRef}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={
-                  !canSendMsg
-                    ? "Message limit reached"
-                    : "Type a message..."
-                }
-                disabled={!canSendMsg}
-                className={`w-full rounded-full px-5 py-3.5 text-base focus:outline-none focus:ring-1 focus:ring-violet-500 ${
-                  !canSendMsg
-                    ? 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
-                    : 'bg-neutral-800 text-white placeholder:text-neutral-400'
-                }`}
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={!text.trim() || !canSendMsg || sending}
-              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-30 h-12 w-12 flex-shrink-0"
-              size="icon"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </form>
+              <form onSubmit={onSend} className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <input
+                    ref={inputRef}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder={
+                      !canSendMsg
+                        ? "Message limit reached"
+                        : "Type a message..."
+                    }
+                    disabled={!canSendMsg}
+                    className={`w-full rounded-full px-6 py-4 text-lg focus:outline-none focus:ring-1 focus:ring-violet-500 ${
+                      !canSendMsg
+                        ? 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
+                        : 'bg-neutral-800 text-white placeholder:text-neutral-400'
+                    }`}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={!text.trim() || !canSendMsg || sending}
+                  className="rounded-full bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-30 h-14 w-14 flex-shrink-0"
+                  size="icon"
+                >
+                  <Send className="w-6 h-6" />
+                </Button>
+              </form>
+            </>
+          )}
         </div>
 
         {/* Message Limit Modal */}

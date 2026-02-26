@@ -529,6 +529,34 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
   }
 };
 
+export const rematchUsers = async (userId1: string, userId2: string, venueId: string): Promise<string> => {
+  if (!isFirebaseAvailable() || !firestore) {
+    throw new Error('Cannot rematch while offline');
+  }
+
+  let venueName = 'Unknown Venue';
+  try {
+    const venueRef = doc(firestore, 'venues', venueId);
+    const venueSnap = await getDoc(venueRef);
+    if (venueSnap.exists()) {
+      venueName = venueSnap.data().name || 'Unknown Venue';
+    }
+  } catch {}
+
+  const matchRef = collection(firestore, 'matches');
+  const newMatch = {
+    userId1,
+    userId2,
+    venueId,
+    venueName,
+    timestamp: Date.now(),
+    messages: [],
+  };
+
+  const docRef = await addDoc(matchRef, newMatch);
+  return docRef.id;
+};
+
 export const sendMessage = async (
   matchId: string,
   senderId: string,
