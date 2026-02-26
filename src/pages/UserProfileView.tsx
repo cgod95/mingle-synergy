@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Heart, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -118,12 +118,12 @@ export default function UserProfileView() {
   const [isLiking, setIsLiking] = useState(false);
   const [heartBurst, setHeartBurst] = useState<{ x: number; y: number; key: number } | null>(null);
   const [matchModal, setMatchModal] = useState<{ matchId: string; partnerName: string; partnerPhoto?: string } | null>(null);
-  const prevMatchedRef = useState(false);
 
   const liked = userId ? firestoreLikedIds.has(userId) : false;
   const isMatched = userId ? realtimeMatches.some(
     m => m.userId1 === userId || m.userId2 === userId
   ) : false;
+  const wasMatchedOnMount = useRef(isMatched);
   const venueId = getCheckedVenueId();
 
   const handleLike = async (clickEvent?: React.MouseEvent) => {
@@ -152,7 +152,9 @@ export default function UserProfileView() {
   };
 
   useEffect(() => {
+    if (wasMatchedOnMount.current) return;
     if (isMatched && liked && !matchModal) {
+      wasMatchedOnMount.current = true;
       hapticSuccess();
       const match = realtimeMatches.find(
         m => m.userId1 === userId || m.userId2 === userId

@@ -3,7 +3,7 @@ import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, User, ArrowLeft, LogOut } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, User, ArrowLeft, LogOut, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -407,6 +407,11 @@ export default function VenueDetails() {
                   aria-label={`View ${personName}'s profile`}
                 >
                   <div className="relative aspect-[3/4] overflow-hidden">
+                    {matched && (
+                      <div className="absolute top-1.5 right-1.5 z-10 bg-violet-500 rounded-full p-1 shadow-lg">
+                        <Star className="w-3.5 h-3.5 text-white fill-white" />
+                      </div>
+                    )}
                     {(p as any).photos?.[0] || (p as any).photo ? (
                       <img
                         src={(p as any).photos?.[0] || (p as any).photo}
@@ -428,9 +433,6 @@ export default function VenueDetails() {
                       <p className="text-white font-semibold text-base leading-tight">
                         {personName}{personAge ? `, ${personAge}` : ''}
                       </p>
-                      {matched && (
-                        <p className="text-rose-300 text-[10px] font-medium mt-0.5">Matched</p>
-                      )}
                       {liked && !matched && (
                         <p className="text-rose-300 text-[10px] font-medium mt-0.5">Liked</p>
                       )}
