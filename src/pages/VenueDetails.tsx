@@ -116,12 +116,21 @@ export default function VenueDetails() {
   const [heartBurst, setHeartBurst] = useState<{ x: number; y: number; key: number } | null>(null);
   const pendingLikeRef = useRef<string | null>(null);
   const shownMatchIds = useRef<Set<string>>(new Set());
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartBurstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { matches: realtimeMatches } = useRealtimeMatches();
   const likedIds = useUserLikes();
   const introMessages = useIntroMessages();
   const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      if (heartBurstTimerRef.current) clearTimeout(heartBurstTimerRef.current);
+    };
+  }, []);
 
   const isMatchedWith = useCallback((userId: string) => {
     return realtimeMatches.some(
@@ -213,7 +222,8 @@ export default function VenueDetails() {
       const permissionGranted = await requestLocationPermission();
       if (!permissionGranted) {
         setToast("Location access required to check in.");
-        setTimeout(() => setToast(null), 3000);
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = setTimeout(() => setToast(null), 3000);
         return;
       }
     }
@@ -225,7 +235,8 @@ export default function VenueDetails() {
           ? getCheckInErrorMessage(distanceCheck.distanceMeters)
           : "Unable to verify location.";
         setToast(errorMsg);
-        setTimeout(() => setToast(null), 3000);
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = setTimeout(() => setToast(null), 3000);
         return;
       }
     }
@@ -239,7 +250,8 @@ export default function VenueDetails() {
     } catch (error) {}
     
     setToast(`Checked in to ${venue.name}`);
-    setTimeout(() => setToast(null), 1600);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 1600);
   };
 
   const handleCheckOut = () => {
@@ -261,7 +273,8 @@ export default function VenueDetails() {
 
     if (clickEvent) {
       setHeartBurst({ x: clickEvent.clientX, y: clickEvent.clientY, key: Date.now() });
-      setTimeout(() => setHeartBurst(null), 800);
+      if (heartBurstTimerRef.current) clearTimeout(heartBurstTimerRef.current);
+      heartBurstTimerRef.current = setTimeout(() => setHeartBurst(null), 800);
     }
     
     try {
@@ -274,7 +287,8 @@ export default function VenueDetails() {
         context: 'VenueDetails.handleLike', userId: currentUser.uid, personId
       });
       setToast("Something went wrong. Try again.");
-      setTimeout(() => setToast(null), 2000);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setToast(null), 2000);
     } finally {
       setIsLiking(null);
     }

@@ -171,9 +171,10 @@ export default function UserProfileView() {
     setShowComposeModal(true);
   };
 
+  const heartBurstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const submitLike = async (message?: string) => {
     if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched) return;
-    setShowComposeModal(false);
     setIsLiking(true);
     if (message) {
       hapticSuccess();
@@ -183,12 +184,14 @@ export default function UserProfileView() {
 
     if (pendingClickEvent.current) {
       setHeartBurst({ x: pendingClickEvent.current.x, y: pendingClickEvent.current.y, key: Date.now() });
-      setTimeout(() => setHeartBurst(null), 800);
+      if (heartBurstTimerRef.current) clearTimeout(heartBurstTimerRef.current);
+      heartBurstTimerRef.current = setTimeout(() => setHeartBurst(null), 800);
       pendingClickEvent.current = null;
     }
 
     try {
       await likeUserWithMutualDetection(currentUser.uid, userId, venueId, message);
+      setShowComposeModal(false);
       if (!liked) {
         toast({ title: "Like sent ❤️" });
       }
@@ -202,6 +205,12 @@ export default function UserProfileView() {
       setIntroText("");
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (heartBurstTimerRef.current) clearTimeout(heartBurstTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (wasMatchedOnMount.current) return;

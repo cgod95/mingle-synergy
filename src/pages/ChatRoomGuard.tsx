@@ -59,17 +59,19 @@ export default function ChatRoomGuard() {
             description: "Opening your most recent chat instead.",
           });
           navigate(`/chat/${activeMatches[0].id}`, { replace: true });
+          if (!alive) return;
           setOk(true);
+          setReady(true);
         } else {
           toast({
             title: "No active chats",
             description: "You don't have any active matches right now.",
           });
           navigate("/matches", { replace: true });
+          if (!alive) return;
           setOk(false);
+          setReady(true);
         }
-        if (!alive) return;
-        setReady(true);
       } catch (error) {
         logError(error instanceof Error ? error : new Error('Error loading chat'), { source: 'ChatRoomGuard', matchId: id });
         if (!alive) return;
@@ -79,6 +81,7 @@ export default function ChatRoomGuard() {
           variant: "destructive",
         });
         navigate("/matches", { replace: true });
+        if (!alive) return;
         setOk(false);
         setReady(true);
       }

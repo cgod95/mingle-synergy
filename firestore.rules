@@ -13,35 +13,10 @@ service cloud.firestore {
 
     // User profiles - any authenticated user can read profiles (needed for venue grid, chat, etc.)
     // Only the owner can write their own document
-    // Enforce bio (min 10 chars) and photos (at least 1) for profile updates
     match /users/{uid} {
       allow read: if isSignedIn();
       allow create: if isSelf(uid);
-      
-      // Update: validate bio and photos if they're being updated
-      // Allow updates during onboarding when document might not exist yet
-      allow update: if isSelf(uid) && (
-        // If document doesn't exist yet (initial creation via setDoc with merge), allow update
-        !exists(/databases/$(database)/documents/users/$(uid)) ||
-        // If bio/photos aren't being changed, allow update
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['bio', 'photos']) ||
-        // If bio/photos are being changed, validate them
-        (
-          // Bio validation: if bio field exists and is a string, it must be at least 10 chars
-          (!('bio' in request.resource.data) || 
-           !(request.resource.data.bio is string) || 
-           request.resource.data.bio.size() >= 10) &&
-          // Photos validation: 
-          // - Allow empty array during onboarding/initial profile creation
-          // - Require at least 1 photo only if user already has photos (updating existing profile)
-          (!('photos' in request.resource.data) || 
-           !(request.resource.data.photos is list) || 
-           request.resource.data.photos.size() > 0 ||
-           // Allow empty photos if existing document has no photos or empty photos (initial creation)
-           !('photos' in resource.data) ||
-           resource.data.photos.size() == 0)
-        )
-      );
+      allow update: if isSelf(uid);
     }
 
     // Onboarding progress - users can read/write their own onboarding progress

@@ -396,10 +396,10 @@ export default function Matches() {
 
   const SwipeableMatchRow = ({ match, expired = false }: { match: MatchWithPreview; expired?: boolean }) => {
     const x = useMotionValue(0);
-    const bgOpacity = useTransform(x, [-120, -60, 0], [1, 0.5, 0]);
+    const bgOpacity = useTransform(x, [-160, -80, 0], [1, 0.5, 0]);
 
     const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      const intentionalSwipe = info.offset.x < -120 || (info.offset.x < -60 && info.velocity.x < -300);
+      const intentionalSwipe = info.offset.x < -160 || (info.offset.x < -100 && info.velocity.x < -500);
       if (intentionalSwipe) {
         dismissMatch(match.id);
       }
@@ -420,8 +420,8 @@ export default function Matches() {
         <motion.div
           drag="x"
           dragDirectionLock
-          dragConstraints={{ left: -140, right: 0 }}
-          dragElastic={0.1}
+          dragConstraints={{ left: -180, right: 0 }}
+          dragElastic={0.05}
           dragSnapToOrigin
           onDragEnd={handleDragEnd}
           style={{ x }}
