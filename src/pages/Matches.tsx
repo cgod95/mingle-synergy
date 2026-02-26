@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, MapPin, ChevronDown, RefreshCw, Trash2, CheckCircle, MessageCircle } from "lucide-react";
+import { Heart, MapPin, ChevronDown, RefreshCw, Trash2, CheckCircle, MessageCircle, Undo2 } from "lucide-react";
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from "framer-motion";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { logError } from "@/utils/errorHandler";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { subscribeToUnreadCounts, type UnreadCounts } from "@/features/messaging/UnreadMessageService";
+import { useToast } from "@/hooks/use-toast";
 
 type MatchWithPreview = Match & {
   lastMessage?: string;
@@ -23,12 +24,13 @@ type MatchWithPreview = Match & {
 export default function Matches() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [matches, setMatches] = useState<MatchWithPreview[]>([]);
   const [unreadCounts, setUnreadCounts] = useState<UnreadCounts>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [unreadExpanded, setUnreadExpanded] = useState(true);
-  const [readExpanded, setReadExpanded] = useState(false);
+  const [readExpanded, setReadExpanded] = useState(true);
   const [expiredExpanded, setExpiredExpanded] = useState(false);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
     try {
@@ -36,15 +38,46 @@ export default function Matches() {
       return stored ? new Set(JSON.parse(stored)) : new Set();
     } catch { return new Set(); }
   });
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const persistDismissed = useCallback((ids: Set<string>) => {
+    localStorage.setItem('mingle_dismissed_matches', JSON.stringify([...ids]));
+  }, []);
 
   const dismissMatch = useCallback((matchId: string) => {
     hapticMedium();
-    setDismissedIds(prev => {
-      const next = new Set(prev).add(matchId);
-      localStorage.setItem('mingle_dismissed_matches', JSON.stringify([...next]));
-      return next;
+    setDismissedIds(prev => new Set(prev).add(matchId));
+
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+
+    toast({
+      title: "Match dismissed",
+      description: "Tap undo to restore",
+      action: (
+        <button
+          onClick={() => {
+            if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+            setDismissedIds(prev => {
+              const next = new Set(prev);
+              next.delete(matchId);
+              persistDismissed(next);
+              return next;
+            });
+          }}
+          className="flex items-center gap-1 text-violet-400 font-semibold text-sm"
+        >
+          <Undo2 className="w-4 h-4" /> Undo
+        </button>
+      ),
     });
-  }, []);
+
+    undoTimerRef.current = setTimeout(() => {
+      setDismissedIds(prev => {
+        persistDismissed(prev);
+        return prev;
+      });
+    }, 5000);
+  }, [toast, persistDismissed]);
 
   const pullStartY = useRef<number | null>(null);
   const [pullDistance, setPullDistance] = useState(0);
@@ -265,10 +298,11 @@ export default function Matches() {
 
   const SwipeableMatchRow = ({ match, expired = false }: { match: MatchWithPreview; expired?: boolean }) => {
     const x = useMotionValue(0);
-    const bgOpacity = useTransform(x, [-80, -40, 0], [1, 0.5, 0]);
+    const bgOpacity = useTransform(x, [-120, -60, 0], [1, 0.5, 0]);
 
     const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      if (info.offset.x < -60) {
+      const intentionalSwipe = info.offset.x < -120 || (info.offset.x < -60 && info.velocity.x < -300);
+      if (intentionalSwipe) {
         dismissMatch(match.id);
       }
     };
@@ -287,8 +321,10 @@ export default function Matches() {
         </motion.div>
         <motion.div
           drag="x"
-          dragConstraints={{ left: -80, right: 0 }}
+          dragDirectionLock
+          dragConstraints={{ left: -140, right: 0 }}
           dragElastic={0.1}
+          dragSnapToOrigin
           onDragEnd={handleDragEnd}
           style={{ x }}
           className="relative bg-neutral-900"

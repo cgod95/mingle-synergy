@@ -11,7 +11,11 @@ import {
   doc,
   orderBy,
   limit,
-  writeBatch
+  limitToLast,
+  endBefore,
+  writeBatch,
+  updateDoc,
+  deleteField
 } from 'firebase/firestore';
 import { firestore } from '@/firebase/config';
 import { UserProfile } from "@/types/services";
@@ -415,38 +419,118 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
 };
 
 /**
- * Subscribe to real-time message updates for a match
- * Returns an unsubscribe function
+ * Subscribe to real-time message updates for a match (latest N messages).
+ * Returns an unsubscribe function.
  */
 export const subscribeToMessages = (
   matchId: string, 
-  callback: (messages: Message[]) => void
+  callback: (messages: Message[]) => void,
+  messageLimit: number = 50
 ) => {
-  // Check if firestore is available
   if (!firestore) {
     callback([]);
-    return () => {}; // Return no-op unsubscribe
+    return () => {};
   }
   
   const messagesRef = collection(firestore, "messages");
   const q = query(
     messagesRef,
     where("matchId", "==", matchId),
-    orderBy("createdAt", "asc")
+    orderBy("createdAt", "asc"),
+    limitToLast(messageLimit)
   );
 
   return onSnapshot(q, (snapshot) => {
-    const messages: Message[] = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      senderId: doc.data().senderId,
-      text: doc.data().text,
-      createdAt: doc.data().createdAt?.toDate?.() ?? new Date(),
-      readBy: doc.data().readBy || [],
+    const messages: Message[] = snapshot.docs.map((d) => ({
+      id: d.id,
+      senderId: d.data().senderId,
+      text: d.data().text,
+      createdAt: d.data().createdAt?.toDate?.() ?? new Date(),
+      readBy: d.data().readBy || [],
     }));
     callback(messages);
   }, (error) => {
     console.warn('Error in messages subscription:', error);
   });
+};
+
+/**
+ * Load older messages before a given timestamp for pagination.
+ */
+export const loadOlderMessages = async (
+  matchId: string,
+  beforeDate: Date,
+  count: number = 30
+): Promise<Message[]> => {
+  if (!firestore) return [];
+  try {
+    const messagesRef = collection(firestore, "messages");
+    const beforeTs = Timestamp.fromDate(beforeDate);
+    const q = query(
+      messagesRef,
+      where("matchId", "==", matchId),
+      orderBy("createdAt", "asc"),
+      endBefore(beforeTs),
+      limitToLast(count)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) => ({
+      id: d.id,
+      senderId: d.data().senderId,
+      text: d.data().text,
+      createdAt: d.data().createdAt?.toDate?.() ?? new Date(),
+      readBy: d.data().readBy || [],
+    }));
+  } catch (error) {
+    logError(error as Error, { source: 'messageService', action: 'loadOlderMessages', matchId });
+    return [];
+  }
+};
+
+/**
+ * Set typing status for a user in a match.
+ * Writes to matches/{matchId}.typing.{userId} = timestamp or deletes it.
+ */
+export const setTypingStatus = async (matchId: string, userId: string, isTyping: boolean): Promise<void> => {
+  if (!firestore) return;
+  try {
+    const matchRef = doc(firestore, 'matches', matchId);
+    if (isTyping) {
+      await updateDoc(matchRef, { [`typing.${userId}`]: Date.now() });
+    } else {
+      await updateDoc(matchRef, { [`typing.${userId}`]: deleteField() });
+    }
+  } catch {
+    // Non-critical — silently ignore typing status errors
+  }
+};
+
+/**
+ * Subscribe to typing status changes for a match.
+ * Calls back with the userId of whoever is currently typing (or null).
+ */
+export const subscribeToTypingStatus = (
+  matchId: string,
+  currentUserId: string,
+  callback: (typingUserId: string | null) => void
+) => {
+  if (!firestore) return () => {};
+  const matchRef = doc(firestore, 'matches', matchId);
+  return onSnapshot(matchRef, (snapshot) => {
+    const data = snapshot.data();
+    const typing = data?.typing as Record<string, number> | undefined;
+    if (!typing) { callback(null); return; }
+
+    const now = Date.now();
+    const STALE_MS = 5000;
+    for (const [uid, ts] of Object.entries(typing)) {
+      if (uid !== currentUserId && now - ts < STALE_MS) {
+        callback(uid);
+        return;
+      }
+    }
+    callback(null);
+  }, () => { callback(null); });
 };
 
 /**

@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, MoreVertical, RefreshCw } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical, RefreshCw, ChevronDown, Loader2 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,23 @@ import { BlockReportDialog } from "@/components/BlockReportDialog";
 
 import { getAllMatches } from "@/lib/matchesCompat";
 import { rematchUsers } from "@/services/firebase/matchService";
-import { subscribeToMessages, sendMessage as firebaseSendMessage, canSendMessage as firebaseCanSendMessage, getRemainingMessages as firebaseGetRemaining, markMessagesAsRead, type Message } from "@/services/messageService";
+import {
+  subscribeToMessages,
+  sendMessage as firebaseSendMessage,
+  canSendMessage as firebaseCanSendMessage,
+  getRemainingMessages as firebaseGetRemaining,
+  markMessagesAsRead,
+  loadOlderMessages,
+  setTypingStatus,
+  subscribeToTypingStatus,
+  type Message,
+} from "@/services/messageService";
 import MessageLimitModal from "@/components/ui/MessageLimitModal";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { isNetworkError } from "@/utils/retry";
 import { hapticLight } from "@/lib/haptics";
 import { logError } from "@/utils/errorHandler";
-import { FEATURE_FLAGS } from "@/lib/flags";
 
 type Msg = { sender: "you" | "them"; text: string; ts: number; id?: string };
 
@@ -28,11 +37,15 @@ export default function ChatRoom() {
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [olderMsgs, setOlderMsgs] = useState<Msg[]>([]);
+  const [hasOlderMessages, setHasOlderMessages] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [matchName, setMatchName] = useState<string>("Chat");
   const [matchAvatar, setMatchAvatar] = useState<string>("");
   const [matchExpiresAt, setMatchExpiresAt] = useState<number>(0);
   const [otherUserId, setOtherUserId] = useState<string>("");
   const endRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -46,11 +59,55 @@ export default function ChatRoom() {
   const [isMatchExpired, setIsMatchExpired] = useState(false);
   const [matchVenueId, setMatchVenueId] = useState<string>("");
   const [rematching, setRematching] = useState(false);
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const { toast } = useToast();
   const keyboardHeight = useKeyboardHeight();
   const prefersReducedMotion = useReducedMotion();
 
-  // Load match info (partner name, avatar, expiry) — includes expired matches
+  const markReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isNearBottomRef = useRef(true);
+
+  // Pull-to-refresh state
+  const pullStartY = useRef<number | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const allMessages = [...olderMsgs, ...msgs];
+
+  const isNearBottom = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+  }, []);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    endRef.current?.scrollIntoView({ behavior, block: "end" });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const near = isNearBottom();
+    isNearBottomRef.current = near;
+    setShowScrollButton(!near);
+  }, [isNearBottom]);
+
+  // Debounced markMessagesAsRead
+  const debouncedMarkRead = useCallback((mId: string, uid: string) => {
+    if (markReadTimerRef.current) clearTimeout(markReadTimerRef.current);
+    markReadTimerRef.current = setTimeout(() => {
+      markMessagesAsRead(mId, uid).catch(() => {});
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (markReadTimerRef.current) clearTimeout(markReadTimerRef.current);
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    };
+  }, []);
+
+  // Load match info
   useEffect(() => {
     const loadMatchInfo = async () => {
       if (!matchId || !currentUser?.uid) return;
@@ -72,12 +129,11 @@ export default function ChatRoom() {
     loadMatchInfo();
   }, [matchId, currentUser?.uid]);
 
-  // Real-time Firestore message listener
+  // Real-time Firestore message listener (latest 50)
   useEffect(() => {
     if (!matchId || !currentUser?.uid) return;
 
-    // Mark messages as read when entering the chat
-    markMessagesAsRead(matchId, currentUser.uid).catch(() => {});
+    debouncedMarkRead(matchId, currentUser.uid);
 
     const unsubscribe = subscribeToMessages(matchId, (firebaseMessages: Message[]) => {
       const mapped: Msg[] = firebaseMessages.map(m => ({
@@ -87,13 +143,31 @@ export default function ChatRoom() {
         ts: m.createdAt?.getTime?.() || Date.now(),
       }));
       setMsgs(mapped);
-      // Mark new messages as read as they arrive
-      if (firebaseMessages.some(m => m.senderId !== currentUser.uid)) {
-        markMessagesAsRead(matchId, currentUser.uid).catch(() => {});
+
+      if (firebaseMessages.some(m => !m.readBy?.includes(currentUser.uid) && m.senderId !== currentUser.uid)) {
+        debouncedMarkRead(matchId, currentUser.uid);
       }
-    });
+    }, 50);
 
     return () => unsubscribe();
+  }, [matchId, currentUser?.uid, debouncedMarkRead]);
+
+  // Typing indicator subscription
+  useEffect(() => {
+    if (!matchId || !currentUser?.uid) return;
+    const unsub = subscribeToTypingStatus(matchId, currentUser.uid, (typingUid) => {
+      setOtherUserTyping(!!typingUid);
+    });
+    return unsub;
+  }, [matchId, currentUser?.uid]);
+
+  // Clear typing status on unmount
+  useEffect(() => {
+    return () => {
+      if (matchId && currentUser?.uid) {
+        setTypingStatus(matchId, currentUser.uid, false);
+      }
+    };
   }, [matchId, currentUser?.uid]);
 
   // Update message limits
@@ -121,21 +195,121 @@ export default function ChatRoom() {
     return `${minutes}m`;
   };
 
+  // Smart auto-scroll: only when near bottom or own message
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [msgs]);
+    if (msgs.length === 0) return;
+    const lastMsg = msgs[msgs.length - 1];
+    if (isNearBottomRef.current || lastMsg?.sender === "you") {
+      scrollToBottom();
+    }
+  }, [msgs, scrollToBottom]);
 
   useEffect(() => {
-    if (keyboardHeight > 0) {
-      setTimeout(() => {
-        endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-      }, 100);
+    if (keyboardHeight > 0 && isNearBottomRef.current) {
+      setTimeout(() => scrollToBottom(), 100);
     }
-  }, [keyboardHeight]);
+  }, [keyboardHeight, scrollToBottom]);
+
+  // Load older messages
+  const handleLoadOlder = useCallback(async () => {
+    if (!matchId || loadingOlder || !hasOlderMessages) return;
+    setLoadingOlder(true);
+
+    const firstMsg = olderMsgs.length > 0 ? olderMsgs[0] : msgs[0];
+    if (!firstMsg) { setLoadingOlder(false); return; }
+
+    const scrollEl = scrollContainerRef.current;
+    const prevScrollHeight = scrollEl?.scrollHeight || 0;
+
+    try {
+      const older = await loadOlderMessages(matchId, new Date(firstMsg.ts), 30);
+      if (older.length === 0) {
+        setHasOlderMessages(false);
+      } else {
+        const mapped: Msg[] = older.map(m => ({
+          id: m.id,
+          sender: m.senderId === currentUser?.uid ? "you" as const : "them" as const,
+          text: m.text,
+          ts: m.createdAt?.getTime?.() || Date.now(),
+        }));
+        setOlderMsgs(prev => [...mapped, ...prev]);
+
+        requestAnimationFrame(() => {
+          if (scrollEl) {
+            scrollEl.scrollTop = scrollEl.scrollHeight - prevScrollHeight;
+          }
+        });
+      }
+    } catch (error) {
+      logError(error as Error, { context: 'ChatRoom.loadOlder', matchId });
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [matchId, loadingOlder, hasOlderMessages, olderMsgs, msgs, currentUser?.uid]);
+
+  // Typing handler
+  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setText(e.target.value);
+    if (!matchId || !currentUser?.uid) return;
+
+    setTypingStatus(matchId, currentUser.uid, true);
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => {
+      setTypingStatus(matchId, currentUser.uid, false);
+    }, 3000);
+  }, [matchId, currentUser?.uid]);
+
+  // Keyboard dismiss on tap
+  const handleMessagesAreaClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.closest('button')) return;
+    inputRef.current?.blur();
+  }, []);
+
+  // Pull-to-refresh handlers
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    const el = scrollContainerRef.current;
+    if (el && el.scrollTop <= 0) {
+      pullStartY.current = e.touches[0].clientY;
+    }
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (pullStartY.current === null) return;
+    const diff = e.touches[0].clientY - pullStartY.current;
+    if (diff > 0) {
+      setPullDistance(Math.min(diff * 0.5, 80));
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(async () => {
+    if (pullDistance > 50) {
+      setIsRefreshing(true);
+      hapticLight();
+      try {
+        if (matchId && currentUser?.uid) {
+          const matches = await getAllMatches(currentUser.uid);
+          const match = matches.find(m => m.id === matchId);
+          if (match) {
+            setMatchName(match.displayName || "Chat");
+            setMatchAvatar(match.avatarUrl || "");
+            setMatchExpiresAt(match.expiresAt || 0);
+            setIsMatchExpired(match.expiresAt < Date.now());
+          }
+        }
+      } catch (error) {
+        logError(error as Error, { context: 'ChatRoom.pullRefresh' });
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+    pullStartY.current = null;
+    setPullDistance(0);
+  }, [pullDistance, matchId, currentUser?.uid]);
 
   if (!matchId) {
     return (
-      <div className="min-h-screen min-h-[100dvh] bg-neutral-900 p-4 flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-neutral-900 p-4 flex items-center justify-center">
         <div className="max-w-md w-full bg-neutral-800 rounded-2xl shadow-lg p-6 text-center">
           <p className="text-neutral-300">Chat not found.</p>
           <Button 
@@ -172,6 +346,11 @@ export default function ChatRoom() {
     setSendError(null);
     setSending(true);
     setText("");
+
+    if (matchId && currentUser.uid) {
+      setTypingStatus(matchId, currentUser.uid, false);
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    }
     
     try {
       await firebaseSendMessage(matchId, currentUser.uid, t);
@@ -180,7 +359,7 @@ export default function ChatRoom() {
       logError(error as Error, { context: 'ChatRoom.onSend', matchId, userId: currentUser.uid });
       const errorObj = error instanceof Error ? error : new Error('Failed to send message');
       setSendError(errorObj);
-      setText(t); // Restore text on failure
+      setText(t);
       
       if (errorObj.message.includes('limit')) {
         setShowMessageLimitModal(true);
@@ -200,8 +379,6 @@ export default function ChatRoom() {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
-      {/* Capacitor Keyboard plugin with resize:'body' shrinks the body
-          above the keyboard — no manual bottom offset needed. */}
       <div className="max-w-lg mx-auto w-full h-full flex flex-col bg-neutral-900">
         <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
 
@@ -230,11 +407,17 @@ export default function ChatRoom() {
                 </span>
               )}
             </div>
-            {keyboardHeight === 0 && !isMatchExpired && matchExpiresAt && getRemainingTime() && (
+            {keyboardHeight === 0 && !isMatchExpired && matchExpiresAt && getRemainingTime() ? (
               <p className="text-sm text-neutral-400">
-                {getRemainingTime()} left
+                {otherUserTyping ? (
+                  <span className="text-violet-400">typing...</span>
+                ) : (
+                  `${getRemainingTime()} left`
+                )}
               </p>
-            )}
+            ) : otherUserTyping && keyboardHeight === 0 ? (
+              <p className="text-sm text-violet-400">typing...</p>
+            ) : null}
           </div>
           {otherUserId && (
             <div className="relative" ref={menuRef}>
@@ -274,11 +457,46 @@ export default function ChatRoom() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-4 bg-neutral-900" aria-live="polite">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-4 bg-neutral-900 relative"
+          aria-live="polite"
+          onClick={handleMessagesAreaClick}
+          onScroll={handleScroll}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          {/* Pull-to-refresh indicator */}
+          {(pullDistance > 0 || isRefreshing) && (
+            <div
+              className="flex items-center justify-center overflow-hidden transition-all"
+              style={{ height: isRefreshing ? 40 : pullDistance }}
+            >
+              <RefreshCw className={`w-5 h-5 text-violet-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </div>
+          )}
+
+          {/* Load older messages button */}
+          {hasOlderMessages && allMessages.length >= 50 && (
+            <div className="flex justify-center pb-2">
+              <button
+                onClick={handleLoadOlder}
+                disabled={loadingOlder}
+                className="text-sm text-violet-400 hover:text-violet-300 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/60"
+              >
+                {loadingOlder ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : null}
+                {loadingOlder ? 'Loading...' : 'Load earlier messages'}
+              </button>
+            </div>
+          )}
+
           <AnimatePresence>
-            {msgs.map((m, i) => (
+            {allMessages.map((m, i) => (
               <motion.div
-                key={m.id || i}
+                key={m.id || `msg-${i}`}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0 }}
@@ -301,8 +519,34 @@ export default function ChatRoom() {
             ))}
           </AnimatePresence>
 
+          {/* Typing indicator bubble */}
+          {otherUserTyping && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex justify-start"
+            >
+              <div className="bg-neutral-800 rounded-2xl rounded-bl-md px-5 py-3.5 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </motion.div>
+          )}
+
           <div ref={endRef} />
         </div>
+
+        {/* Scroll to bottom button */}
+        {showScrollButton && (
+          <button
+            onClick={() => scrollToBottom()}
+            className="absolute bottom-28 right-6 z-10 bg-violet-600 hover:bg-violet-700 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg transition-all"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+        )}
 
         {/* Input */}
         <div
@@ -342,7 +586,7 @@ export default function ChatRoom() {
                   <input
                     ref={inputRef}
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={handleTextChange}
                     placeholder={
                       !canSendMsg
                         ? "Message limit reached"
