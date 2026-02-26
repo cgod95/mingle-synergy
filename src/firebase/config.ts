@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { initializeAuth, getAuth, indexedDBLocalPersistence, browserLocalPersistence } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import config from "@/config";
 // import { getAnalytics, isSupported } from "firebase/analytics";
@@ -42,7 +42,9 @@ if (!isDemoMode && config.FIREBASE_API_KEY && config.FIREBASE_PROJECT_ID) {
       // If auth was already initialized (e.g. hot reload), fall back to getAuth
       auth = getAuth(app);
     }
-    firestore = getFirestore(app);
+    firestore = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+    });
     storage = getStorage(app);
     
     console.log('[Firebase] Initialized successfully');
