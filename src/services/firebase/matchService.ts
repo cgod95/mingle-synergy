@@ -488,7 +488,12 @@ export const createMatchIfMutual = async (userId1: string, userId2: string, venu
 };
 
 // Export mutual like detection function
-export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: string, venueId: string): Promise<void> => {
+export const likeUserWithMutualDetection = async (
+  fromUserId: string,
+  toUserId: string,
+  venueId: string,
+  introMessage?: string
+): Promise<void> => {
   try {
     if (!isFirebaseAvailable()) {
       throw new Error('Cannot like user while offline');
@@ -499,6 +504,18 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
 
     // Add the like
     await setDoc(fromUserLikesRef, { likes: arrayUnion(toUserId) }, { merge: true });
+
+    // Store intro message if provided
+    if (introMessage && introMessage.trim()) {
+      const introRef = doc(firestore, "introMessages", `${fromUserId}_${toUserId}`);
+      await setDoc(introRef, {
+        fromUserId,
+        toUserId,
+        message: introMessage.trim(),
+        timestamp: Date.now(),
+        venueId,
+      });
+    }
 
     // Check if the other user already liked this user
     const toUserLikesSnap = await getDoc(toUserLikesRef);
@@ -522,12 +539,45 @@ export const likeUserWithMutualDetection = async (fromUserId: string, toUserId: 
       }
 
       const matchId = await createMatchIfMutual(fromUserId, toUserId, venueId);
+
+      // Propagate intro messages into the new match as first messages
+      if (matchId) {
+        await propagateIntroMessages(matchId, fromUserId, toUserId);
+      }
     }
   } catch (error) {
     logError(error as Error, { source: 'matchService', action: 'likeUserWithMutualDetection', fromUserId, toUserId, venueId });
     throw error;
   }
 };
+
+async function propagateIntroMessages(matchId: string, userId1: string, userId2: string): Promise<void> {
+  try {
+    const introRef1 = doc(firestore, "introMessages", `${userId1}_${userId2}`);
+    const introRef2 = doc(firestore, "introMessages", `${userId2}_${userId1}`);
+    const [snap1, snap2] = await Promise.all([getDoc(introRef1), getDoc(introRef2)]);
+
+    const messages: Array<{ senderId: string; text: string; timestamp: number }> = [];
+
+    if (snap2.exists()) {
+      const data = snap2.data();
+      messages.push({ senderId: userId2, text: data.message, timestamp: data.timestamp });
+    }
+    if (snap1.exists()) {
+      const data = snap1.data();
+      messages.push({ senderId: userId1, text: data.message, timestamp: data.timestamp });
+    }
+
+    if (messages.length > 0) {
+      const matchRef = doc(firestore, "matches", matchId);
+      for (const msg of messages) {
+        await updateDoc(matchRef, { messages: arrayUnion(msg) });
+      }
+    }
+  } catch (error) {
+    logError(error as Error, { source: 'matchService', action: 'propagateIntroMessages', matchId });
+  }
+}
 
 export const rematchUsers = async (userId1: string, userId2: string, venueId: string): Promise<string> => {
   if (!isFirebaseAvailable() || !firestore) {

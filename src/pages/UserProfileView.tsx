@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Heart, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, Heart, Loader2, Send, Lock, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { logError } from "@/utils/errorHandler";
@@ -9,11 +9,14 @@ import { getCheckedVenueId } from "@/lib/checkinStore";
 import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
 import { useUserLikes } from "@/hooks/useUserLikes";
+import { useIntroMessages } from "@/hooks/useIntroMessages";
 import { NewMatchModal } from "@/components/NewMatchModal";
 import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useToast } from "@/hooks/use-toast";
 import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/lib/utils";
+
+const INTRO_MESSAGE_MAX_LENGTH = 150;
 
 interface ProfileData {
   displayName?: string;
@@ -118,6 +121,10 @@ export default function UserProfileView() {
   const [isLiking, setIsLiking] = useState(false);
   const [heartBurst, setHeartBurst] = useState<{ x: number; y: number; key: number } | null>(null);
   const [matchModal, setMatchModal] = useState<{ matchId: string; partnerName: string; partnerPhoto?: string } | null>(null);
+  const [showComposeModal, setShowComposeModal] = useState(false);
+  const [introText, setIntroText] = useState("");
+  const pendingClickEvent = useRef<{ x: number; y: number } | null>(null);
+  const introMessages = useIntroMessages();
 
   const liked = userId ? firestoreLikedIds.has(userId) : false;
   const isMatched = userId ? realtimeMatches.some(
@@ -126,18 +133,30 @@ export default function UserProfileView() {
   const wasMatchedOnMount = useRef(isMatched);
   const venueId = getCheckedVenueId();
 
-  const handleLike = async (clickEvent?: React.MouseEvent) => {
+  const incomingIntro = userId ? introMessages.get(userId) : undefined;
+
+  const handleLikeClick = (clickEvent?: React.MouseEvent) => {
+    if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched || liked) return;
+    if (clickEvent) {
+      pendingClickEvent.current = { x: clickEvent.clientX, y: clickEvent.clientY };
+    }
+    setShowComposeModal(true);
+  };
+
+  const submitLike = async (message?: string) => {
     if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched) return;
+    setShowComposeModal(false);
     setIsLiking(true);
     hapticMedium();
 
-    if (clickEvent) {
-      setHeartBurst({ x: clickEvent.clientX, y: clickEvent.clientY, key: Date.now() });
+    if (pendingClickEvent.current) {
+      setHeartBurst({ x: pendingClickEvent.current.x, y: pendingClickEvent.current.y, key: Date.now() });
       setTimeout(() => setHeartBurst(null), 800);
+      pendingClickEvent.current = null;
     }
 
     try {
-      await likeUserWithMutualDetection(currentUser.uid, userId, venueId);
+      await likeUserWithMutualDetection(currentUser.uid, userId, venueId, message);
       if (!liked) {
         toast({ title: "Like sent ❤️" });
       }
@@ -148,6 +167,7 @@ export default function UserProfileView() {
       toast({ title: "Something went wrong", variant: "destructive" });
     } finally {
       setIsLiking(false);
+      setIntroText("");
     }
   };
 
@@ -239,6 +259,27 @@ export default function UserProfileView() {
             <p className="text-base text-neutral-300 leading-relaxed">{profile.bio}</p>
           </div>
         )}
+
+        {incomingIntro && (
+          <div className="px-4 pb-4">
+            {isMatched ? (
+              <div className="flex items-start gap-3 bg-violet-900/30 rounded-xl p-3 border border-violet-800/40">
+                <Mail className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs text-violet-400 font-medium mb-1">Message from {displayName}</p>
+                  <p className="text-sm text-neutral-200 leading-relaxed">{incomingIntro.message}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 bg-neutral-700/50 rounded-xl p-3 border border-neutral-600/40">
+                <Lock className="w-5 h-5 text-neutral-400 flex-shrink-0" />
+                <p className="text-sm text-neutral-400">
+                  {displayName} sent you a message. Like them back to read it.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Like / Matched action button */}
@@ -259,13 +300,13 @@ export default function UserProfileView() {
             </Button>
           ) : (
             <Button
-              onClick={(e) => handleLike(e)}
-              disabled={isLiking}
+              onClick={(e) => liked ? undefined : handleLikeClick(e)}
+              disabled={isLiking || liked}
               aria-label={liked ? `Liked ${displayName}` : `Like ${displayName}`}
               className={`w-full rounded-xl py-3 text-base font-semibold ${
                 liked
-                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                  : 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white'
+                  ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30'
+                  : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white'
               }`}
             >
               {isLiking ? (
@@ -313,6 +354,62 @@ export default function UserProfileView() {
         partnerName={matchModal?.partnerName || ''}
         partnerPhoto={matchModal?.partnerPhoto}
       />
+
+      {/* Compose intro message modal */}
+      <AnimatePresence>
+        {showComposeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+            onClick={() => { setShowComposeModal(false); setIntroText(""); }}
+          >
+            <motion.div
+              initial={{ y: 200 }}
+              animate={{ y: 0 }}
+              exit={{ y: 200 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="w-full max-w-lg bg-neutral-800 rounded-t-2xl p-5 pb-8"
+              style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0px))' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-10 h-1 bg-neutral-600 rounded-full mx-auto mb-4" />
+              <h3 className="text-white font-semibold text-lg mb-1">Send a message with your like</h3>
+              <p className="text-neutral-400 text-sm mb-4">Optional — make a first impression</p>
+              <textarea
+                value={introText}
+                onChange={(e) => setIntroText(e.target.value.slice(0, INTRO_MESSAGE_MAX_LENGTH))}
+                placeholder="Say something..."
+                className="w-full bg-neutral-700 text-white rounded-xl p-3 text-base resize-none border border-neutral-600 focus:border-violet-500 focus:outline-none placeholder:text-neutral-500"
+                rows={3}
+                maxLength={INTRO_MESSAGE_MAX_LENGTH}
+                autoFocus
+              />
+              <div className="flex justify-between items-center mt-2 mb-4">
+                <span className="text-xs text-neutral-500">{introText.length}/{INTRO_MESSAGE_MAX_LENGTH}</span>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => submitLike()}
+                  variant="ghost"
+                  className="flex-1 h-12 text-neutral-300 hover:text-white font-medium text-base"
+                >
+                  Just like
+                </Button>
+                <Button
+                  onClick={() => submitLike(introText || undefined)}
+                  disabled={introText.trim().length === 0}
+                  className="flex-1 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-base"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Send with message
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

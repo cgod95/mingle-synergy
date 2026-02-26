@@ -14,14 +14,21 @@ const BottomNav: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const lastNavTime = useRef(0);
 
-  // Debounced navigation to prevent double-taps
+  const resolveTabRoot = useCallback((targetPath: string): string => {
+    const { pathname } = location;
+    if (targetPath === '/checkin' && pathname.startsWith('/venues/')) return '/checkin';
+    if (targetPath === '/matches' && pathname.startsWith('/chat/')) return '/matches';
+    if (targetPath === '/profile' && pathname.startsWith('/profile/')) return '/profile';
+    return targetPath;
+  }, [location]);
+
   const handleNavigate = useCallback((path: string) => {
     const now = Date.now();
-    if (now - lastNavTime.current < 300) return; // 300ms debounce
+    if (now - lastNavTime.current < 300) return;
     lastNavTime.current = now;
     hapticLight();
-    navigate(path);
-  }, [navigate]);
+    navigate(resolveTabRoot(path));
+  }, [navigate, resolveTabRoot]);
 
   // Always show bottom nav if explicitly requested or after onboarding
   const localStorageComplete = localStorage.getItem('onboardingComplete') === 'true';

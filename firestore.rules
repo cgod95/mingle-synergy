@@ -155,5 +155,25 @@ service cloud.firestore {
         request.resource.data.fromUserId == request.auth.uid;
       allow update, delete: if false;
     }
+
+    // Intro messages — one message per like, keyed as {fromUserId}_{toUserId}
+    // Sender can create/update their own; recipient can read messages sent to them
+    match /introMessages/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow create: if isSignedIn() &&
+        request.resource.data.fromUserId == request.auth.uid &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.message.size() <= 150;
+      allow update: if isSignedIn() &&
+        resource.data.fromUserId == request.auth.uid &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.message.size() <= 150;
+      allow delete: if false;
+    }
   }
 }

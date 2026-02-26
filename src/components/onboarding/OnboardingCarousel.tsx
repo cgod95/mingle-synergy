@@ -67,6 +67,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
     <div className="min-h-screen min-h-[100dvh] flex flex-col bg-neutral-900">
       <div className="flex-1 flex flex-col justify-center px-6 py-12">
         <div className="max-w-md mx-auto w-full text-center">
+          <h2 className="text-violet-400 font-semibold text-lg mb-6">How It Works</h2>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}

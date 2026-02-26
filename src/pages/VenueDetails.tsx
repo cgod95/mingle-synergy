@@ -3,7 +3,7 @@ import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, User, ArrowLeft, LogOut, Star } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, User, ArrowLeft, LogOut, Star, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -25,6 +25,7 @@ import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { NewMatchModal } from "@/components/NewMatchModal";
+import { useIntroMessages } from "@/hooks/useIntroMessages";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -116,6 +117,7 @@ export default function VenueDetails() {
   const navigate = useNavigate();
   const { matches: realtimeMatches } = useRealtimeMatches();
   const likedIds = useUserLikes();
+  const introMessages = useIntroMessages();
   const prefersReducedMotion = useReducedMotion();
 
   const isMatchedWith = useCallback((userId: string) => {
@@ -263,10 +265,7 @@ export default function VenueDetails() {
       await likeUserWithMutualDetection(currentUser.uid, personId, id);
       pendingLikeRef.current = personId;
 
-      if (!likedIds.has(personId)) {
-        setToast("Like sent ❤️");
-        setTimeout(() => setToast(null), 1600);
-      }
+      // Heart burst animation provides sufficient feedback on the grid
     } catch (error) {
       logError(error instanceof Error ? error : new Error('Failed to like'), {
         context: 'VenueDetails.handleLike', userId: currentUser.uid, personId
@@ -317,7 +316,7 @@ export default function VenueDetails() {
       <div className="flex items-center gap-2 px-3 py-2.5">
         <button
           onClick={() => navigate('/checkin?showAll=true')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-base font-medium transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/50 hover:bg-violet-900/70 text-violet-400 hover:text-violet-300 text-base font-medium transition-colors border border-violet-800/40"
         >
           <ArrowLeft className="w-4 h-4" />
           All Venues
@@ -326,13 +325,13 @@ export default function VenueDetails() {
         {checkedIn === venue.id ? (
           <button
             onClick={handleCheckOut}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-900/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 text-base font-medium transition-colors border border-red-800/50"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/50 hover:bg-violet-900/70 text-violet-400 hover:text-violet-300 text-base font-medium transition-colors border border-violet-800/40"
           >
             <LogOut className="w-4 h-4" />
             Check Out
           </button>
         ) : (
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-900/30 text-green-400 text-base font-medium border border-green-800/40">
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/30 text-violet-400 text-base font-medium border border-violet-800/40">
             <CheckCircle2 className="w-4 h-4" />
             Viewing
           </div>
@@ -393,6 +392,7 @@ export default function VenueDetails() {
               const personAge = (p as any).age;
               const matched = isMatchedWith(p.id);
               const liked = likedIds.has(p.id);
+              const hasIntroMessage = introMessages.has(p.id);
               const personName = (p as any).displayName || (p as any).name || 'Someone';
               
               return (
@@ -410,6 +410,11 @@ export default function VenueDetails() {
                     {matched && (
                       <div className="absolute top-1.5 right-1.5 z-10 bg-violet-500 rounded-full p-1 shadow-lg">
                         <Star className="w-3.5 h-3.5 text-white fill-white" />
+                      </div>
+                    )}
+                    {hasIntroMessage && !matched && (
+                      <div className="absolute top-1.5 left-1.5 z-10 bg-violet-500 rounded-full p-1 shadow-lg">
+                        <Send className="w-3.5 h-3.5 text-white" />
                       </div>
                     )}
                     {(p as any).photos?.[0] || (p as any).photo ? (
