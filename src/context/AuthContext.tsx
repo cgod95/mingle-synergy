@@ -3,6 +3,7 @@ import { seedDemoMatchesIfEmpty, Person } from "../lib/matchStore";
 import { DEMO_PEOPLE } from "../lib/demoPeople";
 import { authService } from "@/services";
 import config from "@/config";
+import { clearCheckIn } from "@/lib/checkinStore";
 
 type User = { id: string; name: string; email?: string; uid?: string } | null;
 type Ctx = {
@@ -91,6 +92,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setUser(null);
     userIdRef.current = null;
     try { localStorage.removeItem(KEY); } catch {}
+    clearCheckIn();
   }, []);
 
   const createDemoUser = useCallback(() => {

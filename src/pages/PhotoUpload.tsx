@@ -4,12 +4,13 @@ import { Camera, Upload, X, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { Button } from '@/components/ui/button';
-// Card imports removed -- page now uses a flat full-screen layout
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
 import analytics from '@/services/appAnalytics';
 import { logError } from '@/utils/errorHandler';
+import { clearCheckIn } from '@/lib/checkinStore';
+import ImageCropper from '@/components/ui/ImageCropper';
 
 export default function PhotoUpload() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function PhotoUpload() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploaded, setUploaded] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   // Memoized back handler to prevent stuck state
   const handleBack = useCallback(() => {
@@ -58,11 +60,23 @@ export default function PhotoUpload() {
         return;
       }
 
-      setFile(selected);
-      const previewUrl = URL.createObjectURL(selected);
-      setPreview(previewUrl);
+      const objectUrl = URL.createObjectURL(selected);
+      setCropSrc(objectUrl);
       setUploaded(false);
     }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const croppedFile = new File([croppedBlob], `profile-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    setFile(croppedFile);
+    const previewUrl = URL.createObjectURL(croppedBlob);
+    setPreview(previewUrl);
+    setCropSrc(null);
+  };
+
+  const handleCropCancel = () => {
+    setCropSrc(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRemovePhoto = () => {
@@ -119,8 +133,10 @@ export default function PhotoUpload() {
         description: 'Your profile photo has been uploaded successfully.',
       });
 
-      // Navigate with replace to prevent back button issues
       setTimeout(() => {
+        if (!fromProfile) {
+          clearCheckIn();
+        }
         navigate(fromProfile ? '/profile' : '/checkin', { replace: true });
       }, 800);
     } catch (error: any) {
@@ -308,6 +324,15 @@ export default function PhotoUpload() {
           </div>
         </div>
       </div>
+
+      {cropSrc && (
+        <ImageCropper
+          imageSrc={cropSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspect={1}
+        />
+      )}
     </Layout>
   );
 }

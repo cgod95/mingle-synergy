@@ -202,13 +202,21 @@ class FirebaseUserService implements UserService {
   }
 
   async uploadProfilePhoto(userId: string, file: File, onProgress?: (percent: number) => void): Promise<string> {
-    const fileExtension = file.name.split('.').pop();
+    let uploadFile: File | Blob = file;
+    try {
+      const { imageService } = await import('@/services/ImageService');
+      uploadFile = await imageService.compressImage(file, 1200, 0.8);
+    } catch {
+      // Fall back to original file if compression fails
+    }
+
+    const fileExtension = 'jpg';
     const fileName = `profile-photos/${userId}/${Date.now()}.${fileExtension}`;
     const storageRef = ref(storage, fileName);
 
     return new Promise<string>((resolve, reject) => {
-      const task = uploadBytesResumable(storageRef, file, {
-        contentType: file.type || 'image/jpeg',
+      const task = uploadBytesResumable(storageRef, uploadFile, {
+        contentType: 'image/jpeg',
       });
 
       const timeout = setTimeout(() => {

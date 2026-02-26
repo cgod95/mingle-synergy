@@ -25,6 +25,7 @@ const interestedInOptions = [
 
 export default function CreateProfile() {
   const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
   const [gender, setGender] = useState('other');
   const [interestedIn, setInterestedIn] = useState<string>('everyone');
   const [age, setAge] = useState(25);
@@ -66,6 +67,7 @@ export default function CreateProfile() {
       if (saved) {
         const draft = JSON.parse(saved);
         setName(draft.name || '');
+        setBio(draft.bio || '');
         setGender(draft.gender || 'other');
         setInterestedIn(draft.interestedIn || 'everyone');
         setAge(draft.age || 25);
@@ -80,12 +82,13 @@ export default function CreateProfile() {
     if (name) {
       localStorage.setItem('onboarding_profile_draft', JSON.stringify({
         name,
+        bio,
         gender,
         interestedIn,
         age,
       }));
     }
-  }, [name, gender, interestedIn, age]);
+  }, [name, bio, gender, interestedIn, age]);
 
   const handleSubmit = async () => {
     // Pre-flight checks
@@ -116,6 +119,7 @@ export default function CreateProfile() {
         const profileData = {
           id: auth.currentUser.uid,
           name,
+          bio: bio.trim() || '',
           photos: [],
         isCheckedIn: false,
         isVisible: true,
@@ -123,7 +127,7 @@ export default function CreateProfile() {
         gender,
         interestedIn: interestedInArray,
         age,
-        ageRangePreference: { min: 18, max: 99 }, // Default, can be updated in preferences
+        ageRangePreference: { min: 18, max: 99 },
         matches: [],
         likedUsers: [],
         blockedUsers: []
@@ -326,6 +330,19 @@ export default function CreateProfile() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-neutral-300">Bio <span className="text-neutral-500 font-normal">(optional)</span></label>
+                <textarea
+                  placeholder="Tell people a little about yourself"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value.slice(0, 200))}
+                  maxLength={200}
+                  rows={3}
+                  className="w-full bg-neutral-800 border border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none rounded-xl p-3 text-base resize-none"
+                />
+                <p className="text-xs text-neutral-500 text-right">{bio.length}/200</p>
               </div>
 
               <AnimatePresence>

@@ -9,6 +9,7 @@ import { ArrowLeft, Camera, X, Upload } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { logError } from "@/utils/errorHandler";
 import { useToast } from "@/hooks/use-toast";
+import ImageCropper from "@/components/ui/ImageCropper";
 
 export default function ProfileEdit() {
   const [name, setName] = useState("");
@@ -20,6 +21,7 @@ export default function ProfileEdit() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -63,7 +65,6 @@ export default function ProfileEdit() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (selected) {
-      // Validate file type
       if (!selected.type.startsWith('image/')) {
         toast({
           title: 'Invalid file type',
@@ -73,7 +74,6 @@ export default function ProfileEdit() {
         return;
       }
       
-      // Validate file size (max 5MB)
       if (selected.size > 5 * 1024 * 1024) {
         toast({
           title: 'File too large',
@@ -83,13 +83,21 @@ export default function ProfileEdit() {
         return;
       }
       
-      setFile(selected);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selected);
+      const objectUrl = URL.createObjectURL(selected);
+      setCropSrc(objectUrl);
     }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const croppedFile = new File([croppedBlob], `profile-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    setFile(croppedFile);
+    setPreview(URL.createObjectURL(croppedBlob));
+    setCropSrc(null);
+  };
+
+  const handleCropCancel = () => {
+    setCropSrc(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRemovePhoto = () => {
@@ -354,6 +362,15 @@ export default function ProfileEdit() {
             </Button>
           </CardContent>
         </Card>
+
+      {cropSrc && (
+        <ImageCropper
+          imageSrc={cropSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspect={1}
+        />
+      )}
     </div>
   );
 }

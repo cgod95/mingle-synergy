@@ -3,7 +3,7 @@ import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, User, ArrowLeft, LogOut, Star, Send } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, User, Users, ArrowLeft, LogOut, Star, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -375,15 +375,12 @@ export default function VenueDetails() {
             </Button>
           </div>
         ) : visiblePeople.length === 0 ? (
-          <div className="text-center py-12">
-            <motion.div
-              animate={prefersReducedMotion ? undefined : { scale: [1, 1.08, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Heart className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
-            </motion.div>
-            <h3 className="text-lg font-semibold text-white mb-1">No one here yet</h3>
-            <p className="text-sm text-neutral-400">You're the first one here. Others will see you when they check in.</p>
+          <div className="text-center py-16 px-6">
+            <div className="w-16 h-16 rounded-full bg-violet-900/40 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-violet-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">No one's here yet</h3>
+            <p className="text-sm text-neutral-400 max-w-xs mx-auto">You're the first to arrive. Others will appear here when they check in.</p>
           </div>
         ) : (
           <>

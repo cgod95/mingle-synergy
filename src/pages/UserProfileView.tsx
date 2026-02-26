@@ -10,6 +10,7 @@ import { likeUserWithMutualDetection } from "@/services/firebase/matchService";
 import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useIntroMessages } from "@/hooks/useIntroMessages";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { NewMatchModal } from "@/components/NewMatchModal";
 import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useToast } from "@/hooks/use-toast";
@@ -125,6 +126,7 @@ export default function UserProfileView() {
   const [introText, setIntroText] = useState("");
   const pendingClickEvent = useRef<{ x: number; y: number } | null>(null);
   const introMessages = useIntroMessages();
+  const keyboardHeight = useKeyboardHeight();
 
   const liked = userId ? firestoreLikedIds.has(userId) : false;
   const isMatched = userId ? realtimeMatches.some(
@@ -135,11 +137,16 @@ export default function UserProfileView() {
 
   const incomingIntro = userId ? introMessages.get(userId) : undefined;
 
-  const handleLikeClick = (clickEvent?: React.MouseEvent) => {
+  const handleLikeOnly = (clickEvent?: React.MouseEvent) => {
     if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched || liked) return;
     if (clickEvent) {
       pendingClickEvent.current = { x: clickEvent.clientX, y: clickEvent.clientY };
     }
+    submitLike();
+  };
+
+  const handleLikeWithMessage = () => {
+    if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched || liked) return;
     setShowComposeModal(true);
   };
 
@@ -147,7 +154,11 @@ export default function UserProfileView() {
     if (!currentUser?.uid || !userId || !venueId || isLiking || isMatched) return;
     setShowComposeModal(false);
     setIsLiking(true);
-    hapticMedium();
+    if (message) {
+      hapticSuccess();
+    } else {
+      hapticMedium();
+    }
 
     if (pendingClickEvent.current) {
       setHeartBurst({ x: pendingClickEvent.current.x, y: pendingClickEvent.current.y, key: Date.now() });
@@ -282,7 +293,7 @@ export default function UserProfileView() {
         )}
       </div>
 
-      {/* Like / Matched action button */}
+      {/* Action buttons */}
       {currentUser?.uid && userId !== currentUser.uid && venueId && (
         <div className="mx-3 mt-4 mb-8">
           {isMatched ? (
@@ -298,24 +309,32 @@ export default function UserProfileView() {
             >
               Chat with {displayName}
             </Button>
-          ) : (
+          ) : liked ? (
             <Button
-              onClick={(e) => liked ? undefined : handleLikeClick(e)}
-              disabled={isLiking || liked}
-              aria-label={liked ? `Liked ${displayName}` : `Like ${displayName}`}
-              className={`w-full rounded-xl py-3 text-base font-semibold ${
-                liked
-                  ? 'bg-violet-600/20 text-violet-400 border border-violet-500/30'
-                  : 'bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white'
-              }`}
+              disabled
+              className="w-full rounded-xl py-3 text-base font-semibold bg-violet-600/20 text-violet-400 border border-violet-500/30"
             >
-              {isLiking ? (
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              ) : (
-                <Heart className={`w-5 h-5 mr-2 ${liked ? 'fill-current' : ''}`} />
-              )}
-              {liked ? 'Liked' : `Like ${displayName}`}
+              Liked
             </Button>
+          ) : (
+            <div className="flex gap-3">
+              <Button
+                onClick={(e) => handleLikeOnly(e)}
+                disabled={isLiking}
+                className="flex-1 rounded-xl py-3 text-base font-semibold bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white"
+              >
+                {isLiking ? <Loader2 className="w-5 h-5 animate-spin" /> : `Like`}
+              </Button>
+              <Button
+                onClick={handleLikeWithMessage}
+                disabled={isLiking}
+                variant="ghost"
+                className="flex-1 rounded-xl py-3 text-base font-semibold border border-violet-500/40 text-violet-400 hover:bg-violet-900/30"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Like + Message
+              </Button>
+            </div>
           )}
         </div>
       )}
@@ -370,13 +389,13 @@ export default function UserProfileView() {
               animate={{ y: 0 }}
               exit={{ y: 200 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-lg bg-neutral-800 rounded-t-2xl p-5 pb-8"
-              style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0px))' }}
+              className="w-full max-w-lg bg-neutral-800 rounded-t-2xl p-5"
+              style={{ paddingBottom: `max(2rem, ${keyboardHeight > 0 ? keyboardHeight + 'px' : 'env(safe-area-inset-bottom, 0px)'})` }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-10 h-1 bg-neutral-600 rounded-full mx-auto mb-4" />
               <h3 className="text-white font-semibold text-lg mb-1">Send a message with your like</h3>
-              <p className="text-neutral-400 text-sm mb-4">Optional — make a first impression</p>
+              <p className="text-neutral-400 text-sm mb-4">Make a first impression</p>
               <textarea
                 value={introText}
                 onChange={(e) => setIntroText(e.target.value.slice(0, INTRO_MESSAGE_MAX_LENGTH))}
@@ -384,18 +403,17 @@ export default function UserProfileView() {
                 className="w-full bg-neutral-700 text-white rounded-xl p-3 text-base resize-none border border-neutral-600 focus:border-violet-500 focus:outline-none placeholder:text-neutral-500"
                 rows={3}
                 maxLength={INTRO_MESSAGE_MAX_LENGTH}
-                autoFocus
               />
               <div className="flex justify-between items-center mt-2 mb-4">
                 <span className="text-xs text-neutral-500">{introText.length}/{INTRO_MESSAGE_MAX_LENGTH}</span>
               </div>
               <div className="flex gap-3">
                 <Button
-                  onClick={() => submitLike()}
+                  onClick={() => { setShowComposeModal(false); setIntroText(""); }}
                   variant="ghost"
                   className="flex-1 h-12 text-neutral-300 hover:text-white font-medium text-base"
                 >
-                  Just like
+                  Cancel
                 </Button>
                 <Button
                   onClick={() => submitLike(introText || undefined)}
@@ -403,7 +421,7 @@ export default function UserProfileView() {
                   className="flex-1 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-base"
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  Send with message
+                  Send + Like
                 </Button>
               </div>
             </motion.div>
