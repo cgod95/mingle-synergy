@@ -1,5 +1,5 @@
-import { getApp, getApps, initializeApp } from "firebase/app";
-import { getFirestore, addDoc, collection, getDocs, deleteDoc, doc, connectFirestoreEmulator } from "firebase/firestore";
+import { addDoc, collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { db as firestoreDb } from "@/firebase/config";
 
 type FeedbackItem = {
   id?: string;
@@ -7,28 +7,6 @@ type FeedbackItem = {
   createdAt: number;
   from?: string | null;
 };
-
-function tryInitFirebase() {
-  try {
-    if (!getApps().length) {
-      initializeApp({
-        apiKey: "demo",
-        authDomain: "demo",
-        projectId: "demo"
-      });
-    }
-    const db = getFirestore(getApp());
-    // Try to connect to emulator if env set
-    if (import.meta?.env?.VITE_FIRESTORE_EMULATOR_HOST) {
-      const [host, portStr] = (import.meta.env.VITE_FIRESTORE_EMULATOR_HOST as string).split(":");
-      const port = Number(portStr || "8082");
-      connectFirestoreEmulator(db, host || "localhost", port);
-    }
-    return db;
-  } catch {
-    return null;
-  }
-}
 
 const LS_KEY = "mingle_feedback";
 
@@ -47,20 +25,17 @@ function lsWrite(items: FeedbackItem[]) {
 export const feedbackRepo = {
   async save(message: string, from?: string | null) {
     const item: FeedbackItem = { message, from: from || null, createdAt: Date.now() };
-    const db = tryInitFirebase();
     try {
-      if (db) {
-        const ref = await addDoc(collection(db, "feedback"), item);
+      if (firestoreDb) {
+        const ref = await addDoc(collection(firestoreDb, "feedback"), item);
         return { ...item, id: ref.id };
       }
-      // fallback to localStorage
       const all = lsRead();
       const id = crypto.randomUUID();
       all.push({ ...item, id });
       lsWrite(all);
       return { ...item, id };
     } catch {
-      // final fallback to localStorage if firestore write fails
       const all = lsRead();
       const id = crypto.randomUUID();
       all.push({ ...item, id });
@@ -70,10 +45,9 @@ export const feedbackRepo = {
   },
 
   async list(): Promise<FeedbackItem[]> {
-    const db = tryInitFirebase();
     try {
-      if (db) {
-        const snap = await getDocs(collection(db, "feedback"));
+      if (firestoreDb) {
+        const snap = await getDocs(collection(firestoreDb, "feedback"));
         return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<FeedbackItem, "id">) }))
           .sort((a,b) => b.createdAt - a.createdAt);
       }
@@ -86,10 +60,9 @@ export const feedbackRepo = {
   },
 
   async remove(id: string) {
-    const db = tryInitFirebase();
     try {
-      if (db) {
-        await deleteDoc(doc(db, "feedback", id));
+      if (firestoreDb) {
+        await deleteDoc(doc(firestoreDb, "feedback", id));
         return;
       }
       const all = lsRead().filter(i => i.id !== id);

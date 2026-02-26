@@ -554,18 +554,24 @@ export const likeUserWithMutualDetection = async (
 
 async function propagateIntroMessages(matchId: string, currentUserId: string, otherUserId: string): Promise<void> {
   try {
-    const myIntroRef = doc(firestore, "introMessages", `${currentUserId}_${otherUserId}`);
-    const myIntroSnap = await getDoc(myIntroRef);
+    const pairs = [
+      { sender: otherUserId, receiver: currentUserId },
+      { sender: currentUserId, receiver: otherUserId },
+    ];
 
-    if (myIntroSnap.exists()) {
-      const data = myIntroSnap.data();
-      await addDoc(collection(firestore, "messages"), {
-        matchId,
-        senderId: currentUserId,
-        text: data.message,
-        createdAt: Timestamp.fromMillis(data.timestamp),
-        readBy: [currentUserId],
-      });
+    for (const { sender, receiver } of pairs) {
+      const introRef = doc(firestore, "introMessages", `${sender}_${receiver}`);
+      const introSnap = await getDoc(introRef);
+      if (introSnap.exists()) {
+        const data = introSnap.data();
+        await addDoc(collection(firestore, "messages"), {
+          matchId,
+          senderId: sender,
+          text: data.message,
+          createdAt: Timestamp.fromMillis(data.timestamp),
+          readBy: [sender],
+        });
+      }
     }
   } catch (error) {
     logError(error as Error, { source: 'matchService', action: 'propagateIntroMessages', matchId });
@@ -681,8 +687,8 @@ export const removeLikeBetweenUsers = async (uid1: string, uid2: string) => {
   if (!firestore) return;
   try {
     await Promise.all([
-      updateDoc(doc(firestore, "likes", uid1), { likes: arrayRemove(uid2) }),
-      updateDoc(doc(firestore, "likes", uid2), { likes: arrayRemove(uid1) }),
+      setDoc(doc(firestore, "likes", uid1), { likes: arrayRemove(uid2) }, { merge: true }),
+      setDoc(doc(firestore, "likes", uid2), { likes: arrayRemove(uid1) }, { merge: true }),
     ]);
   } catch (error) {
     logError(error as Error, { source: 'matchService', action: 'removeLikeBetweenUsers', uid1, uid2 });

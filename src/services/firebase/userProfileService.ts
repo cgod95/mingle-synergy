@@ -1,16 +1,12 @@
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { app } from "../../firebase";
+import { db } from "@/firebase/config";
 
 export type UserProfile = {
   displayName: string;
   age: number | null;
-  // placeholder for later: photoUrl?: string;
-  // interests?: string[];
   updatedAt: number;
 };
-
-const db = getFirestore(app);
 
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const auth = getAuth();
