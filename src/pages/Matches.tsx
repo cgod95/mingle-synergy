@@ -42,90 +42,6 @@ export default function Matches() {
   const [acceptingRematchId, setAcceptingRematchId] = useState<string | null>(null);
   const [requestingRematchId, setRequestingRematchId] = useState<string | null>(null);
 
-  const handleAcceptRematch = useCallback(async (matchId: string) => {
-    if (!currentUser?.uid) return;
-    setAcceptingRematchId(matchId);
-    try {
-      const { matchService } = await import("@/services");
-      await matchService.requestReconnect(matchId, currentUser.uid);
-      await fetchMatches(true);
-      toast({ title: "You're back in touch!", description: "Open your new chat from the list." });
-    } catch (error) {
-      logError(error as Error, { context: "Matches.handleAcceptRematch", matchId });
-      toast({ title: "Couldn't accept rematch", description: "Please try again.", variant: "destructive" });
-    } finally {
-      setAcceptingRematchId(null);
-    }
-  }, [currentUser?.uid, fetchMatches, toast]);
-
-  const handleRequestRematch = useCallback(async (matchId: string) => {
-    if (!currentUser?.uid) return;
-    setRequestingRematchId(matchId);
-    try {
-      const { matchService } = await import("@/services");
-      await matchService.requestReconnect(matchId, currentUser.uid);
-      await fetchMatches(true);
-      toast({ title: "Rematch requested", description: "They'll see it in Matches. If they accept, you'll get a new chat." });
-    } catch (error) {
-      logError(error as Error, { context: "Matches.handleRequestRematch", matchId });
-      toast({ title: "Couldn't request rematch", description: "Please try again.", variant: "destructive" });
-    } finally {
-      setRequestingRematchId(null);
-    }
-  }, [currentUser?.uid, fetchMatches, toast]);
-
-  const persistDismissed = useCallback((ids: Set<string>) => {
-    localStorage.setItem('mingle_dismissed_matches', JSON.stringify([...ids]));
-  }, []);
-
-  const dismissMatch = useCallback((matchId: string) => {
-    hapticMedium();
-    setDismissedIds(prev => new Set(prev).add(matchId));
-
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-
-    toast({
-      title: "Match dismissed",
-      description: "Tap undo to restore",
-      action: (
-        <button
-          onClick={() => {
-            if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-            setDismissedIds(prev => {
-              const next = new Set(prev);
-              next.delete(matchId);
-              persistDismissed(next);
-              return next;
-            });
-          }}
-          className="flex items-center gap-1 text-violet-400 font-semibold text-sm"
-        >
-          <Undo2 className="w-4 h-4" /> Undo
-        </button>
-      ),
-    });
-
-    undoTimerRef.current = setTimeout(() => {
-      setDismissedIds(prev => {
-        persistDismissed(prev);
-        return prev;
-      });
-    }, 5000);
-  }, [toast, persistDismissed]);
-
-  const pullStartY = useRef<number | null>(null);
-  const [pullDistance, setPullDistance] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Subscribe to real-time unread counts
-  useEffect(() => {
-    if (!currentUser?.uid) return;
-    const unsub = subscribeToUnreadCounts(currentUser.uid, (counts) => {
-      setUnreadCounts(counts);
-    });
-    return unsub;
-  }, [currentUser?.uid]);
-
   const fetchMatches = useCallback(async (silent = false) => {
     if (!currentUser?.uid) {
       setIsLoading(false);
@@ -211,6 +127,90 @@ export default function Matches() {
     const interval = setInterval(() => fetchMatches(true), 30000);
     return () => clearInterval(interval);
   }, [fetchMatches]);
+
+  // Subscribe to real-time unread counts
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+    const unsub = subscribeToUnreadCounts(currentUser.uid, (counts) => {
+      setUnreadCounts(counts);
+    });
+    return unsub;
+  }, [currentUser?.uid]);
+
+  const handleAcceptRematch = useCallback(async (matchId: string) => {
+    if (!currentUser?.uid) return;
+    setAcceptingRematchId(matchId);
+    try {
+      const { matchService } = await import("@/services");
+      await matchService.requestReconnect(matchId, currentUser.uid);
+      await fetchMatches(true);
+      toast({ title: "You're back in touch!", description: "Open your new chat from the list." });
+    } catch (error) {
+      logError(error as Error, { context: "Matches.handleAcceptRematch", matchId });
+      toast({ title: "Couldn't accept rematch", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setAcceptingRematchId(null);
+    }
+  }, [currentUser?.uid, fetchMatches, toast]);
+
+  const handleRequestRematch = useCallback(async (matchId: string) => {
+    if (!currentUser?.uid) return;
+    setRequestingRematchId(matchId);
+    try {
+      const { matchService } = await import("@/services");
+      await matchService.requestReconnect(matchId, currentUser.uid);
+      await fetchMatches(true);
+      toast({ title: "Rematch requested", description: "They'll see it in Matches. If they accept, you'll get a new chat." });
+    } catch (error) {
+      logError(error as Error, { context: "Matches.handleRequestRematch", matchId });
+      toast({ title: "Couldn't request rematch", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setRequestingRematchId(null);
+    }
+  }, [currentUser?.uid, fetchMatches, toast]);
+
+  const persistDismissed = useCallback((ids: Set<string>) => {
+    localStorage.setItem('mingle_dismissed_matches', JSON.stringify([...ids]));
+  }, []);
+
+  const dismissMatch = useCallback((matchId: string) => {
+    hapticMedium();
+    setDismissedIds(prev => new Set(prev).add(matchId));
+
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+
+    toast({
+      title: "Match dismissed",
+      description: "Tap undo to restore",
+      action: (
+        <button
+          onClick={() => {
+            if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+            setDismissedIds(prev => {
+              const next = new Set(prev);
+              next.delete(matchId);
+              persistDismissed(next);
+              return next;
+            });
+          }}
+          className="flex items-center gap-1 text-violet-400 font-semibold text-sm"
+        >
+          <Undo2 className="w-4 h-4" /> Undo
+        </button>
+      ),
+    });
+
+    undoTimerRef.current = setTimeout(() => {
+      setDismissedIds(prev => {
+        persistDismissed(prev);
+        return prev;
+      });
+    }, 5000);
+  }, [toast, persistDismissed]);
+
+  const pullStartY = useRef<number | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const handlePullRefresh = useCallback(async () => {
     setIsRefreshing(true);

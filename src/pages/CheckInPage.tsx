@@ -15,7 +15,7 @@ import { calculateDistance } from "@/utils/locationUtils";
 import { useToast } from "@/hooks/use-toast";
 import { LocationPermissionPrompt, LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
-import { checkInAt, getCheckedVenueId } from "@/lib/checkinStore";
+import { checkInAt, getCheckedVenueId, getCheckInTimestamp, CHECKIN_DURATION_MS } from "@/lib/checkinStore";
 import QRScannerOverlay from "@/components/QRScannerOverlay";
 
 interface VenueWithDistance {
@@ -57,7 +57,10 @@ export default function CheckInPage() {
     if (params.get('showAll') === 'true') return;
     const activeVenueId = getCheckedVenueId();
     if (activeVenueId) {
-      navigate(`/venues/${activeVenueId}`, { replace: true });
+      const ts = getCheckInTimestamp();
+      if (ts && Date.now() - ts < CHECKIN_DURATION_MS) {
+        navigate(`/venues/${activeVenueId}`, { replace: true });
+      }
     }
   }, []);
 

@@ -254,14 +254,13 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
         
         if (profile) {
           const hasPhotos = Array.isArray(profile.photos) && profile.photos.length > 0;
-          const hasBio = !!profile.bio && profile.bio.trim().length >= 10;
-          setHasRequiredData(hasPhotos && hasBio);
+          setHasRequiredData(hasPhotos);
         } else {
           setHasRequiredData(false);
         }
       } catch (error) {
         logError(error as Error, { source: 'OnboardingContext', action: 'checkRequiredData' });
-        setHasRequiredData(false);
+        setHasRequiredData(null);
       }
     };
 
