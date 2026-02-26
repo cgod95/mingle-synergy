@@ -340,7 +340,7 @@ export default function ChatRoom() {
   const onSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const t = text.trim();
-    if (!t || !currentUser?.uid || sending) return;
+    if (!t || !matchId || !currentUser?.uid || sending) return;
     
     hapticLight();
     setSendError(null);
@@ -378,7 +378,10 @@ export default function ChatRoom() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-neutral-900 z-50">
+    <div
+      className="fixed top-0 left-0 right-0 flex flex-col bg-neutral-900 z-50"
+      style={{ bottom: keyboardHeight > 0 ? `${keyboardHeight}px` : '0px', transition: 'bottom 0.25s ease-out' }}
+    >
       <div className="max-w-lg mx-auto w-full h-full flex flex-col bg-neutral-900">
         <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
 
@@ -551,7 +554,7 @@ export default function ChatRoom() {
         {/* Input */}
         <div
           className="bg-neutral-900 border-t border-neutral-800 px-4 py-3 flex-shrink-0"
-          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
+          style={{ paddingBottom: keyboardHeight > 0 ? '0.5rem' : 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
         >
           {isMatchExpired ? (
             <div className="text-center py-2 space-y-3">
@@ -587,6 +590,9 @@ export default function ChatRoom() {
                     ref={inputRef}
                     value={text}
                     onChange={handleTextChange}
+                    enterKeyHint="send"
+                    autoComplete="off"
+                    autoCorrect="on"
                     placeholder={
                       !canSendMsg
                         ? "Message limit reached"

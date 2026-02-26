@@ -557,22 +557,28 @@ async function propagateIntroMessages(matchId: string, userId1: string, userId2:
     const introRef2 = doc(firestore, "introMessages", `${userId2}_${userId1}`);
     const [snap1, snap2] = await Promise.all([getDoc(introRef1), getDoc(introRef2)]);
 
-    const messages: Array<{ senderId: string; text: string; timestamp: number }> = [];
+    const intros: Array<{ senderId: string; text: string; timestamp: number }> = [];
 
     if (snap2.exists()) {
       const data = snap2.data();
-      messages.push({ senderId: userId2, text: data.message, timestamp: data.timestamp });
+      intros.push({ senderId: userId2, text: data.message, timestamp: data.timestamp });
     }
     if (snap1.exists()) {
       const data = snap1.data();
-      messages.push({ senderId: userId1, text: data.message, timestamp: data.timestamp });
+      intros.push({ senderId: userId1, text: data.message, timestamp: data.timestamp });
     }
 
-    if (messages.length > 0) {
-      const matchRef = doc(firestore, "matches", matchId);
-      for (const msg of messages) {
-        await updateDoc(matchRef, { messages: arrayUnion(msg) });
-      }
+    intros.sort((a, b) => a.timestamp - b.timestamp);
+
+    const messagesRef = collection(firestore, "messages");
+    for (const intro of intros) {
+      await addDoc(messagesRef, {
+        matchId,
+        senderId: intro.senderId,
+        text: intro.text,
+        createdAt: Timestamp.fromMillis(intro.timestamp),
+        readBy: [intro.senderId],
+      });
     }
   } catch (error) {
     logError(error as Error, { source: 'matchService', action: 'propagateIntroMessages', matchId });
