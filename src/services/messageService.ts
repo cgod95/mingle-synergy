@@ -205,7 +205,7 @@ export const sendMessage = async (matchId: string, senderId: string, text: strin
         matchId,
         senderId,
         text,
-        createdAt: serverTimestamp(),
+        createdAt: Timestamp.fromMillis(Date.now()),
         readBy: [senderId],
       });
       
