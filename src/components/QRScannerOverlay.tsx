@@ -153,7 +153,7 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
                 animate={{ scale: 1, opacity: 1 }}
                 className="absolute inset-0 flex items-center justify-center"
               >
-                <div className="w-20 h-20 rounded-full bg-green-500/90 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-green-500/80 flex items-center justify-center">
                   <CheckCircle2 className="w-10 h-10 text-white" />
                 </div>
               </motion.div>
@@ -222,7 +222,7 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
                 <p className="text-green-400 text-lg font-semibold">
                   {foundVenue.name}
                 </p>
-                <p className="text-white/60 text-sm mt-1">QR code detected</p>
+                <p className="text-white/50 text-sm mt-1">QR code detected</p>
               </motion.div>
             )}
             {phase === "checking-in" && foundVenue && (
@@ -235,7 +235,7 @@ export default function QRScannerOverlay({ open, onClose, onVenueFound, venues }
                 <p className="text-violet-400 text-lg font-semibold">
                   Checking you in...
                 </p>
-                <p className="text-white/60 text-sm mt-1">{foundVenue.name}</p>
+                <p className="text-white/50 text-sm mt-1">{foundVenue.name}</p>
               </motion.div>
             )}
           </AnimatePresence>

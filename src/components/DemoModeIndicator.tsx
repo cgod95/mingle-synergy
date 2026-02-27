@@ -141,7 +141,7 @@ export const DemoModeIndicator: React.FC<DemoModeIndicatorProps> = ({
             </div>
           </div>
           
-          <div className="bg-neutral-800/70 rounded-lg p-4 border border-yellow-700/50">
+          <div className="bg-neutral-800/80 rounded-lg p-4 border border-yellow-700/50">
             <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
               <Info className="w-4 h-4 mr-2 text-blue-600" />
               Quick Start Guide

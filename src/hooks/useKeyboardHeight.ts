@@ -50,16 +50,24 @@ export function useKeyboardHeight() {
       const vv = window.visualViewport;
       if (!vv) return;
 
+      let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+      const DEBOUNCE_MS = 80;
+
       const onResize = () => {
-        // On iOS Safari, when keyboard opens, visualViewport.height shrinks
-        const kbHeight = Math.max(0, window.innerHeight - vv.height);
-        // Only treat as keyboard if height difference is significant (> 100px)
-        updateHeight(kbHeight > 100 ? kbHeight : 0);
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          debounceTimer = null;
+          // On iOS Safari, when keyboard opens, visualViewport.height shrinks
+          const kbHeight = Math.max(0, window.innerHeight - vv.height);
+          // Lower threshold (50px) to catch smaller keyboards
+          updateHeight(kbHeight > 50 ? kbHeight : 0);
+        }, DEBOUNCE_MS);
       };
 
       vv.addEventListener('resize', onResize);
       vv.addEventListener('scroll', onResize);
       cleanup = () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
         vv.removeEventListener('resize', onResize);
         vv.removeEventListener('scroll', onResize);
       };

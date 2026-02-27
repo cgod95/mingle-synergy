@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Heart, Loader2, Send, Lock, Mail } from "lucide-react";
+import { Camera, Heart, Loader2, Send, Lock, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { logError } from "@/utils/errorHandler";
 import { useAuth } from "@/context/AuthContext";
 import { getCheckedVenueId } from "@/lib/checkinStore";
@@ -16,6 +17,7 @@ import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { useToast } from "@/hooks/use-toast";
 import useEmblaCarousel from "embla-carousel-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const INTRO_MESSAGE_MAX_LENGTH = 150;
 const SHOWN_MATCH_CELEBRATION_KEY = "mingle_shown_match_celebration";
@@ -122,7 +124,7 @@ function PhotoCarousel({ photos, alt }: { photos: string[]; alt: string }) {
             key={i}
             className={cn(
               "h-1.5 rounded-full transition-all duration-200",
-              i === selectedIndex ? "bg-white w-4" : "bg-white/40 w-1.5"
+              i === selectedIndex ? "bg-white w-4" : "bg-white/30 w-1.5"
             )}
           />
         ))}
@@ -250,8 +252,22 @@ export default function UserProfileView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
+      <div className="max-w-lg mx-auto" aria-busy="true" aria-label="Loading profile">
+        <div className="px-4 pt-2 pb-1">
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+        <div className="mx-3 space-y-4">
+          <Skeleton className="w-full aspect-[3/4] rounded-2xl" />
+          <Skeleton className="h-8 w-48" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -275,24 +291,13 @@ export default function UserProfileView() {
 
   return (
     <div className="max-w-lg mx-auto">
-      {/* Back button */}
-      <div className="px-3 pt-2 pb-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="rounded-full text-neutral-300 hover:text-white -ml-1"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-      </div>
+      <PageHeader title="" onBack={() => navigate(-1)} className="pt-2 pb-1" />
 
       {/* Profile Card with swipeable photos */}
       <div className="relative rounded-2xl overflow-hidden bg-neutral-800 mx-3">
         <div className="relative aspect-[3/4] max-h-[460px] overflow-hidden bg-neutral-700">
           <PhotoCarousel photos={photos} alt={displayName} />
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4">
             <h1 className="text-2xl font-bold text-white">
               {displayName}{profile.age ? `, ${profile.age}` : ""}
             </h1>
@@ -308,15 +313,15 @@ export default function UserProfileView() {
         {incomingIntro && (
           <div className="px-4 pb-4">
             {isMatched ? (
-              <div className="flex items-start gap-3 bg-violet-900/30 rounded-xl p-3 border border-violet-800/40">
+              <div className="flex items-start gap-3 bg-violet-900/30 rounded-xl p-3 border border-violet-800/30">
                 <Mail className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-xs text-violet-400 font-medium mb-1">Message from {displayName}</p>
-                  <p className="text-sm text-neutral-200 leading-relaxed">{incomingIntro.message}</p>
+                  <p className="text-sm text-neutral-300 leading-relaxed">{incomingIntro.message}</p>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3 bg-neutral-700/50 rounded-xl p-3 border border-neutral-600/40">
+              <div className="flex items-center gap-3 bg-neutral-700/50 rounded-xl p-3 border border-neutral-600/30">
                 <Lock className="w-5 h-5 text-neutral-400 flex-shrink-0" />
                 <p className="text-sm text-neutral-400">
                   {displayName} sent you a message. Like them back to read it.
@@ -338,7 +343,7 @@ export default function UserProfileView() {
                 );
                 if (match) navigate(`/chat/${match.id}`);
               }}
-              className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white py-3 text-base font-semibold"
+              className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white py-4 min-h-[48px] text-base font-semibold"
               aria-label={`Chat with ${displayName}`}
             >
               Chat with {displayName}
@@ -346,7 +351,7 @@ export default function UserProfileView() {
           ) : liked ? (
             <Button
               disabled
-              className="w-full rounded-xl py-3 text-base font-semibold bg-violet-600/20 text-violet-400 border border-violet-500/30"
+              className="w-full rounded-xl py-4 min-h-[48px] text-base font-semibold bg-violet-600/10 text-violet-400 border border-violet-500/30"
             >
               Liked
             </Button>
@@ -355,7 +360,7 @@ export default function UserProfileView() {
               <Button
                 onClick={(e) => handleLikeOnly(e)}
                 disabled={isLiking}
-                className="flex-1 rounded-xl py-3 text-base font-semibold bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white"
+                className="flex-1 rounded-xl py-4 min-h-[48px] text-base font-semibold bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white"
               >
                 {isLiking ? <Loader2 className="w-5 h-5 animate-spin" /> : `Like`}
               </Button>
@@ -363,7 +368,7 @@ export default function UserProfileView() {
                 onClick={handleLikeWithMessage}
                 disabled={isLiking}
                 variant="ghost"
-                className="flex-1 rounded-xl py-3 text-base font-semibold border border-violet-500/40 text-violet-400 hover:bg-violet-900/30"
+                className="flex-1 rounded-xl py-4 min-h-[48px] text-base font-semibold border border-violet-500/30 text-violet-400 hover:bg-violet-900/30"
               >
                 <Send className="w-4 h-4 mr-2" />
                 Like + Message
@@ -415,7 +420,7 @@ export default function UserProfileView() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
             onClick={() => { setShowComposeModal(false); setIntroText(""); }}
           >
             <motion.div
@@ -423,7 +428,7 @@ export default function UserProfileView() {
               animate={{ y: 0 }}
               exit={{ y: 200 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-lg bg-neutral-800 rounded-t-2xl p-5"
+              className="w-full max-w-lg bg-neutral-800 rounded-t-2xl p-4"
               style={{ paddingBottom: `max(2rem, ${keyboardHeight > 0 ? keyboardHeight + 'px' : 'env(safe-area-inset-bottom, 0px)'})` }}
               onClick={(e) => e.stopPropagation()}
             >

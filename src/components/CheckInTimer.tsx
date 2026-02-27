@@ -58,7 +58,7 @@ const CheckInTimer: React.FC<CheckInTimerProps> = ({
           />
         </div>
       </div>
-      <span className="text-[11px] text-[#6B7280]">
+      <span className="text-xs text-on-surface-subtle">
         {formatExpiryTime()}
       </span>
     </div>

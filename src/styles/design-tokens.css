@@ -1,31 +1,40 @@
 /* Design Tokens - Single Source of Truth */
 
 :root {
-  /* === Colors === */
-  /* Primary Brand Colors - Violet (Brand Primary) */
-  --color-primary: #7C3AED; /* violet-600 - Brand Primary */
-  --color-primary-hover: #6D28D9; /* violet-700 */
-  --color-primary-light: #A78BFA; /* violet-400 */
-  --color-primary-lighter: #DDD6FE; /* violet-200 */
-  --color-primary-lightest: #F5F3FF; /* violet-50 */
+  /* === Semantic Surface Colors (Dark Theme) === */
+  --color-surface: 0 0% 9%;             /* neutral-900 — page background */
+  --color-surface-elevated: 0 0% 15%;   /* neutral-800 — cards, inputs */
+  --color-surface-overlay: 0 0% 15%;    /* neutral-800 — modals, sheets */
+  --color-on-surface: 0 0% 100%;        /* white — primary text */
+  --color-on-surface-muted: 0 0% 64%;   /* neutral-400 — secondary text */
+  --color-on-surface-subtle: 0 0% 45%;  /* neutral-500 — tertiary text */
 
-  /* Secondary Accent - Violet light (use sparingly) */
-  --color-secondary: #8B5CF6; /* violet-500 */
-  --color-secondary-light: #A78BFA; /* violet-400 */
-  --color-secondary-lightest: #EDE9FE; /* violet-100 */
+  /* === Brand Colors (HSL) === */
+  --color-brand: 263 70% 58%;           /* violet-600 #7C3AED */
+  --color-brand-hover: 263 70% 50%;     /* violet-700 */
+  --color-brand-light: 258 90% 76%;     /* violet-400 */
+  --color-brand-muted: 258 90% 76% / 0.1; /* violet-400 at 10% */
 
-  /* Status Colors */
-  --color-success: #22C55E; /* green-500 */
-  --color-success-light: #86EFAC; /* green-300 */
-  --color-success-lightest: #F0FDF4; /* green-50 */
-  
-  --color-warning: #F97316; /* orange-500 */
-  --color-warning-light: #FDBA74; /* orange-300 */
-  --color-warning-lightest: #FFEDD5; /* orange-100 */
-  
-  --color-error: #EF4444; /* red-500 */
-  --color-error-light: #FCA5A5; /* red-300 */
-  --color-error-lightest: #FEE2E2; /* red-100 */
+  /* === Status Colors (HSL) === */
+  --color-success: 142 71% 45%;         /* green-500 */
+  --color-warning: 25 95% 53%;          /* orange-500 */
+  --color-error: 0 84% 60%;             /* red-500 */
+  --color-error-muted: 0 84% 60% / 0.1;
+
+  /* === Legacy hex tokens (kept for backwards compat) === */
+  --color-primary: #7C3AED;
+  --color-primary-hover: #6D28D9;
+  --color-primary-light: #A78BFA;
+  --color-primary-lighter: #DDD6FE;
+  --color-primary-lightest: #F5F3FF;
+
+  --color-secondary: #8B5CF6;
+  --color-secondary-light: #A78BFA;
+  --color-secondary-lightest: #EDE9FE;
+
+  --color-success-hex: #22C55E;
+  --color-warning-hex: #F97316;
+  --color-error-hex: #EF4444;
 
   /* Neutral Colors */
   --color-neutral-50: #FAFAFA;
@@ -40,20 +49,20 @@
   --color-neutral-900: #171717;
 
   /* Text Colors */
-  --color-text-primary: #171717; /* neutral-900 */
-  --color-text-secondary: #525252; /* neutral-600 */
-  --color-text-tertiary: #737373; /* neutral-500 */
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --color-text-tertiary: #737373;
   --color-text-inverse: #FFFFFF;
 
   /* Background Colors */
   --color-bg-primary: #FFFFFF;
-  --color-bg-secondary: #FAFAFA; /* neutral-50 */
-  --color-bg-tertiary: #F5F5F5; /* neutral-100 */
+  --color-bg-secondary: #FAFAFA;
+  --color-bg-tertiary: #F5F5F5;
 
   /* Border Colors */
-  --color-border-default: #E5E5E5; /* neutral-200 */
-  --color-border-hover: #D4D4D4; /* neutral-300 */
-  --color-border-focus: #7C3AED; /* violet-600 - Brand Primary */
+  --color-border-default: #E5E5E5;
+  --color-border-hover: #D4D4D4;
+  --color-border-focus: #7C3AED;
 
   /* === Spacing === */
   --spacing-xs: 0.25rem; /* 4px */
@@ -64,7 +73,7 @@
   --spacing-2xl: 3rem; /* 48px */
 
   /* === Typography === */
-  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, sans-serif;
   
   /* Font Sizes */
   --font-size-xs: 0.75rem; /* 12px */

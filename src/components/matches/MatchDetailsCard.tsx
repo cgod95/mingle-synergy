@@ -188,7 +188,7 @@ const MatchDetailsCard: React.FC<MatchDetailsCardProps> = ({
             <Button
               type="submit"
               disabled={isSharing || !contactValue.trim()}
-              className="w-full py-6 bg-[#F3643E] hover:bg-[#F3643E]/90 text-white rounded-full font-medium disabled:opacity-50"
+              className="w-full py-6 bg-[#F3643E] hover:bg-[#F3643E]/80 text-white rounded-full font-medium disabled:opacity-50"
             >
               {isSharing ? 'Sharing...' : 'Share Contact Info'}
             </Button>

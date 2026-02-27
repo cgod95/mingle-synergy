@@ -144,7 +144,7 @@ export const Logo: React.FC<BrandIdentityProps> = ({
       className={cn(
         sizeClasses[size],
         radiusClasses[size],
-        'bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30',
+        'bg-brand flex items-center justify-center shadow-lg shadow-violet-500/30',
         className
       )}
     >

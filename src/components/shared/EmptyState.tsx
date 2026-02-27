@@ -12,7 +12,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className="text-center py-12 bg-secondary rounded-lg border border-secondary/30 shadow-sm">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-accent/20 mb-4">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-accent/10 mb-4">
         <Users className="w-8 h-8 text-muted-foreground" stroke-width={2} />
       </div>
       <h3 className="text-xl font-semibold mb-2 font-serif">{message}</h3>

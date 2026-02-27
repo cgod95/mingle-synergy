@@ -26,7 +26,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   const content = (
     <div className={cn('flex flex-col items-center', className)}>
       <div className={cn(sizes.logo, 'mb-4 animate-pulse')}>
-        <div className="w-full h-full rounded-2xl bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30">
+        <div className="w-full h-full rounded-2xl bg-brand flex items-center justify-center shadow-lg shadow-violet-500/30">
           <span className={cn(sizes.text, 'font-bold text-white')}>
             M
           </span>
@@ -54,7 +54,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   if (variant === 'fullscreen') {
     return (
-      <div className="fixed inset-0 bg-[#0a0a0f] flex items-center justify-center z-[9999]">
+      <div role="status" aria-label="Loading" className="fixed inset-0 bg-surface flex items-center justify-center z-[9999]">
         {content}
       </div>
     );
@@ -74,7 +74,7 @@ export const InlineSpinner: React.FC<{
   };
 
   return (
-    <div className={cn('animate-spin rounded-full border-2 border-violet-600 border-t-transparent', sizeClasses[size], className)} />
+    <div role="status" aria-label="Loading" className={cn('animate-spin rounded-full border-2 border-violet-600 border-t-transparent', sizeClasses[size], className)} />
   );
 };
 

@@ -95,7 +95,7 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 shadow-2xl z-50 hide-on-keyboard border-t border-neutral-800/60"
+      className="fixed bottom-0 left-0 right-0 shadow-2xl z-50 hide-on-keyboard border-t border-neutral-800/50"
       style={{ 
         paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'env(safe-area-inset-left, 0px)',
@@ -122,7 +122,7 @@ const BottomNav: React.FC = () => {
               <div className={`relative ${active ? (item.activeColor || 'text-violet-500') : 'text-neutral-400'}`}>
                 <Icon size={24} strokeWidth={active ? 2.5 : 2} />
                 {showBadge && (
-                  <div role="status" aria-live="polite" className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-0.5 shadow-lg border-2 border-neutral-800">
+                  <div role="status" aria-live="polite" className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-0.5 shadow-lg border-2 border-neutral-800">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </div>
                 )}

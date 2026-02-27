@@ -223,7 +223,7 @@ export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
                 className={`text-center p-3 rounded-lg transition-all cursor-pointer ${
                   currentStep === index 
                     ? 'bg-blue-100 border-2 border-blue-300' 
-                    : 'bg-white/50 hover:bg-white/70'
+                    : 'bg-white/50 hover:bg-white/80'
                 }`}
                 onClick={() => setCurrentStep(index)}
               >

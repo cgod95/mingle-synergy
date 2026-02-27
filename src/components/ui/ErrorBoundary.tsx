@@ -133,7 +133,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button 
                   onClick={this.handleRetry}
                   disabled={this.state.isRetrying}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-semibold shadow-lg"
+                  className="w-full bg-primary hover:bg-primary/80 text-white font-semibold shadow-lg"
                 >
                   {this.state.isRetrying ? (
                     <>
@@ -177,20 +177,20 @@ export const NetworkError: React.FC<{
   onRetry, 
   onGoBack 
 }) => (
-  <Card className="w-full max-w-md mx-auto">
+  <Card className="w-full max-w-md mx-auto bg-neutral-800 border-neutral-700">
     <CardHeader className="text-center">
-      <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-        <AlertTriangle className="w-8 h-8 text-yellow-600" />
+      <div className="mx-auto w-16 h-16 bg-amber-900/30 rounded-full flex items-center justify-center mb-4 ring-2 ring-amber-700/50">
+        <AlertTriangle className="w-8 h-8 text-amber-400" />
       </div>
-      <CardTitle className="text-lg text-gray-900">
+      <CardTitle className="text-lg text-white">
         Connection Error
       </CardTitle>
     </CardHeader>
     <CardContent className="space-y-4">
-      <p className="text-gray-600 text-center">
+      <p className="text-neutral-300 text-center">
         {message}
       </p>
-      <p className="text-sm text-gray-500 text-center">
+      <p className="text-sm text-neutral-400 text-center">
         Please check your internet connection and try again.
       </p>
       
@@ -202,7 +202,7 @@ export const NetworkError: React.FC<{
           </Button>
         )}
         {onGoBack && (
-          <Button variant="outline" onClick={onGoBack} className="flex-1">
+          <Button variant="outline" onClick={onGoBack} className="flex-1 border-neutral-700 text-neutral-300 hover:bg-neutral-700">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
           </Button>
@@ -225,17 +225,17 @@ export const DataError: React.FC<{
   showRefresh = true 
 }) => (
   <div className="text-center py-8">
-    <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-      <AlertTriangle className="w-8 h-8 text-gray-600" />
+    <div className="mx-auto w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center mb-4 ring-2 ring-neutral-700">
+      <AlertTriangle className="w-8 h-8 text-neutral-400" />
     </div>
-    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+    <h3 className="text-lg font-semibold text-white mb-2">
       {title}
     </h3>
-    <p className="text-gray-600 mb-4">
+    <p className="text-neutral-400 mb-4">
       {message}
     </p>
     {showRefresh && onRetry && (
-      <Button onClick={onRetry} variant="outline">
+      <Button onClick={onRetry} variant="outline" className="border-neutral-700 text-neutral-300 hover:bg-neutral-700">
         <RefreshCw className="w-4 h-4 mr-2" />
         Refresh
       </Button>
@@ -243,35 +243,14 @@ export const DataError: React.FC<{
   </div>
 );
 
-// Empty state component
-export const EmptyState: React.FC<{
-  icon?: ReactNode;
-  title: string;
-  message: string;
-  action?: ReactNode;
-}> = ({ icon, title, message, action }) => (
-  <div className="text-center py-8">
-    {icon && (
-      <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-        {icon}
-      </div>
-    )}
-    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-      {title}
-    </h3>
-    <p className="text-gray-600 mb-4">
-      {message}
-    </p>
-    {action && action}
-  </div>
-);
+// NOTE: EmptyState is in src/components/ui/EmptyState.tsx — do not duplicate here
 
 // Offline indicator
 export const OfflineIndicator: React.FC<{ isOnline: boolean }> = ({ isOnline }) => {
   if (isOnline) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 z-50">
+    <div className="fixed top-0 left-0 right-0 bg-amber-600 text-white text-center py-2 z-50">
       <div className="flex items-center justify-center space-x-2">
         <AlertTriangle className="w-4 h-4" />
         <span className="text-sm font-medium">
@@ -288,16 +267,16 @@ export const ErrorToast: React.FC<{
   message: string;
   onRetry?: () => void;
 }> = ({ title, message, onRetry }) => (
-  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+  <div className="bg-red-900/30 border border-red-800/50 rounded-lg p-4">
     <div className="flex items-start space-x-3">
-      <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+      <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5" />
       <div className="flex-1">
-        <h4 className="text-sm font-medium text-red-800">{title}</h4>
-        <p className="text-sm text-red-700 mt-1">{message}</p>
+        <h4 className="text-sm font-medium text-red-300">{title}</h4>
+        <p className="text-sm text-red-400 mt-1">{message}</p>
         {onRetry && (
           <button
             onClick={onRetry}
-            className="text-sm text-red-600 hover:text-red-800 font-medium mt-2"
+            className="text-sm text-red-300 hover:text-red-200 font-medium mt-2"
           >
             Try again
           </button>

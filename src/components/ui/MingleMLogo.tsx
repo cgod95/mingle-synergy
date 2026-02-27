@@ -39,7 +39,7 @@ export default function MingleMLogo({ size = 'md', showText = true, className = 
     <div className={`flex items-center gap-2 ${className}`}>
       {/* M Icon - Brand violet */}
       <div
-        className={`${sizeMap[size]} ${radiusMap[size]} bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30 transition-transform hover:scale-105 active:scale-95`}
+        className={`${sizeMap[size]} ${radiusMap[size]} bg-brand flex items-center justify-center shadow-lg shadow-violet-500/30 transition-transform hover:scale-105 active:scale-95`}
       >
         <span className={`${logoSizeMap[size]} font-bold text-white`}>
           M

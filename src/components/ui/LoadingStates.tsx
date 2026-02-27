@@ -1,7 +1,7 @@
 import React from 'react';
 import { Skeleton } from './skeleton';
 import { Card, CardContent, CardHeader } from './card';
-import { LoadingSpinner } from './LoadingSpinner';
+import { LoadingSpinner, InlineSpinner } from './LoadingSpinner';
 
 const SkeletonPulse: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ 
   className = '', 
@@ -218,62 +218,25 @@ export const ProgressiveLoader: React.FC<{
   return <>{children}</>;
 };
 
-// Infinite scroll loading
+// Infinite scroll loading — uses standard InlineSpinner
 export const InfiniteScrollLoader: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   if (!isLoading) return null;
 
   return (
     <div className="flex justify-center items-center py-8">
       <div className="flex items-center space-x-2">
-        <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-        <span className="text-neutral-500 text-sm">Loading more...</span>
+        <InlineSpinner size="sm" />
+        <span className="text-neutral-400 text-sm">Loading more...</span>
       </div>
     </div>
   );
 };
 
-// Full page loading
+// Full page loading — uses standard LoadingSpinner
 export const FullPageLoader: React.FC<{ message?: string }> = ({ 
   message = "Loading..." 
 }) => (
-  <div className="fixed inset-0 bg-neutral-900/95 flex items-center justify-center z-50">
-    <div className="text-center space-y-4">
-      <div className="w-12 h-12 border-4 border-neutral-700 border-t-violet-500 rounded-full mx-auto animate-spin" />
-      <p className="text-neutral-400">{message}</p>
-    </div>
-  </div>
-);
-
-// Button loading state
-export const LoadingButton: React.FC<{
-  isLoading: boolean;
-  children: React.ReactNode;
-  loadingText?: string;
-  className?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-}> = ({ 
-  isLoading, 
-  children, 
-  loadingText = "Loading...", 
-  className = "",
-  onClick,
-  disabled = false
-}) => (
-  <button
-    onClick={onClick}
-    disabled={isLoading || disabled}
-    className={`relative ${className}`}
-  >
-    {isLoading && (
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-      </div>
-    )}
-    <span className={isLoading ? 'opacity-0' : ''}>
-      {isLoading ? loadingText : children}
-    </span>
-  </button>
+  <LoadingSpinner size="md" variant="fullscreen" message={message} />
 );
 
 // Image loading skeleton
@@ -362,8 +325,8 @@ export const MessageListSkeleton: React.FC = () => (
         style={{ animationDelay: `${i * 100}ms` }}
       >
         <div className={`max-w-xs ${i % 2 === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted'} rounded-lg p-3`}>
-          <SkeletonPulse className={`h-4 w-32 ${i % 2 === 0 ? 'bg-primary-foreground/20' : ''}`} />
-          <SkeletonPulse className={`h-3 w-24 mt-2 ${i % 2 === 0 ? 'bg-primary-foreground/20' : ''}`} />
+          <SkeletonPulse className={`h-4 w-32 ${i % 2 === 0 ? 'bg-primary-foreground/10' : ''}`} />
+          <SkeletonPulse className={`h-3 w-24 mt-2 ${i % 2 === 0 ? 'bg-primary-foreground/10' : ''}`} />
         </div>
       </div>
     ))}

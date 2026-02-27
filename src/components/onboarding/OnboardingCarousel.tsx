@@ -83,7 +83,7 @@ const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({ onComplete }) =
               </div>
               
               <div className="flex justify-center mb-6">
-                <div className="w-24 h-24 rounded-2xl bg-violet-600/15 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-2xl bg-violet-600/10 flex items-center justify-center">
                   {slides[currentSlide].icon}
                 </div>
               </div>

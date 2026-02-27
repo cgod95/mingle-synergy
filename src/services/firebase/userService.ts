@@ -10,6 +10,7 @@ import {
   arrayRemove,
   arrayUnion,
   deleteDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from '../../firebase';
@@ -98,9 +99,23 @@ class FirebaseUserService implements UserService {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    // Note: In production, you might want to use a Cloud Function to handle user deletion
-    // as it requires special permissions and cleanup of related data
-    logError(new Error('User deletion not implemented'), { source: 'userService', action: 'deleteUser', userId });
+    if (!firestore) {
+      throw new Error('Firestore not available');
+    }
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      // Soft delete: mark as deleted and clear venue presence so they disappear from venue page
+      await updateDoc(userRef, {
+        isDeleted: true,
+        deletedAt: serverTimestamp(),
+        currentVenue: null,
+        isVisible: false,
+        isCheckedIn: false,
+      });
+    } catch (error) {
+      logError(error as Error, { source: 'userService', action: 'deleteUser', userId });
+      throw error;
+    }
   }
 
   async completeOnboarding(userId: string): Promise<void> {

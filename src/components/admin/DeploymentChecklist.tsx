@@ -163,7 +163,7 @@ const DeploymentChecklist: React.FC = () => {
         <Button 
           onClick={runChecks} 
           disabled={isRunning}
-          className="bg-brand-primary hover:bg-brand-primary/90"
+          className="bg-brand-primary hover:bg-brand-primary/80"
         >
           {isRunning ? 'Running Checks...' : 'Run Checks'}
         </Button>

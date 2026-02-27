@@ -100,8 +100,8 @@ export function ExpiryWarning({ className = '' }: ExpiryWarningProps) {
       <div
         className={`rounded-xl p-4 shadow-lg border-2 backdrop-blur-sm ${
           isExpired
-            ? 'bg-red-900/90 border-red-500 text-white'
-            : 'bg-amber-900/90 border-amber-500 text-white'
+            ? 'bg-red-900/80 border-red-500 text-white'
+            : 'bg-amber-900/80 border-amber-500 text-white'
         }`}
       >
         <div className="flex items-start gap-3">
@@ -140,7 +140,7 @@ export function ExpiryWarning({ className = '' }: ExpiryWarningProps) {
                   size="sm"
                   variant="ghost"
                   onClick={() => setDismissed(true)}
-                  className="text-xs h-8 text-white/70 hover:text-white hover:bg-white/10"
+                  className="text-xs h-8 text-white/80 hover:text-white hover:bg-white/10"
                 >
                   Dismiss
                 </Button>

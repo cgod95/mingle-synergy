@@ -55,13 +55,14 @@ export function isRetryableError(error: unknown): boolean {
   if (error && typeof error === 'object' && 'code' in error) {
     const code = (error as { code?: string }).code;
     if (code) {
-      // Retryable Firebase error codes
+      // Retryable Firebase error codes (includes Firestore index building)
       const retryableCodes = [
         'unavailable',
         'deadline-exceeded',
         'resource-exhausted',
         'internal',
         'aborted',
+        'failed-precondition', // Firestore index missing or building
       ];
       return retryableCodes.some((c) => code.includes(c));
     }

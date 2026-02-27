@@ -97,7 +97,9 @@ export function NetworkErrorBanner({ error, onRetry, onDismiss }: NetworkErrorBa
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -100, opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-red-900/95 backdrop-blur-sm border-b border-red-700/50 px-4 py-3 shadow-lg"
+        role="alert"
+        aria-live="assertive"
+        className="fixed top-0 left-0 right-0 z-50 bg-red-900/80 backdrop-blur-sm border-b border-red-700/50 px-4 py-3 shadow-lg"
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -123,7 +125,7 @@ export function NetworkErrorBanner({ error, onRetry, onDismiss }: NetworkErrorBa
                 onClick={handleRetry}
                 size="sm"
                 disabled={isRetrying}
-                className="bg-white/10 hover:bg-white/20 text-white border-0 transition-all"
+                className="bg-white/10 hover:bg-white/30 text-white border-0 transition-all"
               >
                 <RefreshCw className={`w-4 h-4 mr-1.5 ${isRetrying ? 'animate-spin' : ''}`} />
                 {isRetrying ? 'Retrying...' : 'Retry'}

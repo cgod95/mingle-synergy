@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Send, MoreVertical, RefreshCw, ChevronDown, Loader2 } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,10 +22,11 @@ import {
   type Message,
 } from "@/services/messageService";
 import MessageLimitModal from "@/components/ui/MessageLimitModal";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { isNetworkError } from "@/utils/retry";
-import { hapticLight } from "@/lib/haptics";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { logError } from "@/utils/errorHandler";
 
 type Msg = { sender: "you" | "them"; text: string; ts: number; id?: string };
@@ -61,6 +62,9 @@ export default function ChatRoom() {
   const [rematching, setRematching] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState<Error | null>(null);
+  const [subscriptionRetryKey, setSubscriptionRetryKey] = useState(0);
+  const [messagesLoadedOnce, setMessagesLoadedOnce] = useState(false);
   const { toast } = useToast();
   const keyboardHeight = useKeyboardHeight();
   const prefersReducedMotion = useReducedMotion();
@@ -155,24 +159,35 @@ export default function ChatRoom() {
   useEffect(() => {
     if (!matchId || !currentUser?.uid) return;
 
+    setSubscriptionError(null);
+    setMessagesLoadedOnce(false);
     debouncedMarkRead(matchId, currentUser.uid);
 
-    const unsubscribe = subscribeToMessages(matchId, (firebaseMessages: Message[]) => {
-      const mapped: Msg[] = firebaseMessages.map(m => ({
-        id: m.id,
-        sender: m.senderId === currentUser.uid ? "you" as const : "them" as const,
-        text: m.text,
-        ts: m.createdAt?.getTime?.() || Date.now(),
-      }));
-      setMsgs(mapped);
+    const unsubscribe = subscribeToMessages(
+      matchId,
+      (firebaseMessages: Message[]) => {
+        setSubscriptionError(null);
+        setMessagesLoadedOnce(true);
+        const mapped: Msg[] = firebaseMessages.map(m => ({
+          id: m.id,
+          sender: m.senderId === currentUser.uid ? "you" as const : "them" as const,
+          text: m.text,
+          ts: m.createdAt?.getTime?.() || Date.now(),
+        }));
+        setMsgs(mapped);
 
-      if (firebaseMessages.some(m => !m.readBy?.includes(currentUser.uid) && m.senderId !== currentUser.uid)) {
-        debouncedMarkRead(matchId, currentUser.uid);
+        if (firebaseMessages.some(m => !m.readBy?.includes(currentUser.uid) && m.senderId !== currentUser.uid)) {
+          debouncedMarkRead(matchId, currentUser.uid);
+        }
+      },
+      {
+        messageLimit: 50,
+        onError: (err) => setSubscriptionError(err),
       }
-    }, 50);
+    );
 
     return () => unsubscribe();
-  }, [matchId, currentUser?.uid, debouncedMarkRead]);
+  }, [matchId, currentUser?.uid, debouncedMarkRead, subscriptionRetryKey]);
 
   // Typing indicator subscription
   useEffect(() => {
@@ -285,6 +300,15 @@ export default function ChatRoom() {
     }, 3000);
   }, [matchId, currentUser?.uid]);
 
+  // Fallback: scroll input into view when focused and keyboard detection may have failed
+  const handleInputFocus = useCallback(() => {
+    if (keyboardHeight === 0) {
+      requestAnimationFrame(() => {
+        inputRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      });
+    }
+  }, [keyboardHeight]);
+
   // Keyboard dismiss on tap
   const handleMessagesAreaClick = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -297,21 +321,23 @@ export default function ChatRoom() {
     const el = scrollContainerRef.current;
     if (el && el.scrollTop <= 0) {
       pullStartY.current = e.touches[0].clientY;
+      hapticLight();
     }
   }, []);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (pullStartY.current === null) return;
-    const diff = e.touches[0].clientY - pullStartY.current;
-    if (diff > 0) {
-      setPullDistance(Math.min(diff * 0.5, 80));
+    const rawDiff = e.touches[0].clientY - pullStartY.current;
+    if (rawDiff > 0) {
+      const effectivePull = Math.min(rawDiff * (1 - rawDiff / 200) * 0.6, 80);
+      setPullDistance(effectivePull);
     }
   }, []);
 
   const onTouchEnd = useCallback(async () => {
     if (pullDistance > 50) {
       setIsRefreshing(true);
-      hapticLight();
+      hapticMedium();
       try {
         if (matchId && currentUser?.uid) {
           const matches = await getAllMatches(currentUser.uid);
@@ -420,7 +446,7 @@ export default function ChatRoom() {
           className={`bg-neutral-900 border-b border-neutral-800 px-4 flex items-center gap-3 flex-shrink-0 transition-all duration-200 ${keyboardHeight > 0 ? 'py-2' : 'py-3.5'}`}
           style={{ paddingTop: keyboardHeight > 0 ? undefined : 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
         >
-          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="rounded-full text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-1">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/matches')} className="h-11 w-11 rounded-full text-violet-400 hover:text-violet-300 hover:bg-violet-900/30 -ml-1">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <Avatar className={`rounded-xl transition-all duration-200 ${keyboardHeight > 0 ? 'h-10 w-10' : 'h-14 w-14'}`}>
@@ -456,7 +482,7 @@ export default function ChatRoom() {
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setShowMenu(prev => !prev)}
-                className="rounded-full text-neutral-400 hover:text-white h-10 w-10 flex items-center justify-center transition-colors"
+                className="rounded-full text-neutral-400 hover:text-white h-11 w-11 flex items-center justify-center transition-colors"
               >
                 <MoreVertical className="w-5 h-5" />
               </button>
@@ -466,7 +492,7 @@ export default function ChatRoom() {
                   <div className="absolute right-0 top-full mt-2 z-[9999] min-w-[200px] bg-neutral-800 border border-neutral-700 rounded-xl shadow-2xl overflow-hidden">
                     <button
                       onClick={() => { setShowMenu(false); navigate(`/profile/${otherUserId}`); }}
-                      className="w-full text-left px-4 py-3.5 text-base text-neutral-200 hover:bg-neutral-700 active:bg-neutral-700 transition-colors"
+                      className="w-full text-left px-4 py-3.5 text-base text-neutral-300 hover:bg-neutral-700 active:bg-neutral-700 transition-colors"
                     >
                       View Profile
                     </button>
@@ -492,7 +518,7 @@ export default function ChatRoom() {
         {/* Messages */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto scroll-ios px-4 sm:px-6 py-4 sm:py-6 space-y-4 bg-neutral-900 relative"
+          className="flex-1 overflow-y-auto scroll-ios px-4 py-4 sm:py-6 space-y-4 bg-neutral-900 relative"
           aria-live="polite"
           onClick={handleMessagesAreaClick}
           onScroll={handleScroll}
@@ -500,13 +526,48 @@ export default function ChatRoom() {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
+          {/* Subscription error banner */}
+          {subscriptionError && (
+            <div
+              role="alert"
+              className="flex items-center justify-between gap-3 px-4 py-3 mb-4 rounded-xl bg-amber-900/50 border border-amber-700/50 text-amber-100"
+            >
+              <p className="text-sm flex-1">Messages couldn&apos;t load. Tap Retry to try again.</p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSubscriptionRetryKey((k) => k + 1)}
+                className="flex-shrink-0 border-amber-600 text-amber-200 hover:bg-amber-800/50"
+              >
+                <RefreshCw className="w-4 h-4 mr-1.5" />
+                Retry
+              </Button>
+            </div>
+          )}
+
           {/* Pull-to-refresh indicator */}
           {(pullDistance > 0 || isRefreshing) && (
-            <div
-              className="flex items-center justify-center overflow-hidden transition-all"
-              style={{ height: isRefreshing ? 40 : pullDistance }}
+            <motion.div
+              className="flex items-center justify-center overflow-hidden"
+              animate={{ height: isRefreshing ? 40 : pullDistance }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
               <RefreshCw className={`w-5 h-5 text-violet-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </motion.div>
+          )}
+
+          {/* Initial loading skeleton */}
+          {!messagesLoadedOnce && !subscriptionError && allMessages.length === 0 && (
+            <div className="space-y-4 py-4">
+              <div className="flex justify-start">
+                <Skeleton className="h-14 w-48 rounded-2xl rounded-bl-md" />
+              </div>
+              <div className="flex justify-end">
+                <Skeleton className="h-14 w-40 rounded-2xl rounded-br-md" />
+              </div>
+              <div className="flex justify-start">
+                <Skeleton className="h-12 w-32 rounded-2xl rounded-bl-md" />
+              </div>
             </div>
           )}
 
@@ -516,7 +577,7 @@ export default function ChatRoom() {
               <button
                 onClick={handleLoadOlder}
                 disabled={loadingOlder}
-                className="text-sm text-violet-400 hover:text-violet-300 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/60"
+                className="text-sm text-violet-400 hover:text-violet-300 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/50"
               >
                 {loadingOlder ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -526,31 +587,31 @@ export default function ChatRoom() {
             </div>
           )}
 
-          <AnimatePresence>
-            {allMessages.map((m, i) => (
+          {allMessages.map((m, i) => {
+            const isRecent = Date.now() - m.ts < 3000;
+            return (
               <motion.div
                 key={m.id || `msg-${i}`}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                initial={isRecent && !prefersReducedMotion ? { opacity: 0, y: 8 } : false}
                 animate={{ opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? undefined : { opacity: 0 }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
                 className={`flex ${m.sender === "you" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[85%] rounded-2xl px-5 py-3.5 ${
                     m.sender === "you"
-                      ? "bg-violet-600 text-white rounded-br-md"
-                      : "bg-neutral-800 text-neutral-200 rounded-bl-md"
+                      ? "bg-violet-600 text-white rounded-br-md shadow-sm shadow-violet-500/10"
+                      : "bg-neutral-800 text-neutral-300 rounded-bl-md"
                   }`}
                 >
-                  <p className="text-[17px] leading-relaxed break-words">{m.text}</p>
-                  <p className={`text-xs mt-1 ${m.sender === "you" ? "text-violet-200/60 text-right" : "text-neutral-400"}`}>
+                  <p className="text-base leading-relaxed break-words">{m.text}</p>
+                  <p className={`text-xs mt-1 ${m.sender === "you" ? "text-violet-200/50 text-right" : "text-neutral-400"}`}>
                     {new Date(m.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
               </motion.div>
-            ))}
-          </AnimatePresence>
+            );
+          })}
 
           {/* Typing indicator bubble */}
           {otherUserTyping && (
@@ -572,18 +633,25 @@ export default function ChatRoom() {
         </div>
 
         {/* Scroll to bottom button */}
-        {showScrollButton && (
-          <button
-            onClick={() => scrollToBottom()}
-            className="absolute bottom-28 right-6 z-10 bg-violet-600 hover:bg-violet-700 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg transition-all"
-          >
-            <ChevronDown className="w-5 h-5" />
-          </button>
-        )}
+        <AnimatePresence>
+          {showScrollButton && (
+            <motion.button
+              key="scroll-btn"
+              initial={{ opacity: 0, y: 12, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => scrollToBottom()}
+              className="absolute bottom-28 right-6 z-10 bg-violet-600 hover:bg-violet-700 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {/* Input */}
         <div
-          className="bg-neutral-900 border-t border-neutral-800 px-4 py-3 flex-shrink-0"
+          className="ios-fixed-bottom bg-neutral-900 border-t border-neutral-800 px-4 py-3 flex-shrink-0"
           style={{ paddingBottom: keyboardHeight > 0 ? '0.5rem' : 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
         >
           {isMatchExpired ? (
@@ -617,12 +685,15 @@ export default function ChatRoom() {
               <form onSubmit={onSend} className="flex gap-3 items-end">
                 <div className="flex-1">
                   <input
+                    id="chat-message-input"
                     ref={inputRef}
                     value={text}
                     onChange={handleTextChange}
+                    onFocus={handleInputFocus}
                     enterKeyHint="send"
                     autoComplete="off"
                     autoCorrect="on"
+                    aria-label="Type a message"
                     placeholder={
                       !canSendMsg
                         ? "Message limit reached"
@@ -641,6 +712,7 @@ export default function ChatRoom() {
                   disabled={!text.trim() || !canSendMsg || sending}
                   className="rounded-full bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-30 h-14 w-14 flex-shrink-0"
                   size="icon"
+                  aria-label="Send message"
                 >
                   <Send className="w-6 h-6" />
                 </Button>

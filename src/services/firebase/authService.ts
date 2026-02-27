@@ -4,6 +4,7 @@ import {
   signOut as firebaseSignOut,
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   onAuthStateChanged as firebaseOnAuthStateChanged,
+  deleteUser as firebaseDeleteUser,
   User
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -127,6 +128,14 @@ class FirebaseAuthService implements AuthService {
 
   async getCurrentUser(): Promise<User | null> {
     return auth.currentUser;
+  }
+
+  async deleteUser(): Promise<void> {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('No user signed in');
+    }
+    await firebaseDeleteUser(user);
   }
 
   onAuthStateChanged(callback: (user: User | null) => void): () => void {

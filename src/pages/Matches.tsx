@@ -1,17 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, MapPin, ChevronDown, RefreshCw, Trash2, CheckCircle, MessageCircle, Undo2, Loader2 } from "lucide-react";
-import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from "framer-motion";
+import { Heart, MapPin, RefreshCw, Trash2, CheckCircle, MessageCircle, Undo2, Loader2 } from "lucide-react";
+import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { firestore } from "@/firebase/config";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Section } from "@/components/ui/Section";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { MatchListSkeleton } from "@/components/ui/LoadingStates";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { logError } from "@/utils/errorHandler";
-import { hapticLight, hapticMedium } from "@/lib/haptics";
+import { hapticLight, hapticMedium, hapticSelection, hapticError } from "@/lib/haptics";
 import { subscribeToUnreadCounts, type UnreadCounts } from "@/features/messaging/UnreadMessageService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -147,6 +149,7 @@ export default function Matches() {
       toast({ title: "You're back in touch!", description: "Open your new chat from the list." });
     } catch (error) {
       logError(error as Error, { context: "Matches.handleAcceptRematch", matchId });
+      hapticError();
       toast({ title: "Couldn't accept rematch", description: "Please try again.", variant: "destructive" });
     } finally {
       setAcceptingRematchId(null);
@@ -163,6 +166,7 @@ export default function Matches() {
       toast({ title: "Rematch requested", description: "They'll see it in Matches. If they accept, you'll get a new chat." });
     } catch (error) {
       logError(error as Error, { context: "Matches.handleRequestRematch", matchId });
+      hapticError();
       toast({ title: "Couldn't request rematch", description: "Please try again.", variant: "destructive" });
     } finally {
       setRequestingRematchId(null);
@@ -214,21 +218,23 @@ export default function Matches() {
 
   const handlePullRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    hapticLight();
+    hapticMedium();
     await fetchMatches(true);
   }, [fetchMatches]);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     if (scrollRef.current && scrollRef.current.scrollTop <= 0) {
       pullStartY.current = e.touches[0].clientY;
+      hapticLight();
     }
   }, []);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (pullStartY.current === null) return;
-    const diff = e.touches[0].clientY - pullStartY.current;
-    if (diff > 0) {
-      setPullDistance(Math.min(diff * 0.5, 80));
+    const rawDiff = e.touches[0].clientY - pullStartY.current;
+    if (rawDiff > 0) {
+      const effectivePull = Math.min(rawDiff * (1 - rawDiff / 200) * 0.6, 80);
+      setPullDistance(effectivePull);
     }
   }, []);
 
@@ -254,11 +260,22 @@ export default function Matches() {
     navigate(`/chat/${matchId}`);
   };
 
-  const activeNonDismissed = matches.filter(m => !isExpired(m) && !dismissedIds.has(m.id));
-  const expiredMatchesList = matches.filter(m => isExpired(m));
-
-  const unreadMatches = activeNonDismissed.filter(m => (unreadCounts[m.id] || 0) > 0);
-  const readMatches = activeNonDismissed.filter(m => (unreadCounts[m.id] || 0) === 0);
+  const activeNonDismissed = useMemo(
+    () => matches.filter(m => !isExpired(m) && !dismissedIds.has(m.id)),
+    [matches, dismissedIds]
+  );
+  const expiredMatchesList = useMemo(
+    () => matches.filter(m => isExpired(m)),
+    [matches]
+  );
+  const unreadMatches = useMemo(
+    () => activeNonDismissed.filter(m => (unreadCounts[m.id] || 0) > 0),
+    [activeNonDismissed, unreadCounts]
+  );
+  const readMatches = useMemo(
+    () => activeNonDismissed.filter(m => (unreadCounts[m.id] || 0) === 0),
+    [activeNonDismissed, unreadCounts]
+  );
 
   const MatchRow = ({
     match,
@@ -302,7 +319,7 @@ export default function Matches() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between mb-0.5">
             <h3 className={`truncate text-base ${
-              matchUnread ? 'font-bold text-white' : expired ? 'font-semibold text-neutral-400' : 'font-semibold text-neutral-200'
+              matchUnread ? 'font-bold text-white' : expired ? 'font-semibold text-neutral-400' : 'font-semibold text-neutral-300'
             }`}>
               {match.displayName || "Match"}
             </h3>
@@ -366,7 +383,7 @@ export default function Matches() {
 
           {match.venueName && (
             <div className="flex items-center gap-1 mt-1">
-              <MapPin className="w-3.5 h-3.5 text-violet-400/60" />
+              <MapPin className="w-3.5 h-3.5 text-violet-400/50" />
               <span className="text-sm text-neutral-400">{match.venueName}</span>
             </div>
           )}
@@ -381,12 +398,12 @@ export default function Matches() {
         onClick={() => handleMatchClick(match.id)}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMatchClick(match.id); } }}
         aria-label={`Chat with ${match.displayName || 'Match'}`}
-        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl active:scale-[0.98] transition-all text-left cursor-pointer ${
+        className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl active:scale-[0.98] transition-all text-left cursor-pointer ${
           expired
-            ? 'bg-neutral-800/20 hover:bg-neutral-800/40'
+            ? 'bg-neutral-800/10 hover:bg-neutral-800/30'
             : matchUnread
-              ? 'bg-neutral-800/50 border border-violet-500/30 border-l-2 border-l-violet-500 hover:bg-neutral-800/70'
-              : 'bg-neutral-800/30 border border-neutral-700/20 hover:bg-neutral-800/50'
+              ? 'bg-neutral-800/50 border border-violet-500/30 border-l-2 border-l-violet-500 shadow-[inset_2px_0_8px_-2px_rgba(139,92,246,0.3)] hover:bg-neutral-800/80'
+              : 'bg-neutral-800/30 border border-neutral-700/10 hover:bg-neutral-800/50'
         }`}
       >
         {rowContent}
@@ -412,7 +429,7 @@ export default function Matches() {
     return (
       <div className="relative overflow-hidden rounded-xl">
         <motion.div
-          className="absolute inset-0 flex items-center justify-end pr-5 bg-red-600/90 rounded-xl"
+          className="absolute inset-0 flex items-center justify-end pr-5 bg-red-600/80 rounded-xl"
           style={{ opacity: bgOpacity }}
         >
           <Trash2 className="w-5 h-5 text-white" />
@@ -433,39 +450,6 @@ export default function Matches() {
     );
   };
 
-  const SectionHeader = ({
-    label,
-    count,
-    expanded,
-    onToggle,
-    accentColor,
-  }: {
-    label: string;
-    count: number;
-    expanded: boolean;
-    onToggle: () => void;
-    accentColor?: string;
-  }) => (
-    <button
-      onClick={() => { hapticLight(); onToggle(); }}
-      className="flex items-center justify-between w-full px-1 py-3 group"
-    >
-      <div className="flex items-center gap-2">
-        <span className="text-base font-semibold text-neutral-200">{label}</span>
-        {count > 0 && (
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-            accentColor || 'bg-neutral-700 text-neutral-300'
-          }`}>
-            {count}
-          </span>
-        )}
-      </div>
-      <ChevronDown
-        className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-      />
-    </button>
-  );
-
   return (
     <ErrorBoundary>
       <div
@@ -477,29 +461,29 @@ export default function Matches() {
       >
         {/* Pull-to-refresh indicator */}
         {(pullDistance > 0 || isRefreshing) && (
-          <div
-            className="flex items-center justify-center overflow-hidden transition-all"
-            style={{ height: isRefreshing ? 40 : pullDistance }}
+          <motion.div
+            className="flex items-center justify-center overflow-hidden"
+            animate={{ height: isRefreshing ? 40 : pullDistance }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             <RefreshCw className={`w-5 h-5 text-violet-400 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </div>
+          </motion.div>
         )}
 
-        {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">Matches</h1>
-          {activeNonDismissed.length > 0 && (
-            <p className="text-base text-neutral-300 font-medium mt-1">
-              {activeNonDismissed.length} active {activeNonDismissed.length === 1 ? 'conversation' : 'conversations'}
-            </p>
-          )}
-        </div>
+        <PageHeader
+          title="Matches"
+          subtitle={activeNonDismissed.length > 0 ? `${activeNonDismissed.length} active ${activeNonDismissed.length === 1 ? 'conversation' : 'conversations'}` : undefined}
+          gradient
+          className="mb-4"
+        />
 
         {isLoading ? (
-          <MatchListSkeleton />
+          <div aria-busy="true" aria-label="Loading matches">
+            <MatchListSkeleton />
+          </div>
         ) : matches.length === 0 ? (
           <EmptyState
-            icon={Heart}
+            illustrationVariant="matches"
             title="No matches yet"
             description="Your matches will appear here. Head to a venue to start meeting people."
             action={{
@@ -511,113 +495,78 @@ export default function Matches() {
           <div className="space-y-2">
             {/* Unread section */}
             {(unreadMatches.length > 0 || readMatches.length > 0) && (
-              <div>
-                <SectionHeader
-                  label="Unread"
-                  count={unreadMatches.length}
-                  expanded={unreadExpanded}
-                  onToggle={() => setUnreadExpanded(prev => !prev)}
-                  accentColor="bg-violet-500/20 text-violet-400"
-                />
-                <AnimatePresence initial={false}>
-                  {unreadExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      {unreadMatches.length > 0 ? (
-                        <div className="space-y-2 pb-2">
-                          {unreadMatches.map((match) => (
-                            <SwipeableMatchRow key={match.id} match={match} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 px-3 py-4 text-neutral-400">
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                          <span className="text-sm">All caught up!</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <Section
+                title="Unread"
+                count={unreadMatches.length}
+                collapsible
+                expanded={unreadExpanded}
+                onToggle={() => { hapticSelection(); setUnreadExpanded(prev => !prev); }}
+                countClassName="bg-violet-500/10 text-violet-400"
+              >
+                {unreadMatches.length > 0 ? (
+                  <div className="space-y-2 pb-2">
+                    {unreadMatches.map((match) => (
+                      <SwipeableMatchRow key={match.id} match={match} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-4 text-neutral-400">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span className="text-sm">All caught up!</span>
+                  </div>
+                )}
+              </Section>
             )}
 
             {/* Read section */}
             {(unreadMatches.length > 0 || readMatches.length > 0) && (
-              <div>
-                <SectionHeader
-                  label="Read"
-                  count={readMatches.length}
-                  expanded={readExpanded}
-                  onToggle={() => setReadExpanded(prev => !prev)}
-                />
-                <AnimatePresence initial={false}>
-                  {readExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      {readMatches.length > 0 ? (
-                        <div className="space-y-2 pb-2">
-                          {readMatches.map((match) => (
-                            <SwipeableMatchRow key={match.id} match={match} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 px-3 py-4 text-neutral-500">
-                          <MessageCircle className="w-4 h-4" />
-                          <span className="text-sm">No previous conversations</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <Section
+                title="Read"
+                count={readMatches.length}
+                collapsible
+                expanded={readExpanded}
+                onToggle={() => { hapticSelection(); setReadExpanded(prev => !prev); }}
+              >
+                {readMatches.length > 0 ? (
+                  <div className="space-y-2 pb-2">
+                    {readMatches.map((match) => (
+                      <SwipeableMatchRow key={match.id} match={match} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-4 text-neutral-500">
+                    <MessageCircle className="w-4 h-4" />
+                    <span className="text-sm">No previous conversations</span>
+                  </div>
+                )}
+              </Section>
             )}
 
             {/* Expired section */}
             {expiredMatchesList.length > 0 && (
-              <div className="mt-2">
-                <SectionHeader
-                  label="Expired"
-                  count={expiredMatchesList.length}
-                  expanded={expiredExpanded}
-                  onToggle={() => setExpiredExpanded(prev => !prev)}
-                  accentColor="bg-red-500/15 text-red-400"
-                />
-                <AnimatePresence initial={false}>
-                  {expiredExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-2 pb-2">
-                        {expiredMatchesList.map((match) => (
-                          <MatchRow
-                            key={match.id}
-                            match={match}
-                            expired
-                            onAcceptRematch={handleAcceptRematch}
-                            onRequestRematch={handleRequestRematch}
-                            acceptingRematchId={acceptingRematchId}
-                            requestingRematchId={requestingRematchId}
-                          />
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <Section
+                title="Expired"
+                count={expiredMatchesList.length}
+                collapsible
+                expanded={expiredExpanded}
+                onToggle={() => { hapticSelection(); setExpiredExpanded(prev => !prev); }}
+                countClassName="bg-red-500/10 text-red-400"
+                className="mt-2"
+              >
+                <div className="space-y-2 pb-2">
+                  {expiredMatchesList.map((match) => (
+                    <MatchRow
+                      key={match.id}
+                      match={match}
+                      expired
+                      onAcceptRematch={handleAcceptRematch}
+                      onRequestRematch={handleRequestRematch}
+                      acceptingRematchId={acceptingRematchId}
+                      requestingRematchId={requestingRematchId}
+                    />
+                  ))}
+                </div>
+              </Section>
             )}
 
             {/* No active matches fallback */}

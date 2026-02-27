@@ -78,6 +78,7 @@ This checklist covers all critical areas that need testing before launching clos
 
 - [ ] **People at Venue**
   - [ ] People list displays correctly
+  - [ ] No obviously deleted/stale users shown
   - [ ] Photos, names, bios show
   - [ ] Activity indicators work
   - [ ] Zone information displays
@@ -112,6 +113,8 @@ This checklist covers all critical areas that need testing before launching clos
 - [ ] **Chat Room**
   - [ ] Chat room opens correctly
   - [ ] Messages display correctly
+  - [ ] Messages appear in real time without leaving/re-entering
+  - [ ] Input bar remains visible when keyboard opens (iOS Safari, native)
   - [ ] Can send message
   - [ ] Message appears immediately
   - [ ] Message limit counter works (10 messages)

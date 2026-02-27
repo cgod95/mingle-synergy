@@ -26,7 +26,7 @@ export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> =
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
           onClick={onDismiss}
         >
           <motion.div
@@ -39,7 +39,7 @@ export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> =
           >
             {/* Icon */}
             <div className="flex justify-center mb-5">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600/30 to-violet-600/30 flex items-center justify-center ring-2 ring-violet-500/20">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600/30 to-violet-600/30 flex items-center justify-center ring-2 ring-violet-500/10">
                 <MapPin className="w-10 h-10 text-violet-400" />
               </div>
             </div>
@@ -130,14 +130,14 @@ export const LocationDeniedBanner: React.FC<LocationDeniedBannerProps> = ({ clas
   };
 
   return (
-    <div className={`rounded-xl border border-amber-700/50 bg-amber-900/20 p-4 ${className || ''}`}>
+    <div className={`rounded-xl border border-amber-700/50 bg-amber-900/10 p-4 ${className || ''}`}>
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-full bg-amber-900/50 flex items-center justify-center flex-shrink-0 mt-0.5">
           <MapPin className="w-5 h-5 text-amber-400" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-amber-200 mb-1">Location access needed</p>
-          <p className="text-xs text-amber-300/70 mb-3">
+          <p className="text-xs text-amber-300/80 mb-3">
             Enable location in your device settings to see venues near you and check in.
           </p>
           <button

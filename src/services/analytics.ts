@@ -163,14 +163,21 @@ class AnalyticsService {
       }
     });
 
-    // Track scroll depth
     let maxScrollDepth = 0;
+    let scrollRafPending = false;
     window.addEventListener('scroll', () => {
-      const scrollDepth = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
-      if (scrollDepth > maxScrollDepth) {
-        maxScrollDepth = scrollDepth;
-        this.track('scroll_depth', { depth: maxScrollDepth });
-      }
+      if (scrollRafPending) return;
+      scrollRafPending = true;
+      requestAnimationFrame(() => {
+        scrollRafPending = false;
+        const docHeight = document.body.scrollHeight - window.innerHeight;
+        if (docHeight <= 0) return;
+        const scrollDepth = Math.round((window.scrollY / docHeight) * 100);
+        if (scrollDepth > maxScrollDepth) {
+          maxScrollDepth = scrollDepth;
+          this.track('scroll_depth', { depth: maxScrollDepth });
+        }
+      });
     });
   }
   

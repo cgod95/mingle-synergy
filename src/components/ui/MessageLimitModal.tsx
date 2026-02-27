@@ -49,7 +49,7 @@ export default function MessageLimitModal({
                   // TODO: Implement request-to-continue signal
                   onClose();
                 }}
-                className="w-full flex items-center gap-3 p-4 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 transition-colors text-left"
+                className="w-full flex items-center gap-3 p-4 rounded-xl bg-violet-600/10 hover:bg-violet-600/30 transition-colors text-left"
               >
                 <RefreshCw className="w-5 h-5 text-violet-400 flex-shrink-0" />
                 <div>

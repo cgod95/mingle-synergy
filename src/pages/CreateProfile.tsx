@@ -266,19 +266,22 @@ export default function CreateProfile() {
 
             <div className="space-y-4 flex-shrink-0">
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-neutral-300">Name</label>
+                <label htmlFor="create-profile-name" className="block text-sm font-medium text-neutral-300">Name</label>
                 <Input 
+                  id="create-profile-name"
                   placeholder="Your name" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "create-profile-error" : undefined}
                   className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-xl h-12"
                 />
               </div>
               
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-neutral-300">Age</label>
+                <label htmlFor="create-profile-age" className="block text-sm font-medium text-neutral-300">Age</label>
                 <Select value={age.toString()} onValueChange={(v) => setAge(Number(v))}>
-                  <SelectTrigger className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
+                  <SelectTrigger id="create-profile-age" className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-800 border-neutral-700">
@@ -292,9 +295,9 @@ export default function CreateProfile() {
               </div>
               
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-neutral-300">Gender</label>
+                <label htmlFor="create-profile-gender" className="block text-sm font-medium text-neutral-300">Gender</label>
                 <Select value={gender} onValueChange={setGender}>
-                  <SelectTrigger className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
+                  <SelectTrigger id="create-profile-gender" className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-800 border-neutral-700">
@@ -308,9 +311,9 @@ export default function CreateProfile() {
               </div>
               
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-neutral-300">Interested in</label>
+                <label htmlFor="create-profile-interested" className="block text-sm font-medium text-neutral-300">Interested in</label>
                 <Select value={interestedIn} onValueChange={setInterestedIn}>
-                  <SelectTrigger className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
+                  <SelectTrigger id="create-profile-interested" className="bg-neutral-800 border-neutral-700 text-white rounded-xl h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-neutral-800 border-neutral-700">
@@ -324,8 +327,9 @@ export default function CreateProfile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-neutral-300">Bio <span className="text-neutral-500 font-normal">(optional)</span></label>
+                <label htmlFor="create-profile-bio" className="block text-sm font-medium text-neutral-300">Bio <span className="text-neutral-400 font-normal">(optional)</span></label>
                 <textarea
+                  id="create-profile-bio"
                   placeholder="Tell people a little about yourself"
                   value={bio}
                   onChange={(e) => setBio(e.target.value.slice(0, 200))}
@@ -339,6 +343,8 @@ export default function CreateProfile() {
               <AnimatePresence>
                 {error && (
                   <motion.div
+                    id="create-profile-error"
+                    role="alert"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}

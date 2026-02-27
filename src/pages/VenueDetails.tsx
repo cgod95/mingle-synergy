@@ -3,8 +3,9 @@ import { getVenue } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, User, Users, ArrowLeft, LogOut, Star, Send } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, User, Users, LogOut, Star, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/PageHeader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ import { useRealtimeMatches } from "@/hooks/useRealtimeMatches";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { NewMatchModal } from "@/components/NewMatchModal";
 import { useIntroMessages } from "@/hooks/useIntroMessages";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function Toast({ text }: { text: string }) {
   return (
@@ -192,8 +194,19 @@ export default function VenueDetails() {
 
   if (loadingVenue) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500 mx-auto"></div>
+      <div className="max-w-lg mx-auto" aria-busy="true" aria-label="Loading venue">
+        <Skeleton className="h-[200px] w-full rounded-b-xl rounded-t-none" />
+        <div className="px-4 py-2.5 space-y-2">
+          <Skeleton className="h-10 w-32 rounded-xl" />
+          <Skeleton className="h-10 w-24 rounded-xl ml-auto" />
+        </div>
+        <div className="px-4 pt-1 pb-2">
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-[150px] w-full rounded-xl" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -297,10 +310,37 @@ export default function VenueDetails() {
   // Filter out current user from the people list
   const visiblePeople = people.filter(p => p.id !== currentUser?.uid);
 
+  const venueSubtitle = [
+    venue.address,
+    visiblePeople.length > 0 ? `${visiblePeople.length} here` : null,
+  ].filter(Boolean).join(' · ');
+
   return (
     <div className="max-w-lg mx-auto">
-      {/* Venue Header — compact */}
-      <div className="relative h-36 overflow-hidden bg-neutral-800 rounded-b-xl">
+      <PageHeader
+        title={venue.name}
+        subtitle={venueSubtitle || undefined}
+        onBack={() => navigate('/checkin?showAll=true')}
+        trailing={
+          checkedIn === venue.id ? (
+            <button
+              onClick={handleCheckOut}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/50 hover:bg-violet-900/80 text-violet-400 hover:text-violet-300 text-base font-medium transition-colors border border-violet-800/30"
+            >
+              <LogOut className="w-4 h-4" />
+              Check Out
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/30 text-violet-400 text-base font-medium border border-violet-800/30">
+              <CheckCircle2 className="w-4 h-4" />
+              Viewing
+            </div>
+          )
+        }
+      />
+
+      {/* Venue hero image */}
+      <div className="relative h-36 overflow-hidden bg-neutral-800 rounded-b-xl -mt-2">
         <img
           src={venue.image || "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1200&auto=format&fit=crop"}
           alt={venue.name}
@@ -311,58 +351,14 @@ export default function VenueDetails() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent" />
-        <div className="absolute bottom-2.5 left-3 right-3">
-          <h1 className="text-xl font-bold text-white leading-tight truncate">{venue.name}</h1>
-          <div className="flex items-center gap-2 mt-0.5">
-            {venue.address && (
-              <div className="flex items-center gap-1 text-neutral-300 text-xs min-w-0">
-                <MapPin className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{venue.address}</span>
-              </div>
-            )}
-            {visiblePeople.length > 0 && (
-              <span className="text-violet-300 text-sm font-medium flex-shrink-0">
-                {visiblePeople.length} here
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Action bar — Back to Venues + Check Out */}
-      <div className="flex items-center gap-2 px-3 py-2.5">
-        <button
-          onClick={() => navigate('/checkin?showAll=true')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/50 hover:bg-violet-900/70 text-violet-400 hover:text-violet-300 text-base font-medium transition-colors border border-violet-800/40"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          All Venues
-        </button>
-        <div className="flex-1" />
-        {checkedIn === venue.id ? (
-          <button
-            onClick={handleCheckOut}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/50 hover:bg-violet-900/70 text-violet-400 hover:text-violet-300 text-base font-medium transition-colors border border-violet-800/40"
-          >
-            <LogOut className="w-4 h-4" />
-            Check Out
-          </button>
-        ) : (
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-900/30 text-violet-400 text-base font-medium border border-violet-800/40">
-            <CheckCircle2 className="w-4 h-4" />
-            Viewing
-          </div>
-        )}
       </div>
 
       {/* People Grid — tight */}
-      <div className="px-3 pt-1 pb-2">
+      <div className="px-4 pt-1 pb-2">
         {peopleLoading ? (
-          <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-2">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="rounded-lg overflow-hidden bg-neutral-800 skeleton-shimmer">
-                <div className="aspect-[3/4] bg-neutral-800" />
-              </div>
+          <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-[150px] w-full rounded-xl" />
             ))}
           </div>
         ) : peopleError ? (
@@ -393,7 +389,7 @@ export default function VenueDetails() {
           </div>
         ) : visiblePeople.length === 0 ? (
           <div className="text-center py-16 px-6">
-            <div className="w-16 h-16 rounded-full bg-violet-900/40 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-violet-900/30 flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-violet-400" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">No one's here yet</h3>
@@ -401,7 +397,7 @@ export default function VenueDetails() {
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-2" aria-live="polite" aria-relevant="additions removals">
+          <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-3" aria-live="polite" aria-relevant="additions removals">
             {visiblePeople.map((p) => {
               const personAge = (p as any).age;
               const matched = isMatchedWith(p.id);
@@ -415,7 +411,7 @@ export default function VenueDetails() {
                   initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
-                  className="relative rounded-lg overflow-hidden bg-neutral-800 active:scale-[0.97] transition-transform cursor-pointer"
+                  className="relative rounded-lg overflow-hidden bg-neutral-800 shadow-lg border border-neutral-700/30 active:scale-[0.97] active:ring-2 active:ring-violet-500/30 transition-all cursor-pointer"
                   onClick={() => navigate(`/profile/${p.id}`)}
                   role="button"
                   aria-label={`View ${personName}'s profile`}
@@ -443,17 +439,17 @@ export default function VenueDetails() {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center">
-                        <User className="w-12 h-12 text-white/60" />
+                        <User className="w-12 h-12 text-white/50" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                     
                     <div className="absolute bottom-0 left-0 right-0 p-2">
                       <p className="text-white font-semibold text-base leading-tight">
                         {personName}{personAge ? `, ${personAge}` : ''}
                       </p>
                       {liked && !matched && (
-                        <p className="text-rose-300 text-[10px] font-medium mt-0.5">Liked</p>
+                        <p className="text-rose-300 text-xs font-medium mt-0.5">Liked</p>
                       )}
                     </div>
                   </div>

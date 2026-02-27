@@ -419,20 +419,50 @@ export const getUserChats = async (userId: string): Promise<ChatPreview[]> => {
   }
 };
 
+/** Check if a Firestore error is an index-related error (missing or building) */
+export function isFirestoreIndexError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const err = error as { code?: string; message?: string };
+  const code = err.code ?? '';
+  const msg = (err.message ?? '').toLowerCase();
+  return (
+    code === 'failed-precondition' ||
+    msg.includes('index') ||
+    msg.includes('requires an index')
+  );
+}
+
+export interface SubscribeToMessagesOptions {
+  messageLimit?: number;
+  onError?: (error: Error) => void;
+  maxRetries?: number;
+  retryDelays?: number[];
+}
+
 /**
  * Subscribe to real-time message updates for a match (latest N messages).
  * Returns an unsubscribe function.
+ * Supports optional onError callback and automatic retry for index-related failures.
  */
 export const subscribeToMessages = (
-  matchId: string, 
+  matchId: string,
   callback: (messages: Message[]) => void,
-  messageLimit: number = 50
-) => {
+  messageLimitOrOptions: number | SubscribeToMessagesOptions = 50
+): (() => void) => {
+  const opts: SubscribeToMessagesOptions =
+    typeof messageLimitOrOptions === 'number'
+      ? { messageLimit: messageLimitOrOptions }
+      : messageLimitOrOptions;
+  const messageLimit = opts.messageLimit ?? 50;
+  const onError = opts.onError;
+  const maxRetries = opts.maxRetries ?? 3;
+  const retryDelays = opts.retryDelays ?? [2000, 4000, 6000];
+
   if (!firestore) {
     callback([]);
     return () => {};
   }
-  
+
   const messagesRef = collection(firestore, "messages");
   const q = query(
     messagesRef,
@@ -441,18 +471,54 @@ export const subscribeToMessages = (
     limitToLast(messageLimit)
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const messages: Message[] = snapshot.docs.map((d) => ({
-      id: d.id,
-      senderId: d.data().senderId,
-      text: d.data().text,
-      createdAt: d.data().createdAt?.toDate?.() ?? new Date(),
-      readBy: d.data().readBy || [],
-    }));
-    callback(messages);
-  }, (error) => {
-    logError(error as Error, { source: 'messageService', action: 'subscribeToMessages', matchId });
-  });
+  let unsubscribe: (() => void) | null = null;
+  let retryCount = 0;
+  let cancelled = false;
+
+  const trySubscribe = () => {
+    if (cancelled) return;
+
+    unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const messages: Message[] = snapshot.docs.map((d) => ({
+          id: d.id,
+          senderId: d.data().senderId,
+          text: d.data().text,
+          createdAt: d.data().createdAt?.toDate?.() ?? new Date(),
+          readBy: d.data().readBy || [],
+        }));
+        callback(messages);
+      },
+      (error) => {
+        logError(error as Error, { source: 'messageService', action: 'subscribeToMessages', matchId });
+        const err = error instanceof Error ? error : new Error(String(error));
+
+        if (isFirestoreIndexError(error) && retryCount < maxRetries) {
+          const delay = retryDelays[retryCount] ?? retryDelays[retryDelays.length - 1];
+          retryCount++;
+          logError(err, {
+            source: 'messageService',
+            action: 'subscribeToMessages_retry',
+            matchId,
+            retryCount,
+            delay,
+          });
+          setTimeout(() => trySubscribe(), delay);
+          return;
+        }
+
+        onError?.(err);
+      }
+    );
+  };
+
+  trySubscribe();
+
+  return () => {
+    cancelled = true;
+    unsubscribe?.();
+  };
 };
 
 /**

@@ -47,9 +47,8 @@ export default function LandingPage() {
   return (
     <Layout showBottomNav={false}>
       {/* Dynamic Hero Section - Brand dark background */}
-      <div className="relative min-h-screen min-h-[100dvh] bg-[#0a0a0f] overflow-hidden">
-        {/* Animated gradient background - matches brand */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.12)_0%,_transparent_50%)]" />
+      <div className="relative min-h-screen min-h-[100dvh] bg-surface overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(263_70%_58%/0.12)_0%,_transparent_50%)]" />
         
         {/* Background Cards Grid */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-70">
@@ -80,8 +79,8 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index)}deg)`,
                 }}
               >
-                <div className="overflow-hidden rounded-xl bg-[#1A1A24] shadow-xl">
-                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
+                <div className="overflow-hidden rounded-xl bg-surface-elevated shadow-xl">
+                  <div className="relative h-48 w-full overflow-hidden bg-surface-elevated">
                     {venue.image ? (
                       <img
                         src={venue.image}
@@ -90,8 +89,8 @@ export default function LandingPage() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#7C3AED]/30 to-[#6D28D9]/20">
-                        <MapPin className="w-12 h-12 text-[#A78BFA]/50" />
+                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-violet-600/30 to-violet-700/10">
+                        <MapPin className="w-12 h-12 text-violet-400/50" />
                       </div>
                     )}
                   </div>
@@ -124,8 +123,8 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index + 6)}deg)`,
                 }}
               >
-                <div className="overflow-hidden rounded-xl bg-[#1A1A24] shadow-xl">
-                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
+                <div className="overflow-hidden rounded-xl bg-surface-elevated shadow-xl">
+                  <div className="relative h-48 w-full overflow-hidden bg-surface-elevated">
                     <img
                       src={person.photo}
                       alt={person.name}
@@ -162,8 +161,8 @@ export default function LandingPage() {
                   transform: `rotate(${getRandomRotation(index + 16)}deg)`,
                 }}
               >
-                <div className="overflow-hidden rounded-xl bg-[#1A1A24] shadow-xl">
-                  <div className="relative h-48 w-full overflow-hidden bg-[#1A1A24]">
+                <div className="overflow-hidden rounded-xl bg-surface-elevated shadow-xl">
+                  <div className="relative h-48 w-full overflow-hidden bg-surface-elevated">
                     <img
                       src={person.photo}
                       alt={person.name}
@@ -180,7 +179,7 @@ export default function LandingPage() {
         {/* Hero Content */}
         <div className="relative z-20 min-h-screen min-h-[100dvh] flex safe-y flex-col items-center justify-center text-center px-4 py-12">
           <div className="relative z-30 inline-block">
-            <div className="bg-[#0a0a0f]/95 backdrop-blur-2xl rounded-3xl px-8 py-12 md:px-12 md:py-16 shadow-2xl shadow-[#7C3AED]/10">
+              <div className="bg-surface/80 backdrop-blur-2xl rounded-3xl px-8 py-12 md:px-12 md:py-16 shadow-2xl shadow-violet-500/10">
               {/* Logo with gradient */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -190,7 +189,7 @@ export default function LandingPage() {
               >
                 {/* Logo Icon */}
                 <div className="mb-6 flex justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-[#7C3AED] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30">
+                  <div className="w-16 h-16 rounded-2xl bg-brand flex items-center justify-center shadow-lg shadow-violet-500/30">
                     <span className="text-white font-bold text-3xl">M</span>
                   </div>
                 </div>
@@ -199,7 +198,7 @@ export default function LandingPage() {
                   Mingle
                 </h1>
                 <div className="space-y-3">
-                  <p className="text-lg text-[#9CA3AF] max-w-xl mx-auto">
+                  <p className="text-lg text-on-surface-muted max-w-xl mx-auto">
                     No more swiping. No more noise. Just meet people.
                   </p>
                 </div>
@@ -214,7 +213,7 @@ export default function LandingPage() {
               >
                 <Button
                   onClick={handleJoinClosedBeta}
-                  className="bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white text-xl px-12 py-6 rounded-full shadow-xl shadow-[#7C3AED]/30 font-bold transform hover:scale-105 transition-all"
+                  className="bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 text-white text-xl px-12 py-6 rounded-full shadow-xl shadow-violet-500/30 font-bold transform hover:scale-105 transition-all"
                   size="lg"
                 >
                   Join Closed Beta
@@ -228,9 +227,9 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: 0.6 }}
                 className="text-center"
               >
-                <p className="text-sm text-[#9CA3AF]">
+                <p className="text-sm text-on-surface-muted">
                   Already have an account?{' '}
-                  <Link to="/signin" className="text-[#A78BFA] hover:text-[#C4B5FD] font-medium">
+                  <Link to="/signin" className="text-violet-400 hover:text-violet-300 font-medium">
                     Sign in
                   </Link>
                 </p>

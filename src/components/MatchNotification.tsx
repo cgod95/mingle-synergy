@@ -58,7 +58,7 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
       exit={{ opacity: 0 }}
     >
       <motion.div 
-        className="absolute inset-0 bg-background/60 backdrop-blur-lg" 
+        className="absolute inset-0 bg-background/50 backdrop-blur-lg" 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         onClick={onClose}
@@ -106,14 +106,14 @@ const MatchNotification: React.FC<MatchNotificationProps> = ({
         
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background/50 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:bg-background/70 z-10"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background/50 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:bg-background/80 z-10"
         >
           <X size={18} />
         </button>
         
         <div className="relative p-8 pt-10 flex flex-col items-center">
           <motion.div 
-            className="w-20 h-20 rounded-full bg-gradient-to-br from-[#3A86FF] to-[#FF5A5F]/70 shadow-[0_0_30px_rgba(255,90,95,0.3)] backdrop-blur-sm flex items-center justify-center mb-6"
+            className="w-20 h-20 rounded-full bg-gradient-to-br from-[#3A86FF] to-[#FF5A5F]/80 shadow-[0_0_30px_rgba(255,90,95,0.3)] backdrop-blur-sm flex items-center justify-center mb-6"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}

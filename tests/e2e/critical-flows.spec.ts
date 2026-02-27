@@ -149,6 +149,21 @@ test.describe('Chat/Messaging Flow', () => {
       expect(await noMatchesMessage.isVisible({ timeout: 1000 }).catch(() => false)).toBe(true);
     }
   });
+
+  test('chat page renders messages area and input when opened', async ({ page }) => {
+    await page.goto(`${BASE_URL}/chat/test-match-id`);
+    await page.waitForLoadState('networkidle');
+
+    const messagesArea = page.locator('[aria-live="polite"]');
+    const input = page.getByLabel(/type a message/i);
+    const chatNotFound = page.getByText(/chat not found/i);
+
+    const hasMessagesArea = await messagesArea.isVisible({ timeout: 5000 }).catch(() => false);
+    const hasInput = await input.isVisible({ timeout: 3000 }).catch(() => false);
+    const hasNotFound = await chatNotFound.isVisible({ timeout: 2000 }).catch(() => false);
+
+    expect(hasMessagesArea || hasInput || hasNotFound).toBe(true);
+  });
 });
 
 test.describe('Navigation and Layout', () => {

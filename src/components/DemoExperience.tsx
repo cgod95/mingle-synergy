@@ -185,7 +185,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 + index * 0.1 }}
-                      className="text-center p-4 bg-neutral-800/70 rounded-xl border border-neutral-700 hover:shadow-lg transition-all duration-300"
+                      className="text-center p-4 bg-neutral-800/80 rounded-xl border border-neutral-700 hover:shadow-lg transition-all duration-300"
                     >
                       <div className="flex justify-center mb-3">
                         {feature.icon}
@@ -203,7 +203,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
                   ))}
                 </div>
                 
-                <div className="bg-neutral-800/70 rounded-xl p-6 border border-neutral-700">
+                <div className="bg-neutral-800/80 rounded-xl p-6 border border-neutral-700">
                   <h4 className="font-semibold text-slate-800 mb-4 flex items-center">
                     <Info className="w-5 h-5 mr-2 text-blue-600" />
                     Quick Start Guide
@@ -280,7 +280,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + index * 0.1 }}
-                className="text-center p-4 bg-neutral-800/70 rounded-xl border border-neutral-700 hover:shadow-lg transition-all duration-300"
+                className="text-center p-4 bg-neutral-800/80 rounded-xl border border-neutral-700 hover:shadow-lg transition-all duration-300"
               >
                 <div className="flex justify-center mb-3">
                   {feature.icon}
@@ -298,7 +298,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
             ))}
           </div>
           
-          <div className="bg-neutral-800/70 rounded-xl p-6 border border-neutral-700">
+          <div className="bg-neutral-800/80 rounded-xl p-6 border border-neutral-700">
             <h4 className="font-semibold text-slate-800 mb-4 flex items-center">
               <Info className="w-5 h-5 mr-2 text-blue-600" />
               Quick Start Guide

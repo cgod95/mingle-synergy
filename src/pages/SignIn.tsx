@@ -72,7 +72,7 @@ export default function SignIn() {
           <div className="flex-1 flex flex-col justify-start pt-[8vh] w-full max-w-sm mx-auto">
             {/* Logo */}
             <div className="text-center mb-8 flex-shrink-0">
-              <div className="w-12 h-12 rounded-xl bg-[#7C3AED] flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center mx-auto mb-3">
                 <span className="text-white font-bold text-xl">M</span>
               </div>
               <h1 className="text-3xl font-bold text-white">Welcome back</h1>

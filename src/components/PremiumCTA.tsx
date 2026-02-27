@@ -25,7 +25,7 @@ export function PremiumCTA({ variant = 'message-limit', onDismiss, className = '
 
   if (variant === 'inline') {
     return (
-      <div className={`flex items-center justify-between p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg ${className}`}>
+      <div className={`flex items-center justify-between p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/10 rounded-lg ${className}`}>
         <div className="flex items-center gap-2">
           <Crown className="w-4 h-4 text-amber-500" />
           <span className="text-sm text-amber-200">Unlock unlimited messages</span>
@@ -44,7 +44,7 @@ export function PremiumCTA({ variant = 'message-limit', onDismiss, className = '
 
   if (variant === 'feature-gate') {
     return (
-      <Card className={`bg-gradient-to-br from-neutral-900 to-neutral-800 border-amber-500/20 ${className}`}>
+      <Card className={`bg-gradient-to-br from-neutral-900 to-neutral-800 border-amber-500/10 ${className}`}>
         <CardContent className="p-6 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 mb-4">
             <Sparkles className="w-6 h-6 text-white" />
@@ -84,11 +84,11 @@ export function PremiumCTA({ variant = 'message-limit', onDismiss, className = '
       <Card className="bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 border-amber-500/30 overflow-hidden">
         <CardContent className="p-6 relative">
           {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
           
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/20">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/10">
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -118,7 +118,7 @@ export function PremiumCTA({ variant = 'message-limit', onDismiss, className = '
 
             <Button 
               onClick={handleUpgrade}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-lg shadow-amber-500/20"
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-lg shadow-amber-500/10"
             >
               <Crown className="w-4 h-4 mr-2" />
               Upgrade to Premium

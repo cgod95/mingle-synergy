@@ -64,6 +64,11 @@ export function usePeopleAtVenue(venueId: string | undefined): { people: VenueUs
         for (const d of snapshot.docs) {
           const raw = d.data();
 
+          // Skip deleted/inactive accounts
+          if (raw.isDeleted === true || raw.deletedAt) {
+            continue;
+          }
+
           // Skip users whose check-in is older than 24 hours or has no timestamp
           const checkedInAt = toEpochMs(raw.checkedInAt);
           if (!checkedInAt || now - checkedInAt > CHECKIN_DURATION_MS) {

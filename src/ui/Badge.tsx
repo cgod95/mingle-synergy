@@ -8,5 +8,5 @@ export default function Badge({ tone="info", className="", ...rest }: Props) {
     danger:  "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-100",
     muted:   "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
   }[tone];
-  return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${toneMap} ${className}`} {...rest} />;
+  return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${toneMap} ${className}`} {...rest} />;
 }

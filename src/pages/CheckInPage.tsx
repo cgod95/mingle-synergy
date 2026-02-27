@@ -11,6 +11,7 @@ import { retryWithMessage, isNetworkError } from "@/utils/retry";
 import { logError } from "@/utils/errorHandler";
 import { hapticSuccess } from "@/lib/haptics";
 import { VenueCardSkeleton } from "@/components/ui/LoadingStates";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { calculateDistance } from "@/utils/locationUtils";
 import { useToast } from "@/hooks/use-toast";
 import { LocationPermissionPrompt, LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
@@ -176,7 +177,7 @@ export default function CheckInPage() {
         {/* Scan QR Code — primary action */}
         <button
           onClick={() => setShowScanner(true)}
-          className="w-full flex items-center justify-center gap-3 px-6 py-5 mb-6 bg-violet-600 hover:bg-violet-700 rounded-2xl active:scale-[0.97] transition-all shadow-lg shadow-violet-600/20"
+          className="w-full flex items-center justify-center gap-3 px-6 py-5 mb-6 bg-violet-600 hover:bg-violet-700 rounded-2xl active:scale-[0.97] transition-all shadow-lg shadow-violet-600/10"
         >
           <QrCode className="w-7 h-7 text-white flex-shrink-0" />
           <span className="text-base font-semibold text-white">Scan QR Code to Check In</span>
@@ -184,7 +185,7 @@ export default function CheckInPage() {
 
         {/* QR scan notification */}
         {source === "qr" && qrVenueId && (
-          <div className="mb-4 p-3 bg-violet-600/20 rounded-xl">
+          <div className="mb-4 p-4 bg-violet-600/10 rounded-xl">
             <p className="text-sm text-white font-medium">
               Checking you in to {venues.find(v => v.id === qrVenueId)?.name || "venue"}...
             </p>
@@ -217,14 +218,12 @@ export default function CheckInPage() {
 
         {/* Empty state */}
         {!loadingVenues && !venueError && venues.length === 0 && (
-          <div className="text-center py-12">
-            <MapPin className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-white mb-1">No venues nearby</h3>
-            <p className="text-sm text-neutral-400 mb-4">Try scanning a QR code at a venue.</p>
-            <Button onClick={() => loadVenues()} variant="outline" size="sm" className="rounded-xl">
-              Refresh
-            </Button>
-          </div>
+          <EmptyState
+            illustrationVariant="venues"
+            title="No venues nearby"
+            description="Try scanning a QR code at a venue."
+            action={{ label: "Refresh", onClick: () => loadVenues() }}
+          />
         )}
 
         {/* Venue Cards */}
@@ -266,7 +265,7 @@ export default function CheckInPage() {
                     
                     {/* You're here badge */}
                     {isCheckedHere && (
-                      <div className="absolute top-2.5 left-2.5 bg-green-500/90 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <div className="absolute top-2.5 left-2.5 bg-green-500/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" />
                         You're here
                       </div>
@@ -274,7 +273,7 @@ export default function CheckInPage() {
 
                     {/* Distance badge */}
                     {distanceText && (
-                      <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded-full">
+                      <div className="absolute top-2.5 right-2.5 bg-black/50 backdrop-blur-sm text-white text-xs font-medium px-2 py-0.5 rounded-full">
                         {distanceText}
                       </div>
                     )}

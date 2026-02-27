@@ -16,9 +16,9 @@ export const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/90 active:text-primary/80 dark:text-primary dark:hover:text-primary/90",
       },
       size: {
-        default: "h-11 px-4 py-2 min-w-[100px] min-h-[44px]",
-        sm: "h-10 rounded-md px-3 text-xs min-w-[80px] min-h-[44px]",
-        lg: "h-12 rounded-lg px-8 text-base min-w-[120px] min-h-[48px]",
+        default: "h-12 px-4 py-2 min-w-[100px] min-h-[48px]",
+        sm: "h-10 rounded-md px-3 text-xs min-w-[80px] min-h-[40px]",
+        lg: "h-14 rounded-lg px-8 text-base min-w-[120px] min-h-[56px]",
         icon: "h-11 w-11 min-h-[44px] min-w-[44px]",
       },
     },

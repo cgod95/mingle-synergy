@@ -1,5 +1,6 @@
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { firestore } from '@/firebase/config';
+import { logError } from '@/utils/errorHandler';
 
 export interface UnreadCounts {
   [matchId: string]: number;
@@ -69,7 +70,7 @@ export const subscribeToUnreadCounts = (
 
         debouncedCallback();
       }, (error) => {
-        console.error('Error in messages subscription:', error);
+        logError(error as Error, { source: 'UnreadMessageService', action: 'messagesSubscription' });
       });
 
       messagesUnsubscribes.push(unsub);
@@ -80,14 +81,14 @@ export const subscribeToUnreadCounts = (
     ids1 = new Set(snapshot.docs.map(doc => doc.id));
     rebuildMessageListeners();
   }, (error) => {
-    console.warn('Error in matches subscription (q1):', error);
+    logError(error as Error, { source: 'UnreadMessageService', action: 'matchesSubscription_q1' });
   });
 
   const unsubscribe2 = onSnapshot(q2, (snapshot) => {
     ids2 = new Set(snapshot.docs.map(doc => doc.id));
     rebuildMessageListeners();
   }, (error) => {
-    console.warn('Error in matches subscription (q2):', error);
+    logError(error as Error, { source: 'UnreadMessageService', action: 'matchesSubscription_q2' });
   });
 
   return () => {

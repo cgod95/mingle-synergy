@@ -21,11 +21,12 @@ import {
   ChevronRight,
   Star,
   Crown,
-  Zap,
-  ArrowLeft
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ListRow } from '@/components/ui/ListRow';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -273,23 +274,33 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      try {
-        // In a real app, this would call your backend to delete the account
-        if (analyticsService && typeof analyticsService.track === 'function') {
-          analyticsService.track('account_deleted');
-        }
-        localStorage.clear();
-        navigate('/');
-      } catch (error) {
-        console.error('Failed to delete account:', error);
-        toast({
-          title: "Failed to delete account",
-          description: "Please try again.",
-          variant: "destructive",
-        });
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      return;
+    }
+    if (!currentUser?.uid) {
+      toast({ title: "Not signed in", description: "Please sign in to delete your account.", variant: "destructive" });
+      return;
+    }
+    try {
+      const { userService, authService } = await import('@/services');
+      if (analyticsService && typeof analyticsService.track === 'function') {
+        analyticsService.track('account_deleted');
       }
+      await userService.deleteUser(currentUser.uid);
+      await authService.deleteUser();
+      localStorage.clear();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      const msg = error instanceof Error ? error.message : 'Please try again.';
+      toast({
+        title: "Failed to delete account",
+        description: msg.includes('re-auth') || msg.includes('requires-recent-login')
+          ? "For security, please sign out and sign back in, then try again."
+          : "Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -550,24 +561,13 @@ const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center space-x-2 mb-6">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/profile')}
-              className="hover:bg-violet-900/30 text-violet-400"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">
-                Settings
-              </h1>
-              <p className="text-neutral-300 mt-2">Manage your account preferences and app settings</p>
-            </div>
-          </div>
+    <div className="max-w-lg mx-auto">
+          <PageHeader
+            title="Settings"
+            subtitle="Manage your account preferences and app settings"
+            backTo="/profile"
+            className="mb-6"
+          />
 
           {/* Settings Sections */}
           <div className="space-y-4">
@@ -584,68 +584,52 @@ const SettingsPage: React.FC = () => {
                   </CardHeader>
                   <CardContent className="pt-4">
                     <div className="space-y-1">
-                      {section.items.map((item, itemIndex) => (
-                        <div key={itemIndex}>
-                          <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-violet-900/30 transition-colors">
-                            <div className="flex items-center flex-1 min-w-0">
-                              <div className={`p-2 rounded-lg mr-3 ${
-                                'danger' in item && item.danger
-                                  ? 'bg-red-900/50 text-red-400' 
-                                  : 'bg-violet-900/50 text-violet-400'
-                              }`}>
-                                <item.icon className="w-4 h-4" />
-                              </div>
-                              <div className="flex-1 min-w-0">
+                      {section.items.map((item, itemIndex) => {
+                        const hasToggle = 'toggle' in item && item.toggle !== undefined && 'onToggle' in item && item.onToggle;
+                        const hasBadge = 'badge' in item && item.badge;
+                        const isDanger = 'danger' in item && item.danger;
+                        return (
+                          <div key={itemIndex}>
+                            <ListRow
+                              leading={
+                                <div className={`p-2 rounded-lg ${
+                                  isDanger ? 'bg-red-900/50 text-red-400' : 'bg-violet-900/50 text-violet-400'
+                                }`}>
+                                  <item.icon className="w-4 h-4" />
+                                </div>
+                              }
+                              title={item.label}
+                              subtitle={item.description}
+                              trailing={
                                 <div className="flex items-center gap-2">
-                                  <span className={`font-semibold text-base ${
-                                    'danger' in item && item.danger ? 'text-red-400' : 'text-white'
-                                  }`}>
-                                    {item.label}
-                                  </span>
-                                  {'badge' in item && item.badge && (
-                                    <Badge 
-                                      variant={('badgeVariant' in item && item.badgeVariant) as 'default' | 'secondary' | 'destructive' | 'outline'} 
-                                      className={
-                                        'badgeVariant' in item && item.badgeVariant === 'default' 
-                                          ? 'bg-violet-600 text-white border-0'
-                                          : ''
-                                      }
+                                  {hasBadge && (
+                                    <Badge
+                                      variant={('badgeVariant' in item && item.badgeVariant) as 'default' | 'secondary' | 'destructive' | 'outline'}
+                                      className={'badgeVariant' in item && item.badgeVariant === 'default' ? 'bg-violet-600 text-white border-0' : ''}
                                     >
                                       {item.badge}
                                     </Badge>
                                   )}
+                                  {hasToggle ? (
+                                    <Switch
+                                      checked={item.toggle}
+                                      onCheckedChange={item.onToggle}
+                                      aria-label={item.label}
+                                    />
+                                  ) : (
+                                    <ChevronRight className={`w-5 h-5 ${isDanger ? 'text-red-400' : 'text-violet-400'}`} />
+                                  )}
                                 </div>
-                                <p className="text-sm text-neutral-300 mt-0.5">{item.description}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center ml-4">
-                              {'toggle' in item && item.toggle !== undefined && 'onToggle' in item && item.onToggle ? (
-                                <Switch
-                                  checked={item.toggle}
-                                  onCheckedChange={item.onToggle}
-                                />
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={item.action}
-                                  className={`${
-                                    'danger' in item && item.danger
-                                      ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30' 
-                                      : 'text-violet-400 hover:text-violet-300 hover:bg-violet-900/30'
-                                  }`}
-                                >
-                                  <ChevronRight className="w-5 h-5" />
-                                </Button>
-                              )}
-                            </div>
+                              }
+                              onPress={hasToggle ? () => item.onToggle?.(!item.toggle) : item.action}
+                              destructive={isDanger}
+                            />
+                            {itemIndex < section.items.length - 1 && (
+                              <Separator className="my-1 bg-neutral-700" />
+                            )}
                           </div>
-                          {itemIndex < section.items.length - 1 && (
-                            <Separator className="my-1 bg-neutral-700" />
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>

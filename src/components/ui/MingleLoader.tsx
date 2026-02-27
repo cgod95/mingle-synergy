@@ -1,9 +1,9 @@
 export default function MingleLoader() {
   return (
-    <div className="fixed inset-0 bg-[#0a0a0f] flex items-center justify-center z-[9999]">
+    <div className="fixed inset-0 bg-surface flex items-center justify-center z-[9999]">
       <div className="flex flex-col items-center">
         <div className="w-24 h-24 mb-6 animate-pulse">
-          <div className="w-full h-full rounded-2xl bg-[#7C3AED] flex items-center justify-center shadow-2xl shadow-[#7C3AED]/30">
+          <div className="w-full h-full rounded-2xl bg-brand flex items-center justify-center shadow-2xl shadow-violet-500/30">
             <span className="text-5xl font-bold text-white">
               M
             </span>

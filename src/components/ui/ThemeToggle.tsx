@@ -131,7 +131,7 @@ export function SimpleThemeToggle() {
       
       {/* Ripple effect */}
       <motion.div
-        className="absolute inset-0 bg-primary/20 rounded-full"
+        className="absolute inset-0 bg-primary/10 rounded-full"
         initial={{ scale: 0, opacity: 0 }}
         whileTap={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.2 }}

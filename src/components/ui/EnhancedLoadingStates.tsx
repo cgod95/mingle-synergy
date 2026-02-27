@@ -373,7 +373,7 @@ export const PulseLoading: React.FC<{ className?: string }> = ({ className }) =>
 // Shimmer effect
 export const Shimmer: React.FC<{ className?: string }> = ({ className }) => (
   <div className={cn('relative overflow-hidden', className)}>
-    <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+    <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
   </div>
 );
 

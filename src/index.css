@@ -99,6 +99,21 @@
   .bg-background { background-color: hsl(var(--background)); }
   .text-foreground { color: hsl(var(--foreground)); }
   .border-border { border-color: hsl(var(--border)); }
+
+  /* ---- Named Typography Styles ---- */
+  .type-display  { font-size: 1.875rem; line-height: 1.25; font-weight: 700; color: #fff; }
+  .type-title    { font-size: 1.25rem;  line-height: 1.3;  font-weight: 600; color: #fff; }
+  .type-headline { font-size: 1.125rem; line-height: 1.35; font-weight: 600; color: #fff; }
+  .type-body     { font-size: 1rem;     line-height: 1.5;  font-weight: 400; color: #d4d4d4; }
+  .type-body-emphasis { font-size: 1rem; line-height: 1.5; font-weight: 600; color: #fff; }
+  .type-caption  { font-size: 0.875rem; line-height: 1.4;  font-weight: 500; color: #a3a3a3; }
+  .type-footnote { font-size: 0.75rem;  line-height: 1.4;  font-weight: 500; color: #737373; }
+
+  /* ---- Standard Gradients ---- */
+  .gradient-brand   { background: linear-gradient(135deg, hsl(var(--color-brand)) 0%, hsl(258 90% 76%) 50%, hsl(330 80% 60%) 100%); }
+  .gradient-cta     { background: linear-gradient(to right, hsl(var(--color-brand)), hsl(var(--color-brand-hover))); }
+  .gradient-surface { background: linear-gradient(to bottom right, hsl(var(--color-brand) / 0.1), hsl(330 80% 60% / 0.1)); }
+  .gradient-overlay { background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.6)); }
   
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -273,6 +288,11 @@
     bottom: var(--keyboard-height);
     transition: bottom 0.25s ease-out;
   }
+
+  /* Scroll margin for input when scrollIntoView is used (keyboard fallback) */
+  #chat-message-input {
+    scroll-margin-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  }
   
   /* iOS-specific form improvements */
   input, textarea, select {
@@ -427,53 +447,42 @@ button, a, [role="button"], input[type="submit"], input[type="button"] {
 }
 
 /* ---- Brand Colors & Effects ---- */
-/* Brand violet (used in MingleMLogo) */
 .bg-brand-violet {
-  background-color: #7C3AED;
+  background-color: hsl(var(--color-brand));
 }
 
 .shadow-brand-glow {
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 0 20px hsl(var(--color-brand) / 0.3);
 }
 
-/* Brand dark background (used in LandingPage) */
 .bg-brand-dark {
-  background-color: #0a0a0f;
+  background-color: hsl(var(--color-surface));
 }
 
-/* Text gradient utility */
 .text-gradient {
-  background: linear-gradient(135deg, #A78BFA 0%, #C084FC 50%, #F472B6 100%);
+  background: linear-gradient(135deg, hsl(var(--color-brand)) 0%, hsl(var(--color-brand-light)) 50%, hsl(330 80% 60%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Radial glow effect for hero sections */
 .bg-radial-glow {
-  background: radial-gradient(ellipse at top, rgba(124, 58, 237, 0.12) 0%, transparent 50%);
+  background: radial-gradient(ellipse at top, hsl(var(--color-brand) / 0.12) 0%, transparent 50%);
 }
 
-/* Card styling with brand colors */
 .card-brand {
-  background-color: #1A1A24;
-  border-color: #2D2D3A;
+  background-color: hsl(var(--color-surface-elevated));
+  border-color: hsl(0 0% 20%);
 }
 
-/* Sexy shadow for floating elements */
 .shadow-sexy {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
-              0 0 30px rgba(124, 58, 237, 0.15);
+              0 0 30px hsl(var(--color-brand) / 0.15);
 }
 
-/* Pulsing glow animation */
 @keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(124, 58, 237, 0.5);
-  }
+  0%, 100% { box-shadow: 0 0 20px hsl(var(--color-brand) / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(var(--color-brand) / 0.5); }
 }
 
 .animate-glow-pulse {

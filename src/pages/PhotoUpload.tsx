@@ -216,7 +216,7 @@ export default function PhotoUpload() {
                     >
                       <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                       {uploaded && (
-                        <div className="absolute inset-0 bg-violet-500/20 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-violet-500/10 flex items-center justify-center">
                           <CheckCircle2 className="w-16 h-16 text-violet-400" />
                         </div>
                       )}

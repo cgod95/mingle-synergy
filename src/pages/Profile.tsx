@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ListRow } from '@/components/ui/ListRow';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, Edit, Camera, ChevronRight, User } from 'lucide-react';
@@ -89,7 +91,7 @@ function ProfilePhotoCarousel({ photos, name, onUpload }: { photos: string[]; na
             key={i}
             className={cn(
               "h-1.5 rounded-full transition-all duration-200",
-              i === selectedIndex ? "bg-white w-4" : "bg-white/40 w-1.5"
+              i === selectedIndex ? "bg-white w-4" : "bg-white/30 w-1.5"
             )}
           />
         ))}
@@ -137,7 +139,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-lg mx-auto" aria-busy="true" aria-label="Loading profile">
         <UserProfileSkeleton />
       </div>
     );
@@ -154,13 +156,8 @@ export default function Profile() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Header — gradient title matching Settings */}
-      <div className="mb-4">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-pink-500 bg-clip-text text-transparent">
-          Profile
-        </h1>
-      </div>
+    <div className="max-w-lg mx-auto">
+      <PageHeader title="Profile" gradient className="mb-4" />
 
       <div className="space-y-4">
         {/* Profile Card with swipeable photos */}
@@ -171,7 +168,7 @@ export default function Profile() {
               name={displayName}
               onUpload={() => navigate('/photo-upload', { state: { from: 'profile' } })}
             />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4">
               <h2 className="text-2xl font-bold text-white">{displayName}</h2>
             </div>
           </div>
@@ -181,7 +178,7 @@ export default function Profile() {
               <p className="text-base text-neutral-300 leading-relaxed">{profileData.bio}</p>
             ) : (
               <div
-                className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-violet-900/30 transition-colors cursor-pointer"
+                className="flex items-center justify-between py-3 px-2 min-h-[48px] rounded-lg hover:bg-violet-900/30 transition-colors cursor-pointer"
                 onClick={() => navigate('/profile/edit')}
                 role="button"
                 tabIndex={0}
@@ -214,42 +211,20 @@ export default function Profile() {
             <div className="space-y-1">
               {profileActions.map((item, i) => (
                 <div key={item.label}>
-                  <div
-                    className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-violet-900/30 transition-colors cursor-pointer"
-                    onClick={item.action}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter') item.action(); }}
-                  >
-                    <div className="flex items-center flex-1 min-w-0">
-                      <div className={`p-2 rounded-lg mr-3 ${
-                        item.danger
-                          ? 'bg-red-900/50 text-red-400'
-                          : 'bg-violet-900/50 text-violet-400'
+                  <ListRow
+                    leading={
+                      <div className={`p-2 rounded-lg ${
+                        item.danger ? 'bg-red-900/50 text-red-400' : 'bg-violet-900/50 text-violet-400'
                       }`}>
                         <item.icon className="w-4 h-4" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <span className={`font-semibold text-base ${
-                          item.danger ? 'text-red-400' : 'text-white'
-                        }`}>
-                          {item.label}
-                        </span>
-                        <p className="text-sm text-neutral-300 mt-0.5">{item.description}</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={
-                        item.danger
-                          ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30'
-                          : 'text-violet-400 hover:text-violet-300 hover:bg-violet-900/30'
-                      }
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
-                  </div>
+                    }
+                    title={item.label}
+                    subtitle={item.description}
+                    trailing={<ChevronRight className={cn('w-5 h-5', item.danger ? 'text-red-400' : 'text-violet-400')} />}
+                    onPress={item.action}
+                    destructive={item.danger}
+                  />
                   {i < profileActions.length - 1 && (
                     <Separator className="my-1 bg-neutral-700" />
                   )}

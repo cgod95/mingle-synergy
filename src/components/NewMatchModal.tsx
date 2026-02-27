@@ -43,7 +43,7 @@ function FloatingHearts() {
           className="absolute"
           style={{ fontSize: p.size }}
         >
-          <Heart className="text-pink-400/60 fill-pink-400/40" style={{ width: p.size, height: p.size }} />
+          <Heart className="text-pink-400/50 fill-pink-400/30" style={{ width: p.size, height: p.size }} />
         </motion.div>
       ))}
     </div>
@@ -100,7 +100,7 @@ export function NewMatchModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
             onClick={onClose}
           />
           
@@ -123,8 +123,8 @@ export function NewMatchModal({
 
               {/* Decorative background elements */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-violet-500/20 rounded-full blur-3xl" />
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl" />
               </div>
 
               {!prefersReducedMotion && <FloatingHearts />}
@@ -256,7 +256,7 @@ export function NewMatchModal({
                     >
                       <Button
                         onClick={handleSendMessage}
-                        className="w-full py-6 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg shadow-pink-500/25 min-h-[48px]"
+                        className="w-full py-6 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg shadow-pink-500/30 min-h-[48px]"
                       >
                         <MessageCircle className="w-5 h-5 mr-2" />
                         Send a Message

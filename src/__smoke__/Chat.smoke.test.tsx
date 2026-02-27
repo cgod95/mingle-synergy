@@ -8,7 +8,7 @@ import ChatInput from '@/components/ChatInput';
 vi.mock('@/services/messageService', () => ({
   canSendMessage: vi.fn().mockResolvedValue(true),
   sendMessage: vi.fn().mockResolvedValue(undefined),
-  subscribeToMessageLimit: vi.fn(() => () => {}), // Returns unsubscribe function
+  subscribeToMessageLimit: vi.fn(() => () => {}),
 }));
 
 const renderWithProviders = (component: React.ReactElement) => {

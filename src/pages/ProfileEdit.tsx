@@ -294,7 +294,7 @@ export default function ProfileEdit() {
                     <Button
                       onClick={handleUploadPhoto}
                       disabled={uploading}
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="w-full bg-primary hover:bg-primary/80 text-primary-foreground"
                     >
                       {uploading ? (
                         <span className="flex items-center justify-center">

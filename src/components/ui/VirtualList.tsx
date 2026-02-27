@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface VirtualListProps<T> {
   items: T[];
@@ -22,23 +22,25 @@ export function VirtualList<T>({
 }: VirtualListProps<T>) {
   const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
 
-  // Calculate visible range
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
   const endIndex = Math.min(
     items.length - 1,
     Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
   );
 
-  // Get visible items
   const visibleItems = items.slice(startIndex, endIndex + 1);
-
-  // Calculate total height and offset
   const totalHeight = items.length * itemHeight;
   const offsetY = startIndex * itemHeight;
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
+    const target = e.currentTarget;
+    if (rafRef.current !== null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      setScrollTop(target.scrollTop);
+    });
   }, []);
 
   // Intersection observer for lazy loading
@@ -78,24 +80,21 @@ export function VirtualList<T>({
             right: 0
           }}
         >
-          <AnimatePresence>
-            {visibleItems.map((item, index) => {
-              const actualIndex = startIndex + index;
-              return (
-                <motion.div
-                  key={keyExtractor(item, actualIndex)}
-                  data-index={actualIndex}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                  style={{ height: itemHeight }}
-                >
-                  {renderItem(item, actualIndex)}
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+          {visibleItems.map((item, index) => {
+            const actualIndex = startIndex + index;
+            return (
+              <motion.div
+                key={keyExtractor(item, actualIndex)}
+                data-index={actualIndex}
+                initial={false}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.1 }}
+                style={{ height: itemHeight }}
+              >
+                {renderItem(item, actualIndex)}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </div>
