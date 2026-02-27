@@ -273,7 +273,7 @@ export const OnboardingProvider = ({ children }: { children: React.ReactNode }) 
   // 2. Either hasRequiredData is true (or null/undefined - still checking), OR demo mode
   // 3. localStorage also indicates completion (for both demo and production)
   const isOnboardingComplete = Object.values(onboardingProgress).every(Boolean) &&
-    (hasRequiredData !== false || config.DEMO_MODE) && // Changed from === true to !== false to allow null/undefined
+    (hasRequiredData === true || config.DEMO_MODE) &&
     (localStorage.getItem('onboardingComplete') === 'true' || config.DEMO_MODE);
 
   const resetOnboarding = async () => {

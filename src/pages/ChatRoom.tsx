@@ -76,10 +76,14 @@ export default function ChatRoom() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const allMessages = (() => {
+    const hasRealMessages = msgs.some(m => m.id && !m.id.startsWith('optimistic-'));
     const combined = [...olderMsgs, ...msgs];
     const seen = new Set<string>();
     return combined.filter(m => {
-      if (!m.id || m.id.startsWith('optimistic-')) return true;
+      if (m.id?.startsWith('optimistic-')) {
+        return !hasRealMessages;
+      }
+      if (!m.id) return true;
       if (seen.has(m.id)) return false;
       seen.add(m.id);
       return true;
@@ -137,7 +141,15 @@ export default function ChatRoom() {
       }
     };
     loadMatchInfo();
-  }, [matchId, currentUser?.uid]);
+
+    // Periodically check if match has expired while in chat
+    const expiryInterval = setInterval(() => {
+      if (matchExpiresAt && matchExpiresAt < Date.now()) {
+        setIsMatchExpired(true);
+      }
+    }, 30000);
+    return () => clearInterval(expiryInterval);
+  }, [matchId, currentUser?.uid, matchExpiresAt]);
 
   // Real-time Firestore message listener (latest 50)
   useEffect(() => {
@@ -193,7 +205,7 @@ export default function ChatRoom() {
       }
     };
     updateLimits();
-  }, [matchId, currentUser?.uid, msgs.length]);
+  }, [matchId, currentUser?.uid]);
 
   const getRemainingTime = () => {
     if (!matchExpiresAt) return null;

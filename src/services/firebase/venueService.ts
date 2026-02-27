@@ -353,7 +353,8 @@ class FirebaseVenueService implements VenueService {
       batch.update(userDocRef, {
         isCheckedIn: true,
         currentVenue: venueId,
-        checkInTime: serverTimestamp()
+        checkedInAt: serverTimestamp(),
+        isVisible: true,
       });
       
       // Increment venue's check-in count and add user to checkedInUsers array
@@ -401,6 +402,8 @@ class FirebaseVenueService implements VenueService {
         isCheckedIn: false,
         currentVenue: null,
         currentZone: null,
+        checkedInAt: null,
+        isVisible: false,
         checkOutTime: serverTimestamp()
       });
       

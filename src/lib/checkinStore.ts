@@ -5,7 +5,7 @@
  * can see who is checked in at a venue in real time.
  */
 
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, increment, arrayRemove, getDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase/config';
 import { logError } from '@/utils/errorHandler';
 
@@ -27,13 +27,34 @@ async function syncCheckInToFirestore(venueId: string | null, userId?: string): 
       await updateDoc(userRef, {
         currentVenue: venueId,
         checkedInAt: serverTimestamp(),
+        isCheckedIn: true,
         isVisible: true,
       });
     } else {
+      // Get the user's current venue before clearing so we can update the venue doc
+      let previousVenueId: string | null = null;
+      try {
+        const userSnap = await getDoc(userRef);
+        previousVenueId = userSnap.data()?.currentVenue || null;
+      } catch {}
+
       await updateDoc(userRef, {
         currentVenue: null,
         checkedInAt: null,
+        isCheckedIn: false,
+        isVisible: false,
       });
+
+      // Update venue document to remove this user
+      if (previousVenueId) {
+        try {
+          const venueRef = doc(firestore, 'venues', previousVenueId);
+          await updateDoc(venueRef, {
+            checkedInUsers: arrayRemove(userId),
+            checkInCount: increment(-1),
+          });
+        } catch {}
+      }
     }
   } catch (error) {
     logError(error as Error, { source: 'checkinStore', action: 'syncCheckInToFirestore', venueId: venueId || 'null' });

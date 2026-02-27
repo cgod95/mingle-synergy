@@ -59,7 +59,7 @@ export function ExpiryWarning({ className = '' }: ExpiryWarningProps) {
 
     toast({
       title: "Check-in expired",
-      description: "Your 12-hour check-in has expired. Visit a venue to check in again.",
+      description: "Your check-in has expired. Visit a venue to check in again.",
       duration: 5000,
     });
   };
@@ -117,7 +117,7 @@ export function ExpiryWarning({ className = '' }: ExpiryWarningProps) {
             </h4>
             <p className="text-xs opacity-90 mb-3">
               {isExpired
-                ? 'Your 12-hour check-in has expired. Check in again to continue meeting people.'
+                ? 'Your check-in has expired. Check in again to continue meeting people.'
                 : `Your check-in expires in ${formatTime(remainingMs)}. Visit a venue to re-check-in.`}
             </p>
             

@@ -81,6 +81,14 @@
         { "fieldPath": "timestamp", "order": "DESCENDING" }
       ]
     }
+    ,
+    {
+      "collectionGroup": "introMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "toUserId", "order": "ASCENDING" }
+      ]
+    }
   ],
   "fieldOverrides": []
 }
