@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
-import { getVenue } from "../lib/api";
+import { getVenue, getVenues } from "../lib/api";
 import { checkInAt, getCheckedVenueId, clearCheckIn } from "../lib/checkinStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Heart, MapPin, CheckCircle2, User, Users, LogOut, Star, Send } from "lucide-react";
+import { Heart, MapPin, CheckCircle2, User, Users, LogOut, Star, Send, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
@@ -109,6 +109,7 @@ export default function VenueDetails() {
   }, [id]);
 
   const { people, loading: peopleLoading, error: peopleError, retry: retryPeople } = usePeopleAtVenue(id);
+  const [isTopVenue, setIsTopVenue] = useState(false);
   
   const [toast, setToast] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
@@ -143,6 +144,18 @@ export default function VenueDetails() {
   useEffect(() => {
     setCheckedIn(getCheckedVenueId());
   }, [venue?.id, currentUser?.uid]);
+
+  // Compute if this venue is "busiest" (rank 1 by checkInCount) for the Popular badge
+  useEffect(() => {
+    if (!venue?.id) return;
+    getVenues()
+      .then((venues) => {
+        const sorted = [...venues].sort((a, b) => (b.checkInCount || 0) - (a.checkInCount || 0));
+        const top = sorted[0];
+        setIsTopVenue(!!top && top.id === venue.id && venues.length > 1);
+      })
+      .catch(() => setIsTopVenue(false));
+  }, [venue?.id]);
 
   // Seed shownMatchIds with existing matches on first load so we never re-show their animation
   const seededRef = useRef(false);
@@ -353,6 +366,22 @@ export default function VenueDetails() {
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent" />
       </div>
 
+      {/* Stats bar: X people here now + busiest badge */}
+      <div className="px-4 py-3 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20">
+          <Users className="w-4 h-4 text-violet-400" />
+          <span className="text-sm font-medium text-violet-300">
+            {peopleLoading ? '…' : `${visiblePeople.length} people here now`}
+          </span>
+        </div>
+        {isTopVenue && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <TrendingUp className="w-4 h-4 text-amber-400" />
+            <span className="text-sm font-medium text-amber-300">Busiest in last hour</span>
+          </div>
+        )}
+      </div>
+
       {/* People Grid — tight */}
       <div className="px-4 pt-1 pb-2">
         {peopleLoading ? (
@@ -393,7 +422,13 @@ export default function VenueDetails() {
               <Users className="w-8 h-8 text-violet-400" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">No one's here yet</h3>
-            <p className="text-sm text-neutral-400 max-w-xs mx-auto">You're the first to arrive. Others will appear here when they check in.</p>
+            <p className="text-sm text-neutral-400 max-w-xs mx-auto mb-6">You're the first to arrive. Others will appear here when they check in.</p>
+            <Button
+              onClick={() => navigate('/checkin?showAll=true')}
+              className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl"
+            >
+              Browse other venues
+            </Button>
           </div>
         ) : (
           <>

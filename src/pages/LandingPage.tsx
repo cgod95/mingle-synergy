@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
-import { MapPin } from 'lucide-react';
+import { MapPin, QrCode, Users, Heart } from 'lucide-react';
 import { getVenues } from '@/lib/api';
 
 import { DEMO_PEOPLE } from '@/lib/demoPeople';
@@ -209,7 +209,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
-                className="mb-6"
+                className="mb-8"
               >
                 <Button
                   onClick={handleJoinClosedBeta}
@@ -219,6 +219,53 @@ export default function LandingPage() {
                   Join Closed Beta
                 </Button>
               </motion.div>
+
+              {/* How it works — 3 steps */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 mb-8"
+              >
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-3 text-center md:text-left">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                    <QrCode className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white text-sm mb-0.5">Check in</h3>
+                    <p className="text-xs text-on-surface-muted">Scan a QR code or tap a venue to check in</p>
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-3 text-center md:text-left">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white text-sm mb-0.5">See who's here</h3>
+                    <p className="text-xs text-on-surface-muted">Unlock the people at your venue</p>
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-3 text-center md:text-left">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white text-sm mb-0.5">Match & meet</h3>
+                    <p className="text-xs text-on-surface-muted">Like, match, and message (10 messages, 24h to connect)</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Social proof */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+                className="flex items-center justify-center gap-1.5 text-sm text-on-surface-muted mb-6"
+              >
+                <Heart className="w-4 h-4 text-violet-400/70" />
+                <span>Matches made at venues</span>
+              </motion.p>
 
               {/* Sign in link */}
               <motion.div

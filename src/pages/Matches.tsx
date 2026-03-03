@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 type MatchWithPreview = Match & {
   lastMessage?: string;
   lastMessageTime?: number;
+  lastMessageSenderId?: string;
   isNew?: boolean;
 };
 
@@ -55,7 +56,7 @@ export default function Matches() {
       const allMatches = await getAllMatches(currentUser.uid);
       const enrichedMatches: MatchWithPreview[] = await Promise.all(
         allMatches.map(async (match) => {
-          let lastMsg: { text: string; ts: number } | null = null;
+          let lastMsg: { text: string; ts: number; senderId?: string } | null = null;
           if (firestore) {
             try {
               const snap = await getDocs(
@@ -71,6 +72,7 @@ export default function Matches() {
                 lastMsg = {
                   text: d.text || '',
                   ts: d.createdAt?.toDate?.()?.getTime?.() || Date.now(),
+                  senderId: typeof d.senderId === 'string' ? d.senderId : undefined,
                 };
               }
             } catch {
@@ -82,12 +84,16 @@ export default function Matches() {
                   )
                 );
                 if (!fallbackSnap.empty) {
-                  let latest: { text: string; ts: number } | null = null;
+                  let latest: { text: string; ts: number; senderId?: string } | null = null;
                   fallbackSnap.docs.forEach(doc => {
                     const d = doc.data();
                     const ts = d.createdAt?.toDate?.()?.getTime?.() || 0;
                     if (!latest || ts > latest.ts) {
-                      latest = { text: d.text || '', ts };
+                      latest = {
+                        text: d.text || '',
+                        ts,
+                        senderId: typeof d.senderId === 'string' ? d.senderId : undefined,
+                      };
                     }
                   });
                   lastMsg = latest;
@@ -103,6 +109,7 @@ export default function Matches() {
             ...match,
             lastMessage: lastMsg?.text,
             lastMessageTime: lastMsg?.ts,
+            lastMessageSenderId: lastMsg?.senderId,
             isNew,
           };
         })
@@ -324,6 +331,15 @@ export default function Matches() {
               {match.displayName || "Match"}
             </h3>
             <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+              {!expired && match.lastMessage && match.lastMessageSenderId && (
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  match.lastMessageSenderId !== currentUser?.uid
+                    ? 'bg-violet-500/20 text-violet-400'
+                    : 'bg-neutral-700/80 text-neutral-400'
+                }`}>
+                  {match.lastMessageSenderId !== currentUser?.uid ? 'Your turn' : 'Their turn'}
+                </span>
+              )}
               <span className={`text-sm ${
                 expired ? 'text-red-400 font-medium' : isUrgent ? 'text-orange-400' : 'text-neutral-400'
               }`}>
@@ -489,6 +505,10 @@ export default function Matches() {
             action={{
               label: "Find Venues",
               onClick: () => navigate('/checkin')
+            }}
+            secondaryAction={{
+              label: "Scan QR",
+              onClick: () => navigate('/checkin?openScanner=true')
             }}
           />
         ) : (

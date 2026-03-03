@@ -195,14 +195,14 @@ export const getUserFriendlyErrorMessage = (error: Error | unknown): string => {
 export const initErrorTracking = (): void => {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   const isProduction = import.meta.env.PROD || import.meta.env.VITE_ENVIRONMENT === 'production';
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
   
   if (!dsn) {
     if (isProduction && !isDemoMode) {
       // In production (non-demo), warn about missing Sentry DSN
       console.warn('⚠️  WARNING: Sentry DSN not configured in production. Error tracking disabled.');
     } else {
-      // In development/demo mode, silently skip Sentry
+      // In demo mode or dev, silently skip Sentry
       console.warn('Sentry DSN not configured. Error tracking disabled.');
     }
     return;

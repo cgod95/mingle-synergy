@@ -31,6 +31,7 @@ function toMs(v: unknown): number {
   return 0;
 }
 import { logError } from '@/utils/errorHandler';
+import config from '@/config';
 
 export interface Message {
   id: string;
@@ -71,10 +72,8 @@ export const sendMessageWithLimit = async ({
     // Premium users can send unlimited messages
     // Continue to send message without limit check
   } else {
-    // In demo mode, skip message limit checks
-    const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-    
-    if (!isDemoMode) {
+    // In demo mode only, skip message limit checks (use config.DEMO_MODE - production build must enforce limits)
+    if (!config.DEMO_MODE) {
       // Check if firestore is available before using collection
       if (!firestore) {
         throw new Error('Firestore not available');
@@ -98,9 +97,8 @@ export const sendMessageWithLimit = async ({
     }
   }
 
-  // In demo mode, use localStorage-based chatStore instead of Firestore
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-  if (isDemoMode) {
+  // In demo mode only, use localStorage-based chatStore instead of Firestore
+  if (config.DEMO_MODE) {
     const { appendMessage } = await import('@/lib/chatStore');
     appendMessage(matchId, {
       sender: 'me',
@@ -147,9 +145,8 @@ export const canSendMessage = async (matchId: string, senderId: string): Promise
     return true;
   }
   
-  // In demo mode, always allow sending messages (unlimited)
-  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || import.meta.env.MODE === 'development';
-  if (isDemoMode) {
+  // In demo mode only, allow unlimited messages (production enforces 10-message limit)
+  if (config.DEMO_MODE) {
     return true;
   }
 

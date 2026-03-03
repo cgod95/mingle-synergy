@@ -11,6 +11,14 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
+  webServer: process.env.CI
+    ? {
+        command: 'VITE_DEMO_MODE=true npm run dev',
+        url: 'http://localhost:5173',
+        reuseExistingServer: true,
+        timeout: 60_000,
+      }
+    : undefined,
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],

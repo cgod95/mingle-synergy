@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, QrCode, Users, CheckCircle2 } from "lucide-react";
+import { MapPin, QrCode, Users, CheckCircle2, TrendingUp } from "lucide-react";
 import { getVenues } from "../lib/api";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -51,6 +51,12 @@ export default function CheckInPage() {
 
   const qrVenueId = params.get("venueId");
   const source = params.get("source");
+  const openScanner = params.get("openScanner") === "true";
+
+  // Open scanner when navigating with ?openScanner=true (e.g. from Matches empty state)
+  useEffect(() => {
+    if (openScanner) setShowScanner(true);
+  }, [openScanner]);
 
   // Auto-redirect to venue details if already checked in (skip if QR scan in progress or showAll)
   useEffect(() => {
@@ -223,13 +229,17 @@ export default function CheckInPage() {
             title="No venues nearby"
             description="Try scanning a QR code at a venue."
             action={{ label: "Refresh", onClick: () => loadVenues() }}
+            secondaryAction={{ label: "Scan QR code", onClick: () => setShowScanner(true) }}
           />
         )}
 
         {/* Venue Cards */}
         {!loadingVenues && venues.length > 0 && (
           <div className="space-y-3">
-            {venues.map((v) => {
+            {(() => {
+              const maxCheckIn = Math.max(...venues.map(v => v.checkInCount ?? 0), 0);
+              const isTopByPopularity = (c: number) => c > 0 && c === maxCheckIn && venues.filter(x => (x.checkInCount ?? 0) === maxCheckIn).length <= 2;
+              return venues.map((v) => {
               const distanceText = v.distanceKm !== undefined 
                 ? v.distanceKm < 1 
                   ? `${Math.round(v.distanceKm * 1000)}m`
@@ -237,6 +247,7 @@ export default function CheckInPage() {
                 : null;
               
               const isCheckedHere = checkedVenueId === v.id;
+              const showBusiestBadge = venues.length > 1 && isTopByPopularity(v.checkInCount ?? 0);
               
               return (
                 <button
@@ -277,6 +288,14 @@ export default function CheckInPage() {
                         {distanceText}
                       </div>
                     )}
+
+                    {/* Busiest badge */}
+                    {showBusiestBadge && (
+                      <div className="absolute bottom-12 left-2.5 flex items-center gap-1 bg-amber-500/80 backdrop-blur-sm text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                        <TrendingUp className="w-3 h-3" />
+                        Busiest
+                      </div>
+                    )}
                     
                     {/* Venue info overlay */}
                     <div className="absolute bottom-2.5 left-3 right-3">
@@ -296,7 +315,8 @@ export default function CheckInPage() {
                   </div>
                 </button>
               );
-            })}
+            });
+            })()}
           </div>
         )}
       </div>

@@ -6,9 +6,7 @@ import config from '@/config';
 import { getPeopleAtVenue, getPerson as getPersonFromDemoPeople, type Person } from './demoPeople';
 import { 
   getVenues as getVenuesFromDemoVenues, 
-  getVenue as getVenueFromDemoVenues,
-  listPeopleForVenue as listPeopleForVenueFromDemoVenues,
-  getPerson as getPersonFromDemoVenues
+  getVenue as getVenueFromDemoVenues
 } from './demoVenues';
 import { getBotForVenue, isMingleBot, MINGLE_BOT } from './mingleBot';
 
@@ -52,42 +50,27 @@ export async function getVenue(id: string) {
 }
 
 /**
- * Get people at a venue - ALWAYS includes the Mingle Bot for testing
+ * Get people at a venue.
+ * Demo mode: returns demo people + Mingle Bot.
+ * Live mode: returns [] - use usePeopleAtVenue hook for real Firestore data.
  */
 export function getPeople(venueId: string): Person[] {
-  let people: Person[];
-  
-  if (config.DEMO_MODE) {
-    people = getPeopleAtVenue(venueId);
-  } else {
-    people = listPeopleForVenueFromDemoVenues(venueId);
+  if (!config.DEMO_MODE) {
+    return []; // Live mode: use usePeopleAtVenue (Firestore) instead
   }
-  
-  // Always inject the Mingle Bot at each venue for testing/review purposes
+  let people = getPeopleAtVenue(venueId);
   const bot = getBotForVenue(venueId);
-  
-  // Check if bot is already in the list (shouldn't be, but just in case)
   const hasBot = people.some(p => isMingleBot(p.id));
-  if (!hasBot) {
-    // Add bot at the beginning of the list so it's visible
-    people = [bot, ...people];
-  }
-  
+  if (!hasBot) people = [bot, ...people];
   return people;
 }
 
 export const listPeopleForVenue = getPeople;
 
 export function getPerson(id: string): Person | undefined {
-  // Check if requesting the bot
-  if (isMingleBot(id)) {
-    return MINGLE_BOT;
-  }
-  
-  if (config.DEMO_MODE) {
-    return getPersonFromDemoPeople(id);
-  }
-  return getPersonFromDemoVenues(id);
+  if (isMingleBot(id)) return MINGLE_BOT;
+  if (!config.DEMO_MODE) return undefined; // Live mode: use userService/Firestore
+  return getPersonFromDemoPeople(id);
 }
 
 export {
