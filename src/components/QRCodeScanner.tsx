@@ -9,6 +9,7 @@ import { X, Camera, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { logError } from '@/utils/errorHandler';
+import { parseQRCodeVenueId } from '@/utils/qrCodeGenerator';
 
 interface QRCodeScannerProps {
   onScanSuccess: (venueId: string) => void;
@@ -84,7 +85,6 @@ export default function QRCodeScanner({ onScanSuccess, onClose }: QRCodeScannerP
 
   const handleQRCodeScanned = (decodedText: string) => {
     // Parse QR code using utility function
-    const { parseQRCodeVenueId } = require('@/utils/qrCodeGenerator');
     const venueId = parseQRCodeVenueId(decodedText);
     
     if (venueId) {

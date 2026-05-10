@@ -26,8 +26,11 @@ import { MATCH_EXPIRY_MS } from "@/lib/matchesCompat";
 
 function toMs(v: unknown): number {
   if (typeof v === 'number') return v;
-  if (v && typeof (v as any).toMillis === 'function') return (v as any).toMillis();
-  if (v && typeof (v as any).toDate === 'function') return (v as any).toDate().getTime();
+  if (v && typeof v === 'object') {
+    const obj = v as { toMillis?: () => number; toDate?: () => Date };
+    if (typeof obj.toMillis === 'function') return obj.toMillis();
+    if (typeof obj.toDate === 'function') return obj.toDate().getTime();
+  }
   return 0;
 }
 import { logError } from '@/utils/errorHandler';
@@ -258,51 +261,61 @@ export const subscribeToMessageLimit = (
   senderId: string,
   callback: (canSend: boolean, remaining: number) => void
 ) => {
-  // Check if user is premium (premium users get unlimited messages)
-  // Note: Premium is NOT available in beta, but logic is here for future
-  let isPremium = false;
-  try {
-    const { subscriptionService } = require("@/services");
-    if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
-      const subscription = subscriptionService.getUserSubscription(senderId);
-      isPremium = subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
-    }
-  } catch {
-    // Ignore errors - assume not premium
-  }
-  
-  // Premium users bypass message limits (hide UI)
-  if (isPremium) {
-    // Return a no-op unsubscribe function
-    callback(true, 999); // Show unlimited for premium
-    return () => {}; // No-op unsubscribe
-  }
-  
-  // Check if firestore is available
   if (!firestore) {
     callback(false, 0);
-    return () => {}; // Return no-op unsubscribe
+    return () => undefined;
   }
-  
+
+  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number'
+    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER
+    : 10;
+
   const q = query(
     collection(firestore, "messages"),
     where("matchId", "==", matchId),
     where("senderId", "==", senderId)
   );
 
-  const messageLimit = typeof FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER === 'number' 
-    ? FEATURE_FLAGS.LIMIT_MESSAGES_PER_USER 
-    : 10;
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const messageCount = snapshot.docs.length;
-    const canSend = messageCount < messageLimit;
-    const remaining = Math.max(0, messageLimit - messageCount);
-    callback(canSend, remaining);
-  }, (error) => {
-    console.warn('Error in message limit subscription:', error);
-  });
+  let unsubscribed = false;
+  let cleanup: (() => void) | null = null;
 
-  return unsubscribe;
+  // Resolve premium status asynchronously via dynamic import; default to
+  // non-premium until known to keep bundle small and avoid require().
+  void (async () => {
+    let isPremium = false;
+    try {
+      const { subscriptionService } = await import("@/services");
+      if (subscriptionService && typeof subscriptionService.getUserSubscription === 'function') {
+        const subscription = subscriptionService.getUserSubscription(senderId);
+        isPremium = subscription?.tierId === 'premium' || subscription?.tierId === 'pro';
+      }
+    } catch {
+      // assume non-premium
+    }
+
+    if (unsubscribed) return;
+
+    if (isPremium) {
+      callback(true, 999);
+      return;
+    }
+
+    cleanup = onSnapshot(
+      q,
+      (snapshot) => {
+        const messageCount = snapshot.docs.length;
+        callback(messageCount < messageLimit, Math.max(0, messageLimit - messageCount));
+      },
+      (error) => {
+        console.warn('Error in message limit subscription:', error);
+      }
+    );
+  })();
+
+  return () => {
+    unsubscribed = true;
+    cleanup?.();
+  };
 };
 
 export interface ChatPreview {

@@ -22,10 +22,12 @@ export function useKeyboardHeight() {
     let cleanup: (() => void) | undefined;
 
     if (Capacitor.isNativePlatform()) {
-      // Native: use Capacitor Keyboard plugin
-      let showListener: any;
-      let hideListener: any;
-      
+      // Native: use Capacitor Keyboard plugin. Listeners can be plugin handles
+      // or PluginListenerHandle promises depending on version - normalize.
+      type ListenerHandle = { remove: () => Promise<void> };
+      let showListener: ListenerHandle | Promise<ListenerHandle> | undefined;
+      let hideListener: ListenerHandle | Promise<ListenerHandle> | undefined;
+
       import('@capacitor/keyboard').then(({ Keyboard }) => {
         showListener = Keyboard.addListener('keyboardWillShow', (info) => {
           updateHeight(info.keyboardHeight);
@@ -34,13 +36,20 @@ export function useKeyboardHeight() {
           updateHeight(0);
         });
       }).catch(() => {
-        // Keyboard plugin not available, fall through to web fallback
         setupWebFallback();
       });
 
       cleanup = () => {
-        if (showListener) showListener.remove?.();
-        if (hideListener) hideListener.remove?.();
+        const removeHandle = (h: typeof showListener) => {
+          if (!h) return;
+          if (h instanceof Promise) {
+            h.then((handle) => handle.remove()).catch(() => undefined);
+          } else {
+            h.remove();
+          }
+        };
+        removeHandle(showListener);
+        removeHandle(hideListener);
       };
     } else {
       setupWebFallback();

@@ -1,51 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-// PWA disabled to prevent caching issues during active development
-// import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  plugins: [
-    react(),
-    // PWA DISABLED - was causing stale cache issues where old index.html
-    // would reference asset hashes that no longer exist after new deployments.
-    // Re-enable once the app is stable and ready for production PWA features.
-    // VitePWA({
-    //   registerType: 'autoUpdate',
-    //   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-    //   workbox: {
-    //     globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-    //     globIgnores: ['**/node_modules/**/*'],
-    //     additionalManifestEntries: [
-    //       { url: '/index.html', revision: null }
-    //     ],
-    //     navigateFallback: '/index.html',
-    //     navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/assets\//],
-    //     navigateFallbackAllowlist: [/^(?!\/__).*/],
-    //     runtimeCaching: [
-    //       {
-    //         urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
-    //         handler: 'CacheFirst',
-    //         options: {
-    //           cacheName: 'unsplash-images',
-    //           expiration: {
-    //             maxEntries: 50,
-    //             maxAgeSeconds: 60 * 60 * 24 * 30,
-    //           },
-    //         },
-    //       },
-    //     ],
-    //     cleanupOutdatedCaches: true,
-    //     skipWaiting: true,
-    //   },
-    // }),
-  ],
+  plugins: [react()],
   server: {
     port: 5173,
-    strictPort: false, // Allow Vite to use next available port if 5173 is taken
+    strictPort: false,
     hmr: {
-      // Don't specify port - let Vite use the same port as the server
-      // This prevents "ws://localhost:undefined" errors when port changes
       protocol: 'ws',
     },
   },
@@ -62,54 +24,46 @@ export default defineConfig({
       'framer-motion': path.resolve(__dirname, './node_modules/framer-motion'),
     },
     dedupe: [
-      'react', 
-      'react-dom', 
+      'react',
+      'react-dom',
       'react/jsx-runtime',
       'react/jsx-dev-runtime',
-      'framer-motion', 
+      'framer-motion',
       'react-router-dom',
-      's-runtime',
-      'scheduler'
+      'scheduler',
     ],
-    preserveSymlinks: false, // Ensure symlinks don't create duplicate instances
-    // Force resolution to prevent multiple React instances
+    preserveSymlinks: false,
     conditions: ['import', 'module', 'browser', 'default'],
   },
   optimizeDeps: {
     include: [
-      'react', 
+      'react',
       'react-dom',
       'react/jsx-runtime',
-      'react-router-dom', 
+      'react-router-dom',
       'framer-motion',
-      '@tanstack/react-query'
+      '@tanstack/react-query',
     ],
-    force: true, // Force re-optimization
-    esbuildOptions: {
-      // Force React to be treated as external/common
-      mainFields: ['module', 'main'],
-    },
   },
   build: {
+    target: 'es2020',
+    cssCodeSplit: true,
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      // Ensure React is never treated as external
       external: [],
       output: {
-        // Ensure consistent hashing for cache busting
-        // Content hash will change when code changes, ensuring fresh builds
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks: (id) => {
-          // CRITICAL: Keep ALL React-related packages together - don't split them
-          // This prevents multiple React instances which cause error #300
-          // Include jsx-runtime and scheduler to ensure single React instance
+          // CRITICAL: Keep ALL React-related packages together in one chunk to
+          // avoid multiple React instances (error #300). Includes the
+          // scheduler and framer-motion which depend on a single React.
           if (
-            id.includes('node_modules/react') || 
+            id.includes('node_modules/react') ||
             id.includes('node_modules/react-dom') ||
             id.includes('react/jsx-runtime') ||
             id.includes('react/jsx-dev-runtime') ||
@@ -123,7 +77,7 @@ export default defineConfig({
             id.includes('node_modules/react-resizable-panels') ||
             id.includes('node_modules/react-helmet') ||
             id.includes('node_modules/embla-carousel-react') ||
-            id.includes('node_modules/scheduler') // React's internal scheduler
+            id.includes('node_modules/scheduler')
           ) {
             return 'react-vendor';
           }
@@ -133,11 +87,14 @@ export default defineConfig({
           if (id.includes('node_modules/@radix-ui')) {
             return 'ui-vendor';
           }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'icons-vendor';
+          }
         },
       },
     },
-    chunkSizeWarningLimit: 1000, // 1MB warning threshold
-    // Disable source maps in production to reduce bundle size and prevent DevTools conflicts
+    chunkSizeWarningLimit: 1000,
     sourcemap: false,
+    minify: 'esbuild',
   },
 })

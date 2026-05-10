@@ -42,6 +42,7 @@ export default function AppShell() {
   const location = useLocation();
   const isTabRoute = TAB_ROOTS.has(location.pathname);
   const prevPathnameRef = useRef(location.pathname);
+  const visitedTabsRef = useRef<Set<string>>(new Set());
   const [transitionDirection, setTransitionDirection] = useState<'push' | 'pop' | 'fade'>('fade');
   
   useEffect(() => {
@@ -113,10 +114,16 @@ export default function AppShell() {
       </AnimatePresence>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
-        {/* Keep-alive tab pages — always mounted, toggled via visibility + opacity for smooth transitions */}
+        {/* Keep-alive tab pages — only mount once visited, then keep alive
+            for snappy switching. This avoids the cost of mounting all three
+            (Firestore listeners, layout, framer animations) on first load. */}
         <div className="relative">
           {TAB_ROUTES.map((route) => {
             const isActive = location.pathname === route;
+            const wasVisited = visitedTabsRef.current.has(route);
+            if (isActive) visitedTabsRef.current.add(route);
+            if (!wasVisited && !isActive) return null;
+
             const Comp = route === '/checkin' ? CheckInPage : route === '/matches' ? Matches : Profile;
             return (
               <div

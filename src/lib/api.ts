@@ -4,47 +4,41 @@
  */
 import config from '@/config';
 import { getPeopleAtVenue, getPerson as getPersonFromDemoPeople, type Person } from './demoPeople';
-import { 
-  getVenues as getVenuesFromDemoVenues, 
+import {
+  getVenues as getVenuesFromDemoVenues,
   getVenue as getVenueFromDemoVenues
 } from './demoVenues';
 import { getBotForVenue, isMingleBot, MINGLE_BOT } from './mingleBot';
 
+const isDev = !import.meta.env.PROD;
+
 // Venue functions - use venueService in production (Firestore), demo venues only in demo mode
 export async function getVenues() {
-  // Always use venueService (handles demo vs production internally)
   try {
     const venueService = await import('@/services/firebase/venueService');
     const venues = await venueService.default.getVenues();
-    console.log('[api] Loaded venues from venueService:', venues.length, venues.map(v => v.id));
+    if (isDev) console.log('[api] Loaded venues from venueService:', venues.length);
     return venues;
   } catch (error) {
-    console.error('[api] Error loading venues from venueService:', error);
-    // In production, return empty array (no demo fallback)
+    if (isDev) console.error('[api] Error loading venues from venueService:', error);
     if (!config.DEMO_MODE) {
       return [];
     }
-    // Only fallback to demo venues in demo mode
-    console.log('[api] Falling back to demoVenues');
     return getVenuesFromDemoVenues();
   }
 }
 
 export async function getVenue(id: string) {
-  // Always use venueService (handles demo vs production internally)
   try {
     const venueService = await import('@/services/firebase/venueService');
     const venue = await venueService.default.getVenueById(id);
-    console.log('[api] Loaded venue:', id, venue ? venue.name : 'not found');
+    if (isDev) console.log('[api] Loaded venue:', id, venue ? venue.name : 'not found');
     return venue;
   } catch (error) {
-    console.error('[api] Error loading venue from venueService:', id, error);
-    // In production, return null (no demo fallback)
+    if (isDev) console.error('[api] Error loading venue from venueService:', id, error);
     if (!config.DEMO_MODE) {
       return null;
     }
-    // Only fallback to demo venues in demo mode
-    console.log('[api] Falling back to demoVenues');
     return getVenueFromDemoVenues(id);
   }
 }

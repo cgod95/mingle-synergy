@@ -4,43 +4,33 @@ import App from "./App";
 import "./index.css";
 import { initCapacitor, isNativePlatform } from "./lib/capacitor";
 
-// CRITICAL: Unregister ALL service workers to prevent stale cache issues
-// This ensures users always get fresh content after deployments
+// Unregister stale service workers once per session and only when present.
+// Previously this ran on every load and forced a full cache wipe, dramatically
+// slowing repeat startup. The flag below guards against repeat work.
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  // Immediately unregister all service workers
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (const registration of registrations) {
-      registration.unregister().then((success) => {
-        if (success && !import.meta.env.PROD) {
-          console.log('[SW] Unregistered service worker:', registration.scope);
-        }
-      });
-    }
-  }).catch((error) => {
-    // Silently fail - SW unregistration is best-effort
-    if (!import.meta.env.PROD) {
-      console.warn('[SW] Failed to unregister service workers:', error);
-    }
-  });
+  const SW_FLAG = 'mingle:sw-purged-v1';
+  const purged = (() => {
+    try { return sessionStorage.getItem(SW_FLAG) === '1'; } catch { return false; }
+  })();
 
-  // Also clear all caches to ensure fresh content
-  if ('caches' in window) {
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          return caches.delete(cacheName).then((success) => {
-            if (success && !import.meta.env.PROD) {
-              console.log('[Cache] Deleted cache:', cacheName);
-            }
-          });
-        })
-      );
-    }).catch((error) => {
-      // Silently fail - cache clearing is best-effort
-      if (!import.meta.env.PROD) {
-        console.warn('[Cache] Failed to clear caches:', error);
-      }
-    });
+  if (!purged) {
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => {
+        if (registrations.length === 0) return undefined;
+        return Promise.all(registrations.map(r => r.unregister().catch(() => false)));
+      })
+      .then(() => {
+        if ('caches' in window) {
+          return caches.keys().then((names) =>
+            Promise.all(names.map((n) => caches.delete(n).catch(() => false)))
+          );
+        }
+        return undefined;
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        try { sessionStorage.setItem(SW_FLAG, '1'); } catch { /* noop */ }
+      });
   }
 }
 

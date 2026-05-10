@@ -439,7 +439,7 @@ export default function ChatRoom() {
       style={{ bottom: keyboardHeight > 0 ? `${keyboardHeight}px` : '0px', transition: 'bottom 0.25s ease-out' }}
     >
       <div className="max-w-lg mx-auto w-full h-full flex flex-col bg-neutral-900">
-        <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as any)} />
+        <NetworkErrorBanner error={sendError} onRetry={() => onSend(new Event('submit') as unknown as React.FormEvent)} />
 
         {/* Header */}
         <div 

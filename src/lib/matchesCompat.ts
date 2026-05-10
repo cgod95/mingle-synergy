@@ -50,8 +50,11 @@ async function fetchPartnerProfile(partnerId: string): Promise<{ displayName?: s
 
 function toEpochMs(val: unknown): number {
   if (typeof val === 'number') return val;
-  if (val && typeof (val as any).toMillis === 'function') return (val as any).toMillis();
-  if (val && typeof (val as any).toDate === 'function') return (val as any).toDate().getTime();
+  if (val && typeof val === 'object') {
+    const obj = val as { toMillis?: () => number; toDate?: () => Date };
+    if (typeof obj.toMillis === 'function') return obj.toMillis();
+    if (typeof obj.toDate === 'function') return obj.toDate().getTime();
+  }
   return 0;
 }
 

@@ -44,6 +44,16 @@ function Toast({ text }: { text: string }) {
   );
 }
 
+interface VenueDetailsVenue {
+  id: string;
+  name: string;
+  address?: string;
+  image?: string;
+  latitude?: number;
+  longitude?: number;
+  checkInCount?: number;
+}
+
 function HeartBurst({ x, y }: { x: number; y: number }) {
   const hearts = Array.from({ length: 6 }, (_, i) => {
     const angle = (i / 6) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
@@ -76,7 +86,7 @@ function HeartBurst({ x, y }: { x: number; y: number }) {
 
 export default function VenueDetails() {
   const { id } = useParams<{ id: string }>();
-  const [venue, setVenue] = useState<any>(null);
+  const [venue, setVenue] = useState<VenueDetailsVenue | null>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
   const [venueError, setVenueError] = useState<Error | null>(null);
   
@@ -178,8 +188,8 @@ export default function VenueDetails() {
       pendingLikeRef.current = null;
       shownMatchIds.current.add(match.id);
       const person = people.find(p => p.id === personId);
-      const partnerName = (person as any)?.displayName || (person as any)?.name || 'Someone';
-      const partnerPhoto = (person as any)?.photos?.[0] || (person as any)?.photo;
+      const partnerName = person?.displayName || person?.name || 'Someone';
+      const partnerPhoto = person?.photos?.[0] || person?.photo;
       setMatchModal({ matchId: match.id, partnerName, partnerPhoto });
     }
   }, [realtimeMatches, people]);
@@ -273,8 +283,10 @@ export default function VenueDetails() {
     try {
       const { trackUserCheckedIn } = await import("@/services/specAnalytics");
       trackUserCheckedIn(venue.id, venue.name);
-    } catch (error) {}
-    
+    } catch {
+      // analytics is non-critical
+    }
+
     setToast(`Checked in to ${venue.name}`);
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = setTimeout(() => setToast(null), 1600);
@@ -434,11 +446,11 @@ export default function VenueDetails() {
           <>
           <div className="grid grid-cols-2 min-[430px]:grid-cols-3 gap-3" aria-live="polite" aria-relevant="additions removals">
             {visiblePeople.map((p) => {
-              const personAge = (p as any).age;
+              const personAge = p.age;
               const matched = isMatchedWith(p.id);
               const liked = likedIds.has(p.id);
               const hasIntroMessage = introMessages.has(p.id);
-              const personName = (p as any).displayName || (p as any).name || 'Someone';
+              const personName = p.displayName || p.name || 'Someone';
               
               return (
                 <motion.div
@@ -462,9 +474,9 @@ export default function VenueDetails() {
                         <Send className="w-3.5 h-3.5 text-white" />
                       </div>
                     )}
-                    {(p as any).photos?.[0] || (p as any).photo ? (
+                    {p.photos?.[0] || p.photo ? (
                       <img
-                        src={(p as any).photos?.[0] || (p as any).photo}
+                        src={p.photos?.[0] || p.photo}
                         alt={personName}
                         className="w-full h-full object-cover object-center"
                         loading="lazy"

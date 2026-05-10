@@ -29,8 +29,8 @@ export default function SignUp() {
     try {
       await signUpUser(email, password);
       navigate('/welcome');
-    } catch (e: any) {
-      const errorMessage = e?.message || 'Failed to sign up';
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to sign up';
       if (errorMessage.includes('email-already-in-use')) {
         setError('This email is already registered. Please sign in instead.');
       } else if (errorMessage.includes('invalid-email')) {

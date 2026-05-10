@@ -27,9 +27,9 @@ export default function SignIn() {
       // After sign in, ProtectedRoute will handle onboarding redirect if needed
       // Otherwise, go to check-in page
       navigate('/checkin');
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Provide user-friendly error messages
-      const errorMessage = e?.message || 'Failed to sign in';
+      const errorMessage = e instanceof Error ? e.message : 'Failed to sign in';
       if (errorMessage.includes('user-not-found') || errorMessage.includes('No account found')) {
         setError('No account found with this email. Please sign up instead.');
       } else if (errorMessage.includes('wrong-password') || errorMessage.includes('Invalid')) {

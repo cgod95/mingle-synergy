@@ -5,8 +5,8 @@ type Props = ImgHTMLAttributes<HTMLImageElement> & { fallbackSrc?: string };
 export default function SafeImg({ fallbackSrc = "/avatar-fallback.svg", onError, ...rest }: Props) {
   const [broken, setBroken] = useState(false);
   return (
-    // eslint-disable-next-line jsx-a11y/alt-text
     <img
+      alt=""
       {...rest}
       src={broken ? fallbackSrc : rest.src}
       onError={(e) => {

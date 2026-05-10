@@ -2,9 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, QrCode, Users, CheckCircle2, TrendingUp } from "lucide-react";
 import { getVenues } from "../lib/api";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import config from "@/config";
 import { NetworkErrorBanner } from "@/components/ui/NetworkErrorBanner";
 import { RetryButton } from "@/components/ui/RetryButton";
 import { retryWithMessage, isNetworkError } from "@/utils/retry";
@@ -13,13 +11,12 @@ import { hapticSuccess } from "@/lib/haptics";
 import { VenueCardSkeleton } from "@/components/ui/LoadingStates";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { calculateDistance } from "@/utils/locationUtils";
-import { useToast } from "@/hooks/use-toast";
-import { LocationPermissionPrompt, LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
+import { LocationDeniedBanner } from "@/components/ui/LocationPermissionPrompt";
 import { getLocationPermissionStatus } from "@/utils/locationPermission";
 import { checkInAt, getCheckedVenueId, getCheckInTimestamp, CHECKIN_DURATION_MS } from "@/lib/checkinStore";
 import QRScannerOverlay from "@/components/QRScannerOverlay";
 
-interface VenueWithDistance {
+interface Venue {
   id: string;
   name: string;
   address?: string;
@@ -27,33 +24,35 @@ interface VenueWithDistance {
   longitude?: number;
   checkInCount?: number;
   image?: string;
-  distanceKm?: number;
   openingHours?: string;
+}
+
+interface VenueWithDistance extends Venue {
+  distanceKm?: number;
 }
 
 export default function CheckInPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [venues, setVenues] = useState<VenueWithDistance[]>([]);
-  const [checked, setChecked] = useState<boolean>(() => !!getCheckedVenueId());
   const [checkedVenueId, setCheckedVenueId] = useState<string | null>(() => getCheckedVenueId());
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const { currentUser } = useAuth();
-  const { toast } = useToast();
   const [loadingVenues, setLoadingVenues] = useState(true);
   const [venueError, setVenueError] = useState<Error | null>(null);
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
-  const [locationStatus, setLocationStatus] = useState<string>(getLocationPermissionStatus());
+  const [locationStatus] = useState<string>(getLocationPermissionStatus());
   const [showScanner, setShowScanner] = useState(false);
-  
+
   const loadingRef = useRef(false);
   const lastLoadKeyRef = useRef<string>("");
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
   const qrVenueId = params.get("venueId");
   const source = params.get("source");
   const openScanner = params.get("openScanner") === "true";
+  const showAll = params.get("showAll") === "true";
 
-  // Open scanner when navigating with ?openScanner=true (e.g. from Matches empty state)
+  // Open scanner when navigating with ?openScanner=true
   useEffect(() => {
     if (openScanner) setShowScanner(true);
   }, [openScanner]);
@@ -61,66 +60,70 @@ export default function CheckInPage() {
   // Auto-redirect to venue details if already checked in (skip if QR scan in progress or showAll)
   useEffect(() => {
     if (source === "qr" && qrVenueId) return;
-    if (params.get('showAll') === 'true') return;
+    if (showAll) return;
     const activeVenueId = getCheckedVenueId();
     if (activeVenueId) {
       const ts = getCheckInTimestamp();
       if (ts && Date.now() - ts < CHECKIN_DURATION_MS) {
-        navigate(`/venues/${activeVenueId}`, { replace: true });
+        navigateRef.current(`/venues/${activeVenueId}`, { replace: true });
       }
     }
-  }, []);
+  }, [source, qrVenueId, showAll]);
 
-  const onCheckIn = async (id: string) => {
+  const onCheckIn = useCallback(async (id: string) => {
     hapticSuccess();
     checkInAt(id, currentUser?.uid);
-    setChecked(true);
     setCheckedVenueId(id);
-    
+
     try {
       const { trackUserCheckedIn } = await import("@/services/specAnalytics");
       const venue = venues.find(v => v.id === id);
       trackUserCheckedIn(id, venue?.name || id);
-    } catch (error) {}
-    
-    navigate(`/venues/${id}`);
-  };
+    } catch {
+      // analytics is non-critical
+    }
+
+    navigateRef.current(`/venues/${id}`);
+  }, [currentUser?.uid, venues]);
 
   const loadVenues = useCallback(async () => {
     const loadKey = `${qrVenueId || ''}-${source || ''}-${currentUser?.uid || 'none'}`;
     if (loadingRef.current) return;
     if (lastLoadKeyRef.current === loadKey) return;
-    
+
     loadingRef.current = true;
     lastLoadKeyRef.current = loadKey;
     setLoadingVenues(true);
     setVenueError(null);
-    
+
     try {
-      const loadedVenues = await retryWithMessage(
+      const loadedVenues = (await retryWithMessage(
         () => getVenues(),
         { operationName: 'loading venues', maxRetries: 3 }
-      );
-      
+      )) as Venue[];
+
+      // Kick off geolocation in parallel; don't block initial render past a
+      // short timeout. Saves ~1-5s on first paint when user denies later.
       let userLat: number | null = null;
       let userLng: number | null = null;
-      
+
       if (navigator.geolocation) {
         try {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 5000,
-              maximumAge: 60000
+              enableHighAccuracy: false,
+              timeout: 3000,
+              maximumAge: 5 * 60 * 1000,
             });
           });
           userLat = position.coords.latitude;
           userLng = position.coords.longitude;
-          setUserLocation({ lat: userLat, lng: userLng });
-        } catch (error) {}
+        } catch {
+          // location is optional - venues still show
+        }
       }
-      
-      const venuesWithDistance: VenueWithDistance[] = loadedVenues.map((venue: any) => {
+
+      const venuesWithDistance: VenueWithDistance[] = loadedVenues.map((venue) => {
         let distanceKm: number | undefined;
         if (userLat !== null && userLng !== null && venue.latitude && venue.longitude) {
           distanceKm = calculateDistance(
@@ -130,29 +133,26 @@ export default function CheckInPage() {
         }
         return { ...venue, distanceKm };
       });
-      
+
       venuesWithDistance.sort((a, b) => {
         if (a.distanceKm !== undefined && b.distanceKm !== undefined) return a.distanceKm - b.distanceKm;
         if (a.distanceKm !== undefined) return -1;
         if (b.distanceKm !== undefined) return 1;
         return (b.checkInCount || 0) - (a.checkInCount || 0);
       });
-      
+
       setVenues(venuesWithDistance.slice(0, 10));
-      
+
       if (qrVenueId && source === "qr" && currentUser) {
-        const venue = loadedVenues.find((v: any) => v.id === qrVenueId);
+        const venue = loadedVenues.find((v) => v.id === qrVenueId);
         const alreadyChecked = !!getCheckedVenueId();
         if (venue && !alreadyChecked) {
           setTimeout(() => {
             checkInAt(qrVenueId, currentUser?.uid);
-            setChecked(true);
-            try {
-              import("@/services/specAnalytics").then(({ trackUserCheckedIn }) => {
-                trackUserCheckedIn(qrVenueId, venue.name);
-              });
-            } catch (error) {}
-            navigate(`/venues/${qrVenueId}`);
+            void import("@/services/specAnalytics")
+              .then(({ trackUserCheckedIn }) => trackUserCheckedIn(qrVenueId, venue.name))
+              .catch(() => undefined);
+            navigateRef.current(`/venues/${qrVenueId}`);
           }, 500);
         }
       }
@@ -164,7 +164,7 @@ export default function CheckInPage() {
       setLoadingVenues(false);
       loadingRef.current = false;
     }
-  }, [qrVenueId, source, currentUser?.uid]);
+  }, [qrVenueId, source, currentUser]);
 
   useEffect(() => {
     loadVenues();
@@ -321,28 +321,12 @@ export default function CheckInPage() {
         )}
       </div>
 
-      {/* Location permission prompt */}
-      <LocationPermissionPrompt
-        open={showLocationPrompt}
-        onAllow={async () => {
-          setShowLocationPrompt(false);
-          try {
-            const { requestLocationPermission } = await import("@/utils/locationPermission");
-            const granted = await requestLocationPermission();
-            setLocationStatus(granted ? 'granted' : 'denied');
-          } catch {
-            setLocationStatus('denied');
-          }
-        }}
-        onDismiss={() => setShowLocationPrompt(false)}
-      />
-
       {/* QR Scanner Overlay */}
       <QRScannerOverlay
         open={showScanner}
         onClose={() => setShowScanner(false)}
         venues={venues}
-        onVenueFound={(venueId, venueName) => {
+        onVenueFound={(venueId) => {
           setShowScanner(false);
           onCheckIn(venueId);
         }}

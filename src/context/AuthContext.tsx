@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
-import { seedDemoMatchesIfEmpty, Person } from "../lib/matchStore";
-import { DEMO_PEOPLE } from "../lib/demoPeople";
 import { authService } from "@/services";
 import config from "@/config";
 import { clearCheckIn } from "@/lib/checkinStore";
@@ -102,72 +100,59 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   }, []);
 
   const signUpUser = useCallback(async (email: string, password: string) => {
-    try {
-      if (config.DEMO_MODE) {
-        // Demo mode: create user in localStorage
-        // Check if user already exists
-        const existingUser = localStorage.getItem(KEY);
-        if (existingUser) {
-          const parsed = JSON.parse(existingUser);
-          if (parsed.email === email) {
-            throw new Error('This email is already registered. Please sign in instead.');
-          }
+    if (config.DEMO_MODE) {
+      const existingUser = localStorage.getItem(KEY);
+      if (existingUser) {
+        const parsed = JSON.parse(existingUser);
+        if (parsed.email === email) {
+          throw new Error('This email is already registered. Please sign in instead.');
         }
-
-        const newUser: User = {
-          id: `user_${Date.now()}`,
-          uid: `user_${Date.now()}`,
-          name: email.split('@')[0],
-          email: email,
-        };
-        await login(newUser);
-        localStorage.setItem('onboardingComplete', 'false');
-      } else {
-        // Firebase mode: use authService
-        const credential = await authService.signUp(email, password);
-        const firebaseUser: User = {
-          id: credential.user.uid,
-          uid: credential.user.uid,
-          name: credential.user.displayName || email.split('@')[0],
-          email: credential.user.email || email,
-        };
-        await login(firebaseUser);
-        localStorage.setItem('onboardingComplete', 'false');
       }
-    } catch (error: any) {
-      // Re-throw with user-friendly message
-      throw error;
+
+      const newUser: User = {
+        id: `user_${Date.now()}`,
+        uid: `user_${Date.now()}`,
+        name: email.split('@')[0],
+        email: email,
+      };
+      await login(newUser);
+      localStorage.setItem('onboardingComplete', 'false');
+      return;
     }
+
+    const credential = await authService.signUp(email, password);
+    const firebaseUser: User = {
+      id: credential.user.uid,
+      uid: credential.user.uid,
+      name: credential.user.displayName || email.split('@')[0],
+      email: credential.user.email || email,
+    };
+    await login(firebaseUser);
+    localStorage.setItem('onboardingComplete', 'false');
   }, [login]);
 
   const signInUser = useCallback(async (email: string, password: string) => {
-    try {
-      if (config.DEMO_MODE) {
-        // Demo mode: simple check against localStorage
-        const stored = localStorage.getItem(KEY);
-        if (!stored) {
-          throw new Error('No account found with this email. Please sign up instead.');
-        }
-        const parsed = JSON.parse(stored);
-        if (parsed.email !== email) {
-          throw new Error('No account found with this email. Please sign up instead.');
-        }
-        // In demo mode, we don't validate password - just log them in
-        await login(parsed);
-      } else {
-        // Firebase mode: use authService
-        const credential = await authService.signIn(email, password);
-        const firebaseUser: User = {
-          id: credential.user.uid,
-          uid: credential.user.uid,
-          name: credential.user.displayName || email.split('@')[0],
-          email: credential.user.email || email,
-        };
-        await login(firebaseUser);
+    if (config.DEMO_MODE) {
+      const stored = localStorage.getItem(KEY);
+      if (!stored) {
+        throw new Error('No account found with this email. Please sign up instead.');
       }
-    } catch (error: any) {
-      throw error;
+      const parsed = JSON.parse(stored);
+      if (parsed.email !== email) {
+        throw new Error('No account found with this email. Please sign up instead.');
+      }
+      await login(parsed);
+      return;
     }
+
+    const credential = await authService.signIn(email, password);
+    const firebaseUser: User = {
+      id: credential.user.uid,
+      uid: credential.user.uid,
+      name: credential.user.displayName || email.split('@')[0],
+      email: credential.user.email || email,
+    };
+    await login(firebaseUser);
   }, [login]);
 
   // Create stable currentUser reference - only recreate when user ID changes

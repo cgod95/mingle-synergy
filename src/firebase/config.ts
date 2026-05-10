@@ -1,19 +1,25 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeAuth, getAuth, indexedDBLocalPersistence, browserLocalPersistence } from "firebase/auth";
-import { initializeFirestore, getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import {
+  initializeAuth,
+  getAuth,
+  indexedDBLocalPersistence,
+  browserLocalPersistence,
+  type Auth,
+} from "firebase/auth";
+import { initializeFirestore, getFirestore, type Firestore } from "firebase/firestore";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
 import config from "@/config";
-// import { getAnalytics, isSupported } from "firebase/analytics";
 
-// Check if we're in demo mode
+const isDev = !import.meta.env.PROD;
+
 // BETA FIX: Only use config.DEMO_MODE (no development fallback)
 // This ensures Firebase initializes in development when DEMO_MODE is not explicitly set
 const isDemoMode = config.DEMO_MODE;
 
-let app: any = null;
-let auth: any = null;
-let firestore: any = null;
-let storage: any = null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let firestore: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 
 // In demo mode, don't initialize Firebase at all - components will handle null auth
 if (!isDemoMode && config.FIREBASE_API_KEY && config.FIREBASE_PROJECT_ID) {
@@ -28,21 +34,21 @@ if (!isDemoMode && config.FIREBASE_API_KEY && config.FIREBASE_PROJECT_ID) {
       measurementId: config.FIREBASE_MEASUREMENT_ID,
     };
 
-    // Log Firebase project for debugging permission issues
-    console.log('[Firebase] Initializing with project:', config.FIREBASE_PROJECT_ID);
+    if (isDev) console.log('[Firebase] Initializing with project:', config.FIREBASE_PROJECT_ID);
 
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     // Use initializeAuth with persistent storage for Capacitor (iOS/Android)
-    // indexedDBLocalPersistence survives app backgrounding; browserLocalPersistence is fallback
     try {
       auth = initializeAuth(app, {
         persistence: [indexedDBLocalPersistence, browserLocalPersistence],
       });
     } catch {
-      // If auth was already initialized (e.g. hot reload), fall back to getAuth
       auth = getAuth(app);
     }
     try {
+      // experimentalForceLongPolling kept on for Capacitor/iOS WebKit which
+      // can have spotty WebChannel/WebSocket support. Removing it would speed
+      // up Firestore on web but risks breaking native iOS realtime listeners.
       firestore = initializeFirestore(app, {
         experimentalForceLongPolling: true,
       });
@@ -50,12 +56,12 @@ if (!isDemoMode && config.FIREBASE_API_KEY && config.FIREBASE_PROJECT_ID) {
       firestore = getFirestore(app);
     }
     storage = getStorage(app);
-    
-    console.log('[Firebase] Initialized successfully');
+
+    if (isDev) console.log('[Firebase] Initialized successfully');
   } catch (error) {
     console.error('Firebase initialization error:', error);
   }
-} else {
+} else if (isDev) {
   console.log('[Firebase] Skipped initialization - isDemoMode:', isDemoMode, 'hasApiKey:', !!config.FIREBASE_API_KEY, 'hasProjectId:', !!config.FIREBASE_PROJECT_ID);
 }
 

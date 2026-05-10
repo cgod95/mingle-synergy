@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/context/UserContext';
 import { FirestoreMatch } from '@/types/match';
 import { logError } from '@/utils/errorHandler';
+import { hasRematched } from '@/utils/rematchTracking';
 
 // Define ContactInfo type
 export type ContactInfo = {
@@ -236,7 +237,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <div className="mb-3">
               {(() => {
                 // Check rematch status
-                const { hasRematched } = require("@/utils/rematchTracking");
                 const alreadyRematched = hasRematched(match.id);
                 
                 if (alreadyRematched) {

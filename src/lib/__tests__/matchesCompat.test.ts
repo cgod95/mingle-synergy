@@ -119,9 +119,9 @@ describe('matchesCompat utilities', () => {
   });
 
   describe('MATCH_EXPIRY_MS constant', () => {
-    it('should be exactly 3 hours', () => {
-      const threeHoursInMs = 3 * 60 * 60 * 1000;
-      expect(MATCH_EXPIRY_MS).toBe(threeHoursInMs);
+    it('should be exactly 24 hours', () => {
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+      expect(MATCH_EXPIRY_MS).toBe(twentyFourHoursInMs);
     });
   });
 });

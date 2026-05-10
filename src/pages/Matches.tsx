@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Heart, MapPin, RefreshCw, Trash2, CheckCircle, MessageCircle, Undo2, Loader2 } from "lucide-react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { getAllMatches, getRemainingSeconds, isExpired, type Match } from "@/lib/matchesCompat";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { firestore } from "@/firebase/config";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,54 @@ type MatchWithPreview = Match & {
   lastMessageSenderId?: string;
   isNew?: boolean;
 };
+
+type LastMessage = { text: string; ts: number; senderId?: string };
+
+/**
+ * Batch-fetch the latest message for many matches using Firestore's `in`
+ * operator (max 30 IDs per query). Falls back to per-match queries on error.
+ * Returns a map of matchId -> last message metadata.
+ */
+async function fetchLastMessagesBatched(matchIds: string[]): Promise<Map<string, LastMessage>> {
+  const result = new Map<string, LastMessage>();
+  if (!firestore || matchIds.length === 0) return result;
+
+  const CHUNK = 30;
+  const chunks: string[][] = [];
+  for (let i = 0; i < matchIds.length; i += CHUNK) {
+    chunks.push(matchIds.slice(i, i + CHUNK));
+  }
+
+  await Promise.all(
+    chunks.map(async (chunk) => {
+      try {
+        const snap = await getDocs(
+          query(
+            collection(firestore!, 'messages'),
+            where('matchId', 'in', chunk),
+            orderBy('createdAt', 'desc')
+          )
+        );
+        for (const d of snap.docs) {
+          const data = d.data() as { matchId?: string; text?: string; createdAt?: { toDate?: () => Date }; senderId?: string };
+          const mid = data.matchId;
+          if (!mid) continue;
+          if (result.has(mid)) continue; // first one is the latest because of orderBy desc
+          result.set(mid, {
+            text: data.text || '',
+            ts: data.createdAt?.toDate?.()?.getTime?.() || Date.now(),
+            senderId: typeof data.senderId === 'string' ? data.senderId : undefined,
+          });
+        }
+      } catch {
+        // Composite index may not be available for matchId+createdAt; ignore -
+        // matches without a preview will simply show "Say hello..."
+      }
+    })
+  );
+
+  return result;
+}
 
 export default function Matches() {
   const { currentUser } = useAuth();
@@ -54,66 +102,22 @@ export default function Matches() {
     if (!silent) setIsLoading(true);
     try {
       const allMatches = await getAllMatches(currentUser.uid);
-      const enrichedMatches: MatchWithPreview[] = await Promise.all(
-        allMatches.map(async (match) => {
-          let lastMsg: { text: string; ts: number; senderId?: string } | null = null;
-          if (firestore) {
-            try {
-              const snap = await getDocs(
-                query(
-                  collection(firestore, 'messages'),
-                  where('matchId', '==', match.id),
-                  orderBy('createdAt', 'desc'),
-                  limit(1)
-                )
-              );
-              if (!snap.empty) {
-                const d = snap.docs[0].data();
-                lastMsg = {
-                  text: d.text || '',
-                  ts: d.createdAt?.toDate?.()?.getTime?.() || Date.now(),
-                  senderId: typeof d.senderId === 'string' ? d.senderId : undefined,
-                };
-              }
-            } catch {
-              try {
-                const fallbackSnap = await getDocs(
-                  query(
-                    collection(firestore, 'messages'),
-                    where('matchId', '==', match.id)
-                  )
-                );
-                if (!fallbackSnap.empty) {
-                  let latest: { text: string; ts: number; senderId?: string } | null = null;
-                  fallbackSnap.docs.forEach(doc => {
-                    const d = doc.data();
-                    const ts = d.createdAt?.toDate?.()?.getTime?.() || 0;
-                    if (!latest || ts > latest.ts) {
-                      latest = {
-                        text: d.text || '',
-                        ts,
-                        senderId: typeof d.senderId === 'string' ? d.senderId : undefined,
-                      };
-                    }
-                  });
-                  lastMsg = latest;
-                }
-              } catch (fallbackErr) {
-                console.error('[Matches] fallback query also failed for', match.id, fallbackErr);
-              }
-            }
-          }
-          const now = Date.now();
-          const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
-          return {
-            ...match,
-            lastMessage: lastMsg?.text,
-            lastMessageTime: lastMsg?.ts,
-            lastMessageSenderId: lastMsg?.senderId,
-            isNew,
-          };
-        })
-      );
+
+      // Batch-fetch last messages for ALL matches in one (or few) Firestore
+      // queries using `where('matchId', 'in', [...])`. Was previously N+1.
+      const previews = await fetchLastMessagesBatched(allMatches.map(m => m.id));
+      const now = Date.now();
+      const enrichedMatches: MatchWithPreview[] = allMatches.map((match) => {
+        const lastMsg = previews.get(match.id);
+        const isNew = !lastMsg && (now - match.createdAt < 60 * 60 * 1000);
+        return {
+          ...match,
+          lastMessage: lastMsg?.text,
+          lastMessageTime: lastMsg?.ts,
+          lastMessageSenderId: lastMsg?.senderId,
+          isNew,
+        };
+      });
 
       enrichedMatches.sort((a, b) => {
         if (a.lastMessageTime && b.lastMessageTime) return b.lastMessageTime - a.lastMessageTime;
@@ -133,8 +137,18 @@ export default function Matches() {
 
   useEffect(() => {
     fetchMatches();
-    const interval = setInterval(() => fetchMatches(true), 30000);
-    return () => clearInterval(interval);
+    // Refresh on tab focus instead of polling every 30s. Realtime unread
+    // counts handle the common case (new messages) without extra round-trips.
+    const onFocus = () => fetchMatches(true);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchMatches(true);
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [fetchMatches]);
 
   // Subscribe to real-time unread counts

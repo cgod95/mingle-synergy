@@ -1,12 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import React, { useEffect, lazy, Suspense, useState, useRef } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import AppShell from "./components/layout/AppShell";
 import config from "./config";
 import { LoadingSpinner as StandardLoadingSpinner } from './components/ui/LoadingSpinner';
 
 import ProtectedRoute from "./components/ProtectedRoute";
-import AuthRoute from "./components/AuthRoute";
-import MingleLoader from "./components/ui/MingleLoader";
 // Import ChatRoomGuard directly (not lazy) to avoid Router context timing issues with useNavigate
 import ChatRoomGuard from "./pages/ChatRoomGuard";
 
@@ -44,7 +42,7 @@ const PageLoader = () => {
     return null;
   }
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-neutral-900 flex items-center justify-center">
+    <div className="min-h-[100dvh] bg-neutral-900 flex items-center justify-center">
       <StandardLoadingSpinner size="lg" message="Loading..." />
     </div>
   );
@@ -121,30 +119,19 @@ function AppRoutes() {
 }
 
 export default function App() {
-  // Skip initialization delay in demo mode to prevent flickering
-  const [isInitializing, setIsInitializing] = useState(!config.DEMO_MODE);
-
   useEffect(() => {
-    // In demo mode, skip the initialization delay
-    if (config.DEMO_MODE) {
-      setIsInitializing(false);
-      return;
+    if (config.DEMO_MODE) return;
+    // Run admin cleanup once after first paint, idle if available.
+    const run = () => {
+      import('@/lib/adminCleanup').then(m => m.runAdminCleanup()).catch(() => undefined);
+    };
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+    if (typeof ric === 'function') {
+      ric(run, { timeout: 2000 });
+    } else {
+      setTimeout(run, 800);
     }
-
-    // Run one-time admin cleanup (expire stale check-ins, update venue images)
-    import('@/lib/adminCleanup').then(m => m.runAdminCleanup()).catch(() => {});
-
-    // Simulate app initialization (like Tinder's loader) - only in production
-    const timer = setTimeout(() => {
-      setIsInitializing(false);
-    }, 1500); // Show loader for 1.5s minimum
-
-    return () => clearTimeout(timer);
   }, []);
-
-  if (isInitializing) {
-    return <MingleLoader />;
-  }
 
   return (
     <ErrorBoundary>
